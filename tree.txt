@@ -1,8 +1,8 @@
 american-mahjong-assistant/
 ├── backend/
 │   ├── src/
-│   │   ├── roomManager.ts (165 lines)
-│   │   └── server.ts (157 lines)
+│   │   ├── roomManager.ts (168 lines)
+│   │   └── server.ts (151 lines)
 │   ├── .gitkeep
 │   ├── package-lock.json (1800 lines)
 │   ├── package.json (30 lines)
@@ -19,38 +19,38 @@ american-mahjong-assistant/
 │   │   │   └── react.svg
 │   │   ├── components/
 │   │   │   ├── game/
-│   │   │   │   ├── ActionButtons.tsx
-│   │   │   │   ├── DiscardPile.tsx
-│   │   │   │   ├── ExposedSets.tsx
-│   │   │   │   ├── GameTable.tsx
+│   │   │   │   ├── ActionButtons.tsx (201 lines)
+│   │   │   │   ├── DiscardPile.tsx (148 lines)
+│   │   │   │   ├── ExposedSets.tsx (89 lines)
+│   │   │   │   ├── GameTable.tsx (143 lines)
 │   │   │   │   ├── index.ts (8 lines)
-│   │   │   │   ├── SharedGameView.tsx
-│   │   │   │   └── TurnTimer.tsx
+│   │   │   │   ├── SharedGameView.tsx (139 lines)
+│   │   │   │   └── TurnTimer.tsx (130 lines)
 │   │   │   ├── PrivateHandView/
 │   │   │   │   ├── hooks/
-│   │   │   │   │   ├── useHandAnalysis.tsx
-│   │   │   │   │   └── usePrivateGameState.tsx
-│   │   │   │   ├── HandAnalysisPanel.tsx
-│   │   │   │   ├── HandTileGrid.tsx
+│   │   │   │   │   ├── useHandAnalysis.tsx (193 lines)
+│   │   │   │   │   └── usePrivateGameState.tsx (112 lines)
+│   │   │   │   ├── HandAnalysisPanel.tsx (363 lines)
+│   │   │   │   ├── HandTileGrid.tsx (294 lines)
 │   │   │   │   ├── index.ts (17 lines)
-│   │   │   │   ├── PrivateHandView.tsx
-│   │   │   │   └── TileActionBar.tsx
+│   │   │   │   ├── PrivateHandView.tsx (192 lines)
+│   │   │   │   └── TileActionBar.tsx (181 lines)
 │   │   │   ├── room/
-│   │   │   │   ├── RoomCreation.tsx
-│   │   │   │   └── RoomJoining.tsx
+│   │   │   │   ├── RoomCreation.tsx (230 lines)
+│   │   │   │   └── RoomJoining.tsx (159 lines)
 │   │   │   ├── shared/
 │   │   │   ├── tiles/
-│   │   │   │   ├── TileComponent.tsx
-│   │   │   │   └── TileGrid.tsx
+│   │   │   │   ├── TileComponent.tsx (132 lines)
+│   │   │   │   └── TileGrid.tsx (135 lines)
 │   │   │   ├── ui/
 │   │   │   ├── README.md
-│   │   │   └── RoomManager.js (180 lines)
+│   │   │   └── RoomManager.tsx (180 lines)
 │   │   ├── hooks/
-│   │   │   └── useSocket.js (165 lines)
+│   │   │   └── useSocket.ts (201 lines)
 │   │   ├── pages/
-│   │   │   ├── GameLobbyPage.tsx
-│   │   │   ├── HomePage.tsx
-│   │   │   └── TileInputTest.tsx
+│   │   │   ├── GameLobbyPage.tsx (295 lines)
+│   │   │   ├── HomePage.tsx (101 lines)
+│   │   │   └── TileInputTest.tsx (170 lines)
 │   │   ├── types/
 │   │   │   ├── index.ts (277 lines)
 │   │   │   ├── socket-events.ts (490 lines)
@@ -58,9 +58,9 @@ american-mahjong-assistant/
 │   │   ├── utils/
 │   │   │   └── tile-utils.ts (156 lines)
 │   │   ├── App.css (83 lines)
-│   │   ├── App.tsx
+│   │   ├── App.tsx (176 lines)
 │   │   ├── index.css (5 lines)
-│   │   ├── main.tsx
+│   │   ├── main.tsx (9 lines)
 │   │   └── vite-env.d.ts (1 lines)
 │   ├── .gitignore
 │   ├── .gitkeep
@@ -79,15 +79,16 @@ american-mahjong-assistant/
 ├── mahjong functional analysis.md
 ├── mahjong technical analysis.md
 ├── README.md
+├── tree.txt
 └── tree_scanner.py (250 lines)
 
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
 Total directories: 20
-Total files: 61
-Files with line counts: 28
-Total lines of code: 8,893
+Total files: 62
+Files with line counts: 49
+Total lines of code: 12,518
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv

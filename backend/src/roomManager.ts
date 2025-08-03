@@ -6,11 +6,18 @@ interface Player {
   name: string;
   isHost: boolean;
   joinedAt: Date;
+  isParticipating: boolean;  // Whether player is actively playing
+  isOnline: boolean;         // Connection status
+  tilesInputted: boolean;    // Whether they've entered their tiles
+  tilesCount: number;        // Number of tiles they have (private count only)
 }
 
 interface GameState {
-  phase: 'waiting' | 'playing' | 'finished';
+  phase: 'waiting' | 'tile-input' | 'charleston' | 'playing' | 'finished';
   currentRound: number;
+  startedAt?: Date;
+  participatingPlayers: string[]; // IDs of players actually playing
+  playersReady: string[];         // IDs of players ready for next phase
 }
 
 interface Room {
@@ -18,6 +25,8 @@ interface Room {
   createdAt: Date;
   players: Map<string, Player>;
   gameState: GameState;
+  minPlayers: number;
+  maxPlayers: number;
 }
 
 interface CreateRoomResult {
@@ -35,6 +44,16 @@ interface LeaveRoomResult {
   success: true;
   room?: Room;
   roomDeleted: boolean;
+}
+
+interface StartGameResult {
+  success: true;
+  room: Room;
+}
+
+interface UpdatePlayerResult {
+  success: true;
+  room: Room;
 }
 
 interface ErrorResult {
@@ -69,7 +88,11 @@ class RoomManager {
       gameState: {
         phase: 'waiting',
         currentRound: 0,
-      }
+        participatingPlayers: [],
+        playersReady: []
+      },
+      minPlayers: 2,
+      maxPlayers: 4
     };
 
     // Add creator to room
@@ -77,7 +100,11 @@ class RoomManager {
       id: creatorSocketId,
       name: creatorName,
       isHost: true,
-      joinedAt: new Date()
+      joinedAt: new Date(),
+      isParticipating: true,
+      isOnline: true,
+      tilesInputted: false,
+      tilesCount: 0
     });
 
     this.rooms.set(roomCode, room);
@@ -99,8 +126,13 @@ class RoomManager {
       return { success: false, error: 'Already in this room' };
     }
 
-    if (room.players.size >= 4) {
-      return { success: false, error: 'Room is full (max 4 players)' };
+    if (room.players.size >= room.maxPlayers) {
+      return { success: false, error: `Room is full (max ${room.maxPlayers} players)` };
+    }
+
+    // Can't join if game is already in progress
+    if (room.gameState.phase !== 'waiting') {
+      return { success: false, error: 'Game is already in progress' };
     }
 
     // Add player to room
@@ -108,12 +140,146 @@ class RoomManager {
       id: socketId,
       name: playerName,
       isHost: false,
-      joinedAt: new Date()
+      joinedAt: new Date(),
+      isParticipating: true,
+      isOnline: true,
+      tilesInputted: false,
+      tilesCount: 0
     });
 
     this.playerRooms.set(socketId, roomCode);
 
     console.log(`${playerName} joined room ${roomCode}`);
+    return { success: true, room };
+  }
+
+  // Start the game (host only)
+  startGame(hostSocketId: string): StartGameResult | ErrorResult {
+    const room = this.getRoomByPlayer(hostSocketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can start game' };
+    }
+
+    const participatingPlayers = Array.from(room.players.values())
+      .filter(p => p.isParticipating && p.isOnline);
+
+    if (participatingPlayers.length < room.minPlayers) {
+      return { success: false, error: `Need at least ${room.minPlayers} players to start` };
+    }
+
+    // Update game state
+    room.gameState = {
+      phase: 'tile-input',
+      currentRound: 1,
+      startedAt: new Date(),
+      participatingPlayers: participatingPlayers.map(p => p.id),
+      playersReady: []
+    };
+
+    console.log(`Game started in room ${room.code} with ${participatingPlayers.length} players`);
+    return { success: true, room };
+  }
+
+  // Update player participation/readiness (host only)
+  updatePlayerStatus(
+    hostSocketId: string, 
+    targetPlayerId: string, 
+    updates: { isParticipating?: boolean; tilesInputted?: boolean }
+  ): UpdatePlayerResult | ErrorResult {
+    const room = this.getRoomByPlayer(hostSocketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can update player status' };
+    }
+
+    const targetPlayer = room.players.get(targetPlayerId);
+    if (!targetPlayer) {
+      return { success: false, error: 'Player not found' };
+    }
+
+    // Apply updates
+    if (updates.isParticipating !== undefined) {
+      targetPlayer.isParticipating = updates.isParticipating;
+    }
+    if (updates.tilesInputted !== undefined) {
+      targetPlayer.tilesInputted = updates.tilesInputted;
+    }
+
+    // Update participating players list if needed
+    if (updates.isParticipating !== undefined) {
+      const participatingIds = Array.from(room.players.values())
+        .filter(p => p.isParticipating && p.isOnline)
+        .map(p => p.id);
+      room.gameState.participatingPlayers = participatingIds;
+    }
+
+    console.log(`Host updated ${targetPlayer.name} status in room ${room.code}`);
+    return { success: true, room };
+  }
+
+  // Player updates their tile count
+  updatePlayerTiles(socketId: string, tileCount: number): UpdatePlayerResult | ErrorResult {
+    const room = this.getRoomByPlayer(socketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const player = room.players.get(socketId);
+    if (!player) {
+      return { success: false, error: 'Player not found' };
+    }
+
+    // Update tile count and mark as inputted if they have 13 tiles
+    player.tilesCount = tileCount;
+    player.tilesInputted = tileCount === 13;
+
+    // Check if all participating players have inputted tiles
+    const participatingPlayers = Array.from(room.players.values())
+      .filter(p => room.gameState.participatingPlayers.includes(p.id));
+    
+    const allReady = participatingPlayers.every(p => p.tilesInputted);
+    
+    if (allReady && room.gameState.phase === 'tile-input') {
+      // Auto-advance to next phase when all players ready
+      room.gameState.phase = 'charleston';
+      room.gameState.playersReady = participatingPlayers.map(p => p.id);
+      console.log(`All players ready in room ${room.code}, advancing to charleston`);
+    }
+
+    console.log(`${player.name} updated tiles (${tileCount}) in room ${room.code}`);
+    return { success: true, room };
+  }
+
+  // Mark player connection status
+  updatePlayerConnection(socketId: string, isOnline: boolean): UpdatePlayerResult | ErrorResult {
+    const room = this.getRoomByPlayer(socketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const player = room.players.get(socketId);
+    if (!player) {
+      return { success: false, error: 'Player not found' };
+    }
+
+    player.isOnline = isOnline;
+
+    // Update participating players if connection changed
+    const participatingIds = Array.from(room.players.values())
+      .filter(p => p.isParticipating && p.isOnline)
+      .map(p => p.id);
+    room.gameState.participatingPlayers = participatingIds;
+
+    console.log(`${player.name} is now ${isOnline ? 'online' : 'offline'} in room ${room.code}`);
     return { success: true, room };
   }
 
@@ -147,12 +313,17 @@ class RoomManager {
       const players = Array.from(room.players.values());
       const oldestPlayer = players.sort((a, b) => a.joinedAt.getTime() - b.joinedAt.getTime())[0];
       
-      // This should never happen since we checked room.players.size > 0, but let's be safe
       if (oldestPlayer) {
         oldestPlayer.isHost = true;
         console.log(`${oldestPlayer.name} is now host of room ${roomCode}`);
       }
     }
+
+    // Update participating players list
+    const participatingIds = Array.from(room.players.values())
+      .filter(p => p.isParticipating && p.isOnline)
+      .map(p => p.id);
+    room.gameState.participatingPlayers = participatingIds;
 
     return { success: true, room, roomDeleted: false };
   }
@@ -192,6 +363,7 @@ class RoomManager {
       rooms: Array.from(this.rooms.entries()).map(([code, room]) => ({
         code,
         playerCount: room.players.size,
+        participatingCount: room.gameState.participatingPlayers.length,
         phase: room.gameState.phase,
         createdAt: room.createdAt
       }))

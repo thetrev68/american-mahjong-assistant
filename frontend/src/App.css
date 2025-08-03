@@ -1,6 +1,5 @@
 /* frontend/src/App.css */
-@tailwind base;
-@tailwind components;
+@import "tailwindcss";
 @tailwind utilities;
 
 /* Custom styles for the American Mahjong Web Assistant */

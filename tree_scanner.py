@@ -103,7 +103,7 @@ class TreeScanner:
     def is_text_file(self, file_path: Path) -> bool:
         """Check if file is likely a text file"""
         text_extensions = {
-            '.py', '.js', '.ts', 'tsx', '.html', '.css', '.md', '.txt', '.json',
+            '.py', '.js', '.ts', '.tsx', '.html', '.css', '.md', '.txt', '.json',
             '.yaml', '.yml', '.xml', '.csv', '.log', '.ini', '.cfg', '.sql',
             '.dart', '.java', '.cpp', '.c', '.h', '.php', '.rb', '.go'
         }
