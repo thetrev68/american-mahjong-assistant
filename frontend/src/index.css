@@ -1,0 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Mobile-optimized base styles */
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+}
