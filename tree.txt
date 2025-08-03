@@ -1,0 +1,94 @@
+american-mahjong-assistant/
+├── backend/
+│   ├── src/
+│   │   ├── roomManager.ts (165 lines)
+│   │   └── server.ts (157 lines)
+│   ├── .gitkeep
+│   ├── package-lock.json (1800 lines)
+│   ├── package.json (30 lines)
+│   └── tsconfig.json (37 lines)
+├── frontend/
+│   ├── src/
+│   │   ├── assets/
+│   │   │   ├── images/
+│   │   │   │   ├── fonts/
+│   │   │   │   ├── icons/
+│   │   │   │   ├── back.png
+│   │   │   │   ├── tiles.json (323 lines)
+│   │   │   │   └── tiles.png
+│   │   │   └── react.svg
+│   │   ├── components/
+│   │   │   ├── game/
+│   │   │   │   ├── ActionButtons.tsx
+│   │   │   │   ├── DiscardPile.tsx
+│   │   │   │   ├── ExposedSets.tsx
+│   │   │   │   ├── GameTable.tsx
+│   │   │   │   ├── index.ts (8 lines)
+│   │   │   │   ├── SharedGameView.tsx
+│   │   │   │   └── TurnTimer.tsx
+│   │   │   ├── PrivateHandView/
+│   │   │   │   ├── hooks/
+│   │   │   │   │   ├── useHandAnalysis.tsx
+│   │   │   │   │   └── usePrivateGameState.tsx
+│   │   │   │   ├── HandAnalysisPanel.tsx
+│   │   │   │   ├── HandTileGrid.tsx
+│   │   │   │   ├── index.ts (17 lines)
+│   │   │   │   ├── PrivateHandView.tsx
+│   │   │   │   └── TileActionBar.tsx
+│   │   │   ├── room/
+│   │   │   │   ├── RoomCreation.tsx
+│   │   │   │   └── RoomJoining.tsx
+│   │   │   ├── shared/
+│   │   │   ├── tiles/
+│   │   │   │   ├── TileComponent.tsx
+│   │   │   │   └── TileGrid.tsx
+│   │   │   ├── ui/
+│   │   │   ├── README.md
+│   │   │   └── RoomManager.js (180 lines)
+│   │   ├── hooks/
+│   │   │   └── useSocket.js (165 lines)
+│   │   ├── pages/
+│   │   │   ├── GameLobbyPage.tsx
+│   │   │   ├── HomePage.tsx
+│   │   │   └── TileInputTest.tsx
+│   │   ├── types/
+│   │   │   ├── index.ts (277 lines)
+│   │   │   ├── socket-events.ts (490 lines)
+│   │   │   └── types.ts (277 lines)
+│   │   ├── utils/
+│   │   │   └── tile-utils.ts (156 lines)
+│   │   ├── App.css (83 lines)
+│   │   ├── App.tsx
+│   │   ├── index.css (5 lines)
+│   │   ├── main.tsx
+│   │   └── vite-env.d.ts (1 lines)
+│   ├── .gitignore
+│   ├── .gitkeep
+│   ├── eslint.config.js (22 lines)
+│   ├── index.html (13 lines)
+│   ├── package-lock.json (4324 lines)
+│   ├── package.json (35 lines)
+│   ├── postcss.config.js (6 lines)
+│   ├── README.md
+│   ├── tailwind.config.js (11 lines)
+│   ├── tsconfig.app.json (25 lines)
+│   ├── tsconfig.json (7 lines)
+│   ├── tsconfig.node.json (23 lines)
+│   └── vite.config.ts (6 lines)
+├── .gitignore
+├── mahjong functional analysis.md
+├── mahjong technical analysis.md
+├── README.md
+└── tree_scanner.py (250 lines)
+
+==================================================
+DIRECTORY TREE STATISTICS
+==================================================
+Total directories: 20
+Total files: 61
+Files with line counts: 28
+Total lines of code: 8,893
+
+Configuration:
+  Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv
+  Line counting for: .c, .cpp, .css, .dart, .h, .html, .java, .js, .json, .py, .ts, .tsx, .yaml, .yml
