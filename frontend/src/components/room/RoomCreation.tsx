@@ -1,6 +1,7 @@
 // frontend/src/components/room/RoomCreation.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { GameSettings } from '../../types';
+import { useRoom } from '../../hooks/useSocket';
 
 interface RoomCreationProps {
   onRoomCreated: (roomId: string, hostName: string) => void;
@@ -9,7 +10,6 @@ interface RoomCreationProps {
 
 const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) => {
   const [hostName, setHostName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
   const [settings, setSettings] = useState<GameSettings>({
     enableCharleston: true,
     charlestonTimeLimit: 60,
@@ -19,32 +19,25 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) =>
     cardYear: 2025
   });
 
-  // Generate a simple room code
-  const generateRoomCode = (): string => {
-    const words = ['TILE', 'MANG', 'KONG', 'PUNG', 'WIND', 'DRAG'];
-    const numbers = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const word = words[Math.floor(Math.random() * words.length)];
-    return `${word}${numbers}`;
-  };
+  // FIXED: Use real socket hook
+  const { room, createRoom, isLoading, error, isConnected } = useRoom();
+
+  // FIXED: Handle successful room creation
+  useEffect(() => {
+    if (room && room.code) {
+      // Room was created successfully!
+      onRoomCreated(room.code, hostName);
+    }
+  }, [room, hostName, onRoomCreated]);
 
   const handleCreateRoom = async () => {
     if (!hostName.trim()) return;
 
-    setIsCreating(true);
-    
-    // Simulate room creation (replace with actual API call later)
-    try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate network delay
-      const roomId = generateRoomCode();
-      onRoomCreated(roomId, hostName.trim());
-    } catch (error) {
-      console.error('Failed to create room:', error);
-    } finally {
-      setIsCreating(false);
-    }
+    // FIXED: Use real backend call instead of mock
+    createRoom(hostName.trim());
   };
 
-  const canCreate = hostName.trim().length >= 2 && !isCreating;
+  const canCreate = hostName.trim().length >= 2 && !isLoading && isConnected;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
@@ -64,6 +57,16 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) =>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+          {/* Connection Status */}
+          {!isConnected && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-red-600">⚠️</span>
+                <div className="text-sm text-red-800">Not connected to server</div>
+              </div>
+            </div>
+          )}
+
           {/* Host Name Input */}
           <div>
             <label htmlFor="hostName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -208,6 +211,16 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) =>
             </div>
           </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-red-600">⚠️</span>
+                <div className="text-sm text-red-800">{error}</div>
+              </div>
+            </div>
+          )}
+
           {/* Create Button */}
           <button
             onClick={handleCreateRoom}
@@ -220,7 +233,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) =>
               }
             `}
           >
-            {isCreating ? (
+            {isLoading ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Creating Room...

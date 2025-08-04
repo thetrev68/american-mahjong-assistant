@@ -1,10 +1,10 @@
-// /frontend/src/hooks/useSocket.ts
+// frontend/src/hooks/useSocket.ts
 // React hooks for Socket.io room management
 
 import { useEffect, useState, useCallback, useRef } from 'react';
 import io, { Socket } from 'socket.io-client';
 
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = 'http://localhost:5000';
 
 // Type definitions for room data
 interface Player {
@@ -12,11 +12,18 @@ interface Player {
   name: string;
   isHost: boolean;
   joinedAt: string | Date;
+  isParticipating: boolean;  // Whether player is actively playing
+  isOnline: boolean;         // Connection status
+  tilesInputted: boolean;    // Whether they've entered their tiles
+  tilesCount: number;        // Number of tiles they have (private count only)
 }
 
 interface GameState {
-  phase: 'waiting' | 'playing' | 'finished';
+  phase: 'waiting' | 'tile-input' | 'charleston' | 'playing' | 'finished';
   currentRound: number;
+  startedAt?: string | Date;
+  participatingPlayers: string[]; // IDs of players actually playing
+  playersReady: string[];         // IDs of players ready for next phase
 }
 
 interface Room {
@@ -45,11 +52,25 @@ export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const socketRef = useRef<Socket | null>(null);
+  const initRef = useRef<boolean>(false);
 
   useEffect(() => {
+    // FIXED: Prevent duplicate connections in React StrictMode
+    if (initRef.current || socketRef.current) {
+      console.log('Socket already initialized, skipping...');
+      return;
+    }
+
+    console.log('Initializing socket connection...');
+    initRef.current = true;
+
     // Create socket connection
     const newSocket = io(SOCKET_URL, {
       autoConnect: true,
+      forceNew: false, // Allow reusing existing connection
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
 
     newSocket.on('connect', () => {
@@ -62,12 +83,27 @@ export const useSocket = () => {
       setIsConnected(false);
     });
 
+    newSocket.on('reconnect', () => {
+      console.log('Reconnected to server');
+      setIsConnected(true);
+    });
+
     socketRef.current = newSocket;
     setSocket(newSocket);
 
     // Cleanup on unmount
     return () => {
-      newSocket.close();
+      // FIXED: Don't cleanup socket in development mode to prevent React StrictMode issues
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Cleaning up socket connection');
+        if (socketRef.current) {
+          socketRef.current.close();
+          socketRef.current = null;
+        }
+        initRef.current = false;
+      } else {
+        console.log('Skipping socket cleanup in development mode');
+      }
     };
   }, []);
 
@@ -95,8 +131,12 @@ export const useRoom = () => {
 
     const handleRoomCreated = (data: RoomData) => {
       console.log('Room created:', data);
+      console.log('Room data received:', JSON.stringify(data, null, 2));
       if (data.room) {
         setRoom(data.room);
+        console.log('Room state updated successfully');
+      } else {
+        console.log('No room data in response');
       }
       setIsLoading(false);
       setError(null);
@@ -137,24 +177,51 @@ export const useRoom = () => {
       }
     };
 
+    // Handle room updates (from your backend)
+    const handleRoomUpdated = (data: Room) => {
+      console.log('Room updated:', data);
+      setRoom(data);
+    };
+
+    // Handle game started event
+    const handleGameStarted = (data: { phase: string; participatingPlayers: string[]; startedAt: string | Date }) => {
+      console.log('Game started:', data);
+      // Room will be updated via room-updated event, so just log for now
+    };
+
+    // Handle phase changes
+    const handlePhaseChanged = (data: { newPhase: string; message?: string }) => {
+      console.log('Phase changed:', data);
+      if (data.message) {
+        // Could show a notification here later
+        console.log('Phase change message:', data.message);
+      }
+    };
+
     const handleRoomInfo = (data: Room) => {
       setRoom(data);
       setIsLoading(false);
     };
 
     const handleRoomError = (data: RoomError) => {
-      console.error('Room error:', data.message);
-      setError(data.message);
+      console.log('Room error:', data.message);
+      // FIXED: Don't show "Not in any room" error when user isn't trying to be in a room
+      if (data.message !== 'Not in any room') {
+        setError(data.message);
+      }
       setIsLoading(false);
     };
 
-    // Register event listeners
+    // Register all event listeners
     socket.on('room-created', handleRoomCreated);
     socket.on('room-joined', handleRoomJoined);
     socket.on('room-left', handleRoomLeft);
     socket.on('player-joined', handlePlayerJoined);
     socket.on('player-left', handlePlayerLeft);
     socket.on('player-disconnected', handlePlayerDisconnected);
+    socket.on('room-updated', handleRoomUpdated);
+    socket.on('game-started', handleGameStarted);
+    socket.on('phase-changed', handlePhaseChanged);
     socket.on('room-info', handleRoomInfo);
     socket.on('room-error', handleRoomError);
 
@@ -166,23 +233,27 @@ export const useRoom = () => {
       socket.off('player-joined', handlePlayerJoined);
       socket.off('player-left', handlePlayerLeft);
       socket.off('player-disconnected', handlePlayerDisconnected);
+      socket.off('room-updated', handleRoomUpdated);
+      socket.off('game-started', handleGameStarted);
+      socket.off('phase-changed', handlePhaseChanged);
       socket.off('room-info', handleRoomInfo);
       socket.off('room-error', handleRoomError);
     };
   }, [socket]);
 
-  // Get current room info on connect
-  useEffect(() => {
-    if (socket && isConnected) {
-      socket.emit('get-room-info');
-    }
-  }, [socket, isConnected]);
+  // FIXED: Don't automatically request room info on connect - only when user is actually in a room
+  // This was causing the "Not in any room" error spam
 
   // Room actions
   const createRoom = useCallback((playerName: string) => {
+    console.log('createRoom called with:', playerName); 
+    console.log('socket:', socket, 'isConnected:', isConnected); 
+
     if (!socket || !isConnected) return;
     setIsLoading(true);
     setError(null);
+
+    console.log('Emitting create-room event');
     socket.emit('create-room', { playerName });
   }, [socket, isConnected]);
 
@@ -201,8 +272,29 @@ export const useRoom = () => {
   }, [socket, isConnected]);
 
   const refreshRoom = useCallback(() => {
-    if (!socket || !isConnected) return;
+    if (!socket || !isConnected || !room) return;
     socket.emit('get-room-info');
+  }, [socket, isConnected, room]);
+
+  // Game phase actions
+  const startGame = useCallback(() => {
+    if (!socket || !isConnected) return;
+    setIsLoading(true);
+    setError(null);
+    socket.emit('start-game');
+  }, [socket, isConnected]);
+
+  const updateTiles = useCallback((tileCount: number) => {
+    if (!socket || !isConnected) return;
+    socket.emit('update-tiles', { tileCount });
+  }, [socket, isConnected]);
+
+  const updatePlayerStatus = useCallback((targetPlayerId: string, updates: { isParticipating?: boolean; tilesInputted?: boolean }) => {
+    if (!socket || !isConnected) return;
+    socket.emit('update-player-status', { 
+      targetPlayerId, 
+      ...updates 
+    });
   }, [socket, isConnected]);
 
   return {
@@ -214,10 +306,13 @@ export const useRoom = () => {
     joinRoom,
     leaveRoom,
     refreshRoom,
+    startGame,
+    updateTiles,
+    updatePlayerStatus,
   };
 };
 
-// Simple connection test hook
+// Simple connection test hook (unchanged)
 export const useConnectionTest = () => {
   const { socket, isConnected } = useSocket();
   const [pingTime, setPingTime] = useState<number | null>(null);

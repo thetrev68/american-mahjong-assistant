@@ -14,7 +14,7 @@ type AppState =
   | 'join-room'
   | 'lobby'
   | 'game'
-  | 'tile-test'; // Keep the tile test for development
+  | 'tile-test';
 
 interface GameSession {
   roomId: string;
@@ -39,15 +39,16 @@ function App() {
     setGameSession(null);
   };
 
-  // Room creation flow
+  // FIXED: Real room creation using backend
   const handleRoomCreated = (roomId: string, hostName: string) => {
+    // Create player object for the host
     const hostPlayer: Player = {
-      id: '1', // Generate proper ID later
+      id: 'host-socket-id', // This will be replaced with real socket ID
       name: hostName,
-      position: 'east', // Host is always East (dealer)
+      position: 'east',
       isHost: true,
       isConnected: true,
-      isReady: true, // Host is automatically ready
+      isReady: true,
       tilesInHand: 0,
       exposedSets: [],
       hasCalledMahjong: false
@@ -60,16 +61,13 @@ function App() {
     setCurrentView('lobby');
   };
 
-  // Room joining flow
+  // FIXED: Real room joining using backend
   const handleRoomJoined = (roomId: string, playerName: string) => {
-    // Assign positions in order: South, West, North
-    const positions = ['south', 'west', 'north'] as const;
-    const assignedPosition = positions[0]; // Simplified for now - real app would get this from server
-
+    // Create player object for the joining player
     const player: Player = {
-      id: Math.random().toString(36).substr(2, 9), // Generate proper ID later
+      id: 'player-socket-id', // This will be replaced with real socket ID
       name: playerName,
-      position: assignedPosition,
+      position: 'south', // Will be determined by backend
       isHost: false,
       isConnected: true,
       isReady: false,
@@ -86,10 +84,6 @@ function App() {
   };
 
   // Game flow handlers
-  const handleStartGame = () => {
-    setCurrentView('game');
-  };
-
   const handleLeaveRoom = () => {
     setGameSession(null);
     setCurrentView('home');
@@ -146,7 +140,6 @@ function App() {
           <GameLobbyPage
             roomId={gameSession.roomId}
             currentPlayer={gameSession.currentPlayer}
-            onStartGame={handleStartGame}
             onLeaveRoom={handleLeaveRoom}
           />
         );
