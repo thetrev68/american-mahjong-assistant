@@ -1,5 +1,5 @@
 // frontend/src/components/room/RoomJoining.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useRoom } from '../../hooks/useSocket';
 
 interface RoomJoiningProps {
@@ -7,27 +7,40 @@ interface RoomJoiningProps {
   onBack: () => void;
 }
 
-const RoomJoining: React.FC<RoomJoiningProps> = ({ onRoomJoined, onBack }) => {
+const RoomJoining: React.FC<RoomJoiningProps> = ({ onBack }) => {
   const [roomCode, setRoomCode] = useState('');
   const [playerName, setPlayerName] = useState('');
-
-  // FIXED: Use real socket hook
-  const { room, joinRoom, isLoading, error, isConnected } = useRoom();
-
-  // FIXED: Handle successful room joining
-  useEffect(() => {
-    if (room && room.code) {
-      // Room was joined successfully!
-      onRoomJoined(room.code, playerName);
-    }
-  }, [room, playerName, onRoomJoined]);
+  const [isJoining, setIsJoining] = useState(false);
+  
+  // FIXED: Use actual socket functions instead of mock joining
+  const { joinRoom, isLoading, error } = useRoom();
 
   const handleJoinRoom = async () => {
     if (!roomCode.trim() || !playerName.trim()) return;
 
-    // FIXED: Use real backend call instead of mock
-    joinRoom(roomCode.trim().toUpperCase(), playerName.trim());
+    setIsJoining(true);
+
+    // Call the actual socket joinRoom function
+    const cleanRoomCode = roomCode.trim().toUpperCase();
+    console.log('RoomJoining: calling joinRoom with', cleanRoomCode, playerName.trim());
+    joinRoom(cleanRoomCode, playerName.trim());
+    
+    // Don't call onRoomJoined here - wait for the socket event
+    // The useRoom hook will handle the room-joined event
   };
+
+  // Listen for loading state changes
+  React.useEffect(() => {
+    setIsJoining(isLoading);
+  }, [isLoading]);
+
+  // Handle errors
+  React.useEffect(() => {
+    if (error) {
+      setIsJoining(false);
+      // Error will be displayed below
+    }
+  }, [error]);
 
   const handleRoomCodeChange = (value: string) => {
     // Clean up room code input - only letters and numbers
@@ -35,7 +48,7 @@ const RoomJoining: React.FC<RoomJoiningProps> = ({ onRoomJoined, onBack }) => {
     setRoomCode(cleaned);
   };
 
-  const canJoin = roomCode.trim().length >= 4 && playerName.trim().length >= 2 && !isLoading && isConnected;
+  const canJoin = roomCode.trim().length >= 4 && playerName.trim().length >= 2 && !isJoining;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
@@ -55,16 +68,6 @@ const RoomJoining: React.FC<RoomJoiningProps> = ({ onRoomJoined, onBack }) => {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-          {/* Connection Status */}
-          {!isConnected && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <span className="text-red-600">⚠️</span>
-                <div className="text-sm text-red-800">Not connected to server</div>
-              </div>
-            </div>
-          )}
-
           {/* Room Code Input */}
           <div>
             <label htmlFor="roomCode" className="block text-sm font-medium text-gray-700 mb-2">
@@ -125,7 +128,7 @@ const RoomJoining: React.FC<RoomJoiningProps> = ({ onRoomJoined, onBack }) => {
               }
             `}
           >
-            {isLoading ? (
+            {isJoining ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Joining Room...

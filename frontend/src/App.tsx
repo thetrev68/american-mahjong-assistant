@@ -1,5 +1,5 @@
 // frontend/src/App.tsx
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { Player } from './types';
 import { useRoom } from './hooks/useSocket';
 import HomePage from './pages/HomePage';
@@ -15,7 +15,7 @@ type AppState =
   | 'join-room'
   | 'lobby'
   | 'game'
-  | 'tile-test'; // Keep the tile test for development
+  | 'tile-test';
 
 interface GameSession {
   roomId: string;
@@ -26,8 +26,70 @@ function App() {
   const [currentView, setCurrentView] = useState<AppState>('home');
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   
-  // Move room management to App level - NOW INCLUDING toggleReady
-  const { room, createRoom, joinRoom, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, isConnected, isLoading, error } = useRoom();
+  // Room management - UPDATED: updateTiles now takes Tile[] instead of number
+  const { room, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, isConnected, isLoading, error } = useRoom();
+
+  // FIXED: Listen for successful room creation from socket
+  useEffect(() => {
+    if (room && currentView === 'create-room' && !gameSession) {
+      // Room was successfully created, transition to lobby
+      const hostPlayer = room.players.find(p => p.isHost);
+      if (hostPlayer) {
+        console.log('Room successfully created, transitioning to lobby');
+        const player: Player = {
+          id: hostPlayer.id,
+          name: hostPlayer.name,
+          position: 'east',
+          isHost: true,
+          isConnected: true,
+          isReady: true,
+          tilesInHand: 0,
+          exposedSets: [],
+          hasCalledMahjong: false
+        };
+
+        setGameSession({
+          roomId: room.code,
+          currentPlayer: player
+        });
+        setCurrentView('lobby');
+      }
+    }
+  }, [room, currentView, gameSession]);
+
+  // FIXED: Listen for successful room joining from socket
+  useEffect(() => {
+    if (room && currentView === 'join-room' && !gameSession) {
+      // Room was successfully joined, find our player
+      // The last player to join should be us
+      const players = room.players;
+      const ourPlayer = players[players.length - 1]; // Assume last player is us
+      
+      if (ourPlayer && !ourPlayer.isHost) {
+        console.log('Room successfully joined, transitioning to lobby');
+        const positions = ['south', 'west', 'north'] as const;
+        const assignedPosition = positions[players.length - 2] || 'south'; // Assign position based on join order
+
+        const player: Player = {
+          id: ourPlayer.id,
+          name: ourPlayer.name,
+          position: assignedPosition,
+          isHost: false,
+          isConnected: true,
+          isReady: false,
+          tilesInHand: 0,
+          exposedSets: [],
+          hasCalledMahjong: false
+        };
+
+        setGameSession({
+          roomId: room.code,
+          currentPlayer: player
+        });
+        setCurrentView('lobby');
+      }
+    }
+  }, [room, currentView, gameSession]);
 
   // Navigation handlers
   const handleCreateRoom = () => {
@@ -42,65 +104,20 @@ function App() {
     setCurrentView('home');
     setGameSession(null);
     if (room) {
-      leaveRoom(); // Leave room when going back to home
+      leaveRoom();
     }
   };
 
-  // Room creation flow
-  const handleRoomCreated = (roomId: string, hostName: string) => {
-    console.log('handleRoomCreated called with:', roomId, hostName);
-    
-    // Create room via socket
-    createRoom(hostName);
-    
-    // Create local session data
-    const hostPlayer: Player = {
-      id: '1', // Will be updated when socket confirms
-      name: hostName,
-      position: 'east', // Host is always East (dealer)
-      isHost: true,
-      isConnected: true,
-      isReady: true, // Host is automatically ready
-      tilesInHand: 0,
-      exposedSets: [],
-      hasCalledMahjong: false
-    };
-
-    setGameSession({
-      roomId,
-      currentPlayer: hostPlayer
-    });
-    setCurrentView('lobby');
+  // SIMPLIFIED: Room creation flow - just trigger the room creation
+  const handleRoomCreated = (_roomId: string, _hostName: string) => {
+    // The actual room creation and transition is handled by the useEffect above
+    // This function is now just for compatibility with RoomCreation component
   };
 
-  // Room joining flow
-  const handleRoomJoined = (roomId: string, playerName: string) => {
-    console.log('handleRoomJoined called with:', roomId, playerName);
-    
-    // Join room via socket
-    joinRoom(roomId, playerName);
-    
-    // Create local session data
-    const positions = ['south', 'west', 'north'] as const;
-    const assignedPosition = positions[0]; // Simplified for now
-
-    const player: Player = {
-      id: Math.random().toString(36).substr(2, 9), // Will be updated when socket confirms
-      name: playerName,
-      position: assignedPosition,
-      isHost: false,
-      isConnected: true,
-      isReady: false,
-      tilesInHand: 0,
-      exposedSets: [],
-      hasCalledMahjong: false
-    };
-
-    setGameSession({
-      roomId,
-      currentPlayer: player
-    });
-    setCurrentView('lobby');
+  // SIMPLIFIED: Room joining flow - socket handles the actual joining
+  const handleRoomJoined = (_roomId: string, _playerName: string) => {
+    // The actual room joining and transition is handled by the useEffect above
+    // This function is now just for compatibility with RoomJoining component
   };
 
   // Game flow handlers
@@ -165,14 +182,14 @@ function App() {
           <GameLobbyPage
             roomId={gameSession.roomId}
             currentPlayer={gameSession.currentPlayer}
-            room={room} // Pass room data from App
+            room={room}
             onStartGame={handleStartGame}
             onLeaveRoom={handleLeaveRoom}
-            // Pass socket functions down - NOW INCLUDING toggleReady
+            // UPDATED: updateTiles now takes Tile[] instead of number
             socketFunctions={{
               startGame,
-              toggleReady, // NEW - now passed down to GameLobbyPage
-              updateTiles,
+              toggleReady,
+              updateTiles, // Now expects Tile[] parameter
               updatePlayerStatus,
               isConnected,
               isLoading,

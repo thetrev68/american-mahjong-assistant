@@ -1,8 +1,9 @@
 // frontend/src/hooks/useSocket.ts
-// React hooks for Socket.io room management - Clean singleton approach
+// React hooks for Socket.io room management - Enhanced for tile data
 
 import { useEffect, useState, useCallback } from 'react';
 import io, { Socket } from 'socket.io-client';
+import type { Tile } from '../types';
 
 const SOCKET_URL = 'http://localhost:5000';
 
@@ -12,19 +13,20 @@ interface Player {
   name: string;
   isHost: boolean;
   joinedAt: string | Date;
-  isParticipating: boolean;  // Whether player is actively playing
-  isOnline: boolean;         // Connection status
-  tilesInputted: boolean;    // Whether they've entered their tiles
-  tilesCount: number;        // Number of tiles they have (private count only)
-  isReady: boolean;          // Whether player is ready to start (NEW)
+  isParticipating: boolean;
+  isOnline: boolean;
+  tilesInputted: boolean;
+  tilesCount: number;
+  tiles?: Tile[]; // NEW: actual tile data
+  isReady: boolean;
 }
 
 interface GameState {
   phase: 'waiting' | 'tile-input' | 'charleston' | 'playing' | 'finished';
   currentRound: number;
   startedAt?: string | Date;
-  participatingPlayers: string[]; // IDs of players actually playing
-  playersReady: string[];         // IDs of players ready for next phase
+  participatingPlayers: string[];
+  playersReady: string[];
 }
 
 interface Room {
@@ -132,12 +134,8 @@ export const useRoom = () => {
 
     const handleRoomCreated = (data: RoomData) => {
       console.log('Room created:', data);
-      console.log('Setting room state to:', data.room);
       if (data.room) {
         setRoom(data.room);
-        console.log('Room state set successfully');
-      } else {
-        console.log('ERROR: No room data in response');
       }
       setIsLoading(false);
       setError(null);
@@ -230,12 +228,11 @@ export const useRoom = () => {
   // Room actions
   const createRoom = useCallback((playerName: string) => {
     console.log('createRoom called with:', playerName);
-    console.log('Current room state before create:', room);
     if (!socket || !isConnected) return;
     setIsLoading(true);
     setError(null);
     socket.emit('create-room', { playerName });
-  }, [socket, isConnected, room]);
+  }, [socket, isConnected]);
 
   const joinRoom = useCallback((roomCode: string, playerName: string) => {
     if (!socket || !isConnected) return;
@@ -269,9 +266,11 @@ export const useRoom = () => {
     socket.emit('toggle-ready');
   }, [socket, isConnected]);
 
-  const updateTiles = useCallback((tileCount: number) => {
+  // UPDATED: Now sends actual tile data instead of just count
+  const updateTiles = useCallback((tiles: Tile[]) => {
     if (!socket || !isConnected) return;
-    socket.emit('update-tiles', { tileCount });
+    console.log('Sending tiles to server:', tiles);
+    socket.emit('update-tiles', { tiles, tileCount: tiles.length });
   }, [socket, isConnected]);
 
   const updatePlayerStatus = useCallback((targetPlayerId: string, updates: { isParticipating?: boolean; tilesInputted?: boolean }) => {

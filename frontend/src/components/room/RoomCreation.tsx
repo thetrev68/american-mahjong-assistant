@@ -1,5 +1,5 @@
 // frontend/src/components/room/RoomCreation.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import type { GameSettings } from '../../types';
 import { useRoom } from '../../hooks/useSocket';
 
@@ -8,8 +8,13 @@ interface RoomCreationProps {
   onBack: () => void;
 }
 
-const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) => {
+const RoomCreation: React.FC<RoomCreationProps> = ({ onBack }) => {
   const [hostName, setHostName] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  
+  // FIXED: Use actual socket functions instead of mock room creation
+  const { createRoom, isLoading, error } = useRoom();
+  
   const [settings, setSettings] = useState<GameSettings>({
     enableCharleston: true,
     charlestonTimeLimit: 60,
@@ -19,25 +24,36 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) =>
     cardYear: 2025
   });
 
-  // FIXED: Use real socket hook
-  const { room, createRoom, isLoading, error, isConnected } = useRoom();
-
-  // FIXED: Handle successful room creation
-  useEffect(() => {
-    if (room && room.code) {
-      // Room was created successfully!
-      onRoomCreated(room.code, hostName);
-    }
-  }, [room, hostName, onRoomCreated]);
-
+  // FIXED: Use socket createRoom instead of generating mock room codes
   const handleCreateRoom = async () => {
     if (!hostName.trim()) return;
 
-    // FIXED: Use real backend call instead of mock
+    setIsCreating(true);
+    
+    // Call the actual socket createRoom function
+    console.log('RoomCreation: calling createRoom with', hostName.trim());
     createRoom(hostName.trim());
+    
+    // Don't call onRoomCreated here - wait for the socket event
+    // The useRoom hook will handle the room-created event and we'll listen for that
   };
 
-  const canCreate = hostName.trim().length >= 2 && !isLoading && isConnected;
+  // Listen for successful room creation
+  React.useEffect(() => {
+    // This will be handled by the parent component via useRoom hook
+    // No need to do anything here, just keep the loading state active
+    setIsCreating(isLoading);
+  }, [isLoading]);
+
+  // Handle errors
+  React.useEffect(() => {
+    if (error) {
+      setIsCreating(false);
+      // Error will be displayed below
+    }
+  }, [error]);
+
+  const canCreate = hostName.trim().length >= 2 && !isCreating;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 flex items-center justify-center p-4">
@@ -57,16 +73,6 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) =>
         </div>
 
         <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-          {/* Connection Status */}
-          {!isConnected && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <div className="flex items-center gap-2">
-                <span className="text-red-600">⚠️</span>
-                <div className="text-sm text-red-800">Not connected to server</div>
-              </div>
-            </div>
-          )}
-
           {/* Host Name Input */}
           <div>
             <label htmlFor="hostName" className="block text-sm font-medium text-gray-700 mb-2">
@@ -233,7 +239,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onRoomCreated, onBack }) =>
               }
             `}
           >
-            {isLoading ? (
+            {isCreating ? (
               <div className="flex items-center justify-center gap-2">
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                 Creating Room...

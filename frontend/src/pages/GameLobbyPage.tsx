@@ -1,9 +1,9 @@
 // frontend/src/pages/GameLobbyPage.tsx
 import React, { useState, useEffect, useMemo } from 'react';
-import type { Player, GameSettings, PlayerPosition } from '../types';
-import MyTileCounter from '../components/game/MyTileCounter';
+import type { Player, GameSettings, PlayerPosition, Tile } from '../types';
 import PlayerStatusList from '../components/game/PlayerStatusList';
 import GameProgress from '../components/game/GameProgress';
+import { PrivateHandView } from '../components/PrivateHandView';
 
 // Socket room types (from useSocket.ts)
 interface SocketPlayer {
@@ -14,8 +14,9 @@ interface SocketPlayer {
   isParticipating: boolean;
   isOnline: boolean;
   tilesInputted: boolean;
-  isReady: boolean; // NEW - added ready field
+  isReady: boolean;
   tilesCount: number;
+  tiles?: Tile[]; // NEW: actual tile data
 }
 
 interface SocketGameState {
@@ -34,9 +35,9 @@ interface SocketRoom {
 
 interface SocketFunctions {
   startGame: () => void;
-  updateTiles: (count: number) => void;
+  updateTiles: (tiles: Tile[]) => void; // CHANGED: now takes actual tiles
   updatePlayerStatus: (playerId: string, updates: { isParticipating?: boolean; tilesInputted?: boolean }) => void;
-  toggleReady: () => void; // Added toggleReady
+  toggleReady: () => void;
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
@@ -45,7 +46,7 @@ interface SocketFunctions {
 interface GameLobbyPageProps {
   roomId: string;
   currentPlayer: Player;
-  room: SocketRoom | null; // Room data from App
+  room: SocketRoom | null;
   onStartGame: () => void;
   onLeaveRoom: () => void;
   socketFunctions: SocketFunctions;
@@ -60,8 +61,8 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
 }) => {
   const { startGame, toggleReady, updateTiles, updatePlayerStatus, isConnected, isLoading } = socketFunctions;
   
-  // Local state for tile input
-  const [myTileCount, setMyTileCount] = useState(0);
+  // Local state for current player's tiles
+  const [myTiles, setMyTiles] = useState<Tile[]>([]);
 
   // Game settings from room or defaults
   const gameSettings: GameSettings = {
@@ -99,29 +100,40 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   const players: Player[] = socketPlayers.map((p, index) => ({
     id: p.id,
     name: p.name,
-    position: ['east', 'south', 'west', 'north'][index] as PlayerPosition, // Assign positions in order
+    position: ['east', 'south', 'west', 'north'][index] as PlayerPosition,
     isHost: p.isHost,
     isConnected: p.isOnline !== false,
-    isReady: p.isReady || false, // Use p.isReady from socket data
+    isReady: p.isReady || false,
     tilesInHand: p.tilesCount || 0,
     exposedSets: [],
     hasCalledMahjong: false
   }));
 
-  // Find current player in room data
-  const currentPlayerFromRoom = players.find(p => p.id === currentPlayer.id) || currentPlayer; // Match by ID for robustness
+  // FIXED: Find current player's ready state from socket room data instead of local state
+  const currentPlayerFromRoom = players.find(p => p.id === currentPlayer.id) || currentPlayer;
+  const currentPlayerSocketData = socketPlayers.find(p => p.id === currentPlayer.id);
+  const isCurrentPlayerReady = currentPlayerSocketData?.isReady || false;
   const isHost = currentPlayerFromRoom.isHost;
+
+  console.log('Ready state debug:', {
+    currentPlayerId: currentPlayer.id,
+    currentPlayerFromRoom: currentPlayerFromRoom,
+    currentPlayerSocketData: currentPlayerSocketData,
+    isCurrentPlayerReady: isCurrentPlayerReady,
+    allSocketPlayers: socketPlayers.map(p => ({ id: p.id, name: p.name, isReady: p.isReady }))
+  });
 
   // Check if all players are ready
   const allPlayersReady = (() => {
     if (gamePhase === 'waiting') {
-      // All players in the room must be ready (or be the host)
-      return players.length >= 2 && players.every(p => p.isReady || p.isHost);
+      const readyPlayers = socketPlayers.filter(p => p.isReady || p.isHost);
+      const totalPlayers = socketPlayers.length;
+      console.log('Ready check:', { readyPlayers: readyPlayers.length, totalPlayers, minPlayers: 2 });
+      return totalPlayers >= 2 && readyPlayers.length === totalPlayers;
     }
     if (gamePhase === 'tile-input') {
-      // Only participating players need to have inputted tiles
       const participatingPlayersList = players.filter(p => participatingPlayers.includes(p.id));
-      return participatingPlayersList.length > 0 && participatingPlayersList.every(p => p.tilesInHand > 0); // Assuming tilesInHand > 0 means inputted
+      return participatingPlayersList.length > 0 && participatingPlayersList.every(p => p.tilesInHand === 13);
     }
     return false;
   })();
@@ -129,13 +141,14 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   // Handle start game
   const handleStartGame = () => {
     if (!isHost || gamePhase !== 'waiting') return;
+    console.log('Starting game with players:', socketPlayers.map(p => ({ name: p.name, isReady: p.isReady, isHost: p.isHost })));
     startGame();
   };
 
-  // Handle tile count update
-  const handleTileCountChange = (newCount: number) => {
-    setMyTileCount(newCount);
-    updateTiles(newCount);
+  // Handle tiles update - NEW: handles actual tile data
+  const handleTilesUpdate = (newTiles: Tile[]) => {
+    setMyTiles(newTiles);
+    updateTiles(newTiles);
   };
 
   // Handle player participation toggle (host only)
@@ -145,7 +158,8 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   };
 
   const handleToggleReady = () => {
-    toggleReady(); // Call the socket function
+    console.log('Toggling ready state. Current ready state:', isCurrentPlayerReady);
+    toggleReady();
   };
 
   // Handle leave room
@@ -153,17 +167,17 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     onLeaveRoom();
   };
 
-  // Update local tile count from room data
+  // Update local tiles from room data
   useEffect(() => {
-    const myData = socketPlayers.find(p => p.id === currentPlayer.id); // Match by ID
-    if (myData && myData.tilesCount !== myTileCount) {
-      setMyTileCount(myData.tilesCount);
+    const myData = socketPlayers.find(p => p.id === currentPlayer.id);
+    if (myData && myData.tiles && myData.tiles.length > 0) {
+      setMyTiles(myData.tiles);
     }
-  }, [socketPlayers, currentPlayer.id, myTileCount]); // Depend on currentPlayer.id
+  }, [socketPlayers, currentPlayer.id]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto"> {/* Made wider for tile input */}
         {/* Header */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -216,13 +230,14 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
           <WaitingPhaseContent 
             players={players}
             currentPlayer={currentPlayerFromRoom}
+            isCurrentPlayerReady={isCurrentPlayerReady}
             positionLabels={positionLabels}
             isHost={isHost}
             allPlayersReady={allPlayersReady}
             onStartGame={handleStartGame}
             roomId={roomId}
             gameSettings={gameSettings}
-            onToggleReady={handleToggleReady} // Pass handleToggleReady
+            onToggleReady={handleToggleReady}
           />
         )}
 
@@ -232,8 +247,8 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             currentPlayerFromRoom={currentPlayerFromRoom}
             participatingPlayers={participatingPlayers}
             isHost={isHost}
-            myTileCount={myTileCount}
-            onTileCountChange={handleTileCountChange}
+            myTiles={myTiles}
+            onTilesUpdate={handleTilesUpdate}
             onToggleParticipation={handleToggleParticipation}
             allPlayersReady={allPlayersReady}
           />
@@ -264,18 +279,19 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   );
 };
 
-// Waiting Phase Component
+// FIXED: Updated WaitingPhaseContent to use proper ready state
 const WaitingPhaseContent: React.FC<{
   players: Player[];
   currentPlayer: Player;
+  isCurrentPlayerReady: boolean; // NEW: Pass the actual ready state from socket
   positionLabels: Record<PlayerPosition, string>;
   isHost: boolean;
   allPlayersReady: boolean;
   onStartGame: () => void;
   roomId: string;
   gameSettings: GameSettings;
-  onToggleReady: () => void; // Added onToggleReady prop
-}> = ({ players, currentPlayer, positionLabels, isHost, allPlayersReady, onStartGame, roomId, gameSettings, onToggleReady }) => {
+  onToggleReady: () => void;
+}> = ({ players, currentPlayer, isCurrentPlayerReady, positionLabels, isHost, allPlayersReady, onStartGame, roomId, gameSettings, onToggleReady }) => {
   
   return (
     <>
@@ -315,7 +331,6 @@ const WaitingPhaseContent: React.FC<{
                     <div className="text-xs text-gray-600 mb-1">{positionLabels[position]}</div>
                     <div className="flex items-center justify-center gap-1">
                       {player.isHost && <span className="text-xs bg-yellow-100 text-yellow-800 px-1 rounded">HOST</span>}
-                      {/* Show READY/WAITING based on player.isReady status */}
                       {!player.isHost && (
                         player.isReady 
                           ? <span className="text-xs bg-green-100 text-green-800 px-1 rounded">READY</span>
@@ -361,17 +376,18 @@ const WaitingPhaseContent: React.FC<{
 
       {/* Action Buttons */}
       <div className="space-y-4">
+        {/* FIXED: Use isCurrentPlayerReady from socket data instead of currentPlayer.isReady */}
         {!isHost && (
           <button
             onClick={onToggleReady}
             className={`w-full py-4 px-6 rounded-lg font-medium text-lg transition-colors touch-target
-              ${currentPlayer.isReady
+              ${isCurrentPlayerReady
                 ? 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg'
                 : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
               }
             `}
           >
-            {currentPlayer.isReady ? '🔄 Unmark Ready' : '✅ Mark Ready'}
+            {isCurrentPlayerReady ? '🔄 Unmark Ready' : '✅ Mark Ready'}
           </button>
         )}
 
@@ -426,14 +442,14 @@ const WaitingPhaseContent: React.FC<{
   );
 };
 
-// Tile Input Phase Component  
+// NEW: Tile Input Phase Component  
 const TileInputPhaseContent: React.FC<{
   players: Player[];
   currentPlayerFromRoom: Player;
   participatingPlayers: string[];
   isHost: boolean;
-  myTileCount: number;
-  onTileCountChange: (count: number) => void;
+  myTiles: Tile[];
+  onTilesUpdate: (tiles: Tile[]) => void;
   onToggleParticipation: (playerId: string, currentStatus: boolean) => void;
   allPlayersReady: boolean;
 }> = ({ 
@@ -441,8 +457,8 @@ const TileInputPhaseContent: React.FC<{
   currentPlayerFromRoom, 
   participatingPlayers, 
   isHost, 
-  myTileCount, 
-  onTileCountChange, 
+  // myTiles,
+  onTilesUpdate,
   onToggleParticipation,
   allPlayersReady
 }) => {
@@ -454,16 +470,21 @@ const TileInputPhaseContent: React.FC<{
           <span className="text-blue-600">🀄</span>
           <div className="text-sm text-blue-800">
             <div className="font-medium mb-1">Tile Input Phase</div>
-            <div>Each player should count their physical tiles and enter the number below. You need exactly 13 tiles to continue.</div>
+            <div>Input your actual tiles below. You need exactly 13 tiles to continue to Charleston.</div>
           </div>
         </div>
       </div>
 
-      {/* My Tile Count */}
-      <MyTileCounter 
-        myTileCount={myTileCount}
-        onTileCountChange={onTileCountChange}
-      />
+      {/* Private Tile Input */}
+      <div className="mb-6">
+        <PrivateHandView
+          playerId={currentPlayerFromRoom.id}
+          gamePhase="charleston" // Use charleston mode for tile input
+          isMyTurn={false}
+          onPlayerAction={() => {}} // Not used during tile input
+          onTilesUpdate={onTilesUpdate}
+        />
+      </div>
 
       {/* Player Status */}
       <PlayerStatusList
