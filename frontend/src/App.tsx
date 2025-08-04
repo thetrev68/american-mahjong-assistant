@@ -1,6 +1,7 @@
 // frontend/src/App.tsx
 import { useState } from 'react';
 import type { Player } from './types';
+import { useRoom } from './hooks/useSocket';
 import HomePage from './pages/HomePage';
 import RoomCreation from './components/room/RoomCreation';
 import RoomJoining from './components/room/RoomJoining';
@@ -14,7 +15,7 @@ type AppState =
   | 'join-room'
   | 'lobby'
   | 'game'
-  | 'tile-test';
+  | 'tile-test'; // Keep the tile test for development
 
 interface GameSession {
   roomId: string;
@@ -24,6 +25,9 @@ interface GameSession {
 function App() {
   const [currentView, setCurrentView] = useState<AppState>('home');
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
+  
+  // Move room management to App level - NOW INCLUDING toggleReady
+  const { room, createRoom, joinRoom, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, isConnected, isLoading, error } = useRoom();
 
   // Navigation handlers
   const handleCreateRoom = () => {
@@ -37,18 +41,26 @@ function App() {
   const handleBackToHome = () => {
     setCurrentView('home');
     setGameSession(null);
+    if (room) {
+      leaveRoom(); // Leave room when going back to home
+    }
   };
 
-  // FIXED: Real room creation using backend
+  // Room creation flow
   const handleRoomCreated = (roomId: string, hostName: string) => {
-    // Create player object for the host
+    console.log('handleRoomCreated called with:', roomId, hostName);
+    
+    // Create room via socket
+    createRoom(hostName);
+    
+    // Create local session data
     const hostPlayer: Player = {
-      id: 'host-socket-id', // This will be replaced with real socket ID
+      id: '1', // Will be updated when socket confirms
       name: hostName,
-      position: 'east',
+      position: 'east', // Host is always East (dealer)
       isHost: true,
       isConnected: true,
-      isReady: true,
+      isReady: true, // Host is automatically ready
       tilesInHand: 0,
       exposedSets: [],
       hasCalledMahjong: false
@@ -61,13 +73,21 @@ function App() {
     setCurrentView('lobby');
   };
 
-  // FIXED: Real room joining using backend
+  // Room joining flow
   const handleRoomJoined = (roomId: string, playerName: string) => {
-    // Create player object for the joining player
+    console.log('handleRoomJoined called with:', roomId, playerName);
+    
+    // Join room via socket
+    joinRoom(roomId, playerName);
+    
+    // Create local session data
+    const positions = ['south', 'west', 'north'] as const;
+    const assignedPosition = positions[0]; // Simplified for now
+
     const player: Player = {
-      id: 'player-socket-id', // This will be replaced with real socket ID
+      id: Math.random().toString(36).substr(2, 9), // Will be updated when socket confirms
       name: playerName,
-      position: 'south', // Will be determined by backend
+      position: assignedPosition,
       isHost: false,
       isConnected: true,
       isReady: false,
@@ -84,7 +104,12 @@ function App() {
   };
 
   // Game flow handlers
+  const handleStartGame = () => {
+    setCurrentView('game');
+  };
+
   const handleLeaveRoom = () => {
+    leaveRoom();
     setGameSession(null);
     setCurrentView('home');
   };
@@ -140,7 +165,19 @@ function App() {
           <GameLobbyPage
             roomId={gameSession.roomId}
             currentPlayer={gameSession.currentPlayer}
+            room={room} // Pass room data from App
+            onStartGame={handleStartGame}
             onLeaveRoom={handleLeaveRoom}
+            // Pass socket functions down - NOW INCLUDING toggleReady
+            socketFunctions={{
+              startGame,
+              toggleReady, // NEW - now passed down to GameLobbyPage
+              updateTiles,
+              updatePlayerStatus,
+              isConnected,
+              isLoading,
+              error
+            }}
           />
         );
 

@@ -1,24 +1,62 @@
 // frontend/src/pages/GameLobbyPage.tsx
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Player, GameSettings, PlayerPosition } from '../types';
-import { useRoom } from '../hooks/useSocket';
 import MyTileCounter from '../components/game/MyTileCounter';
 import PlayerStatusList from '../components/game/PlayerStatusList';
 import GameProgress from '../components/game/GameProgress';
 
+// Socket room types (from useSocket.ts)
+interface SocketPlayer {
+  id: string;
+  name: string;
+  isHost: boolean;
+  joinedAt: string | Date;
+  isParticipating: boolean;
+  isOnline: boolean;
+  tilesInputted: boolean;
+  tilesCount: number;
+}
+
+interface SocketGameState {
+  phase: 'waiting' | 'tile-input' | 'charleston' | 'playing' | 'finished';
+  currentRound: number;
+  startedAt?: string | Date;
+  participatingPlayers: string[];
+  playersReady: string[];
+}
+
+interface SocketRoom {
+  code: string;
+  players: SocketPlayer[];
+  gameState: SocketGameState;
+}
+
+interface SocketFunctions {
+  startGame: () => void;
+  updateTiles: (count: number) => void;
+  updatePlayerStatus: (playerId: string, updates: { isParticipating?: boolean; tilesInputted?: boolean }) => void;
+  isConnected: boolean;
+  isLoading: boolean;
+  error: string | null;
+}
+
 interface GameLobbyPageProps {
   roomId: string;
   currentPlayer: Player;
+  room: SocketRoom | null; // Room data from App
+  onStartGame: () => void;
   onLeaveRoom: () => void;
+  socketFunctions: SocketFunctions;
 }
 
 const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   roomId,
   currentPlayer,
-  onLeaveRoom
+  room,
+  onLeaveRoom,
+  socketFunctions
 }) => {
-  // FIXED: Use only real socket data
-  const { room, startGame, updateTiles, updatePlayerStatus, leaveRoom, isConnected } = useRoom();
+  const { startGame, updateTiles, updatePlayerStatus, isConnected, isLoading } = socketFunctions;
   
   // Local state for tile input
   const [myTileCount, setMyTileCount] = useState(0);
@@ -48,10 +86,12 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     north: 'North'
   };
 
-  // FIXED: Use real socket data instead of mock with useMemo to prevent re-renders
+  // Use room data from props
   const socketPlayers = useMemo(() => room?.players || [], [room?.players]);
   const gamePhase = room?.gameState?.phase || 'waiting';
   const participatingPlayers = room?.gameState?.participatingPlayers || [];
+
+  console.log('GameLobbyPage - room state:', { room, isLoading, isConnected });
 
   // Convert socket players to our Player type
   const players: Player[] = socketPlayers.map((p, index) => ({
@@ -102,7 +142,6 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
 
   // Handle leave room
   const handleLeaveRoom = () => {
-    leaveRoom();
     onLeaveRoom();
   };
 

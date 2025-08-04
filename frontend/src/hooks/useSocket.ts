@@ -1,7 +1,7 @@
 // frontend/src/hooks/useSocket.ts
-// React hooks for Socket.io room management
+// React hooks for Socket.io room management - Clean singleton approach
 
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import io, { Socket } from 'socket.io-client';
 
 const SOCKET_URL = 'http://localhost:5000';
@@ -16,6 +16,7 @@ interface Player {
   isOnline: boolean;         // Connection status
   tilesInputted: boolean;    // Whether they've entered their tiles
   tilesCount: number;        // Number of tiles they have (private count only)
+  isReady: boolean;          // Whether player is ready to start (NEW)
 }
 
 interface GameState {
@@ -47,67 +48,67 @@ interface PlayerEventData {
   playerId?: string;
 }
 
-// Main socket connection hook
+// SINGLETON SOCKET - Created once and reused everywhere
+let socketInstance: Socket | null = null;
+let isConnected = false;
+
+const createSocket = (): Socket => {
+  if (socketInstance) {
+    return socketInstance;
+  }
+
+  console.log('Creating singleton socket connection...');
+  
+  socketInstance = io(SOCKET_URL, {
+    autoConnect: true,
+    forceNew: false,
+    reconnection: true,
+    reconnectionAttempts: 5,
+    reconnectionDelay: 1000,
+  });
+
+  socketInstance.on('connect', () => {
+    console.log('Connected to server:', socketInstance?.id);
+    isConnected = true;
+  });
+
+  socketInstance.on('disconnect', (reason: string) => {
+    console.log('Disconnected:', reason);
+    isConnected = false;
+  });
+
+  socketInstance.on('reconnect', () => {
+    console.log('Reconnected to server');
+    isConnected = true;
+  });
+
+  return socketInstance;
+};
+
+// Simple socket connection hook
 export const useSocket = () => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const socketRef = useRef<Socket | null>(null);
-  const initRef = useRef<boolean>(false);
+  const [socket] = useState<Socket>(() => createSocket());
+  const [connected, setConnected] = useState<boolean>(isConnected);
 
   useEffect(() => {
-    // FIXED: Prevent duplicate connections in React StrictMode
-    if (initRef.current || socketRef.current) {
-      console.log('Socket already initialized, skipping...');
-      return;
-    }
+    const handleConnect = () => setConnected(true);
+    const handleDisconnect = () => setConnected(false);
 
-    console.log('Initializing socket connection...');
-    initRef.current = true;
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('reconnect', handleConnect);
 
-    // Create socket connection
-    const newSocket = io(SOCKET_URL, {
-      autoConnect: true,
-      forceNew: false, // Allow reusing existing connection
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
-    });
+    // Set initial state
+    setConnected(socket.connected);
 
-    newSocket.on('connect', () => {
-      console.log('Connected to server:', newSocket.id);
-      setIsConnected(true);
-    });
-
-    newSocket.on('disconnect', (reason: string) => {
-      console.log('Disconnected:', reason);
-      setIsConnected(false);
-    });
-
-    newSocket.on('reconnect', () => {
-      console.log('Reconnected to server');
-      setIsConnected(true);
-    });
-
-    socketRef.current = newSocket;
-    setSocket(newSocket);
-
-    // Cleanup on unmount
     return () => {
-      // FIXED: Don't cleanup socket in development mode to prevent React StrictMode issues
-      if (process.env.NODE_ENV === 'production') {
-        console.log('Cleaning up socket connection');
-        if (socketRef.current) {
-          socketRef.current.close();
-          socketRef.current = null;
-        }
-        initRef.current = false;
-      } else {
-        console.log('Skipping socket cleanup in development mode');
-      }
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('reconnect', handleConnect);
     };
-  }, []);
+  }, [socket]);
 
-  return { socket, isConnected };
+  return { socket, isConnected: connected };
 };
 
 // Room management hook
@@ -131,12 +132,12 @@ export const useRoom = () => {
 
     const handleRoomCreated = (data: RoomData) => {
       console.log('Room created:', data);
-      console.log('Room data received:', JSON.stringify(data, null, 2));
+      console.log('Setting room state to:', data.room);
       if (data.room) {
         setRoom(data.room);
-        console.log('Room state updated successfully');
+        console.log('Room state set successfully');
       } else {
-        console.log('No room data in response');
+        console.log('ERROR: No room data in response');
       }
       setIsLoading(false);
       setError(null);
@@ -170,30 +171,18 @@ export const useRoom = () => {
       }
     };
 
-    const handlePlayerDisconnected = (data: PlayerEventData) => {
-      console.log('Player disconnected');
-      if (data.room) {
-        setRoom(data.room);
-      }
-    };
-
-    // Handle room updates (from your backend)
     const handleRoomUpdated = (data: Room) => {
       console.log('Room updated:', data);
       setRoom(data);
     };
 
-    // Handle game started event
     const handleGameStarted = (data: { phase: string; participatingPlayers: string[]; startedAt: string | Date }) => {
       console.log('Game started:', data);
-      // Room will be updated via room-updated event, so just log for now
     };
 
-    // Handle phase changes
     const handlePhaseChanged = (data: { newPhase: string; message?: string }) => {
       console.log('Phase changed:', data);
       if (data.message) {
-        // Could show a notification here later
         console.log('Phase change message:', data.message);
       }
     };
@@ -205,7 +194,6 @@ export const useRoom = () => {
 
     const handleRoomError = (data: RoomError) => {
       console.log('Room error:', data.message);
-      // FIXED: Don't show "Not in any room" error when user isn't trying to be in a room
       if (data.message !== 'Not in any room') {
         setError(data.message);
       }
@@ -218,7 +206,6 @@ export const useRoom = () => {
     socket.on('room-left', handleRoomLeft);
     socket.on('player-joined', handlePlayerJoined);
     socket.on('player-left', handlePlayerLeft);
-    socket.on('player-disconnected', handlePlayerDisconnected);
     socket.on('room-updated', handleRoomUpdated);
     socket.on('game-started', handleGameStarted);
     socket.on('phase-changed', handlePhaseChanged);
@@ -232,7 +219,6 @@ export const useRoom = () => {
       socket.off('room-left', handleRoomLeft);
       socket.off('player-joined', handlePlayerJoined);
       socket.off('player-left', handlePlayerLeft);
-      socket.off('player-disconnected', handlePlayerDisconnected);
       socket.off('room-updated', handleRoomUpdated);
       socket.off('game-started', handleGameStarted);
       socket.off('phase-changed', handlePhaseChanged);
@@ -241,21 +227,15 @@ export const useRoom = () => {
     };
   }, [socket]);
 
-  // FIXED: Don't automatically request room info on connect - only when user is actually in a room
-  // This was causing the "Not in any room" error spam
-
   // Room actions
   const createRoom = useCallback((playerName: string) => {
-    console.log('createRoom called with:', playerName); 
-    console.log('socket:', socket, 'isConnected:', isConnected); 
-
+    console.log('createRoom called with:', playerName);
+    console.log('Current room state before create:', room);
     if (!socket || !isConnected) return;
     setIsLoading(true);
     setError(null);
-
-    console.log('Emitting create-room event');
     socket.emit('create-room', { playerName });
-  }, [socket, isConnected]);
+  }, [socket, isConnected, room]);
 
   const joinRoom = useCallback((roomCode: string, playerName: string) => {
     if (!socket || !isConnected) return;
@@ -284,6 +264,11 @@ export const useRoom = () => {
     socket.emit('start-game');
   }, [socket, isConnected]);
 
+  const toggleReady = useCallback(() => {
+    if (!socket || !isConnected) return;
+    socket.emit('toggle-ready');
+  }, [socket, isConnected]);
+
   const updateTiles = useCallback((tileCount: number) => {
     if (!socket || !isConnected) return;
     socket.emit('update-tiles', { tileCount });
@@ -307,12 +292,15 @@ export const useRoom = () => {
     leaveRoom,
     refreshRoom,
     startGame,
+    toggleReady,
     updateTiles,
     updatePlayerStatus,
+    // DEBUG: Add room state for debugging
+    _debug: { room, isLoading, error, isConnected }
   };
 };
 
-// Simple connection test hook (unchanged)
+// Simple connection test hook
 export const useConnectionTest = () => {
   const { socket, isConnected } = useSocket();
   const [pingTime, setPingTime] = useState<number | null>(null);
@@ -325,7 +313,7 @@ export const useConnectionTest = () => {
     const handlePong = () => {
       const endTime = Date.now();
       setPingTime(endTime - startTime);
-      socket.off('pong', handlePong); // Clean up listener
+      socket.off('pong', handlePong);
     };
 
     socket.on('pong', handlePong);

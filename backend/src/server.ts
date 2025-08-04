@@ -115,6 +115,21 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Toggle player ready status (NEW)
+  socket.on('toggle-ready', () => {
+    const result = roomManager.togglePlayerReady(socket.id);
+    
+    if (result.success) {
+      const roomCode = result.room.code;
+      broadcastRoomUpdate(roomCode, result.room);
+      
+      const player = result.room.players.get(socket.id);
+      console.log(`${player?.name} is now ${player?.isReady ? 'ready' : 'not ready'} in room ${roomCode}`);
+    } else {
+      socket.emit('room-error', { message: result.error });
+    }
+  });
+
   // Start game (host only)
   socket.on('start-game', () => {
     const result = roomManager.startGame(socket.id);

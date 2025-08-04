@@ -10,6 +10,7 @@ interface Player {
   isOnline: boolean;         // Connection status
   tilesInputted: boolean;    // Whether they've entered their tiles
   tilesCount: number;        // Number of tiles they have (private count only)
+  isReady: boolean;          // Whether player is ready to start (NEW)
 }
 
 interface GameState {
@@ -104,7 +105,8 @@ class RoomManager {
       isParticipating: true,
       isOnline: true,
       tilesInputted: false,
-      tilesCount: 0
+      tilesCount: 0,
+      isReady: true // Host is automatically ready
     });
 
     this.rooms.set(roomCode, room);
@@ -144,12 +146,42 @@ class RoomManager {
       isParticipating: true,
       isOnline: true,
       tilesInputted: false,
-      tilesCount: 0
+      tilesCount: 0,
+      isReady: false // New players start as not ready
     });
 
     this.playerRooms.set(socketId, roomCode);
 
-    console.log(`${playerName} joined room ${roomCode}`);
+    console.log(`${playerName} joined room ${roomCode.toUpperCase()}`);
+    return { success: true, room };
+  }
+
+  // Toggle player ready status (NEW)
+  togglePlayerReady(socketId: string): UpdatePlayerResult | ErrorResult {
+    const room = this.getRoomByPlayer(socketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const player = room.players.get(socketId);
+    if (!player) {
+      return { success: false, error: 'Player not found' };
+    }
+
+    // Can only toggle ready in waiting phase
+    if (room.gameState.phase !== 'waiting') {
+      return { success: false, error: 'Can only toggle ready in waiting phase' };
+    }
+
+    // Host is always ready, can't toggle
+    if (player.isHost) {
+      return { success: false, error: 'Host is always ready' };
+    }
+
+    // Toggle ready status
+    player.isReady = !player.isReady;
+
+    console.log(`${player.name} toggled ready to ${player.isReady} in room ${room.code}`);
     return { success: true, room };
   }
 
@@ -165,11 +197,19 @@ class RoomManager {
       return { success: false, error: 'Only host can start game' };
     }
 
-    const participatingPlayers = Array.from(room.players.values())
-      .filter(p => p.isParticipating && p.isOnline);
+    const allPlayers = Array.from(room.players.values());
+    const participatingPlayers = allPlayers.filter(p => p.isParticipating && p.isOnline);
 
     if (participatingPlayers.length < room.minPlayers) {
       return { success: false, error: `Need at least ${room.minPlayers} players to start` };
+    }
+
+    // Check if all non-host players are ready
+    const nonHostPlayers = participatingPlayers.filter(p => !p.isHost);
+    const allReady = nonHostPlayers.every(p => p.isReady);
+    
+    if (!allReady) {
+      return { success: false, error: 'All players must be ready to start' };
     }
 
     // Update game state
@@ -315,6 +355,7 @@ class RoomManager {
       
       if (oldestPlayer) {
         oldestPlayer.isHost = true;
+        oldestPlayer.isReady = true; // New host is automatically ready
         console.log(`${oldestPlayer.name} is now host of room ${roomCode}`);
       }
     }
