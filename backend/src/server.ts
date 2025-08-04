@@ -12,13 +12,13 @@ const server = http.createServer(app);
 
 // Configure CORS for both Express and Socket.io
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: "http://localhost:5173",
   credentials: true
 }));
 
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST"],
     credentials: true
   }
@@ -50,8 +50,11 @@ const broadcastRoomUpdate = (roomCode: string, room: any) => {
 io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
 
+  console.log('Setting up socket event listeners...');
+
   // Create a new room
   socket.on('create-room', (data: { playerName?: string }) => {
+    console.log('CREATE ROOM EVENT RECEIVED:', data);
     const { playerName = 'Player' } = data || {};
     
     const result = roomManager.createRoom(socket.id, playerName);
