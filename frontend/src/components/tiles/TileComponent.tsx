@@ -42,43 +42,26 @@ const TileComponent: React.FC<TileComponentProps> = ({
     }
   };
 
-  // Get sprite position for this tile from tiles.json coordinates
+  // FIXED: Updated sprite mapping to match your tiles.json data
   const getSpritePosition = (tileId: string) => {
-    // Map our tile IDs to sprite filenames
-    const spriteMap: { [key: string]: string } = {
-      '1D': '1D.png', '2D': '2D.png', '3D': '3D.png', '4D': '4D.png', '5D': '5D.png',
-      '6D': '6D.png', '7D': '7D.png', '8D': '8D.png', '9D': '9D.png',
-      '1B': '1B.png', '2B': '2B.png', '3B': '3B.png', '4B': '4B.png', '5B': '5B.png',
-      '6B': '6B.png', '7B': '7B.png', '8B': '8B.png', '9B': '9B.png',
-      '1C': '1C.png', '2C': '2C.png', '3C': '3C.png', '4C': '4C.png', '5C': '5C.png',
-      '6C': '6C.png', '7C': '7C.png', '8C': '8C.png', '9C': '9C.png',
-      'east': 'E.png', 'south': 'S.png', 'west': 'W.png', 'north': 'N.png',
-      'red': 'DD.png', 'green': 'DB.png', 'white': 'DC.png',
-      'f1': 'F1.png', 'f2': 'F2.png', 'f3': 'F3.png', 'f4': 'F4.png',
-      'joker': 'J.png'
-    };
-
-    const filename = spriteMap[tileId];
-    if (!filename) return { x: 0, y: 0 }; // Fallback
-
-    // These coordinates come from your tiles.json
+    // Map our tile IDs to sprite coordinates from tiles.json
     const spritePositions: { [key: string]: { x: number; y: number } } = {
-      '1B.png': { x: 0, y: 0 }, '1C.png': { x: 52, y: 0 }, '1D.png': { x: 104, y: 0 },
-      '2B.png': { x: 156, y: 0 }, '2C.png': { x: 208, y: 0 }, '2D.png': { x: 260, y: 0 },
-      '3B.png': { x: 312, y: 0 }, '3C.png': { x: 364, y: 0 }, '3D.png': { x: 416, y: 0 },
-      '4B.png': { x: 468, y: 0 }, '4C.png': { x: 520, y: 0 }, '4D.png': { x: 572, y: 0 },
-      '5B.png': { x: 624, y: 0 }, '5C.png': { x: 676, y: 0 }, '5D.png': { x: 728, y: 0 },
-      '6B.png': { x: 780, y: 0 }, '6C.png': { x: 832, y: 0 }, '6D.png': { x: 884, y: 0 },
-      '7B.png': { x: 936, y: 0 }, '7C.png': { x: 988, y: 0 }, '7D.png': { x: 1040, y: 0 },
-      '8B.png': { x: 1092, y: 0 }, '8C.png': { x: 1144, y: 0 }, '8D.png': { x: 1196, y: 0 },
-      '9B.png': { x: 1248, y: 0 }, '9C.png': { x: 1300, y: 0 }, '9D.png': { x: 1352, y: 0 },
-      'DB.png': { x: 1404, y: 0 }, 'DC.png': { x: 1456, y: 0 }, 'DD.png': { x: 1508, y: 0 },
-      'E.png': { x: 1560, y: 0 }, 'F1.png': { x: 1612, y: 0 }, 'F2.png': { x: 1664, y: 0 },
-      'F3.png': { x: 1716, y: 0 }, 'F4.png': { x: 1768, y: 0 }, 'J.png': { x: 1820, y: 0 },
-      'N.png': { x: 1872, y: 0 }, 'S.png': { x: 1924, y: 0 }, 'W.png': { x: 1976, y: 0 }
+      '1B': { x: 0, y: 0 }, '1C': { x: 52, y: 0 }, '1D': { x: 104, y: 0 },
+      '2B': { x: 156, y: 0 }, '2C': { x: 208, y: 0 }, '2D': { x: 260, y: 0 },
+      '3B': { x: 312, y: 0 }, '3C': { x: 364, y: 0 }, '3D': { x: 416, y: 0 },
+      '4B': { x: 468, y: 0 }, '4C': { x: 520, y: 0 }, '4D': { x: 572, y: 0 },
+      '5B': { x: 624, y: 0 }, '5C': { x: 676, y: 0 }, '5D': { x: 728, y: 0 },
+      '6B': { x: 780, y: 0 }, '6C': { x: 832, y: 0 }, '6D': { x: 884, y: 0 },
+      '7B': { x: 936, y: 0 }, '7C': { x: 988, y: 0 }, '7D': { x: 1040, y: 0 },
+      '8B': { x: 1092, y: 0 }, '8C': { x: 1144, y: 0 }, '8D': { x: 1196, y: 0 },
+      '9B': { x: 1248, y: 0 }, '9C': { x: 1300, y: 0 }, '9D': { x: 1352, y: 0 },
+      'green': { x: 1404, y: 0 }, 'white': { x: 1456, y: 0 }, 'red': { x: 1508, y: 0 },
+      'east': { x: 1560, y: 0 }, 'f1': { x: 1612, y: 0 }, 'f2': { x: 1664, y: 0 },
+      'f3': { x: 1716, y: 0 }, 'f4': { x: 1768, y: 0 }, 'joker': { x: 1820, y: 0 },
+      'north': { x: 1872, y: 0 }, 'south': { x: 1924, y: 0 }, 'west': { x: 1976, y: 0 }
     };
 
-    return spritePositions[filename] || { x: 0, y: 0 };
+    return spritePositions[tileId] || { x: 0, y: 0 };
   };
 
   const spritePos = getSpritePosition(tile.id);
@@ -95,6 +78,7 @@ const TileComponent: React.FC<TileComponentProps> = ({
           transition-all
           duration-150
           touch-manipulation
+          overflow-hidden
           ${isSelected 
             ? 'border-blue-500 bg-blue-100 shadow-lg scale-105' 
             : 'border-gray-300 bg-white shadow-sm hover:shadow-md'
@@ -110,15 +94,23 @@ const TileComponent: React.FC<TileComponentProps> = ({
         disabled={isDisabled}
         aria-label={`${tile.suit} ${tile.value} tile${isSelected ? ' (selected)' : ''}`}
       >
-        {/* Tile sprite background */}
+        {/* FIXED: Tile sprite background with better positioning */}
         <div 
-          className="w-full h-full bg-no-repeat bg-contain bg-center"
+          className="w-full h-full bg-no-repeat bg-center"
           style={{
             backgroundImage: `url('/tiles.png')`,
             backgroundPosition: `-${spritePos.x}px -${spritePos.y}px`,
-            backgroundSize: '2028px 69px' // Full sprite sheet dimensions
+            backgroundSize: '2028px 69px', // Full sprite sheet dimensions
+            imageRendering: 'pixelated' // Ensure crisp tile edges
           }}
         />
+        
+        {/* Fallback text if sprite fails to load */}
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700 pointer-events-none">
+          <span className="opacity-0 hover:opacity-100 transition-opacity bg-white/80 px-1 rounded">
+            {tile.id}
+          </span>
+        </div>
         
         {/* Joker indicator overlay */}
         {tile.isJoker && tile.jokerFor && (

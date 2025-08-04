@@ -4,6 +4,7 @@ import type { Player, GameSettings, PlayerPosition, Tile } from '../types';
 import PlayerStatusList from '../components/game/PlayerStatusList';
 import GameProgress from '../components/game/GameProgress';
 import { PrivateHandView } from '../components/PrivateHandView';
+// import SpriteDebugger from '../components/tiles/SpriteDebugger';
 
 // Socket room types (from useSocket.ts)
 interface SocketPlayer {
