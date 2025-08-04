@@ -14,6 +14,7 @@ interface SocketPlayer {
   isParticipating: boolean;
   isOnline: boolean;
   tilesInputted: boolean;
+  isReady: boolean; // NEW - added ready field
   tilesCount: number;
 }
 
@@ -35,6 +36,7 @@ interface SocketFunctions {
   startGame: () => void;
   updateTiles: (count: number) => void;
   updatePlayerStatus: (playerId: string, updates: { isParticipating?: boolean; tilesInputted?: boolean }) => void;
+  toggleReady: () => void; // Added toggleReady
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
@@ -56,7 +58,7 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   onLeaveRoom,
   socketFunctions
 }) => {
-  const { startGame, updateTiles, updatePlayerStatus, isConnected, isLoading } = socketFunctions;
+  const { startGame, toggleReady, updateTiles, updatePlayerStatus, isConnected, isLoading } = socketFunctions;
   
   // Local state for tile input
   const [myTileCount, setMyTileCount] = useState(0);
@@ -100,24 +102,26 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     position: ['east', 'south', 'west', 'north'][index] as PlayerPosition, // Assign positions in order
     isHost: p.isHost,
     isConnected: p.isOnline !== false,
-    isReady: p.tilesInputted || false,
+    isReady: p.isReady || false, // Use p.isReady from socket data
     tilesInHand: p.tilesCount || 0,
     exposedSets: [],
     hasCalledMahjong: false
   }));
 
   // Find current player in room data
-  const currentPlayerFromRoom = players.find(p => p.name === currentPlayer.name) || currentPlayer;
+  const currentPlayerFromRoom = players.find(p => p.id === currentPlayer.id) || currentPlayer; // Match by ID for robustness
   const isHost = currentPlayerFromRoom.isHost;
 
   // Check if all players are ready
   const allPlayersReady = (() => {
     if (gamePhase === 'waiting') {
+      // All players in the room must be ready (or be the host)
       return players.length >= 2 && players.every(p => p.isReady || p.isHost);
     }
     if (gamePhase === 'tile-input') {
+      // Only participating players need to have inputted tiles
       const participatingPlayersList = players.filter(p => participatingPlayers.includes(p.id));
-      return participatingPlayersList.length > 0 && participatingPlayersList.every(p => p.isReady);
+      return participatingPlayersList.length > 0 && participatingPlayersList.every(p => p.tilesInHand > 0); // Assuming tilesInHand > 0 means inputted
     }
     return false;
   })();
@@ -140,6 +144,10 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     updatePlayerStatus(playerId, { isParticipating: !currentStatus });
   };
 
+  const handleToggleReady = () => {
+    toggleReady(); // Call the socket function
+  };
+
   // Handle leave room
   const handleLeaveRoom = () => {
     onLeaveRoom();
@@ -147,11 +155,11 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
 
   // Update local tile count from room data
   useEffect(() => {
-    const myData = socketPlayers.find(p => p.name === currentPlayer.name);
+    const myData = socketPlayers.find(p => p.id === currentPlayer.id); // Match by ID
     if (myData && myData.tilesCount !== myTileCount) {
       setMyTileCount(myData.tilesCount);
     }
-  }, [socketPlayers, currentPlayer.name, myTileCount]);
+  }, [socketPlayers, currentPlayer.id, myTileCount]); // Depend on currentPlayer.id
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
@@ -214,6 +222,7 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             onStartGame={handleStartGame}
             roomId={roomId}
             gameSettings={gameSettings}
+            onToggleReady={handleToggleReady} // Pass handleToggleReady
           />
         )}
 
@@ -265,13 +274,9 @@ const WaitingPhaseContent: React.FC<{
   onStartGame: () => void;
   roomId: string;
   gameSettings: GameSettings;
-}> = ({ players, currentPlayer, positionLabels, isHost, allPlayersReady, onStartGame, roomId, gameSettings }) => {
+  onToggleReady: () => void; // Added onToggleReady prop
+}> = ({ players, currentPlayer, positionLabels, isHost, allPlayersReady, onStartGame, roomId, gameSettings, onToggleReady }) => {
   
-  const handleToggleReady = () => {
-    // TODO: Implement ready toggle functionality later
-    console.log('Toggle ready - not implemented yet');
-  };
-
   return (
     <>
       {/* Players Table */}
@@ -310,8 +315,12 @@ const WaitingPhaseContent: React.FC<{
                     <div className="text-xs text-gray-600 mb-1">{positionLabels[position]}</div>
                     <div className="flex items-center justify-center gap-1">
                       {player.isHost && <span className="text-xs bg-yellow-100 text-yellow-800 px-1 rounded">HOST</span>}
-                      {player.isReady && !player.isHost && <span className="text-xs bg-green-100 text-green-800 px-1 rounded">READY</span>}
-                      {!player.isReady && !player.isHost && <span className="text-xs bg-gray-100 text-gray-600 px-1 rounded">WAITING</span>}
+                      {/* Show READY/WAITING based on player.isReady status */}
+                      {!player.isHost && (
+                        player.isReady 
+                          ? <span className="text-xs bg-green-100 text-green-800 px-1 rounded">READY</span>
+                          : <span className="text-xs bg-gray-100 text-gray-600 px-1 rounded">WAITING</span>
+                      )}
                       <div className={`w-2 h-2 rounded-full ${player.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
                     </div>
                   </div>
@@ -354,10 +363,15 @@ const WaitingPhaseContent: React.FC<{
       <div className="space-y-4">
         {!isHost && (
           <button
-            onClick={handleToggleReady}
-            className="w-full py-4 px-6 bg-green-600 text-white rounded-lg font-medium text-lg hover:bg-green-700 transition-colors touch-target"
+            onClick={onToggleReady}
+            className={`w-full py-4 px-6 rounded-lg font-medium text-lg transition-colors touch-target
+              ${currentPlayer.isReady
+                ? 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg'
+                : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
+              }
+            `}
           >
-            ✅ Mark Ready
+            {currentPlayer.isReady ? '🔄 Unmark Ready' : '✅ Mark Ready'}
           </button>
         )}
 
