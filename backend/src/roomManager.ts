@@ -1,24 +1,33 @@
 // /backend/src/roomManager.ts
-// Room management system for mahjong assistant (TypeScript)
+// Room management system for mahjong assistant - Enhanced for tile data
+
+interface Tile {
+  id: string;
+  suit: string;
+  value: string;
+  isJoker?: boolean;
+  jokerFor?: Tile;
+}
 
 interface Player {
   id: string;
   name: string;
   isHost: boolean;
   joinedAt: Date;
-  isParticipating: boolean;  // Whether player is actively playing
-  isOnline: boolean;         // Connection status
-  tilesInputted: boolean;    // Whether they've entered their tiles
-  tilesCount: number;        // Number of tiles they have (private count only)
-  isReady: boolean;          // Whether player is ready to start (NEW)
+  isParticipating: boolean;
+  isOnline: boolean;
+  tilesInputted: boolean;
+  tilesCount: number;
+  tiles: Tile[]; // NEW: Store actual tile data
+  isReady: boolean;
 }
 
 interface GameState {
   phase: 'waiting' | 'tile-input' | 'charleston' | 'playing' | 'finished';
   currentRound: number;
   startedAt?: Date;
-  participatingPlayers: string[]; // IDs of players actually playing
-  playersReady: string[];         // IDs of players ready for next phase
+  participatingPlayers: string[];
+  playersReady: string[];
 }
 
 interface Room {
@@ -75,7 +84,7 @@ class RoomManager {
       for (let i = 0; i < 4; i++) {
         code += chars.charAt(Math.floor(Math.random() * chars.length));
       }
-    } while (this.rooms.has(code)); // Ensure uniqueness
+    } while (this.rooms.has(code));
     return code;
   }
 
@@ -106,7 +115,8 @@ class RoomManager {
       isOnline: true,
       tilesInputted: false,
       tilesCount: 0,
-      isReady: true // Host is automatically ready
+      tiles: [], // NEW: Initialize empty tiles array
+      isReady: true
     });
 
     this.rooms.set(roomCode, room);
@@ -132,7 +142,6 @@ class RoomManager {
       return { success: false, error: `Room is full (max ${room.maxPlayers} players)` };
     }
 
-    // Can't join if game is already in progress
     if (room.gameState.phase !== 'waiting') {
       return { success: false, error: 'Game is already in progress' };
     }
@@ -147,7 +156,8 @@ class RoomManager {
       isOnline: true,
       tilesInputted: false,
       tilesCount: 0,
-      isReady: false // New players start as not ready
+      tiles: [], // NEW: Initialize empty tiles array
+      isReady: false
     });
 
     this.playerRooms.set(socketId, roomCode);
@@ -156,7 +166,7 @@ class RoomManager {
     return { success: true, room };
   }
 
-  // Toggle player ready status (NEW)
+  // Toggle player ready status
   togglePlayerReady(socketId: string): UpdatePlayerResult | ErrorResult {
     const room = this.getRoomByPlayer(socketId);
     if (!room) {
@@ -168,24 +178,21 @@ class RoomManager {
       return { success: false, error: 'Player not found' };
     }
 
-    // Can only toggle ready in waiting phase
     if (room.gameState.phase !== 'waiting') {
       return { success: false, error: 'Can only toggle ready in waiting phase' };
     }
 
-    // Host is always ready, can't toggle
     if (player.isHost) {
       return { success: false, error: 'Host is always ready' };
     }
 
-    // Toggle ready status
     player.isReady = !player.isReady;
 
     console.log(`${player.name} toggled ready to ${player.isReady} in room ${room.code}`);
     return { success: true, room };
   }
 
-  // Start the game (host only)
+  // Start the game (host only) - FIXED with better debugging
   startGame(hostSocketId: string): StartGameResult | ErrorResult {
     const room = this.getRoomByPlayer(hostSocketId);
     if (!room) {
@@ -200,16 +207,40 @@ class RoomManager {
     const allPlayers = Array.from(room.players.values());
     const participatingPlayers = allPlayers.filter(p => p.isParticipating && p.isOnline);
 
+    // DEBUG: Log all player states
+    console.log('=== START GAME DEBUG ===');
+    console.log(`Room: ${room.code}`);
+    console.log(`Min players needed: ${room.minPlayers}`);
+    console.log(`Total players: ${allPlayers.length}`);
+    console.log(`Participating players: ${participatingPlayers.length}`);
+    console.log('All players status:');
+    allPlayers.forEach(p => {
+      console.log(`  - ${p.name}: host=${p.isHost}, ready=${p.isReady}, participating=${p.isParticipating}, online=${p.isOnline}`);
+    });
+
     if (participatingPlayers.length < room.minPlayers) {
+      console.log(`❌ Not enough players: ${participatingPlayers.length} < ${room.minPlayers}`);
       return { success: false, error: `Need at least ${room.minPlayers} players to start` };
     }
 
-    // Check if all non-host players are ready
+    // FIXED: Check ready status more carefully
     const nonHostPlayers = participatingPlayers.filter(p => !p.isHost);
+    const readyNonHostPlayers = nonHostPlayers.filter(p => p.isReady);
+    
+    console.log(`Non-host players: ${nonHostPlayers.length}`);
+    console.log(`Ready non-host players: ${readyNonHostPlayers.length}`);
+    
+    nonHostPlayers.forEach(p => {
+      console.log(`  - ${p.name}: isReady=${p.isReady}`);
+    });
+
     const allReady = nonHostPlayers.every(p => p.isReady);
+    console.log(`All non-host players ready: ${allReady}`);
     
     if (!allReady) {
-      return { success: false, error: 'All players must be ready to start' };
+      const notReadyPlayers = nonHostPlayers.filter(p => !p.isReady).map(p => p.name);
+      console.log(`❌ Not all players ready. Waiting for: ${notReadyPlayers.join(', ')}`);
+      return { success: false, error: `All players must be ready to start. Waiting for: ${notReadyPlayers.join(', ')}` };
     }
 
     // Update game state
@@ -221,7 +252,8 @@ class RoomManager {
       playersReady: []
     };
 
-    console.log(`Game started in room ${room.code} with ${participatingPlayers.length} players`);
+    console.log(`✅ Game started in room ${room.code} with ${participatingPlayers.length} players`);
+    console.log('=== END START GAME DEBUG ===');
     return { success: true, room };
   }
 
@@ -266,8 +298,8 @@ class RoomManager {
     return { success: true, room };
   }
 
-  // Player updates their tile count
-  updatePlayerTiles(socketId: string, tileCount: number): UpdatePlayerResult | ErrorResult {
+  // UPDATED: Player updates their tiles (actual tile data + count)
+  updatePlayerTiles(socketId: string, tileCount: number, tiles: Tile[] = []): UpdatePlayerResult | ErrorResult {
     const room = this.getRoomByPlayer(socketId);
     if (!room) {
       return { success: false, error: 'Not in any room' };
@@ -278,9 +310,27 @@ class RoomManager {
       return { success: false, error: 'Player not found' };
     }
 
-    // Update tile count and mark as inputted if they have 13 tiles
+    // Can only update tiles during tile-input phase
+    if (room.gameState.phase !== 'tile-input') {
+      return { success: false, error: 'Can only update tiles during tile-input phase' };
+    }
+
+    // Validate tile data
+    if (tiles.length !== tileCount) {
+      return { success: false, error: 'Tile array length does not match tile count' };
+    }
+
+    // Basic tile validation
+    for (const tile of tiles) {
+      if (!tile || !tile.id || !tile.suit || !tile.value) {
+        return { success: false, error: 'Invalid tile data structure' };
+      }
+    }
+
+    // Update player's tile data
     player.tilesCount = tileCount;
-    player.tilesInputted = tileCount === 13;
+    player.tiles = tiles;
+    player.tilesInputted = tileCount === 13; // American Mahjong standard
 
     // Check if all participating players have inputted tiles
     const participatingPlayers = Array.from(room.players.values())
@@ -289,7 +339,7 @@ class RoomManager {
     const allReady = participatingPlayers.every(p => p.tilesInputted);
     
     if (allReady && room.gameState.phase === 'tile-input') {
-      // Auto-advance to next phase when all players ready
+      // Auto-advance to charleston phase
       room.gameState.phase = 'charleston';
       room.gameState.playersReady = participatingPlayers.map(p => p.id);
       console.log(`All players ready in room ${room.code}, advancing to charleston`);
@@ -355,7 +405,7 @@ class RoomManager {
       
       if (oldestPlayer) {
         oldestPlayer.isHost = true;
-        oldestPlayer.isReady = true; // New host is automatically ready
+        oldestPlayer.isReady = true;
         console.log(`${oldestPlayer.name} is now host of room ${roomCode}`);
       }
     }
@@ -396,6 +446,15 @@ class RoomManager {
     return false;
   }
 
+  // NEW: Get player tiles (for future use)
+  getPlayerTiles(socketId: string): Tile[] {
+    const room = this.getRoomByPlayer(socketId);
+    if (!room) return [];
+    
+    const player = room.players.get(socketId);
+    return player?.tiles || [];
+  }
+
   // Get stats for debugging
   getStats() {
     return {
@@ -406,7 +465,8 @@ class RoomManager {
         playerCount: room.players.size,
         participatingCount: room.gameState.participatingPlayers.length,
         phase: room.gameState.phase,
-        createdAt: room.createdAt
+        createdAt: room.createdAt,
+        playersWithTiles: Array.from(room.players.values()).filter(p => p.tiles.length > 0).length
       }))
     };
   }

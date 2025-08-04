@@ -1,5 +1,5 @@
 // /backend/src/server.ts
-// Express + Socket.io server with room management (TypeScript)
+// Express + Socket.io server with room management - Enhanced for tile data
 
 import express, { type Request, type Response } from 'express';
 import http from 'http';
@@ -50,8 +50,6 @@ const broadcastRoomUpdate = (roomCode: string, room: any) => {
 io.on('connection', (socket) => {
   console.log(`Player connected: ${socket.id}`);
 
-  console.log('Setting up socket event listeners...');
-
   // Create a new room
   socket.on('create-room', (data: { playerName?: string }) => {
     console.log('CREATE ROOM EVENT RECEIVED:', data);
@@ -60,10 +58,8 @@ io.on('connection', (socket) => {
     const result = roomManager.createRoom(socket.id, playerName);
     
     if (result.success) {
-      // Join the socket to the room for broadcasting
       socket.join(result.roomCode);
       
-      // Send success response to creator
       socket.emit('room-created', {
         roomCode: result.roomCode,
         room: {
@@ -91,7 +87,6 @@ io.on('connection', (socket) => {
     const result = roomManager.joinRoom(roomCode.toUpperCase(), socket.id, playerName);
     
     if (result.success) {
-      // Join the socket to the room for broadcasting
       socket.join(roomCode.toUpperCase());
       
       const roomData = {
@@ -100,10 +95,8 @@ io.on('connection', (socket) => {
         gameState: result.room.gameState
       };
 
-      // Send success response to the joining player
       socket.emit('room-joined', roomData);
 
-      // Notify all other players in the room
       socket.to(roomCode.toUpperCase()).emit('player-joined', {
         player: result.room.players.get(socket.id),
         room: roomData
@@ -115,7 +108,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Toggle player ready status (NEW)
+  // Toggle player ready status
   socket.on('toggle-ready', () => {
     const result = roomManager.togglePlayerReady(socket.id);
     
@@ -137,10 +130,8 @@ io.on('connection', (socket) => {
     if (result.success) {
       const roomCode = result.room.code;
       
-      // Broadcast game start to all players
       broadcastRoomUpdate(roomCode, result.room);
       
-      // Send specific game-started event
       io.to(roomCode).emit('game-started', {
         phase: result.room.gameState.phase,
         participatingPlayers: result.room.gameState.participatingPlayers,
@@ -166,7 +157,6 @@ io.on('connection', (socket) => {
       return;
     }
 
-    // Only include properties that are actually defined
     const updates: { isParticipating?: boolean; tilesInputted?: boolean } = {};
     if (isParticipating !== undefined) updates.isParticipating = isParticipating;
     if (tilesInputted !== undefined) updates.tilesInputted = tilesInputted;
@@ -182,16 +172,38 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Update player's tile count
-  socket.on('update-tiles', (data: { tileCount?: number }) => {
-    const { tileCount = 0 } = data || {};
+  // UPDATED: Handle actual tile data instead of just count
+  socket.on('update-tiles', (data: { tiles?: any[]; tileCount?: number }) => {
+    const { tiles = [], tileCount = 0 } = data || {};
     
+    // Validate tile count
     if (tileCount < 0 || tileCount > 14) {
       socket.emit('room-error', { message: 'Invalid tile count (0-14)' });
       return;
     }
 
-    const result = roomManager.updatePlayerTiles(socket.id, tileCount);
+    // Validate tiles array matches count
+    if (tiles.length !== tileCount) {
+      socket.emit('room-error', { message: 'Tile count mismatch with provided tiles' });
+      return;
+    }
+
+    // Basic tile validation
+    if (tiles.length > 0) {
+      const validTiles = tiles.every(tile => 
+        tile && 
+        typeof tile.id === 'string' && 
+        typeof tile.suit === 'string' && 
+        typeof tile.value === 'string'
+      );
+      
+      if (!validTiles) {
+        socket.emit('room-error', { message: 'Invalid tile data format' });
+        return;
+      }
+    }
+
+    const result = roomManager.updatePlayerTiles(socket.id, tileCount, tiles);
     
     if (result.success) {
       const roomCode = result.room.code;
@@ -205,7 +217,7 @@ io.on('connection', (socket) => {
         });
       }
 
-      console.log(`Tiles updated in room ${roomCode}`);
+      console.log(`Tiles updated in room ${roomCode} - Player has ${tileCount} tiles`);
     } else {
       socket.emit('room-error', { message: result.error });
     }
@@ -223,13 +235,9 @@ io.on('connection', (socket) => {
     const result = roomManager.leaveRoom(socket.id);
     
     if (result.success) {
-      // Leave the socket room
       socket.leave(roomCode);
-      
-      // Send confirmation to leaving player
       socket.emit('room-left');
 
-      // If room still exists, notify remaining players
       if (!result.roomDeleted && result.room) {
         broadcastRoomUpdate(roomCode, result.room);
       }
@@ -266,15 +274,11 @@ io.on('connection', (socket) => {
   socket.on('disconnect', () => {
     console.log(`Player disconnected: ${socket.id}`);
     
-    // Mark as offline but don't remove from room immediately
     const result = roomManager.updatePlayerConnection(socket.id, false);
     if (result.success) {
       const roomCode = result.room.code;
       broadcastRoomUpdate(roomCode, result.room);
     }
-
-    // TODO: Add reconnection timeout logic in future chunks
-    // For now, we'll leave players in room when they disconnect
   });
 });
 
