@@ -10,6 +10,10 @@ export { TileActionBar } from './TileActionBar';
 export { usePrivateGameState } from './hooks/usePrivateGameState';
 export { useHandAnalysis } from './hooks/useHandAnalysis';
 
+// Export new tile components
+export { default as TilePickerModal } from '../tiles/TilePickerModal';
+export { default as EmptyTileSlot } from '../tiles/EmptyTileSlot';
+
 // Re-export types for convenience
 export type {
   Tile,

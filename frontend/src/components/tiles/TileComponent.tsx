@@ -1,6 +1,9 @@
 // frontend/src/components/tiles/TileComponent.tsx
+// Individual tile rendering with sprite sheet - FIXED sizing
+
 import React from 'react';
 import type { Tile } from '../../types';
+import tilesSprite from '../../assets/images/tiles.png';
 
 interface TileComponentProps {
   tile: Tile;
@@ -23,15 +26,16 @@ const TileComponent: React.FC<TileComponentProps> = ({
   onClick,
   onDoubleClick
 }) => {
-  // Size configurations for responsive design
+  // FIXED: Proper size configurations for 52x69 tile sprites
   const sizeClasses = {
-    small: 'w-10 h-12',   // 40x48px
-    medium: 'w-12 h-16',  // 48x64px  
-    large: 'w-16 h-20'    // 64x80px
+    small: 'w-8 h-11',      // ~32x44px (scaled down from 52x69)
+    medium: 'w-10 h-14',    // ~40x56px (scaled down from 52x69)
+    large: 'w-13 h-17'      // 52x68px (close to actual sprite size)
   };
 
   const handleClick = () => {
     if (!isDisabled && onClick) {
+      console.log('TileComponent: Tile clicked', tile);
       onClick(tile);
     }
   };
@@ -42,7 +46,7 @@ const TileComponent: React.FC<TileComponentProps> = ({
     }
   };
 
-  // FIXED: Updated sprite mapping to match your tiles.json data
+  // Updated sprite mapping to match your tiles.json data
   const getSpritePosition = (tileId: string) => {
     // Map our tile IDs to sprite coordinates from tiles.json
     const spritePositions: { [key: string]: { x: number; y: number } } = {
@@ -94,20 +98,20 @@ const TileComponent: React.FC<TileComponentProps> = ({
         disabled={isDisabled}
         aria-label={`${tile.suit} ${tile.value} tile${isSelected ? ' (selected)' : ''}`}
       >
-        {/* FIXED: Tile sprite background with better positioning */}
+        {/* FIXED: Proper sprite sizing and scaling for 52x69 tiles */}
         <div 
           className="w-full h-full bg-no-repeat bg-center"
           style={{
-            backgroundImage: `url('/tiles.png')`,
+            backgroundImage: `url('${tilesSprite}')`,
             backgroundPosition: `-${spritePos.x}px -${spritePos.y}px`,
-            backgroundSize: '2028px 69px', // Full sprite sheet dimensions
-            imageRendering: 'pixelated' // Ensure crisp tile edges
+            backgroundSize: '2028px 69px', // Full sprite sheet dimensions (39 tiles × 52px width = 2028px)
+            imageRendering: 'crisp-edges' // Ensure crisp tile edges at different sizes
           }}
         />
         
         {/* Fallback text if sprite fails to load */}
-        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700 pointer-events-none">
-          <span className="opacity-0 hover:opacity-100 transition-opacity bg-white/80 px-1 rounded">
+        <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-gray-700 pointer-events-none opacity-0 hover:opacity-100 transition-opacity">
+          <span className="bg-white/80 px-1 rounded">
             {tile.id}
           </span>
         </div>

@@ -1,5 +1,5 @@
 // frontend/src/components/PrivateHandView/PrivateHandView.tsx
-// Main private player interface - shows personal tiles, analysis, and selection controls
+// Main private player interface - RESTORED to use proper hooks
 
 import React, { useState, useEffect } from 'react';
 import type { 
@@ -22,7 +22,7 @@ interface PrivateHandViewProps {
   onTilesUpdate: (tiles: Tile[]) => void;
 }
 
-type HandMode = 'view' | 'discard' | 'charleston';
+type HandMode = 'view' | 'discard' | 'charleston' | 'input';
 
 export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   playerId,
@@ -37,42 +37,41 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   const [selectedTiles, setSelectedTiles] = useState<Tile[]>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
   
-  // Custom hooks for game state and analysis
-  const { privateState } = usePrivateGameState(playerId);
+  // FIXED: Custom hooks for game state and analysis
+  const { privateState, updateTiles: updatePrivateStateTiles, isLoading } = usePrivateGameState(playerId);
   const { analysis, isAnalyzing } = useHandAnalysis(privateState?.tiles || []);
   
-  // Auto-switch to charleston mode when charleston phase starts
+  console.log('PrivateHandView: Current state', { 
+    playerId, 
+    gamePhase, 
+    tiles: privateState?.tiles?.length || 0,
+    tilesDetail: privateState?.tiles
+  });
+  
+  // Auto-switch to appropriate mode based on game phase
   useEffect(() => {
-    if (gamePhase === 'charleston' && charlestonPhase !== 'complete') {
+    if (gamePhase === 'waiting') {
+      // During waiting/tile-input phase, enable input mode
+      setHandMode('input');
+      setSelectedTiles([]);
+    } else if (gamePhase === 'charleston' && charlestonPhase !== 'complete') {
       setHandMode('charleston');
       setSelectedTiles([]);
     } else if (gamePhase === 'playing') {
       setHandMode('view');
       setSelectedTiles([]);
+    } else {
+      setHandMode('view');
+      setSelectedTiles([]);
     }
   }, [gamePhase, charlestonPhase]);
-
-  // Handle tile selection based on current mode
-  const handleTileSelect = (tile: Tile) => {
-    if (!privateState?.tiles) return;
-
-    const isSelected = selectedTiles.some(t => t.id === tile.id);
-    const maxSelection = getMaxSelection();
-
-    if (isSelected) {
-      // Deselect tile
-      setSelectedTiles(prev => prev.filter(t => t.id !== tile.id));
-    } else if (selectedTiles.length < maxSelection) {
-      // Select tile
-      setSelectedTiles(prev => [...prev, tile]);
-    }
-  };
 
   // Get max selection based on current mode
   const getMaxSelection = (): number => {
     switch (handMode) {
       case 'discard': return 1;
       case 'charleston': return 3;
+      case 'input': return 0; // No selection limit in input mode
       default: return 0;
     }
   };
@@ -101,12 +100,22 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     }
   };
 
-  // Handle manual tile updates (for input mode)
+  // FIXED: Handle direct tile updates from the grid
   const handleTilesChange = (newTiles: Tile[]) => {
+    console.log('PrivateHandView: Tiles changed', { 
+      oldTiles: privateState?.tiles?.length || 0,
+      newTiles: newTiles.length,
+      tilesDetail: newTiles
+    });
+    
+    // Update the private state hook
+    updatePrivateStateTiles(newTiles);
+    
+    // Also call the parent callback for socket updates
     onTilesUpdate(newTiles);
   };
 
-  if (!privateState) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
         <div className="text-center">
@@ -117,7 +126,17 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     );
   }
 
-  const canSelectTiles = handMode !== 'view' && (
+  if (!privateState) {
+    return (
+      <div className="flex items-center justify-center h-64 bg-gray-50 rounded-lg">
+        <div className="text-center">
+          <p className="text-gray-600">Unable to load private game state</p>
+        </div>
+      </div>
+    );
+  }
+
+  const canSelectTiles = handMode !== 'view' && handMode !== 'input' && (
     (handMode === 'discard' && isMyTurn) ||
     (handMode === 'charleston' && gamePhase === 'charleston')
   );
@@ -135,28 +154,38 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
           </div>
           
           <div className="flex items-center space-x-2">
-            {/* Analysis toggle */}
-            <button
-              onClick={() => setShowAnalysis(!showAnalysis)}
-              className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                showAnalysis
-                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {showAnalysis ? 'Hide' : 'Show'} Analysis
-            </button>
+            {/* Analysis toggle - hide during input phase */}
+            {handMode !== 'input' && privateState.tiles.length >= 13 && (
+              <button
+                onClick={() => setShowAnalysis(!showAnalysis)}
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                  showAnalysis
+                    ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                {showAnalysis ? 'Hide' : 'Show'} Analysis
+              </button>
+            )}
 
             {/* Mode indicator */}
             {handMode !== 'view' && (
-              <div className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded">
-                {handMode === 'charleston' ? 'Charleston' : 'Discard'} Mode
+              <div className={`px-2 py-1 text-xs font-medium rounded ${
+                handMode === 'input' ? 'bg-green-100 text-green-800' :
+                handMode === 'charleston' ? 'bg-yellow-100 text-yellow-800' :
+                handMode === 'discard' ? 'bg-red-100 text-red-800' :
+                'bg-gray-100 text-gray-600'
+              }`}>
+                {handMode === 'input' ? 'Input Mode' :
+                 handMode === 'charleston' ? 'Charleston' : 
+                 handMode === 'discard' ? 'Discard' : 
+                 'View'} Mode
               </div>
             )}
           </div>
         </div>
 
-        {/* Selection status */}
+        {/* Selection status - only show for charleston/discard modes */}
         {canSelectTiles && (
           <div className="mt-2 flex items-center justify-between">
             <p className="text-sm text-gray-600">
@@ -168,12 +197,19 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
             </span>
           </div>
         )}
+
+        {/* Input mode instructions */}
+        {handMode === 'input' && (
+          <div className="mt-2 text-sm text-gray-600">
+            Tap any slot to add/change tiles. Progress: {privateState.tiles.length}/13
+          </div>
+        )}
       </div>
 
       {/* Main content */}
       <div className="p-4">
-        {/* Hand analysis panel (collapsible) */}
-        {showAnalysis && (
+        {/* Hand analysis panel (collapsible) - hide during input phase */}
+        {showAnalysis && handMode !== 'input' && privateState.tiles.length >= 13 && (
           <div className="mb-4">
             <HandAnalysisPanel 
               analysis={analysis}
@@ -183,33 +219,33 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
           </div>
         )}
 
-        {/* Tile grid */}
+        {/* Tile grid - using proper private state */}
         <div className="mb-4">
           <HandTileGrid
             tiles={privateState.tiles}
-            selectedTiles={selectedTiles}
-            onTileSelect={canSelectTiles ? handleTileSelect : undefined}
             onTilesChange={handleTilesChange}
-            recommendations={analysis?.recommendations}
-            readOnly={!canSelectTiles}
+            recommendations={handMode !== 'input' ? analysis?.recommendations : undefined}
+            readOnly={false} // Always allow interaction via modal
           />
         </div>
 
-        {/* Action bar */}
-        <TileActionBar
-          gamePhase={gamePhase}
-          charlestonPhase={charlestonPhase}
-          isMyTurn={isMyTurn}
-          handMode={handMode}
-          selectedTiles={selectedTiles}
-          maxSelection={getMaxSelection()}
-          onModeChange={setHandMode}
-          onConfirmAction={handleConfirmAction}
-          onCancel={() => {
-            setSelectedTiles([]);
-            setHandMode('view');
-          }}
-        />
+        {/* Action bar - hide during input mode since HandTileGrid handles it */}
+        {handMode !== 'view' && handMode !== 'input' && (
+          <TileActionBar
+            gamePhase={gamePhase}
+            charlestonPhase={charlestonPhase}
+            isMyTurn={isMyTurn}
+            handMode={handMode}
+            selectedTiles={selectedTiles}
+            maxSelection={getMaxSelection()}
+            onModeChange={setHandMode}
+            onConfirmAction={handleConfirmAction}
+            onCancel={() => {
+              setSelectedTiles([]);
+              setHandMode('view');
+            }}
+          />
+        )}
       </div>
     </div>
   );

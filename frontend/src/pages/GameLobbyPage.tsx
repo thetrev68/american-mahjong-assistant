@@ -4,7 +4,6 @@ import type { Player, GameSettings, PlayerPosition, Tile } from '../types';
 import PlayerStatusList from '../components/game/PlayerStatusList';
 import GameProgress from '../components/game/GameProgress';
 import { PrivateHandView } from '../components/PrivateHandView';
-// import SpriteDebugger from '../components/tiles/SpriteDebugger';
 
 // Socket room types (from useSocket.ts)
 interface SocketPlayer {
@@ -443,7 +442,7 @@ const WaitingPhaseContent: React.FC<{
   );
 };
 
-// NEW: Tile Input Phase Component  
+// FIXED: Tile Input Phase Component - Changed gamePhase from "charleston" to "waiting"
 const TileInputPhaseContent: React.FC<{
   players: Player[];
   currentPlayerFromRoom: Player;
@@ -476,11 +475,11 @@ const TileInputPhaseContent: React.FC<{
         </div>
       </div>
 
-      {/* Private Tile Input */}
+      {/* FIXED: Private Tile Input - Changed gamePhase to "waiting" to enable input mode */}
       <div className="mb-6">
         <PrivateHandView
           playerId={currentPlayerFromRoom.id}
-          gamePhase="charleston" // Use charleston mode for tile input
+          gamePhase="waiting" // CHANGED: Use "waiting" instead of "charleston" to enable tile input
           isMyTurn={false}
           onPlayerAction={() => {}} // Not used during tile input
           onTilesUpdate={onTilesUpdate}

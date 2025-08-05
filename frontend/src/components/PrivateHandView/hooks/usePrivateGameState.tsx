@@ -1,5 +1,5 @@
 // frontend/src/components/PrivateHandView/hooks/usePrivateGameState.tsx
-// Custom hook for managing private player state (tiles, selections, etc.)
+// Custom hook for managing private player state - FIXED to work properly
 
 import { useState, useEffect } from 'react';
 import type { PrivatePlayerState, Tile } from '../../../types';
@@ -14,94 +14,89 @@ interface UsePrivateGameStateReturn {
 
 export const usePrivateGameState = (playerId: string): UsePrivateGameStateReturn => {
   const [privateState, setPrivateState] = useState<PrivatePlayerState | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false); // FIXED: Don't start with loading
   const [error] = useState<string | null>(null);
 
-  // Initialize private state for development
+  console.log('usePrivateGameState: Hook called for player', playerId);
+
+  // FIXED: Initialize private state immediately instead of waiting
   useEffect(() => {
-    // TODO: Replace with actual Socket.io integration
-    // For now, create mock state for development
-    const initializeMockState = () => {
-      const mockTiles: Tile[] = [
-        { id: '1D', suit: 'dots', value: '1' },
-        { id: '2D', suit: 'dots', value: '2' },
-        { id: '3D', suit: 'dots', value: '3' },
-        { id: '1B', suit: 'bams', value: '1' },
-        { id: '1C', suit: 'cracks', value: '1' },
-        { id: 'east', suit: 'winds', value: 'east' },
-        { id: 'red', suit: 'dragons', value: 'red' },
-        { id: 'joker', suit: 'jokers', value: 'joker' },
-        { id: '4D', suit: 'dots', value: '4' },
-        { id: '5D', suit: 'dots', value: '5' },
-        { id: '6D', suit: 'dots', value: '6' },
-        { id: '7D', suit: 'dots', value: '7' },
-        { id: '8D', suit: 'dots', value: '8' }
-      ];
-
-      const mockState: PrivatePlayerState = {
-        playerId,
-        tiles: mockTiles,
+    console.log('usePrivateGameState: Initializing state for player', playerId);
+    
+    // Create initial mock state immediately
+    const initialState: PrivatePlayerState = {
+      playerId,
+      tiles: [], // Start with empty tiles
+      recommendations: {
+        bestPatterns: [],
         recommendations: {
-          bestPatterns: [],
-          recommendations: {
-            keep: [mockTiles[0], mockTiles[1], mockTiles[2]], // Keep the dots
-            discard: [mockTiles[4], mockTiles[5]], // Discard mixed tiles
-            charleston: [mockTiles[3], mockTiles[6]] // Pass bam and dragon
-          },
-          probabilities: {
-            completion: 0.65,
-            turnsEstimate: 8
-          },
-          threats: {
-            dangerousTiles: [mockTiles[7]], // Joker might be dangerous to discard
-            safeTiles: [mockTiles[4], mockTiles[5]],
-            opponentThreats: [
-              {
-                playerId: 'player2',
-                suspectedPatterns: ['LIKE NUMBERS', '2025'],
-                dangerLevel: 'medium' as const
-              }
-            ]
-          }
+          keep: [],
+          discard: [],
+          charleston: []
         },
-        charlestonSelection: []
-      };
-
-      setPrivateState(mockState);
-      setIsLoading(false);
+        probabilities: {
+          completion: 0,
+          turnsEstimate: 0
+        },
+        threats: {
+          dangerousTiles: [],
+          safeTiles: [],
+          opponentThreats: []
+        }
+      },
+      charlestonSelection: []
     };
 
-    // Simulate loading delay
-    const timer = setTimeout(initializeMockState, 1000);
-    return () => clearTimeout(timer);
+    setPrivateState(initialState);
+    setIsLoading(false);
+    
+    console.log('usePrivateGameState: State initialized for player', playerId);
   }, [playerId]);
 
-  // Update private state
+  // FIXED: Update private state properly
   const updatePrivateState = (updates: Partial<PrivatePlayerState>) => {
-    setPrivateState(prev => prev ? { ...prev, ...updates } : null);
+    console.log('usePrivateGameState: Updating state', updates);
+    setPrivateState(prev => {
+      if (!prev) return null;
+      const newState = { ...prev, ...updates };
+      console.log('usePrivateGameState: New state', newState);
+      return newState;
+    });
   };
 
-  // Update tiles specifically
+  // FIXED: Update tiles specifically and trigger re-render
   const updateTiles = (tiles: Tile[]) => {
-    setPrivateState(prev => prev ? { ...prev, tiles } : null);
+    console.log('usePrivateGameState: Updating tiles', { playerId, tiles });
+    setPrivateState(prev => {
+      if (!prev) {
+        console.warn('usePrivateGameState: No previous state when updating tiles');
+        return null;
+      }
+      const newState = { ...prev, tiles };
+      console.log('usePrivateGameState: Tiles updated, new state:', newState);
+      return newState;
+    });
   };
 
-  // TODO: Add Socket.io event listeners
+  // TODO: Add Socket.io event listeners when ready
   useEffect(() => {
     // When Socket.io is integrated, add listeners here:
     /*
     socket.on('private-hand-update', (update: PrivatePlayerState) => {
       if (update.playerId === playerId) {
+        console.log('usePrivateGameState: Received socket update', update);
         setPrivateState(update);
         setIsLoading(false);
       }
     });
 
     socket.on('private-recommendations', (analysis: HandAnalysis) => {
+      console.log('usePrivateGameState: Received recommendations', analysis);
       setPrivateState(prev => prev ? { ...prev, recommendations: analysis } : null);
     });
 
     socket.on('error', (error: { message: string }) => {
+      console.error('usePrivateGameState: Socket error', error);
       setError(error.message);
       setIsLoading(false);
     });
@@ -116,6 +111,8 @@ export const usePrivateGameState = (playerId: string): UsePrivateGameStateReturn
     };
     */
   }, [playerId]);
+
+  console.log('usePrivateGameState: Returning state', { privateState, isLoading, error });
 
   return {
     privateState,
