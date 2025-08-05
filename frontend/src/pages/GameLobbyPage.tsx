@@ -258,20 +258,34 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
           <div className="bg-white rounded-lg shadow-sm p-6 text-center">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
               {gamePhase === 'charleston' ? '🔄 Charleston Phase' : 
-               gamePhase === 'playing' ? '🎮 Game In Progress' : 
-               '🏁 Game Finished'}
+              gamePhase === 'playing' ? '🎮 Game In Progress' : 
+              '🏁 Game Finished'}
             </h2>
             <p className="text-gray-600 mb-4">
               {gamePhase === 'charleston' ? 'Charleston coordination coming soon!' : 
-               gamePhase === 'playing' ? 'Active gameplay coming soon!' : 
-               'Thanks for playing!'}
+              gamePhase === 'playing' ? 'Active gameplay coming soon!' : 
+              'Thanks for playing!'}
             </p>
-            <button
-              onClick={handleLeaveRoom}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Back to Home
-            </button>
+            
+            {/* FIXED: Go back to tile input instead of leaving game entirely */}
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  // TODO: Add proper "go back to previous phase" logic
+                  console.log('Going back to tile input phase...');
+                }}
+                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 mr-2"
+              >
+                ← Back to Tile Input
+              </button>
+              
+              <button
+                onClick={handleLeaveRoom}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Leave Game
+              </button>
+            </div>
           </div>
         )}
       </div>

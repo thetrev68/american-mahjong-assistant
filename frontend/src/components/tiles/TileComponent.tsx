@@ -1,9 +1,9 @@
 // frontend/src/components/tiles/TileComponent.tsx
-// Individual tile rendering with sprite sheet - FIXED sizing
+// Individual tile rendering with sprite sheet - Using actual tiles.json data
 
 import React from 'react';
 import type { Tile } from '../../types';
-import tilesSprite from '../../assets/images/tiles.png';
+import tilesData from '../../assets/images/tiles.json';
 
 interface TileComponentProps {
   tile: Tile;
@@ -26,11 +26,15 @@ const TileComponent: React.FC<TileComponentProps> = ({
   onClick,
   onDoubleClick
 }) => {
-  // FIXED: Proper size configurations for 52x69 tile sprites
+  // Use the actual sprite dimensions from tiles.json (52x69px)
+  const SPRITE_WIDTH = 52;
+  const SPRITE_HEIGHT = 69;
+  
+  // Size configurations based on actual sprite dimensions
   const sizeClasses = {
-    small: 'w-8 h-11',      // ~32x44px (scaled down from 52x69)
-    medium: 'w-10 h-14',    // ~40x56px (scaled down from 52x69)
-    large: 'w-13 h-17'      // 52x68px (close to actual sprite size)
+    small: 'w-8 h-11',      // ~32x44px (0.6x scale)
+    medium: 'w-10 h-14',    // ~40x56px (0.8x scale)  
+    large: 'w-13 h-17'      // 52x68px (1.0x scale - matches sprite)
   };
 
   const handleClick = () => {
@@ -46,29 +50,64 @@ const TileComponent: React.FC<TileComponentProps> = ({
     }
   };
 
-  // Updated sprite mapping to match your tiles.json data
-  const getSpritePosition = (tileId: string) => {
-    // Map our tile IDs to sprite coordinates from tiles.json
-    const spritePositions: { [key: string]: { x: number; y: number } } = {
-      '1B': { x: 0, y: 0 }, '1C': { x: 52, y: 0 }, '1D': { x: 104, y: 0 },
-      '2B': { x: 156, y: 0 }, '2C': { x: 208, y: 0 }, '2D': { x: 260, y: 0 },
-      '3B': { x: 312, y: 0 }, '3C': { x: 364, y: 0 }, '3D': { x: 416, y: 0 },
-      '4B': { x: 468, y: 0 }, '4C': { x: 520, y: 0 }, '4D': { x: 572, y: 0 },
-      '5B': { x: 624, y: 0 }, '5C': { x: 676, y: 0 }, '5D': { x: 728, y: 0 },
-      '6B': { x: 780, y: 0 }, '6C': { x: 832, y: 0 }, '6D': { x: 884, y: 0 },
-      '7B': { x: 936, y: 0 }, '7C': { x: 988, y: 0 }, '7D': { x: 1040, y: 0 },
-      '8B': { x: 1092, y: 0 }, '8C': { x: 1144, y: 0 }, '8D': { x: 1196, y: 0 },
-      '9B': { x: 1248, y: 0 }, '9C': { x: 1300, y: 0 }, '9D': { x: 1352, y: 0 },
-      'green': { x: 1404, y: 0 }, 'white': { x: 1456, y: 0 }, 'red': { x: 1508, y: 0 },
-      'east': { x: 1560, y: 0 }, 'f1': { x: 1612, y: 0 }, 'f2': { x: 1664, y: 0 },
-      'f3': { x: 1716, y: 0 }, 'f4': { x: 1768, y: 0 }, 'joker': { x: 1820, y: 0 },
-      'north': { x: 1872, y: 0 }, 'south': { x: 1924, y: 0 }, 'west': { x: 1976, y: 0 }
+  // Map our tile IDs to the sprite filenames in tiles.json
+  const getTileFilename = (tileId: string): string => {
+    // Map our internal tile IDs to the sprite filenames
+    const filenameMap: { [key: string]: string } = {
+      // Dots
+      '1D': '1D.png', '2D': '2D.png', '3D': '3D.png', '4D': '4D.png', '5D': '5D.png',
+      '6D': '6D.png', '7D': '7D.png', '8D': '8D.png', '9D': '9D.png',
+      // Bams  
+      '1B': '1B.png', '2B': '2B.png', '3B': '3B.png', '4B': '4B.png', '5B': '5B.png',
+      '6B': '6B.png', '7B': '7B.png', '8B': '8B.png', '9B': '9B.png',
+      // Cracks
+      '1C': '1C.png', '2C': '2C.png', '3C': '3C.png', '4C': '4C.png', '5C': '5C.png',
+      '6C': '6C.png', '7C': '7C.png', '8C': '8C.png', '9C': '9C.png',
+      // Dragons
+      'red': 'DD.png',     // Red Dragon
+      'green': 'DB.png',   // Green Dragon (Bai)
+      'white': 'DC.png',   // White Dragon (Chung)
+      // Winds
+      'east': 'E.png',
+      'south': 'S.png', 
+      'west': 'W.png',
+      'north': 'N.png',
+      // Flowers
+      'f1': 'F1.png',
+      'f2': 'F2.png', 
+      'f3': 'F3.png',
+      'f4': 'F4.png',
+      // Joker
+      'joker': 'J.png'
     };
 
-    return spritePositions[tileId] || { x: 0, y: 0 };
+    return filenameMap[tileId] || '1D.png'; // Default fallback
+  };
+
+  // Get sprite position from tiles.json using the actual data you paid for
+  const getSpritePosition = (tileId: string) => {
+    const filename = getTileFilename(tileId);
+    const frameData = tilesData.frames.find(frame => frame.filename === filename);
+    
+    if (frameData) {
+      return {
+        x: frameData.frame.x,
+        y: frameData.frame.y,
+        width: frameData.frame.w,
+        height: frameData.frame.h
+      };
+    }
+    
+    // Fallback if not found
+    console.warn(`Sprite not found for tile: ${tileId} (${filename})`);
+    return { x: 0, y: 0, width: SPRITE_WIDTH, height: SPRITE_HEIGHT };
   };
 
   const spritePos = getSpritePosition(tile.id);
+  
+  // Use the actual sprite sheet dimensions from tiles.json meta
+  const sheetWidth = tilesData.meta.size.w; // 2028px
+  const sheetHeight = tilesData.meta.size.h; // 69px
 
   return (
     <div className="relative">
@@ -98,14 +137,14 @@ const TileComponent: React.FC<TileComponentProps> = ({
         disabled={isDisabled}
         aria-label={`${tile.suit} ${tile.value} tile${isSelected ? ' (selected)' : ''}`}
       >
-        {/* FIXED: Proper sprite sizing and scaling for 52x69 tiles */}
+        {/* Using actual sprite data from tiles.json */}
         <div 
           className="w-full h-full bg-no-repeat bg-center"
           style={{
-            backgroundImage: `url('${tilesSprite}')`,
+            backgroundImage: `url('/tiles.png')`,
             backgroundPosition: `-${spritePos.x}px -${spritePos.y}px`,
-            backgroundSize: '2028px 69px', // Full sprite sheet dimensions (39 tiles × 52px width = 2028px)
-            imageRendering: 'crisp-edges' // Ensure crisp tile edges at different sizes
+            backgroundSize: `${sheetWidth}px ${sheetHeight}px`, // Use exact dimensions from JSON
+            imageRendering: 'crisp-edges'
           }}
         />
         

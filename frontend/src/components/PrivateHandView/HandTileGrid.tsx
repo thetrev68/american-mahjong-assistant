@@ -1,5 +1,5 @@
 // frontend/src/components/PrivateHandView/HandTileGrid.tsx
-// Redesigned grid for displaying player's tiles with modal-based selection - FIXED
+// Redesigned grid for displaying player's tiles with modal-based selection - UPDATED: No numbers, drag/drop support
 
 import React, { useState } from 'react';
 import type { Tile } from '../../types';
@@ -28,6 +28,8 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedSlotIndex, setSelectedSlotIndex] = useState<number>(-1);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Create array of tiles with empty slots (up to maxTiles)
   const handSlots: (Tile | null)[] = Array(maxTiles).fill(null);
@@ -57,7 +59,7 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
     setModalOpen(true);
   };
 
-  // FIXED: Handle tile selection from modal - CORRECTED accumulation logic
+  // Handle tile selection from modal
   const handleTileSelect = (selectedTile: Tile) => {
     console.log('HandTileGrid: Tile selected from modal', { selectedSlotIndex, selectedTile, currentTiles: tiles });
     
@@ -83,7 +85,7 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
     setSelectedSlotIndex(-1);
   };
 
-  // FIXED: Handle tile removal from modal
+  // Handle tile removal from modal
   const handleTileRemove = () => {
     if (selectedSlotIndex >= tiles.length) return;
     
@@ -108,7 +110,7 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
     return null;
   };
 
-  // FIXED: Clear all tiles handler
+  // Clear all tiles handler
   const handleClearAll = () => {
     if (readOnly || tiles.length === 0) return;
     
@@ -116,6 +118,61 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
       console.log('HandTileGrid: Clearing all tiles');
       onTilesChange([]);
     }
+  };
+
+  // NEW: Drag and Drop Handlers
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    if (readOnly || !handSlots[index]) return;
+    
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(index);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newTiles = [...tiles];
+    
+    // Move the tile from draggedIndex to dropIndex
+    if (draggedIndex < tiles.length && dropIndex < maxTiles) {
+      const draggedTile = newTiles[draggedIndex];
+      
+      if (draggedTile) {
+        // Remove from old position
+        newTiles.splice(draggedIndex, 1);
+        
+        // Insert at new position (adjust index if we removed from before the drop point)
+        const adjustedDropIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
+        newTiles.splice(adjustedDropIndex, 0, draggedTile);
+        
+        onTilesChange(newTiles);
+      }
+    }
+    
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   return (
@@ -150,15 +207,31 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
         </div>
       </div>
 
-      {/* Tile grid - FIXED: 3 rows (5-5-4) with larger tiles */}
+      {/* Tile grid - UPDATED: No tile numbers, drag/drop support */}
       <div className="bg-gray-50 rounded-lg p-4">
         <div className="grid grid-cols-5 gap-3">
           {handSlots.map((tile, slotIndex) => {
+            const isDraggedOver = dragOverIndex === slotIndex;
+            const isDragging = draggedIndex === slotIndex;
+            
             if (tile) {
               const recommendation = getTileRecommendation(tile);
               
               return (
-                <div key={`slot-${slotIndex}`} className="relative">
+                <div 
+                  key={`slot-${slotIndex}`} 
+                  className={`relative transition-all ${
+                    isDraggedOver ? 'scale-105' : ''
+                  } ${
+                    isDragging ? 'opacity-50' : ''
+                  }`}
+                  draggable={!readOnly}
+                  onDragStart={(e) => handleDragStart(e, slotIndex)}
+                  onDragOver={(e) => handleDragOver(e, slotIndex)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, slotIndex)}
+                  onDragEnd={handleDragEnd}
+                >
                   <TileComponent
                     tile={tile}
                     size="large"
@@ -175,20 +248,31 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
                     }`} />
                   )}
                   
-                  {/* Slot number for easy reference */}
-                  <div className="absolute -top-1 -left-1 w-4 h-4 bg-gray-600 rounded-full flex items-center justify-center">
-                    <span className="text-xs text-white font-bold">{slotIndex + 1}</span>
-                  </div>
+                  {/* Drag indicator */}
+                  {!readOnly && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <span className="text-xs text-white">⋮⋮</span>
+                    </div>
+                  )}
                 </div>
               );
             } else {
               return (
-                <EmptyTileSlot
+                <div
                   key={`empty-${slotIndex}`}
-                  slotIndex={slotIndex}
-                  onClick={handleSlotClick}
-                  size="large"
-                />
+                  className={`transition-all ${
+                    isDraggedOver ? 'scale-105 bg-blue-100 border-blue-300' : ''
+                  }`}
+                  onDragOver={(e) => handleDragOver(e, slotIndex)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, slotIndex)}
+                >
+                  <EmptyTileSlot
+                    slotIndex={slotIndex}
+                    onClick={handleSlotClick}
+                    size="large"
+                  />
+                </div>
               );
             }
           })}
@@ -200,9 +284,9 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
             {tiles.length === 0 ? (
               <p>👆 Tap any slot to add your first tile</p>
             ) : tiles.length < 13 ? (
-              <p>Tap empty slots to add tiles • Tap existing tiles to change or remove</p>
+              <p>Tap slots to add/change tiles • Drag tiles to reorder • Tap existing tiles to change or remove</p>
             ) : (
-              <p>Tap any tile to change or remove it</p>
+              <p>Tap any tile to change or remove it • Drag to reorder your hand</p>
             )}
           </div>
         )}
@@ -229,7 +313,7 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
         </div>
       )}
 
-      {/* FIXED: Clear all button - now properly displayed */}
+      {/* Clear all button */}
       {tiles.length > 0 && !readOnly && (
         <div className="flex justify-center pt-4 border-t border-gray-200">
           <button
