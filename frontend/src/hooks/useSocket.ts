@@ -33,6 +33,8 @@ interface Room {
   code: string;
   players: Player[];
   gameState: GameState;
+  playerPositions?: Record<string, PlayerPosition>; // NEW
+  positionsConfirmed?: boolean; // NEW
 }
 
 interface RoomData {
@@ -198,6 +200,36 @@ export const useRoom = () => {
       setIsLoading(false);
     };
 
+    const handlePositionsUpdated = (data: { positions: Record<string, PlayerPosition> }) => {
+      console.log('Positions updated:', data.positions);
+      // This will be handled by the consuming component (GameLobbyPage)
+      // We'll emit a custom event or store in room state
+      setRoom(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          playerPositions: data.positions // Add positions to room state
+        };
+      });
+    };
+
+    const handlePositionsConfirmed = (data: { positions: Record<string, PlayerPosition> }) => {
+      console.log('Positions confirmed:', data.positions);
+      setRoom(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          playerPositions: data.positions,
+          positionsConfirmed: true // Flag that positions are locked
+        };
+      });
+    };
+
+    const handlePositionError = (data: { message: string }) => {
+      console.log('Position error:', data.message);
+      setError(data.message);
+    };
+
     // Register all event listeners
     socket.on('room-created', handleRoomCreated);
     socket.on('room-joined', handleRoomJoined);
@@ -209,6 +241,9 @@ export const useRoom = () => {
     socket.on('phase-changed', handlePhaseChanged);
     socket.on('room-info', handleRoomInfo);
     socket.on('room-error', handleRoomError);
+    socket.on('positions-updated', handlePositionsUpdated);
+    socket.on('positions-confirmed', handlePositionsConfirmed);
+    socket.on('position-error', handlePositionError);
 
     // Cleanup
     return () => {
@@ -222,6 +257,9 @@ export const useRoom = () => {
       socket.off('phase-changed', handlePhaseChanged);
       socket.off('room-info', handleRoomInfo);
       socket.off('room-error', handleRoomError);
+      socket.off('positions-updated', handlePositionsUpdated);
+      socket.off('positions-confirmed', handlePositionsConfirmed);
+      socket.off('position-error', handlePositionError);
     };
   }, [socket]);
 
@@ -281,6 +319,21 @@ export const useRoom = () => {
     });
   }, [socket, isConnected]);
 
+  // NEW: Position assignment actions
+  const assignPosition = useCallback((playerId: string, position: PlayerPosition) => {
+    if (!socket || !isConnected) return;
+    console.log('Assigning position:', { playerId, position });
+    socket.emit('assign-position', { playerId, position });
+  }, [socket, isConnected]);
+
+  const confirmPositions = useCallback((positions: Map<string, PlayerPosition>) => {
+    if (!socket || !isConnected) return;
+    // Convert Map to object for JSON serialization
+    const positionsObj = Object.fromEntries(positions);
+    console.log('Confirming positions:', positionsObj);
+    socket.emit('confirm-positions', { positions: positionsObj });
+  }, [socket, isConnected]);
+
   return {
     room,
     isLoading,
@@ -294,6 +347,8 @@ export const useRoom = () => {
     toggleReady,
     updateTiles,
     updatePlayerStatus,
+    assignPosition,
+    confirmPositions,
     // DEBUG: Add room state for debugging
     _debug: { room, isLoading, error, isConnected }
   };

@@ -4,6 +4,7 @@ import type { Player, GameSettings, PlayerPosition, Tile } from '../types';
 import PlayerStatusList from '../components/game/PlayerStatusList';
 import GameProgress from '../components/game/GameProgress';
 import { PrivateHandView } from '../components/PrivateHandView';
+import PlayerPositioning from '../components/room/PlayerPositioning';
 
 // Socket room types (from useSocket.ts)
 interface SocketPlayer {
@@ -31,12 +32,16 @@ interface SocketRoom {
   code: string;
   players: SocketPlayer[];
   gameState: SocketGameState;
+  playerPositions?: Record<string, PlayerPosition>; // NEW
+  positionsConfirmed?: boolean; // NEW
 }
 
 interface SocketFunctions {
   startGame: () => void;
   updateTiles: (tiles: Tile[]) => void; // CHANGED: now takes actual tiles
   updatePlayerStatus: (playerId: string, updates: { isParticipating?: boolean; tilesInputted?: boolean }) => void;
+  assignPosition: (playerId: string, position: PlayerPosition) => void; // NEW
+  confirmPositions: (positions: Map<string, PlayerPosition>) => void; // NEW
   toggleReady: () => void;
   isConnected: boolean;
   isLoading: boolean;
@@ -59,10 +64,14 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   onLeaveRoom,
   socketFunctions
 }) => {
-  const { startGame, toggleReady, updateTiles, updatePlayerStatus, isConnected, isLoading } = socketFunctions;
+  const { startGame, toggleReady, updateTiles, updatePlayerStatus, assignPosition, confirmPositions, isConnected } = socketFunctions;
   
   // Local state for current player's tiles
   const [myTiles, setMyTiles] = useState<Tile[]>([]);
+
+  // NEW: Position state management - RESTORED from Chunk 7
+  const [playerPositions, setPlayerPositions] = useState<Map<string, PlayerPosition>>(new Map());
+  const [showPositioning, setShowPositioning] = useState(false);
 
   // Game settings from room or defaults
   const gameSettings: GameSettings = {
@@ -81,7 +90,55 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     setConnectionStatus(isConnected ? 'connected' : 'disconnected');
   }, [isConnected]);
 
-  // Position labels for the table
+  // FIXED: Wrap socketPlayers in useMemo to fix React hooks dependency warning
+  const socketPlayers = useMemo(() => room?.players || [], [room?.players]);
+  
+  // Derived state from room
+  const gamePhase = room?.gameState?.phase || 'waiting';
+  
+  // FIXED: Wrap participatingPlayers in useMemo to fix React hooks dependency warning  
+  const participatingPlayers = useMemo(() => room?.gameState?.participatingPlayers || [], [room?.gameState?.participatingPlayers]);
+
+  // FIXED: Convert socket players to Player format with all required properties
+  const players: Player[] = useMemo(() => {
+    return socketPlayers.map(socketPlayer => {
+      // Get position from playerPositions state or default based on index
+      const assignedPosition = playerPositions.get(socketPlayer.id) || 
+        (['east', 'south', 'west', 'north'] as PlayerPosition[])[socketPlayers.indexOf(socketPlayer)] || 'east';
+      
+      return {
+        id: socketPlayer.id,
+        name: socketPlayer.name,
+        position: assignedPosition,
+        isHost: socketPlayer.isHost,
+        isConnected: socketPlayer.isOnline,
+        isReady: socketPlayer.isReady,
+        tilesInHand: socketPlayer.tilesCount || 0,
+        exposedSets: [], // FIXED: Added missing property
+        hasCalledMahjong: false // FIXED: Added missing property
+      };
+    });
+  }, [socketPlayers, playerPositions]);
+
+  // Current player from room data
+  const currentPlayerFromRoom = useMemo(() => {
+    const socketPlayer = socketPlayers.find(p => p.id === currentPlayer.id);
+    if (!socketPlayer) return currentPlayer;
+
+    return {
+      ...currentPlayer,
+      isReady: socketPlayer.isReady,
+      tilesInHand: socketPlayer.tilesCount || 0,
+      exposedSets: [], // FIXED: Added missing property
+      hasCalledMahjong: false // FIXED: Added missing property
+    };
+  }, [socketPlayers, currentPlayer]);
+
+  // Player status checks
+  const isHost = currentPlayer.isHost;
+  const isCurrentPlayerReady = currentPlayerFromRoom.isReady;
+
+  // Position labels for display
   const positionLabels: Record<PlayerPosition, string> = {
     east: 'East (Dealer)',
     south: 'South',
@@ -89,54 +146,17 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     north: 'North'
   };
 
-  // Use room data from props
-  const socketPlayers = useMemo(() => room?.players || [], [room?.players]);
-  const gamePhase = room?.gameState?.phase || 'waiting';
-  const participatingPlayers = room?.gameState?.participatingPlayers || [];
-
-  console.log('GameLobbyPage - room state:', { room, isLoading, isConnected });
-
-  // Convert socket players to our Player type
-  const players: Player[] = socketPlayers.map((p, index) => ({
-    id: p.id,
-    name: p.name,
-    position: ['east', 'south', 'west', 'north'][index] as PlayerPosition,
-    isHost: p.isHost,
-    isConnected: p.isOnline !== false,
-    isReady: p.isReady || false,
-    tilesInHand: p.tilesCount || 0,
-    exposedSets: [],
-    hasCalledMahjong: false
-  }));
-
-  // FIXED: Find current player's ready state from socket room data instead of local state
-  const currentPlayerFromRoom = players.find(p => p.id === currentPlayer.id) || currentPlayer;
-  const currentPlayerSocketData = socketPlayers.find(p => p.id === currentPlayer.id);
-  const isCurrentPlayerReady = currentPlayerSocketData?.isReady || false;
-  const isHost = currentPlayerFromRoom.isHost;
-
-  console.log('Ready state debug:', {
-    currentPlayerId: currentPlayer.id,
-    currentPlayerFromRoom: currentPlayerFromRoom,
-    currentPlayerSocketData: currentPlayerSocketData,
-    isCurrentPlayerReady: isCurrentPlayerReady,
-    allSocketPlayers: socketPlayers.map(p => ({ id: p.id, name: p.name, isReady: p.isReady }))
-  });
-
   // Check if all players are ready
-  const allPlayersReady = (() => {
+  const allPlayersReady = useMemo(() => {
     if (gamePhase === 'waiting') {
-      const readyPlayers = socketPlayers.filter(p => p.isReady || p.isHost);
-      const totalPlayers = socketPlayers.length;
-      console.log('Ready check:', { readyPlayers: readyPlayers.length, totalPlayers, minPlayers: 2 });
-      return totalPlayers >= 2 && readyPlayers.length === totalPlayers;
+      return players.length >= 2 && players.every(p => p.isReady);
     }
     if (gamePhase === 'tile-input') {
       const participatingPlayersList = players.filter(p => participatingPlayers.includes(p.id));
       return participatingPlayersList.length > 0 && participatingPlayersList.every(p => p.tilesInHand === 13);
     }
     return false;
-  })();
+  }, [gamePhase, players, participatingPlayers]);
 
   // Handle start game
   const handleStartGame = () => {
@@ -162,6 +182,32 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     toggleReady();
   };
 
+  // NEW: Position management handlers - RESTORED from Chunk 7
+  const handlePositionChange = (playerId: string, position: PlayerPosition) => {
+    if (!isHost) return;
+    console.log('Position change requested:', { playerId, position });
+    assignPosition(playerId, position);
+    
+    // Update local state immediately for responsive UI
+    setPlayerPositions(prev => {
+      const newPositions = new Map(prev);
+      newPositions.set(playerId, position);
+      return newPositions;
+    });
+  };
+
+  const handleConfirmPositions = () => {
+    if (!isHost) return;
+    console.log('Confirming positions:', playerPositions);
+    confirmPositions(playerPositions);
+    setShowPositioning(false);
+  };
+
+  const handleShowPositioning = () => {
+    if (!isHost) return;
+    setShowPositioning(true);
+  };
+
   // Handle leave room
   const handleLeaveRoom = () => {
     onLeaveRoom();
@@ -174,6 +220,14 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
       setMyTiles(myData.tiles);
     }
   }, [socketPlayers, currentPlayer.id]);
+
+  // NEW: Handle position updates from socket - RESTORED from Chunk 7
+  useEffect(() => {
+    if (room?.playerPositions) {
+      const positionsMap = new Map(Object.entries(room.playerPositions) as [string, PlayerPosition][]);
+      setPlayerPositions(positionsMap);
+    }
+  }, [room?.playerPositions]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 p-4">
@@ -238,6 +292,11 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             roomId={roomId}
             gameSettings={gameSettings}
             onToggleReady={handleToggleReady}
+            // NEW: Position management props - RESTORED from Chunk 7
+            showPositioning={showPositioning}
+            onPositionChange={handlePositionChange}
+            onConfirmPositions={handleConfirmPositions}
+            onShowPositioning={handleShowPositioning}
           />
         )}
 
@@ -288,16 +347,48 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             </div>
           </div>
         )}
+
+        {/* NEW: Position Assignment Modal - RESTORED from Chunk 7 */}
+        {showPositioning && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Assign Player Positions</h3>
+              
+              <PlayerPositioning
+                players={players}
+                currentPositions={playerPositions}
+                isHost={isHost}
+                onPositionChange={handlePositionChange}
+                onConfirmPositions={handleConfirmPositions}
+              />
+              
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  onClick={() => setShowPositioning(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleConfirmPositions}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Confirm Positions
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
 
-// FIXED: Updated WaitingPhaseContent to use proper ready state
+// FIXED: Updated WaitingPhaseContent to include position management
 const WaitingPhaseContent: React.FC<{
   players: Player[];
   currentPlayer: Player;
-  isCurrentPlayerReady: boolean; // NEW: Pass the actual ready state from socket
+  isCurrentPlayerReady: boolean;
   positionLabels: Record<PlayerPosition, string>;
   isHost: boolean;
   allPlayersReady: boolean;
@@ -305,15 +396,43 @@ const WaitingPhaseContent: React.FC<{
   roomId: string;
   gameSettings: GameSettings;
   onToggleReady: () => void;
-}> = ({ players, currentPlayer, isCurrentPlayerReady, positionLabels, isHost, allPlayersReady, onStartGame, roomId, gameSettings, onToggleReady }) => {
+  // NEW: Position management props
+  showPositioning: boolean;
+  onPositionChange: (playerId: string, position: PlayerPosition) => void;
+  onConfirmPositions: () => void;
+  onShowPositioning: () => void;
+}> = ({ 
+  players, 
+  currentPlayer, 
+  isCurrentPlayerReady, 
+  positionLabels, 
+  isHost, 
+  allPlayersReady, 
+  onStartGame, 
+  roomId, 
+  gameSettings, 
+  onToggleReady,
+  onShowPositioning
+}) => {
   
   return (
     <>
       {/* Players Table */}
       <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">
-          Players ({players.length}/4)
-        </h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-medium text-gray-900">
+            Players ({players.length}/4)
+          </h2>
+          {/* NEW: Position Management Button - RESTORED from Chunk 7 */}
+          {isHost && players.length >= 2 && (
+            <button
+              onClick={onShowPositioning}
+              className="px-3 py-1 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Assign Positions
+            </button>
+          )}
+        </div>
 
         {/* Mahjong Table Layout */}
         <div className="relative bg-green-100 rounded-xl p-8 mb-4" style={{ aspectRatio: '4/3' }}>
@@ -354,104 +473,144 @@ const WaitingPhaseContent: React.FC<{
                     </div>
                   </div>
                 ) : (
-                  <div className="bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg p-3 min-w-[120px] text-center">
-                    <div className="text-gray-500 text-sm">Empty</div>
-                    <div className="text-xs text-gray-400">{positionLabels[position]}</div>
+                  <div className="bg-gray-100 rounded-lg p-3 shadow-sm min-w-[120px] text-center border-2 border-dashed border-gray-300">
+                    <div className="text-gray-500 text-sm">{positionLabels[position]}</div>
+                    <div className="text-xs text-gray-400">Waiting for player...</div>
                   </div>
                 )}
               </div>
             );
           })}
         </div>
-      </div>
 
-      {/* Game Settings */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-        <h2 className="text-lg font-medium text-gray-900 mb-4">Game Settings</h2>
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div className="flex justify-between">
-            <span className="text-gray-600">Charleston:</span>
-            <span className="font-medium">{gameSettings.enableCharleston ? 'Enabled' : 'Disabled'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Turn Timer:</span>
-            <span className="font-medium">{gameSettings.turnTimeLimit}s</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Jokers:</span>
-            <span className="font-medium">{gameSettings.enableJokers ? 'Enabled' : 'Disabled'}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-gray-600">Card Year:</span>
-            <span className="font-medium">{gameSettings.cardYear}</span>
-          </div>
+        {/* Player List */}
+        <div className="space-y-2">
+          {players.map(player => (
+            <div
+              key={player.id}
+              className={`flex items-center justify-between p-3 rounded-lg border ${
+                player.id === currentPlayer.id 
+                  ? 'border-blue-200 bg-blue-50' 
+                  : 'border-gray-200 bg-gray-50'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${player.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+                <div>
+                  <div className="font-medium text-gray-900">
+                    {player.name}
+                    {player.id === currentPlayer.id && (
+                      <span className="ml-2 text-sm text-blue-600">(You)</span>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-600">
+                    {player.isHost ? 'Host' : 'Player'} • {positionLabels[player.position]}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {player.isHost ? (
+                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">HOST</span>
+                ) : (
+                  <span className={`text-xs px-2 py-1 rounded ${
+                    player.isReady 
+                      ? 'bg-green-100 text-green-800' 
+                      : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {player.isReady ? 'READY' : 'WAITING'}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Action Buttons */}
-      <div className="space-y-4">
-        {/* FIXED: Use isCurrentPlayerReady from socket data instead of currentPlayer.isReady */}
-        {!isHost && (
+      {/* Game Controls */}
+      <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <h3 className="text-lg font-medium text-gray-900 mb-4">Game Settings</h3>
+        
+        <div className="grid grid-cols-2 gap-4 text-sm mb-6">
+          <div>
+            <span className="text-gray-600">Charleston:</span>
+            <span className="ml-2 font-medium">{gameSettings.enableCharleston ? 'Enabled' : 'Disabled'}</span>
+          </div>
+          <div>
+            <span className="text-gray-600">Card Year:</span>
+            <span className="ml-2 font-medium">{gameSettings.cardYear}</span>
+          </div>
+          <div>
+            <span className="text-gray-600">Jokers:</span>
+            <span className="ml-2 font-medium">{gameSettings.enableJokers ? 'Enabled' : 'Disabled'}</span>
+          </div>
+          <div>
+            <span className="text-gray-600">Flowers:</span>
+            <span className="ml-2 font-medium">{gameSettings.enableFlowers ? 'Enabled' : 'Disabled'}</span>
+          </div>
+        </div>
+
+        {/* Ready/Start Controls */}
+        <div className="space-y-3">
+          {!isHost && (
+            <button
+              onClick={onToggleReady}
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors touch-target ${
+                isCurrentPlayerReady
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-blue-600 text-white hover:bg-blue-700'
+              }`}
+            >
+              {isCurrentPlayerReady ? '✓ Ready!' : '👍 Mark Ready'}
+            </button>
+          )}
+
+          {isHost && (
+            <button
+              onClick={onStartGame}
+              disabled={!allPlayersReady}
+              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors touch-target ${
+                allPlayersReady
+                  ? 'bg-green-600 text-white hover:bg-green-700'
+                  : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+              }`}
+            >
+              {allPlayersReady ? '🎮 Start Game' : '⏳ Waiting for Players'}
+            </button>
+          )}
+
           <button
-            onClick={onToggleReady}
-            className={`w-full py-4 px-6 rounded-lg font-medium text-lg transition-colors touch-target
-              ${isCurrentPlayerReady
-                ? 'bg-orange-500 text-white hover:bg-orange-600 shadow-lg'
-                : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: 'Join our Mahjong game!',
+                  text: `Room code: ${roomId}`,
+                  url: window.location.href
+                });
+              } else {
+                navigator.clipboard.writeText(roomId);
+                alert('Room code copied to clipboard!');
               }
-            `}
+            }}
+            className="w-full py-3 px-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors touch-target"
           >
-            {isCurrentPlayerReady ? '🔄 Unmark Ready' : '✅ Mark Ready'}
+            📋 Share Room Code
           </button>
-        )}
+        </div>
 
-        {isHost && (
-          <button
-            onClick={onStartGame}
-            disabled={!allPlayersReady}
-            className={`
-              w-full py-4 px-6 rounded-lg font-medium text-lg transition-colors touch-target
-              ${allPlayersReady
-                ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-lg'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }
-            `}
-          >
-            {allPlayersReady ? '🎮 Start Game' : '⏳ Waiting for Players'}
-          </button>
-        )}
-
-        <button
-          onClick={() => {
-            if (navigator.share) {
-              navigator.share({
-                title: 'Join our Mahjong game!',
-                text: `Room code: ${roomId}`,
-                url: window.location.href
-              });
-            } else {
-              navigator.clipboard.writeText(roomId);
-              alert('Room code copied to clipboard!');
-            }
-          }}
-          className="w-full py-3 px-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors touch-target"
-        >
-          📋 Share Room Code
-        </button>
-      </div>
-
-      {/* Status Messages */}
-      {players.length < 2 && (
-        <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-start gap-2">
-            <span className="text-yellow-600">⏳</span>
-            <div className="text-sm text-yellow-800">
-              <div className="font-medium">Waiting for more players</div>
-              <div>Share the room code <span className="font-mono">{roomId}</span> with other players to get started.</div>
+        {/* Status Messages */}
+        {players.length < 2 && (
+          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start gap-2">
+              <span className="text-yellow-600">⏳</span>
+              <div className="text-sm text-yellow-800">
+                <div className="font-medium">Waiting for more players</div>
+                <div>Share the room code <span className="font-mono">{roomId}</span> with other players to get started.</div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
   );
 };
@@ -471,7 +630,7 @@ const TileInputPhaseContent: React.FC<{
   currentPlayerFromRoom, 
   participatingPlayers, 
   isHost, 
-  // myTiles,
+  // myTiles, - commented out since it's unused in this component
   onTilesUpdate,
   onToggleParticipation,
   allPlayersReady

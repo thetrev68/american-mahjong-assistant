@@ -347,6 +347,51 @@ io.on('connection', (socket) => {
     }
   });
 
+  // NEW: Position assignment (host only)
+  socket.on('assign-position', (data: { playerId?: string; position?: string }) => {
+    const { playerId, position } = data || {};
+    
+    if (!playerId || !position) {
+      socket.emit('position-error', { message: 'Player ID and position required' });
+      return;
+    }
+
+    const result = roomManager.assignPlayerPosition(socket.id, playerId, position as any);
+    
+    if (result.success) {
+      const roomCode = result.room.code;
+      
+      // Broadcast position update to all players
+      io.to(roomCode).emit('positions-updated', {
+        positions: Object.fromEntries(result.room.playerPositions || new Map())
+      });
+      
+      console.log(`Position assigned: ${playerId} -> ${position} in room ${roomCode}`);
+    } else {
+      socket.emit('position-error', { message: result.error });
+    }
+  });
+
+  // NEW: Confirm all positions (host only)
+  socket.on('confirm-positions', (data: { positions?: Record<string, string> }) => {
+    const { positions = {} } = data || {};
+    
+    const result = roomManager.confirmPlayerPositions(socket.id, new Map(Object.entries(positions)));
+    
+    if (result.success) {
+      const roomCode = result.room.code;
+      
+      // Broadcast final positions to all players
+      io.to(roomCode).emit('positions-confirmed', {
+        positions: Object.fromEntries(result.room.playerPositions || new Map())
+      });
+      
+      console.log(`Positions confirmed in room ${roomCode}`);
+    } else {
+      socket.emit('position-error', { message: result.error });
+    }
+  });
+
   // Leave current room
   socket.on('leave-room', () => {
     const room = roomManager.getRoomByPlayer(socket.id);

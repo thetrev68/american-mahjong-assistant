@@ -1,6 +1,9 @@
 // /backend/src/roomManager.ts
 // Room management system for mahjong assistant - Enhanced for Charleston
 
+// Add this at the top of the file after the existing interfaces
+type PlayerPosition = 'east' | 'south' | 'west' | 'north';
+
 interface Tile {
   id: string;
   suit: string;
@@ -51,6 +54,7 @@ interface Room {
   players: Map<string, Player>;
   gameState: GameState;
   charlestonState?: CharlestonState; // NEW: Charleston state
+  playerPositions?: Map<string, PlayerPosition>; // NEW: Position assignments
   minPlayers: number;
   maxPlayers: number;
 }
@@ -98,6 +102,11 @@ interface CharlestonDistributionResult {
 interface CharlestonAdvanceResult {
   success: true;
   nextPhase?: 'right' | 'across' | 'left' | 'optional' | undefined;
+}
+
+interface PositionAssignResult {
+  success: true;
+  room: Room;
 }
 
 interface ErrorResult {
@@ -728,6 +737,104 @@ class RoomManager {
     
     const player = room.players.get(socketId);
     return player?.tiles || [];
+  }
+
+  // NEW: Assign player to position (host only)
+  assignPlayerPosition(
+    hostSocketId: string, 
+    playerId: string, 
+    position: PlayerPosition
+  ): PositionAssignResult | ErrorResult {
+    const room = this.getRoomByPlayer(hostSocketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can assign positions' };
+    }
+
+    const targetPlayer = room.players.get(playerId);
+    if (!targetPlayer) {
+      return { success: false, error: 'Player not found' };
+    }
+
+    // Initialize positions map if needed
+    if (!room.playerPositions) {
+      room.playerPositions = new Map();
+    }
+
+    // Check if position is already taken by someone else
+    for (const [existingPlayerId, existingPosition] of room.playerPositions.entries()) {
+      if (existingPosition === position && existingPlayerId !== playerId) {
+        return { success: false, error: `Position ${position} is already taken` };
+      }
+    }
+
+    // Remove player from any existing position
+    room.playerPositions.delete(playerId);
+    
+    // Assign to new position
+    room.playerPositions.set(playerId, position);
+
+    console.log(`Assigned ${targetPlayer.name} to ${position} in room ${room.code}`);
+    return { success: true, room };
+  }
+
+  // NEW: Confirm all position assignments (host only)
+  confirmPlayerPositions(
+    hostSocketId: string, 
+    positions: Map<string, PlayerPosition>
+  ): PositionAssignResult | ErrorResult {
+    const room = this.getRoomByPlayer(hostSocketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can confirm positions' };
+    }
+
+    // Validate positions
+    const assignedPositions = Array.from(positions.values());
+    const uniquePositions = new Set(assignedPositions);
+    
+    if (assignedPositions.length !== uniquePositions.size) {
+      return { success: false, error: 'Duplicate position assignments detected' };
+    }
+
+    // Check that all assigned players exist
+    for (const playerId of positions.keys()) {
+      if (!room.players.has(playerId)) {
+        return { success: false, error: `Player ${playerId} not found` };
+      }
+    }
+
+    // Require at least one dealer (East) position
+    if (!assignedPositions.includes('east')) {
+      return { success: false, error: 'Must assign at least one player to East (dealer) position' };
+    }
+
+    // Update room positions
+    room.playerPositions = new Map(positions);
+
+    console.log(`Positions confirmed in room ${room.code}:`, Object.fromEntries(positions));
+    return { success: true, room };
+  }
+
+  // NEW: Get player positions for a room
+  getPlayerPositions(roomCode: string): Map<string, PlayerPosition> {
+    const room = this.rooms.get(roomCode);
+    return room?.playerPositions || new Map();
+  }
+
+  // NEW: Get position for a specific player
+  getPlayerPosition(playerId: string): PlayerPosition | null {
+    const room = this.getRoomByPlayer(playerId);
+    if (!room?.playerPositions) return null;
+    return room.playerPositions.get(playerId) || null;
   }
 
   // Get stats for debugging
