@@ -1,222 +1,358 @@
 // frontend/src/components/charleston/CharlestonRecommendationPanel.tsx
-// Panel showing Charleston recommendation reasoning and strategy
+// Charleston-focused recommendation display with phase-specific guidance
 
 import React, { useState } from 'react';
-import type { CharlestonRecommendation } from '../../types/charleston-types';
+import type { CharlestonRecommendation, CharlestonPhase } from '../../types/charleston-types';
+import type { Tile } from '../../types';
 
 interface CharlestonRecommendationPanelProps {
   recommendations: CharlestonRecommendation | null;
-  currentPhase: 'right' | 'across' | 'left' | 'optional';
-  isVisible: boolean;
-  onToggleVisibility: () => void;
+  currentPhase: CharlestonPhase;
+  selectedTiles: Tile[];
+  isLoading?: boolean;
 }
 
 const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps> = ({
   recommendations,
   currentPhase,
-  isVisible,
-  onToggleVisibility
+  selectedTiles,
+  isLoading = false
 }) => {
   const [activeTab, setActiveTab] = useState<'strategy' | 'analysis' | 'alternatives'>('strategy');
 
-  if (!recommendations) {
+  const tabs = [
+    { key: 'strategy' as const, label: 'Strategy', icon: '🎯' },
+    { key: 'analysis' as const, label: 'Analysis', icon: '🔍' },
+    { key: 'alternatives' as const, label: 'Options', icon: '⚡' }
+  ];
+
+  const getConfidenceColor = (confidence: string) => {
+    switch (confidence) {
+      case 'certain': return 'bg-green-500 text-white';
+      case 'high': return 'bg-blue-500 text-white';
+      case 'medium': return 'bg-yellow-500 text-white';
+      case 'low': return 'bg-gray-400 text-white';
+      default: return 'bg-gray-300 text-gray-700';
+    }
+  };
+
+  const getPhaseDisplayName = (phase: CharlestonPhase) => {
+    switch (phase) {
+      case 'right': return 'Pass Right';
+      case 'across': return 'Pass Across';
+      case 'left': return 'Pass Left';
+      case 'optional': return 'Optional Pass';
+      case 'complete': return 'Complete';
+      default: return phase;
+    }
+  };
+
+  const getActionColor = (action: 'pass' | 'keep' | 'neutral') => {
+    switch (action) {
+      case 'pass': return 'bg-red-100 text-red-700 border-red-200';
+      case 'keep': return 'bg-green-100 text-green-700 border-green-200';
+      case 'neutral': return 'bg-gray-100 text-gray-600 border-gray-200';
+    }
+  };
+
+  const getActionIcon = (action: 'pass' | 'keep' | 'neutral') => {
+    switch (action) {
+      case 'pass': return '➡️';
+      case 'keep': return '✋';
+      case 'neutral': return '🤷‍♀️';
+    }
+  };
+
+  if (isLoading) {
     return (
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <div className="text-center text-gray-600">
-          <div className="text-sm">No recommendations available</div>
-          <div className="text-xs mt-1">Analysis will appear when tiles are entered</div>
+      <div className="bg-yellow-50 rounded-lg p-4">
+        <div className="animate-pulse">
+          <div className="h-4 bg-gray-300 rounded mb-2"></div>
+          <div className="h-20 bg-gray-300 rounded"></div>
         </div>
+        <p className="text-sm text-gray-600 mt-2">Analyzing Charleston strategy...</p>
       </div>
     );
   }
 
-  const phaseLabels = {
-    right: 'Pass Right',
-    across: 'Pass Across',
-    left: 'Pass Left', 
-    optional: 'Optional Pass'
-  };
-
-  const getConfidenceColor = (confidence: string) => {
-    switch (confidence) {
-      case 'high': return 'text-green-600 bg-green-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-red-600 bg-red-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
+  if (!recommendations) {
+    return (
+      <div className="bg-yellow-50 rounded-lg p-4 text-center">
+        <p className="text-sm text-gray-600">
+          Input your tiles to get Charleston passing recommendations
+        </p>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
-      {/* Header with toggle */}
-      <div className="bg-blue-100 p-3 border-b border-blue-200">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-blue-600">💡</span>
-            <h3 className="font-medium text-blue-800">
-              {phaseLabels[currentPhase]} Strategy
-            </h3>
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(recommendations.confidence)}`}>
-              {recommendations.confidence} confidence
-            </span>
-          </div>
-          <button
-            onClick={onToggleVisibility}
-            className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-          >
-            {isVisible ? 'Hide' : 'Show'} Details
-          </button>
+    <div className="bg-yellow-50 rounded-lg p-4 space-y-4">
+      {/* Header with phase and confidence */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-gray-900">
+            Charleston: {getPhaseDisplayName(currentPhase)}
+          </h3>
+          <p className="text-sm text-gray-600">Strategic passing guidance</p>
         </div>
+        <span className={`px-3 py-1 rounded-full text-xs font-medium ${getConfidenceColor(recommendations.confidence)}`}>
+          {recommendations.confidence} confidence
+        </span>
       </div>
 
-      {/* Collapsible content */}
-      {isVisible && (
-        <div className="p-4">
-          {/* Tab navigation */}
-          <div className="flex mb-3 bg-white rounded-lg p-1">
-            {[
-              { key: 'strategy', label: 'Strategy' },
-              { key: 'analysis', label: 'Analysis' },
-              { key: 'alternatives', label: 'Options' }
-            ].map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key as 'strategy' | 'analysis' | 'alternatives')}
-                className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors ${
-                  activeTab === tab.key
-                    ? 'bg-blue-500 text-white'
-                    : 'text-blue-600 hover:bg-blue-100'
-                }`}
-              >
-                {tab.label}
-              </button>
+      {/* Selected tiles feedback */}
+      {selectedTiles.length > 0 && (
+        <div className="bg-white rounded-lg p-3 border border-yellow-200">
+          <h4 className="font-medium text-gray-900 mb-2 flex items-center">
+            <span className="mr-2">📝</span>
+            Your Selection ({selectedTiles.length}/3)
+          </h4>
+          <div className="flex flex-wrap gap-1 mb-2">
+            {selectedTiles.map((tile, index) => (
+              <span key={index} className="px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded font-mono">
+                {tile.id}
+              </span>
             ))}
           </div>
+          {selectedTiles.length < 3 && (
+            <p className="text-xs text-gray-600">Select {3 - selectedTiles.length} more tile{3 - selectedTiles.length > 1 ? 's' : ''}</p>
+          )}
+        </div>
+      )}
 
-          {/* Tab content */}
-          {activeTab === 'strategy' && (
-            <div className="space-y-3">
-              {/* Overall strategy */}
-              <div className="bg-white rounded-lg p-3">
-                <h4 className="font-medium text-gray-800 mb-2">Overall Strategy</h4>
-                <p className="text-sm text-gray-700">{recommendations.overallStrategy}</p>
-              </div>
+      {/* Tab navigation */}
+      <div className="flex space-x-1 bg-white rounded-lg p-1">
+        {tabs.map((tab) => (
+          <button
+            key={tab.key}
+            onClick={() => setActiveTab(tab.key)}
+            className={`flex-1 px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center justify-center space-x-1 ${
+              activeTab === tab.key
+                ? 'bg-yellow-500 text-white'
+                : 'text-gray-600 hover:bg-yellow-100'
+            }`}
+          >
+            <span>{tab.icon}</span>
+            <span>{tab.label}</span>
+          </button>
+        ))}
+      </div>
 
-              {/* Pattern shift */}
-              {recommendations.patternShift && (
-                <div className="bg-white rounded-lg p-3">
-                  <h4 className="font-medium text-gray-800 mb-2">Pattern Focus</h4>
-                  <p className="text-sm text-gray-700">{recommendations.patternShift}</p>
-                </div>
-              )}
+      {/* Tab content */}
+      {activeTab === 'strategy' && (
+        <div className="space-y-3">
+          {/* Overall strategy */}
+          <div className="bg-white rounded-lg p-3">
+            <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+              <span className="mr-2">🎯</span>
+              Overall Strategy
+            </h4>
+            <p className="text-sm text-gray-700">{recommendations.overallStrategy}</p>
+          </div>
 
-              {/* Phase advice */}
-              {recommendations.phaseAdvice && (
-                <div className="bg-white rounded-lg p-3">
-                  <h4 className="font-medium text-gray-800 mb-2">Phase Advice</h4>
-                  <div className="space-y-2 text-sm text-gray-700">
-                    <div>
-                      <span className="font-medium">What to expect:</span> {recommendations.phaseAdvice.whatToExpect}
-                    </div>
-                    <div>
-                      <span className="font-medium">Next phase:</span> {recommendations.phaseAdvice.nextPhaseStrategy}
-                    </div>
-                    <div>
-                      <span className="font-medium">Risk level:</span> {recommendations.phaseAdvice.riskAssessment}
-                    </div>
-                  </div>
-                </div>
-              )}
+          {/* Pattern shift */}
+          {recommendations.patternShift && (
+            <div className="bg-white rounded-lg p-3">
+              <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+                <span className="mr-2">🔄</span>
+                Pattern Focus
+              </h4>
+              <p className="text-sm text-gray-700">{recommendations.patternShift}</p>
             </div>
           )}
 
-          {activeTab === 'analysis' && (
-            <div className="space-y-3">
-              {/* Recommended tiles to pass */}
-              <div className="bg-white rounded-lg p-3">
-                <h4 className="font-medium text-red-700 mb-2">
-                  Recommended to Pass ({recommendations.tilesToPass.length})
-                </h4>
-                {recommendations.tilesToPass.length > 0 ? (
-                  <div className="flex flex-wrap gap-1">
-                    {recommendations.tilesToPass.map((tile, index) => (
-                      <span key={index} className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-mono">
-                        {tile.id}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-600">No specific tiles recommended</p>
-                )}
+          {/* Phase advice */}
+          {recommendations.phaseAdvice && (
+            <div className="bg-white rounded-lg p-3">
+              <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+                <span className="mr-2">💡</span>
+                Phase Guidance
+              </h4>
+              <div className="space-y-2 text-sm text-gray-700">
+                <div className="bg-blue-50 p-2 rounded">
+                  <span className="font-medium text-blue-800">What to expect:</span>
+                  <p className="text-blue-700 mt-1">{recommendations.phaseAdvice.whatToExpect}</p>
+                </div>
+                <div className="bg-green-50 p-2 rounded">
+                  <span className="font-medium text-green-800">Next phase:</span>
+                  <p className="text-green-700 mt-1">{recommendations.phaseAdvice.nextPhaseStrategy}</p>
+                </div>
+                <div className="bg-amber-50 p-2 rounded">
+                  <span className="font-medium text-amber-800">Risk assessment:</span>
+                  <p className="text-amber-700 mt-1">{recommendations.phaseAdvice.riskAssessment}</p>
+                </div>
               </div>
+            </div>
+          )}
+        </div>
+      )}
 
-              {/* Recommended tiles to keep */}
-              <div className="bg-white rounded-lg p-3">
-                <h4 className="font-medium text-green-700 mb-2">
-                  Recommended to Keep ({recommendations.tilesToKeep.length})
-                </h4>
-                {recommendations.tilesToKeep.length > 0 ? (
-                  <div className="flex flex-wrap gap-1">
-                    {recommendations.tilesToKeep.map((tile, index) => (
-                      <span key={index} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-mono">
-                        {tile.id}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-600">No specific tiles to prioritize</p>
-                )}
+      {activeTab === 'analysis' && (
+        <div className="space-y-3">
+          {/* Recommended tiles to pass */}
+          <div className="bg-white rounded-lg p-3">
+            <h4 className="font-medium text-red-700 mb-2 flex items-center">
+              <span className="mr-2">➡️</span>
+              Recommended to Pass ({recommendations.tilesToPass.length})
+            </h4>
+            {recommendations.tilesToPass.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {recommendations.tilesToPass.map((tile, index) => (
+                  <span key={index} className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-mono border border-red-200">
+                    {tile.id}
+                  </span>
+                ))}
               </div>
+            ) : (
+              <p className="text-sm text-gray-600">No specific tiles recommended to pass</p>
+            )}
+          </div>
 
-              {/* Current patterns */}
-              {recommendations.currentPatterns && recommendations.currentPatterns.length > 0 && (
-                <div className="bg-white rounded-lg p-3">
-                  <h4 className="font-medium text-gray-800 mb-2">Current Patterns</h4>
-                  <div className="space-y-1">
-                    {recommendations.currentPatterns.map((pattern, index) => (
-                      <div key={index} className="text-sm">
-                        <span className="font-medium">{pattern.name}</span>
-                        <span className="text-gray-600 ml-2">({pattern.points} pts)</span>
+          {/* Recommended tiles to keep */}
+          <div className="bg-white rounded-lg p-3">
+            <h4 className="font-medium text-green-700 mb-2 flex items-center">
+              <span className="mr-2">✋</span>
+              Recommended to Keep ({recommendations.tilesToKeep.length})
+            </h4>
+            {recommendations.tilesToKeep.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {recommendations.tilesToKeep.map((tile, index) => (
+                  <span key={index} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-mono border border-green-200">
+                    {tile.id}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600">No specific tiles to prioritize keeping</p>
+            )}
+          </div>
+
+          {/* Detailed tile analysis */}
+          {recommendations.tileAnalysis && recommendations.tileAnalysis.length > 0 && (
+            <div className="bg-white rounded-lg p-3">
+              <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+                <span className="mr-2">🔍</span>
+                Detailed Analysis
+              </h4>
+              <div className="space-y-2">
+                {recommendations.tileAnalysis
+                  .filter(analysis => analysis.action !== 'neutral' || analysis.priority >= 6)
+                  .slice(0, 5)
+                  .map((analysis, index) => (
+                    <div 
+                      key={index}
+                      className={`p-2 rounded border ${getActionColor(analysis.action)}`}
+                    >
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-2">
+                          <span>{getActionIcon(analysis.action)}</span>
+                          <span className="font-mono text-sm font-medium">{analysis.tile.id}</span>
+                          <span className={`px-1 py-0.5 rounded text-xs ${getConfidenceColor(analysis.confidence)}`}>
+                            {analysis.confidence}
+                          </span>
+                        </div>
+                        <span className="text-xs font-medium">Priority: {analysis.priority}</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+                      <p className="text-xs">{analysis.reasoning}</p>
+                    </div>
+                  ))}
+              </div>
             </div>
           )}
 
-          {activeTab === 'alternatives' && (
-            <div className="space-y-3">
-              {recommendations.alternativeOptions && recommendations.alternativeOptions.length > 0 ? (
-                recommendations.alternativeOptions.map((option, index) => (
-                  <div key={index} className="bg-white rounded-lg p-3">
+          {/* Current patterns */}
+          {recommendations.currentPatterns && recommendations.currentPatterns.length > 0 && (
+            <div className="bg-white rounded-lg p-3">
+              <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+                <span className="mr-2">📋</span>
+                Current Patterns
+              </h4>
+              <div className="space-y-1">
+                {recommendations.currentPatterns.slice(0, 3).map((pattern, index) => (
+                  <div key={index} className="flex justify-between items-center text-sm">
+                    <span className="font-medium">{pattern.name}</span>
+                    <span className="text-gray-600">({pattern.points} pts)</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeTab === 'alternatives' && (
+        <div className="space-y-3">
+          <div className="bg-white rounded-lg p-3">
+            <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+              <span className="mr-2">⚡</span>
+              Alternative Passing Options
+            </h4>
+            {recommendations.alternativeOptions && recommendations.alternativeOptions.length > 0 ? (
+              <div className="space-y-3">
+                {recommendations.alternativeOptions.map((option, index) => (
+                  <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium text-gray-800">
+                      <h5 className="font-medium text-gray-800">
                         Option {index + 1}
-                      </h4>
+                      </h5>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(option.confidence)}`}>
                         {option.confidence}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-1 mb-2">
                       {option.tiles.map((tile, tileIndex) => (
-                        <span key={tileIndex} className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-mono">
+                        <span key={tileIndex} className="px-2 py-1 bg-white text-gray-700 text-xs rounded font-mono border border-gray-300">
                           {tile.id}
                         </span>
                       ))}
                     </div>
                     <p className="text-sm text-gray-700">{option.reasoning}</p>
                   </div>
-                ))
-              ) : (
-                <div className="bg-white rounded-lg p-3 text-center">
-                  <p className="text-sm text-gray-600">No alternative options available</p>
-                </div>
-              )}
+                ))}
+              </div>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-3 text-center">
+                <p className="text-sm text-gray-600">No alternative options available</p>
+                <p className="text-xs text-gray-500 mt-1">The recommended tiles are the clear best choice</p>
+              </div>
+            )}
+          </div>
+
+          {/* Strategy comparison */}
+          <div className="bg-white rounded-lg p-3">
+            <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+              <span className="mr-2">⚖️</span>
+              Strategy Comparison
+            </h4>
+            <div className="text-sm text-gray-700 space-y-1">
+              <div className="flex justify-between">
+                <span>Aggressive (pass strong tiles):</span>
+                <span className="text-red-600">High risk, high reward</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Conservative (pass weak tiles):</span>
+                <span className="text-green-600">Low risk, steady progress</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Balanced (recommended):</span>
+                <span className="text-blue-600">Optimal risk/reward</span>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
+
+      {/* Quick tips footer */}
+      <div className="bg-yellow-100 rounded-lg p-3 border border-yellow-200">
+        <p className="text-xs text-yellow-800">
+          <span className="font-medium">💡 Charleston Tip:</span>
+          {currentPhase === 'right' && " Focus on passing isolated tiles and excess duplicates."}
+          {currentPhase === 'across' && " Consider defensive passing - what might help opponents?"}
+          {currentPhase === 'left' && " Final adjustments - optimize for your strongest patterns."}
+          {currentPhase === 'optional' && " Only pass if it significantly improves your hand."}
+          {currentPhase === 'complete' && " Charleston complete! Review your final hand composition."}
+        </p>
+      </div>
     </div>
   );
 };

@@ -2,9 +2,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import type { Player, GameSettings, PlayerPosition, Tile } from '../types';
 import PlayerStatusList from '../components/game/PlayerStatusList';
+import CharlestonTileSelector from '../components/charleston/CharlestonTileSelector';
+import { useCharleston } from '../hooks/useCharleston';
 import GameProgress from '../components/game/GameProgress';
 import { PrivateHandView } from '../components/PrivateHandView';
 import PlayerPositioning from '../components/room/PlayerPositioning';
+import { GameStateMachine } from '../utils/game-state-machine';
+import TurnTimer from '../components/game/TurnTimer';
 
 // Socket room types (from useSocket.ts)
 interface SocketPlayer {
@@ -120,6 +124,14 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     });
   }, [socketPlayers, playerPositions]);
 
+  // Charleston hook integration
+  const charleston = useCharleston({
+    playerId: currentPlayer?.id || '',
+    roomId: room?.code || '',
+    playerTiles: myTiles,
+    totalPlayers: room?.players.length || 0
+  });
+
   // Current player from room data
   const currentPlayerFromRoom = useMemo(() => {
     const socketPlayer = socketPlayers.find(p => p.id === currentPlayer.id);
@@ -137,6 +149,9 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   // Player status checks
   const isHost = currentPlayer.isHost;
   const isCurrentPlayerReady = currentPlayerFromRoom.isReady;
+
+  // Track when current phase started
+  const [phaseStartTime] = useState(Date.now()); 
 
   // Position labels for display
   const positionLabels: Record<PlayerPosition, string> = {
@@ -248,6 +263,28 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             </button>
           </div>
 
+          {/* Phase Timer - NEW */}
+          {(gamePhase === 'tile-input' || gamePhase === 'charleston') && (
+            <div className="flex items-center gap-3">
+              {(() => {
+                const timerProps = GameStateMachine.createTurnTimerProps(
+                  gamePhase, 
+                  phaseStartTime, 
+                  'east'
+                );
+                return <TurnTimer {...timerProps} />;
+              })()}
+              <div className="text-sm">
+                <div className="font-medium text-gray-900">
+                  {GameStateMachine.getPhaseDisplayName(gamePhase)}
+                </div>
+                <div className="text-gray-600">
+                  {GameStateMachine.getPhaseDescription(gamePhase)}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Connection Status */}
           <div className="flex items-center gap-2 text-sm">
             <div className={`w-2 h-2 rounded-full ${
@@ -313,16 +350,34 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
           />
         )}
 
-        {isConnected && room && (gamePhase === 'charleston' || gamePhase === 'playing' || gamePhase === 'finished') && (
+        {isConnected && room && gamePhase === 'charleston' && charleston.currentPhase !== 'complete' && (
+          <div className="charleston-phase-container">
+            <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
+                🔄 Charleston Phase - Pass {charleston.currentPhase.charAt(0).toUpperCase() + charleston.currentPhase.slice(1)}
+              </h2>
+              <CharlestonTileSelector
+                playerTiles={myTiles}
+                selectedTiles={charleston.selectedTiles || []}
+                onTileSelect={charleston.selectTile}
+                onTileRemove={(tile: Tile) => charleston.deselectTile(tile)}
+                phase={charleston.currentPhase}
+                isReadyToPass={charleston.isConfirmed}
+                onConfirmSelection={charleston.confirmSelection}
+                onClearSelection={charleston.clearSelection}
+              />
+            </div>
+          </div>
+        )}
+
+        {isConnected && room && (gamePhase === 'playing' || gamePhase === 'finished') && (
           <div className="bg-white rounded-lg shadow-sm p-6 text-center">
             <h2 className="text-xl font-bold text-gray-900 mb-4">
-              {gamePhase === 'charleston' ? '🔄 Charleston Phase' : 
-              gamePhase === 'playing' ? '🎮 Game In Progress' : 
+              {gamePhase === 'playing' ? '🎮 Game In Progress' : 
               '🏁 Game Finished'}
             </h2>
             <p className="text-gray-600 mb-4">
-              {gamePhase === 'charleston' ? 'Charleston coordination coming soon!' : 
-              gamePhase === 'playing' ? 'Active gameplay coming soon!' : 
+              {gamePhase === 'playing' ? 'Active gameplay coming soon!' : 
               'Thanks for playing!'}
             </p>
             
