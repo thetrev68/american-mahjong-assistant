@@ -1,5 +1,5 @@
 // /backend/src/roomManager.ts
-// Room management system for mahjong assistant - Enhanced for tile data
+// Room management system for mahjong assistant - Enhanced for Charleston
 
 interface Tile {
   id: string;
@@ -18,7 +18,7 @@ interface Player {
   isOnline: boolean;
   tilesInputted: boolean;
   tilesCount: number;
-  tiles: Tile[]; // NEW: Store actual tile data
+  tiles: Tile[];
   isReady: boolean;
 }
 
@@ -30,11 +30,27 @@ interface GameState {
   playersReady: string[];
 }
 
+// NEW: Charleston state interfaces
+interface CharlestonSelection {
+  playerId: string;
+  phase: string;
+  selectedTiles: Tile[];
+  confirmedAt: Date;
+}
+
+interface CharlestonState {
+  currentPhase: 'right' | 'across' | 'left' | 'optional' | 'complete';
+  selections: Map<string, CharlestonSelection>;
+  playersReady: string[];
+  isActive: boolean;
+}
+
 interface Room {
   code: string;
   createdAt: Date;
   players: Map<string, Player>;
   gameState: GameState;
+  charlestonState?: CharlestonState; // NEW: Charleston state
   minPlayers: number;
   maxPlayers: number;
 }
@@ -64,6 +80,24 @@ interface StartGameResult {
 interface UpdatePlayerResult {
   success: true;
   room: Room;
+}
+
+// NEW: Charleston result interfaces
+interface CharlestonConfirmResult {
+  success: true;
+  playersReady: string[];
+  allPlayersReady: boolean;
+}
+
+interface CharlestonDistributionResult {
+  success: true;
+  nextPhase?: 'right' | 'across' | 'left' | 'optional' | undefined;
+  distributions: { fromPlayerId: string; toPlayerId: string; tiles: Tile[] }[];
+}
+
+interface CharlestonAdvanceResult {
+  success: true;
+  nextPhase?: 'right' | 'across' | 'left' | 'optional' | undefined;
 }
 
 interface ErrorResult {
@@ -115,7 +149,7 @@ class RoomManager {
       isOnline: true,
       tilesInputted: false,
       tilesCount: 0,
-      tiles: [], // NEW: Initialize empty tiles array
+      tiles: [],
       isReady: true
     });
 
@@ -156,7 +190,7 @@ class RoomManager {
       isOnline: true,
       tilesInputted: false,
       tilesCount: 0,
-      tiles: [], // NEW: Initialize empty tiles array
+      tiles: [],
       isReady: false
     });
 
@@ -192,7 +226,7 @@ class RoomManager {
     return { success: true, room };
   }
 
-  // Start the game (host only) - FIXED with better debugging
+  // Start the game (host only)
   startGame(hostSocketId: string): StartGameResult | ErrorResult {
     const room = this.getRoomByPlayer(hostSocketId);
     if (!room) {
@@ -207,39 +241,15 @@ class RoomManager {
     const allPlayers = Array.from(room.players.values());
     const participatingPlayers = allPlayers.filter(p => p.isParticipating && p.isOnline);
 
-    // DEBUG: Log all player states
-    console.log('=== START GAME DEBUG ===');
-    console.log(`Room: ${room.code}`);
-    console.log(`Min players needed: ${room.minPlayers}`);
-    console.log(`Total players: ${allPlayers.length}`);
-    console.log(`Participating players: ${participatingPlayers.length}`);
-    console.log('All players status:');
-    allPlayers.forEach(p => {
-      console.log(`  - ${p.name}: host=${p.isHost}, ready=${p.isReady}, participating=${p.isParticipating}, online=${p.isOnline}`);
-    });
-
     if (participatingPlayers.length < room.minPlayers) {
-      console.log(`❌ Not enough players: ${participatingPlayers.length} < ${room.minPlayers}`);
       return { success: false, error: `Need at least ${room.minPlayers} players to start` };
     }
 
-    // FIXED: Check ready status more carefully
     const nonHostPlayers = participatingPlayers.filter(p => !p.isHost);
-    const readyNonHostPlayers = nonHostPlayers.filter(p => p.isReady);
-    
-    console.log(`Non-host players: ${nonHostPlayers.length}`);
-    console.log(`Ready non-host players: ${readyNonHostPlayers.length}`);
-    
-    nonHostPlayers.forEach(p => {
-      console.log(`  - ${p.name}: isReady=${p.isReady}`);
-    });
-
     const allReady = nonHostPlayers.every(p => p.isReady);
-    console.log(`All non-host players ready: ${allReady}`);
     
     if (!allReady) {
       const notReadyPlayers = nonHostPlayers.filter(p => !p.isReady).map(p => p.name);
-      console.log(`❌ Not all players ready. Waiting for: ${notReadyPlayers.join(', ')}`);
       return { success: false, error: `All players must be ready to start. Waiting for: ${notReadyPlayers.join(', ')}` };
     }
 
@@ -252,8 +262,7 @@ class RoomManager {
       playersReady: []
     };
 
-    console.log(`✅ Game started in room ${room.code} with ${participatingPlayers.length} players`);
-    console.log('=== END START GAME DEBUG ===');
+    console.log(`Game started in room ${room.code} with ${participatingPlayers.length} players`);
     return { success: true, room };
   }
 
@@ -298,7 +307,7 @@ class RoomManager {
     return { success: true, room };
   }
 
-  // UPDATED: Player updates their tiles (actual tile data + count)
+  // Player updates their tiles (actual tile data + count)
   updatePlayerTiles(socketId: string, tileCount: number, tiles: Tile[] = []): UpdatePlayerResult | ErrorResult {
     const room = this.getRoomByPlayer(socketId);
     if (!room) {
@@ -333,19 +342,285 @@ class RoomManager {
     player.tilesInputted = tileCount === 13; // American Mahjong standard
 
     // Check if all participating players have inputted tiles
-    const participatingPlayers = Array.from(room.players.values())
+    const participatingPlayersList = Array.from(room.players.values())
       .filter(p => room.gameState.participatingPlayers.includes(p.id));
     
-    const allReady = participatingPlayers.every(p => p.tilesInputted);
+    const allReady = participatingPlayersList.every(p => p.tilesInputted);
     
     if (allReady && room.gameState.phase === 'tile-input') {
       // Auto-advance to charleston phase
       room.gameState.phase = 'charleston';
-      room.gameState.playersReady = participatingPlayers.map(p => p.id);
+      room.gameState.playersReady = participatingPlayersList.map(p => p.id);
+      
+      // Initialize Charleston state
+      room.charlestonState = {
+        currentPhase: 'right',
+        selections: new Map(),
+        playersReady: [],
+        isActive: true
+      };
+      
       console.log(`All players ready in room ${room.code}, advancing to charleston`);
     }
 
     console.log(`${player.name} updated tiles (${tileCount}) in room ${room.code}`);
+    return { success: true, room };
+  }
+
+  // NEW: Charleston confirm selection
+  charlestonConfirmSelection(
+    socketId: string, 
+    phase: string, 
+    selectedTiles: Tile[]
+  ): CharlestonConfirmResult | ErrorResult {
+    const room = this.getRoomByPlayer(socketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    if (room.gameState.phase !== 'charleston') {
+      return { success: false, error: 'Not in Charleston phase' };
+    }
+
+    if (!room.charlestonState) {
+      return { success: false, error: 'Charleston state not initialized' };
+    }
+
+    if (selectedTiles.length !== 3) {
+      return { success: false, error: 'Must select exactly 3 tiles' };
+    }
+
+    // Store player's Charleston selection
+    room.charlestonState.selections.set(socketId, {
+      playerId: socketId,
+      phase,
+      selectedTiles,
+      confirmedAt: new Date()
+    });
+
+    // Update ready players list
+    if (!room.charlestonState.playersReady.includes(socketId)) {
+      room.charlestonState.playersReady.push(socketId);
+    }
+
+    const totalParticipating = room.gameState.participatingPlayers.length;
+    const allPlayersReady = room.charlestonState.playersReady.length >= totalParticipating;
+
+    console.log(`Charleston ${phase}: Player ${socketId} confirmed selection in room ${room.code}`);
+    
+    return {
+      success: true,
+      playersReady: room.charlestonState.playersReady,
+      allPlayersReady
+    };
+  }
+
+  // NEW: Charleston distribute tiles and advance phase
+  charlestonDistributeTiles(
+    roomCode: string, 
+    currentPhase: string
+  ): CharlestonDistributionResult | ErrorResult {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      return { success: false, error: 'Room not found' };
+    }
+
+    if (!room.charlestonState) {
+      return { success: false, error: 'Charleston state not initialized' };
+    }
+
+    // Get participating players
+    const participatingPlayers = Array.from(room.players.values())
+      .filter(p => room.gameState.participatingPlayers.includes(p.id));
+
+    const playerCount = participatingPlayers.length;
+    const distributions: { fromPlayerId: string; toPlayerId: string; tiles: Tile[] }[] = [];
+
+    // Calculate pass directions based on phase and player count
+    const getPassTarget = (playerIndex: number): number => {
+      switch (currentPhase) {
+        case 'right':
+          return (playerIndex + 1) % playerCount;
+        case 'across':
+          return playerCount === 4 ? (playerIndex + 2) % playerCount : playerIndex; // Skip for 3 players
+        case 'left':
+        case 'optional':
+          return (playerIndex - 1 + playerCount) % playerCount;
+        default:
+          return playerIndex;
+      }
+    };
+
+    // Distribute tiles
+    participatingPlayers.forEach((player, index) => {
+      const selection = room.charlestonState!.selections.get(player.id);
+      if (selection) {
+        const targetIndex = getPassTarget(index);
+        const targetPlayer = participatingPlayers[targetIndex];
+        
+        if (targetPlayer && targetPlayer.id !== player.id) {
+          // Remove selected tiles from current player
+          selection.selectedTiles.forEach(selectedTile => {
+            const tileIndex = player.tiles.findIndex(t => 
+              t.id === selectedTile.id && 
+              t.suit === selectedTile.suit && 
+              t.value === selectedTile.value
+            );
+            if (tileIndex !== -1) {
+              player.tiles.splice(tileIndex, 1);
+            }
+          });
+          
+          // Add tiles to target player
+          targetPlayer.tiles.push(...selection.selectedTiles);
+          
+          // Update tile counts
+          player.tilesCount = player.tiles.length;
+          targetPlayer.tilesCount = targetPlayer.tiles.length;
+          
+          // Record distribution
+          distributions.push({
+            fromPlayerId: player.id,
+            toPlayerId: targetPlayer.id,
+            tiles: [...selection.selectedTiles]
+          });
+        }
+      }
+    });
+
+    // Determine next phase
+    const getNextPhase = (): 'right' | 'across' | 'left' | 'optional' | undefined => {
+      const phaseOrder = playerCount === 3 
+        ? ['right', 'left', 'optional'] // Skip 'across' for 3 players
+        : ['right', 'across', 'left', 'optional'];
+      
+      const currentIndex = phaseOrder.indexOf(currentPhase as any);
+      const nextIndex = currentIndex + 1;
+      
+      return nextIndex < phaseOrder.length ? phaseOrder[nextIndex] as any : undefined;
+    };
+
+    const nextPhase = getNextPhase();
+
+    // Reset Charleston state for next phase or complete
+    if (nextPhase) {
+      room.charlestonState.currentPhase = nextPhase;
+      room.charlestonState.selections.clear();
+      room.charlestonState.playersReady = [];
+    } else {
+      // Charleston complete
+      room.charlestonState.isActive = false;
+      room.charlestonState.currentPhase = 'complete';
+    }
+
+    console.log(`Charleston ${currentPhase}: Distributed tiles, next phase: ${nextPhase || 'complete'}`);
+
+    return {
+      success: true,
+      nextPhase,
+      distributions
+    };
+  }
+
+  // NEW: Charleston advance phase (host only)
+  charlestonAdvancePhase(
+    hostSocketId: string, 
+    roomCode: string, 
+    currentPhase: string
+  ): CharlestonAdvanceResult | ErrorResult {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      return { success: false, error: 'Room not found' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can advance Charleston phase' };
+    }
+
+    if (room.gameState.phase !== 'charleston') {
+      return { success: false, error: 'Not in Charleston phase' };
+    }
+
+    // Use the same logic as distribution to get next phase
+    const participatingPlayers = Array.from(room.players.values())
+      .filter(p => room.gameState.participatingPlayers.includes(p.id));
+    const playerCount = participatingPlayers.length;
+
+    const getNextPhase = (): 'right' | 'across' | 'left' | 'optional' | undefined => {
+      const phaseOrder = playerCount === 3 
+        ? ['right', 'left', 'optional'] 
+        : ['right', 'across', 'left', 'optional'];
+      
+      const currentIndex = phaseOrder.indexOf(currentPhase as any);
+      const nextIndex = currentIndex + 1;
+      
+      return nextIndex < phaseOrder.length ? phaseOrder[nextIndex] as any : undefined;
+    };
+
+    const nextPhase = getNextPhase();
+
+    if (room.charlestonState) {
+      if (nextPhase) {
+        room.charlestonState.currentPhase = nextPhase;
+        room.charlestonState.selections.clear();
+        room.charlestonState.playersReady = [];
+      } else {
+        room.charlestonState.isActive = false;
+        room.charlestonState.currentPhase = 'complete';
+      }
+    }
+
+    return {
+      success: true,
+      nextPhase
+    };
+  }
+
+  // NEW: Charleston skip optional (host only)
+  charlestonSkipOptional(hostSocketId: string, roomCode: string): CharlestonAdvanceResult | ErrorResult {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      return { success: false, error: 'Room not found' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can skip optional phase' };
+    }
+
+    if (room.gameState.phase !== 'charleston') {
+      return { success: false, error: 'Not in Charleston phase' };
+    }
+
+    if (room.charlestonState) {
+      room.charlestonState.isActive = false;
+      room.charlestonState.currentPhase = 'complete';
+    }
+
+    return {
+      success: true,
+      nextPhase: undefined // Complete
+    };
+  }
+
+  // NEW: Advance to playing phase after Charleston
+  advanceToPlayingPhase(roomCode: string): UpdatePlayerResult | ErrorResult {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      return { success: false, error: 'Room not found' };
+    }
+
+    if (room.gameState.phase !== 'charleston') {
+      return { success: false, error: 'Not in Charleston phase' };
+    }
+
+    // Advance to playing phase
+    room.gameState.phase = 'playing';
+    room.gameState.startedAt = new Date();
+
+    console.log(`Room ${roomCode} advanced to playing phase`);
+
     return { success: true, room };
   }
 
@@ -446,7 +721,7 @@ class RoomManager {
     return false;
   }
 
-  // NEW: Get player tiles (for future use)
+  // Get player tiles
   getPlayerTiles(socketId: string): Tile[] {
     const room = this.getRoomByPlayer(socketId);
     if (!room) return [];
@@ -465,6 +740,8 @@ class RoomManager {
         playerCount: room.players.size,
         participatingCount: room.gameState.participatingPlayers.length,
         phase: room.gameState.phase,
+        charlestonPhase: room.charlestonState?.currentPhase || 'none',
+        charlestonActive: room.charlestonState?.isActive || false,
         createdAt: room.createdAt,
         playersWithTiles: Array.from(room.players.values()).filter(p => p.tiles.length > 0).length
       }))

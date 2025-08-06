@@ -1,5 +1,6 @@
 // frontend/src/utils/tile-utils.ts
-import type { Tile, TileSuit, TileValue } from '../types';
+import type { Tile, TileSuit, TileValue, PlayerPosition } from '../types';
+import { getTargetTileCount, validatePositionTileCount } from './dealer-logic';
 
 // Create all available tiles for selection
 export const createAllTiles = (): Tile[] => {
@@ -135,12 +136,16 @@ export const getSuitDisplayName = (suit: TileSuit): string => {
   return displayNames[suit];
 };
 
-// Validate a tile collection (basic checks)
-export const validateTileCollection = (tiles: Tile[]): { isValid: boolean; errors: string[] } => {
+// UPDATED: Validate a tile collection with optional position-aware logic
+export const validateTileCollection = (
+  tiles: Tile[], 
+  playerPosition?: PlayerPosition
+): { isValid: boolean; errors: string[]; warnings?: string[] } => {
   const errors: string[] = [];
+  const warnings: string[] = [];
   const counts = countTiles(tiles);
 
-  // Check for too many of any tile
+  // Check for too many of any tile type
   Object.entries(counts).forEach(([tileId, count]) => {
     const maxAllowed = tileId === 'joker' ? 8 : 4;
     if (count > maxAllowed) {
@@ -148,15 +153,31 @@ export const validateTileCollection = (tiles: Tile[]): { isValid: boolean; error
     }
   });
 
-  // Check total count (American Mahjong hands are typically 13-14 tiles)
-  if (tiles.length > 14) {
-    errors.push(`Too many tiles total: ${tiles.length} (max: 14)`);
+  // Position-aware tile count validation
+  if (playerPosition) {
+    const positionValidation = validatePositionTileCount(tiles, playerPosition);
+    errors.push(...positionValidation.errors);
+    warnings.push(...positionValidation.warnings);
+  } else {
+    // Original logic for backward compatibility (assumes 13 tiles)
+    if (tiles.length > 14) {
+      errors.push(`Too many tiles total: ${tiles.length} (max: 14)`);
+    }
   }
 
   return {
     isValid: errors.length === 0,
-    errors
+    errors,
+    warnings
   };
+};
+
+// NEW: Get appropriate max tiles for HandTileGrid based on position
+export const getMaxTilesForPosition = (position?: PlayerPosition): number => {
+  if (!position) {
+    return 14; // Default for backward compatibility
+  }
+  return getTargetTileCount(position) + 1; // Allow one extra during input
 };
 
 // Sort tiles for consistent display

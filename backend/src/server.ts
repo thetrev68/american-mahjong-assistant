@@ -1,5 +1,5 @@
 // /backend/src/server.ts
-// Express + Socket.io server with room management - Enhanced for tile data
+// Express + Socket.io server with room management - Enhanced for Charleston
 
 import express, { type Request, type Response } from 'express';
 import http from 'http';
@@ -172,7 +172,7 @@ io.on('connection', (socket) => {
     }
   });
 
-  // UPDATED: Handle actual tile data instead of just count
+  // Update tiles with actual tile data
   socket.on('update-tiles', (data: { tiles?: any[]; tileCount?: number }) => {
     const { tiles = [], tileCount = 0 } = data || {};
     
@@ -215,11 +215,135 @@ io.on('connection', (socket) => {
           newPhase: 'charleston',
           message: 'All players have entered their tiles! Charleston phase begins.'
         });
+
+        // Start Charleston phase
+        io.to(roomCode).emit('charleston-phase-started', {
+          phase: 'right',
+          playersReady: []
+        });
       }
 
       console.log(`Tiles updated in room ${roomCode} - Player has ${tileCount} tiles`);
     } else {
       socket.emit('room-error', { message: result.error });
+    }
+  });
+
+  // NEW: Charleston confirm selection
+  socket.on('charleston-confirm-selection', (data: { 
+    roomId?: string; 
+    playerId?: string; 
+    phase?: string;
+    selectedTiles?: any[] 
+  }) => {
+    const { roomId, playerId, phase, selectedTiles = [] } = data || {};
+    
+    if (!roomId || !playerId || !phase) {
+      socket.emit('charleston-error', { message: 'Missing required Charleston data' });
+      return;
+    }
+
+    if (selectedTiles.length !== 3) {
+      socket.emit('charleston-error', { message: 'Must select exactly 3 tiles' });
+      return;
+    }
+
+    const result = roomManager.charlestonConfirmSelection(socket.id, phase, selectedTiles);
+    
+    if (result.success) {
+      // Broadcast selection update to all players
+      io.to(roomId).emit('charleston-selection-update', {
+        playerId,
+        isReady: true,
+        playersReady: result.playersReady
+      });
+
+      // Check if all players are ready to advance phase
+      if (result.allPlayersReady) {
+        // Distribute tiles and advance phase
+        const distributionResult = roomManager.charlestonDistributeTiles(roomId, phase);
+        
+        if (distributionResult.success) {
+          io.to(roomId).emit('charleston-phase-complete', {
+            phase,
+            nextPhase: distributionResult.nextPhase,
+            distributions: distributionResult.distributions
+          });
+
+          if (distributionResult.nextPhase) {
+            // Start next phase
+            io.to(roomId).emit('charleston-phase-started', {
+              phase: distributionResult.nextPhase,
+              playersReady: []
+            });
+          } else {
+            // Charleston complete
+            io.to(roomId).emit('charleston-complete');
+            // Advance game to playing phase
+            const gameAdvanceResult = roomManager.advanceToPlayingPhase(roomId);
+            if (gameAdvanceResult.success) {
+              broadcastRoomUpdate(roomId, gameAdvanceResult.room);
+            }
+          }
+        }
+      }
+
+      console.log(`Charleston ${phase}: Player ${playerId} confirmed selection in room ${roomId}`);
+    } else {
+      socket.emit('charleston-error', { message: result.error });
+    }
+  });
+
+  // NEW: Charleston advance phase (host only)
+  socket.on('charleston-advance-phase', (data: { roomId?: string; currentPhase?: string }) => {
+    const { roomId, currentPhase } = data || {};
+    
+    if (!roomId || !currentPhase) {
+      socket.emit('charleston-error', { message: 'Missing room ID or current phase' });
+      return;
+    }
+
+    const result = roomManager.charlestonAdvancePhase(socket.id, roomId, currentPhase);
+    
+    if (result.success) {
+      if (result.nextPhase) {
+        io.to(roomId).emit('charleston-phase-started', {
+          phase: result.nextPhase,
+          playersReady: []
+        });
+      } else {
+        io.to(roomId).emit('charleston-complete');
+      }
+      
+      console.log(`Charleston: Host advanced from ${currentPhase} to ${result.nextPhase || 'complete'} in room ${roomId}`);
+    } else {
+      socket.emit('charleston-error', { message: result.error });
+    }
+  });
+
+  // NEW: Charleston skip optional (host only)
+  socket.on('charleston-skip-optional', (data: { roomId?: string }) => {
+    const { roomId } = data || {};
+    
+    if (!roomId) {
+      socket.emit('charleston-error', { message: 'Missing room ID' });
+      return;
+    }
+
+    const result = roomManager.charlestonSkipOptional(socket.id, roomId);
+    
+    if (result.success) {
+      io.to(roomId).emit('charleston-complete');
+      
+      // Advance game to playing phase
+      const gameAdvanceResult = roomManager.advanceToPlayingPhase(roomId);
+      if (gameAdvanceResult.success) {
+        broadcastRoomUpdate(roomId, gameAdvanceResult.room);
+      }
+      
+      console.log(`Charleston: Host skipped optional phase in room ${roomId}`);
+    } else {
+      socket.emit('charleston-error', { message: result.error });
     }
   });
 
