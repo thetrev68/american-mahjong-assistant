@@ -8,14 +8,14 @@ import type { Tile } from '../../types';
 interface CharlestonRecommendationPanelProps {
   recommendations: CharlestonRecommendation | null;
   currentPhase: CharlestonPhase;
-  selectedTiles: Tile[];
+  selectedTiles?: Tile[]; // Make prop optional
   isLoading?: boolean;
 }
 
 const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps> = ({
   recommendations,
   currentPhase,
-  selectedTiles,
+  selectedTiles = [], // Provide a default value
   isLoading = false
 }) => {
   const [activeTab, setActiveTab] = useState<'strategy' | 'analysis' | 'alternatives'>('strategy');
@@ -193,9 +193,9 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
           <div className="bg-white rounded-lg p-3">
             <h4 className="font-medium text-red-700 mb-2 flex items-center">
               <span className="mr-2">➡️</span>
-              Recommended to Pass ({recommendations.tilesToPass.length})
+              Recommended to Pass ({recommendations.tilesToPass?.length || 0})
             </h4>
-            {recommendations.tilesToPass.length > 0 ? (
+            {(recommendations.tilesToPass?.length || 0) > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {recommendations.tilesToPass.map((tile, index) => (
                   <span key={index} className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-mono border border-red-200">
@@ -212,9 +212,9 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
           <div className="bg-white rounded-lg p-3">
             <h4 className="font-medium text-green-700 mb-2 flex items-center">
               <span className="mr-2">✋</span>
-              Recommended to Keep ({recommendations.tilesToKeep.length})
+              Recommended to Keep ({recommendations.tilesToKeep?.length || 0})
             </h4>
-            {recommendations.tilesToKeep.length > 0 ? (
+            {(recommendations.tilesToKeep?.length || 0) > 0 ? (
               <div className="flex flex-wrap gap-1">
                 {recommendations.tilesToKeep.map((tile, index) => (
                   <span key={index} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-mono border border-green-200">
@@ -228,7 +228,7 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
           </div>
 
           {/* Detailed tile analysis */}
-          {recommendations.tileAnalysis && recommendations.tileAnalysis.length > 0 && (
+          {recommendations?.tileAnalysis && recommendations.tileAnalysis.length > 0 && (
             <div className="bg-white rounded-lg p-3">
               <h4 className="font-medium text-gray-800 mb-2 flex items-center">
                 <span className="mr-2">🔍</span>

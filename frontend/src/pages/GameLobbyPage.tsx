@@ -356,16 +356,87 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
               <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
                 🔄 Charleston Phase - Pass {charleston.currentPhase.charAt(0).toUpperCase() + charleston.currentPhase.slice(1)}
               </h2>
+              
+              {/* Charleston progress indicator */}
+              <div className="flex justify-center mb-6">
+                <div className="flex items-center space-x-2">
+                  {['right', 'across', 'left', 'optional'].map((phase) => (
+                    <div key={phase} className="flex items-center">
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
+                        charleston.currentPhase === phase
+                          ? 'bg-blue-600 text-white'
+                          : charleston.currentPhase === 'complete' || 
+                            (['right', 'across', 'left', 'optional'].indexOf(charleston.currentPhase) > 
+                            ['right', 'across', 'left', 'optional'].indexOf(phase))
+                          ? 'bg-green-500 text-white'
+                          : 'bg-gray-200 text-gray-600'
+                      }`}>
+                        {phase === 'right' ? 'R' : 
+                        phase === 'across' ? 'A' : 
+                        phase === 'left' ? 'L' : 'O'}
+                      </div>
+                      {phase !== 'optional' && (
+                        <div className="w-4 h-0.5 bg-gray-300 mx-1" />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {charleston.error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+                  <div className="text-red-800 text-sm">
+                    Error: {charleston.error}
+                  </div>
+                </div>
+              )}
+
               <CharlestonTileSelector
                 playerTiles={myTiles}
-                selectedTiles={charleston.selectedTiles || []}
+                selectedTiles={charleston.selectedTiles}
                 onTileSelect={charleston.selectTile}
-                onTileRemove={(tile: Tile) => charleston.deselectTile(tile)}
+                onTileRemove={charleston.deselectTile}
                 phase={charleston.currentPhase}
                 isReadyToPass={charleston.isConfirmed}
                 onConfirmSelection={charleston.confirmSelection}
                 onClearSelection={charleston.clearSelection}
+                opponentCount={players.length - 1}
               />
+
+              {/* Charleston status */}
+              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-gray-600">
+                    Players ready: {charleston.playersReady.length} / {players.length}
+                  </span>
+                  {charleston.isConfirmed && (
+                    <span className="text-green-600 font-medium">
+                      ✅ Your selection confirmed
+                    </span>
+                  )}
+                </div>
+                
+                {isHost && charleston.canAdvancePhase && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <button
+                      onClick={charleston.advancePhase}
+                      disabled={charleston.isLoading}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                    >
+                      {charleston.isLoading ? 'Advancing...' : 'Advance to Next Phase'}
+                    </button>
+                    {charleston.currentPhase === 'optional' && (
+                      <button
+                        onClick={charleston.skipOptionalPhase}
+                        disabled={charleston.isLoading}
+                        className="ml-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
+                      >
+                        Skip Optional Phase
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         )}

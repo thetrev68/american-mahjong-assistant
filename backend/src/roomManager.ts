@@ -348,13 +348,74 @@ class RoomManager {
     // Update player's tile data
     player.tilesCount = tileCount;
     player.tiles = tiles;
-    player.tilesInputted = tileCount === 13; // American Mahjong standard
+    // Check if player is dealer (East position)
+    const playerPosition = room.playerPositions?.get(player.id);
+    const isDealer = playerPosition === 'east';
+    const expectedTileCount = isDealer ? 14 : 13;
+    player.tilesInputted = tileCount === expectedTileCount;
+
+    console.log(`Player ${player.name} position: ${playerPosition}, expected tiles: ${expectedTileCount}, actual: ${tileCount}, inputted: ${player.tilesInputted}`);
 
     // Check if all participating players have inputted tiles
     const participatingPlayersList = Array.from(room.players.values())
       .filter(p => room.gameState.participatingPlayers.includes(p.id));
     
+    // roomManager.ts - Add this debug code to updatePlayerTiles method
+    // Enhanced debug code - replace the existing debug block with this:
+
+    console.log('=== CHARLESTON TRANSITION DEBUG ===');
+    console.log('Room code:', room.code);
+    console.log('Current phase:', room.gameState.phase);
+    console.log('Participating players array:', room.gameState.participatingPlayers);
+
+    // Log player positions
+    console.log('Player positions:');
+    if (room.playerPositions && room.playerPositions.size > 0) {
+      for (const [playerId, position] of room.playerPositions.entries()) {
+        const player = room.players.get(playerId);
+        console.log(`  - ${player?.name || 'Unknown'} (${playerId}): ${position}`);
+      }
+    } else {
+      console.log('  - No positions assigned yet!');
+    }
+
+    // Log all players in the room with positions
+    console.log('All players in room:');
+    Array.from(room.players.values()).forEach(p => {
+      const position = room.playerPositions?.get(p.id) || 'unassigned';
+      const isDealer = position === 'east';
+      const expectedTiles = isDealer ? 14 : 13;
+      console.log(`  - ${p.name} (ID: ${p.id}): tiles=${p.tilesCount}, inputted=${p.tilesInputted}, participating=${p.isParticipating}, online=${p.isOnline}, position=${position}, expected=${expectedTiles}`);
+    });
+
+    // Log only participating players
+    console.log('Participating players list:');
+    participatingPlayersList.forEach(p => {
+      const position = room.playerPositions?.get(p.id) || 'unassigned';
+      const isDealer = position === 'east';
+      const expectedTiles = isDealer ? 14 : 13;
+      console.log(`  - ${p.name} (ID: ${p.id}): tiles=${p.tilesCount}, inputted=${p.tilesInputted}, participating=${p.isParticipating}, position=${position}, expected=${expectedTiles}`);
+    });
+
+    // Check the allReady condition step by step
+    console.log('Checking allReady condition...');
+    const readyStates = participatingPlayersList.map(p => {
+      const isReady = p.tilesInputted;
+      const position = room.playerPositions?.get(p.id) || 'unassigned';
+      const isDealer = position === 'east';
+      const expectedTiles = isDealer ? 14 : 13;
+      console.log(`  - ${p.name}: position=${position}, tiles=${p.tilesCount}/${expectedTiles}, tilesInputted=${p.tilesInputted} (${isReady ? 'READY' : 'NOT READY'})`);
+      return isReady;
+    });
+
     const allReady = participatingPlayersList.every(p => p.tilesInputted);
+    console.log('All ready result:', allReady);
+    console.log('Current phase check:', room.gameState.phase === 'tile-input');
+    console.log('Should advance to charleston:', allReady && room.gameState.phase === 'tile-input');
+    console.log('====================================');
+
+    // The existing allReady check should be right after this debug code  
+    // const allReady = participatingPlayersList.every(p => p.tilesInputted);
     
     if (allReady && room.gameState.phase === 'tile-input') {
       // Auto-advance to charleston phase
