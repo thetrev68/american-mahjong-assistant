@@ -18,6 +18,7 @@ interface CharlestonTileSelectorProps {
   isReadyToPass: boolean;
   onConfirmSelection: () => void;
   onClearSelection: () => void;
+  onSkipOptional?: () => void;
   opponentCount?: number;
 }
 
@@ -30,6 +31,7 @@ const CharlestonTileSelector: React.FC<CharlestonTileSelectorProps> = ({
   isReadyToPass,
   onConfirmSelection,
   onClearSelection,
+  onSkipOptional,
   opponentCount = 3
 }) => {
   const [recommendations, setRecommendations] = useState<CharlestonRecommendation | null>(null);
@@ -157,11 +159,11 @@ const CharlestonTileSelector: React.FC<CharlestonTileSelectorProps> = ({
         </button>
 
         {/* Skip optional phase button (only for optional phase) */}
-        {phase === 'optional' && (
+        {phase === 'optional' && onSkipOptional && (
           <button
             onClick={() => {
-              // Skip optional phase - this should be handled by parent
               console.log('Skip optional phase requested');
+              onSkipOptional();
             }}
             className="flex-1 py-3 px-4 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition-colors"
           >

@@ -416,6 +416,7 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
                 isReadyToPass={charleston.isConfirmed}
                 onConfirmSelection={charleston.confirmSelection}
                 onClearSelection={charleston.clearSelection}
+                onSkipOptional={charleston.skipOptionalPhase}
                 opponentCount={players.length - 1}
               />
 
@@ -812,7 +813,7 @@ const TileInputPhaseContent: React.FC<{
   currentPlayerFromRoom, 
   participatingPlayers, 
   isHost, 
-  // myTiles, - commented out since it's unused in this component
+  myTiles,
   onTilesUpdate,
   onToggleParticipation,
   allPlayersReady
@@ -836,6 +837,7 @@ const TileInputPhaseContent: React.FC<{
           playerId={currentPlayerFromRoom.id}
           gamePhase="waiting" // CHANGED: Use "waiting" instead of "charleston" to enable tile input
           isMyTurn={false}
+          serverTiles={myTiles} // Pass server tiles to initialize
           onPlayerAction={() => {}} // Not used during tile input
           onTilesUpdate={onTilesUpdate}
         />

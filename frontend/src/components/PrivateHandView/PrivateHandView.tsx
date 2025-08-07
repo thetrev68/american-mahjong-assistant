@@ -20,6 +20,7 @@ interface PrivateHandViewProps {
   isMyTurn: boolean;
   onPlayerAction: (action: PlayerAction) => void;
   onTilesUpdate: (tiles: Tile[]) => void;
+  serverTiles?: Tile[]; // Optional server tiles to initialize with
 }
 
 type HandMode = 'view' | 'discard' | 'charleston' | 'input';
@@ -30,7 +31,8 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   charlestonPhase,
   isMyTurn,
   onPlayerAction,
-  onTilesUpdate
+  onTilesUpdate,
+  serverTiles
 }) => {
   // State management
   const [handMode, setHandMode] = useState<HandMode>('view');
@@ -41,7 +43,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   const updateInProgressRef = useRef(false);
   
   // FIXED: Custom hooks for game state and analysis
-  const { privateState, updateTiles: updatePrivateStateTiles, isLoading } = usePrivateGameState(playerId);
+  const { privateState, updateTiles: updatePrivateStateTiles, isLoading } = usePrivateGameState(playerId, serverTiles);
   const { analysis, isAnalyzing } = useHandAnalysis(privateState?.tiles || []);
   
   console.log('PrivateHandView: Current state', { 

@@ -12,7 +12,7 @@ interface UsePrivateGameStateReturn {
   error: string | null;
 }
 
-export const usePrivateGameState = (playerId: string): UsePrivateGameStateReturn => {
+export const usePrivateGameState = (playerId: string, serverTiles?: Tile[]): UsePrivateGameStateReturn => {
   const [privateState, setPrivateState] = useState<PrivatePlayerState | null>(null);
   const [isLoading, setIsLoading] = useState(false); // FIXED: Don't start with loading
   const [error] = useState<string | null>(null);
@@ -26,7 +26,7 @@ export const usePrivateGameState = (playerId: string): UsePrivateGameStateReturn
     // Create initial mock state immediately
     const initialState: PrivatePlayerState = {
       playerId,
-      tiles: [], // Start with empty tiles
+      tiles: serverTiles || [], // Use server tiles if provided, otherwise empty
       recommendations: {
         bestPatterns: [],
         recommendations: {
@@ -51,7 +51,7 @@ export const usePrivateGameState = (playerId: string): UsePrivateGameStateReturn
     setIsLoading(false);
     
     console.log('usePrivateGameState: State initialized for player', playerId);
-  }, [playerId]);
+  }, [playerId, serverTiles]);
 
   // FIXED: Update private state properly
   const updatePrivateState = (updates: Partial<PrivatePlayerState>) => {

@@ -317,21 +317,12 @@ const ActiveGamePage: React.FC<ActiveGamePageProps> = ({
             playerId={currentPlayer.id}           // REQUIRED: Player ID
             gamePhase="playing"                   // REQUIRED: Current game phase
             isMyTurn={isMyTurn}                  // REQUIRED: Turn status
-            onPlayerAction={(action) => {        // REQUIRED: Action handler
-                console.log('Player action:', action);
-                // TODO: Handle player actions (discard, call, etc.)
-            }}
+            serverTiles={myTiles}                // Pass server tiles to initialize private state
+            onPlayerAction={handlePlayerAction}  // FIXED: Use proper action handler
             onTilesUpdate={(tiles) => {          // REQUIRED: Tiles update handler
                 console.log('Tiles updated:', tiles);
                 setMyTiles(tiles); // Update local state
             }}
-            // REMOVED: All the props that don't exist on PrivateHandView:
-            // - playerTiles (not a prop)
-            // - selectedTile (not a prop) 
-            // - onTileSelect (not a prop)
-            // - recommendations (not a prop)
-            // - isEditable (not a prop)
-            // - showRecommendations (not a prop)
             />
         </div>
         </div>

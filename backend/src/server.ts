@@ -272,6 +272,12 @@ io.on('connection', (socket) => {
             distributions: distributionResult.distributions
           });
 
+          // Broadcast updated room state with new tile distributions
+          const room = roomManager.getRoom(roomId);
+          if (room) {
+            broadcastRoomUpdate(roomId, room);
+          }
+
           if (distributionResult.nextPhase) {
             // Start next phase
             io.to(roomId).emit('charleston-phase-started', {
@@ -315,6 +321,11 @@ io.on('connection', (socket) => {
         });
       } else {
         io.to(roomId).emit('charleston-complete');
+        // Advance game to playing phase
+        const gameAdvanceResult = roomManager.advanceToPlayingPhase(roomId);
+        if (gameAdvanceResult.success) {
+          broadcastRoomUpdate(roomId, gameAdvanceResult.room);
+        }
       }
       
       console.log(`Charleston: Host advanced from ${currentPhase} to ${result.nextPhase || 'complete'} in room ${roomId}`);

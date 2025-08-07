@@ -348,10 +348,22 @@ class RoomManager {
     // Update player's tile data
     player.tilesCount = tileCount;
     player.tiles = tiles;
+    
     // Check if player is dealer (East position)
     const playerPosition = room.playerPositions?.get(player.id);
     const isDealer = playerPosition === 'east';
-    const expectedTileCount = isDealer ? 14 : 13;
+    
+    // If positions aren't assigned yet, we need to handle tile count more flexibly
+    let expectedTileCount: number;
+    if (!room.playerPositions || room.playerPositions.size === 0) {
+      // No positions assigned yet - accept either 13 or 14 tiles as "inputted"
+      // In American Mahjong, one player (dealer) should have 14, others have 13
+      expectedTileCount = (tileCount === 13 || tileCount === 14) ? tileCount : 13;
+    } else {
+      // Positions are assigned, use proper dealer logic
+      expectedTileCount = isDealer ? 14 : 13;
+    }
+    
     player.tilesInputted = tileCount === expectedTileCount;
 
     console.log(`Player ${player.name} position: ${playerPosition}, expected tiles: ${expectedTileCount}, actual: ${tileCount}, inputted: ${player.tilesInputted}`);
@@ -384,7 +396,15 @@ class RoomManager {
     Array.from(room.players.values()).forEach(p => {
       const position = room.playerPositions?.get(p.id) || 'unassigned';
       const isDealer = position === 'east';
-      const expectedTiles = isDealer ? 14 : 13;
+      
+      // Use same logic as above for expected tiles
+      let expectedTiles: number;
+      if (!room.playerPositions || room.playerPositions.size === 0) {
+        expectedTiles = (p.tilesCount === 13 || p.tilesCount === 14) ? p.tilesCount : 13;
+      } else {
+        expectedTiles = isDealer ? 14 : 13;
+      }
+      
       console.log(`  - ${p.name} (ID: ${p.id}): tiles=${p.tilesCount}, inputted=${p.tilesInputted}, participating=${p.isParticipating}, online=${p.isOnline}, position=${position}, expected=${expectedTiles}`);
     });
 
@@ -393,7 +413,15 @@ class RoomManager {
     participatingPlayersList.forEach(p => {
       const position = room.playerPositions?.get(p.id) || 'unassigned';
       const isDealer = position === 'east';
-      const expectedTiles = isDealer ? 14 : 13;
+      
+      // Use same logic as above for expected tiles
+      let expectedTiles: number;
+      if (!room.playerPositions || room.playerPositions.size === 0) {
+        expectedTiles = (p.tilesCount === 13 || p.tilesCount === 14) ? p.tilesCount : 13;
+      } else {
+        expectedTiles = isDealer ? 14 : 13;
+      }
+      
       console.log(`  - ${p.name} (ID: ${p.id}): tiles=${p.tilesCount}, inputted=${p.tilesInputted}, participating=${p.isParticipating}, position=${position}, expected=${expectedTiles}`);
     });
 
@@ -403,7 +431,15 @@ class RoomManager {
       const isReady = p.tilesInputted;
       const position = room.playerPositions?.get(p.id) || 'unassigned';
       const isDealer = position === 'east';
-      const expectedTiles = isDealer ? 14 : 13;
+      
+      // Use same logic as above for expected tiles
+      let expectedTiles: number;
+      if (!room.playerPositions || room.playerPositions.size === 0) {
+        expectedTiles = (p.tilesCount === 13 || p.tilesCount === 14) ? p.tilesCount : 13;
+      } else {
+        expectedTiles = isDealer ? 14 : 13;
+      }
+      
       console.log(`  - ${p.name}: position=${position}, tiles=${p.tilesCount}/${expectedTiles}, tilesInputted=${p.tilesInputted} (${isReady ? 'READY' : 'NOT READY'})`);
       return isReady;
     });
@@ -418,6 +454,21 @@ class RoomManager {
     // const allReady = participatingPlayersList.every(p => p.tilesInputted);
     
     if (allReady && room.gameState.phase === 'tile-input') {
+      // Auto-assign positions if not already assigned
+      if (!room.playerPositions || room.playerPositions.size === 0) {
+        room.playerPositions = new Map();
+        const positions: PlayerPosition[] = ['east', 'south', 'west', 'north'];
+        
+        participatingPlayersList.forEach((player, index) => {
+          const position = positions[index % positions.length];
+          if (position) {
+            room.playerPositions!.set(player.id, position);
+          }
+        });
+        
+        console.log(`Auto-assigned positions in room ${room.code}:`, Object.fromEntries(room.playerPositions));
+      }
+      
       // Auto-advance to charleston phase
       room.gameState.phase = 'charleston';
       room.gameState.playersReady = participatingPlayersList.map(p => p.id);
@@ -522,31 +573,47 @@ class RoomManager {
     };
 
     // Distribute tiles
+    console.log(`Charleston: Starting tile distribution for phase ${currentPhase} with ${participatingPlayers.length} players`);
+    
     participatingPlayers.forEach((player, index) => {
       const selection = room.charlestonState!.selections.get(player.id);
       if (selection) {
         const targetIndex = getPassTarget(index);
         const targetPlayer = participatingPlayers[targetIndex];
         
+        console.log(`Charleston: Player ${player.id} (index ${index}) should pass to player at index ${targetIndex} (${targetPlayer?.id})`);
+        
         if (targetPlayer && targetPlayer.id !== player.id) {
-          // Remove selected tiles from current player
+          console.log(`Charleston: ${player.id} before passing has ${player.tiles.length} tiles, ${targetPlayer.id} has ${targetPlayer.tiles.length} tiles`);
+          
+          // Remove selected tiles from current player using proper tile matching
           selection.selectedTiles.forEach(selectedTile => {
+            // Find the first matching tile instance
             const tileIndex = player.tiles.findIndex(t => 
-              t.id === selectedTile.id && 
-              t.suit === selectedTile.suit && 
-              t.value === selectedTile.value
+              t.id === selectedTile.id || 
+              (t.suit === selectedTile.suit && t.value === selectedTile.value)
             );
             if (tileIndex !== -1) {
-              player.tiles.splice(tileIndex, 1);
+              const removedTile = player.tiles.splice(tileIndex, 1)[0];
+              if (removedTile) {
+                console.log(`Charleston: Removed tile ${removedTile.suit}-${removedTile.value} from ${player.id}`);
+              }
+            } else {
+              console.warn(`Charleston: Could not find tile ${selectedTile.suit}-${selectedTile.value} to remove from ${player.id}`);
             }
           });
           
           // Add tiles to target player
           targetPlayer.tiles.push(...selection.selectedTiles);
+          selection.selectedTiles.forEach(tile => {
+            console.log(`Charleston: Added tile ${tile.suit}-${tile.value} to ${targetPlayer.id}`);
+          });
           
           // Update tile counts
           player.tilesCount = player.tiles.length;
           targetPlayer.tilesCount = targetPlayer.tiles.length;
+          
+          console.log(`Charleston: ${player.id} after passing has ${player.tiles.length} tiles, ${targetPlayer.id} has ${targetPlayer.tiles.length} tiles`);
           
           // Record distribution
           distributions.push({
@@ -554,7 +621,13 @@ class RoomManager {
             toPlayerId: targetPlayer.id,
             tiles: [...selection.selectedTiles]
           });
+          
+          console.log(`Charleston: ${player.id} passed ${selection.selectedTiles.length} tiles to ${targetPlayer.id}`);
+        } else {
+          console.warn(`Charleston: Player ${player.id} would pass to themselves or invalid target!`);
         }
+      } else {
+        console.warn(`Charleston: No selection found for player ${player.id}`);
       }
     });
 
