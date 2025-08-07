@@ -1,7 +1,7 @@
 american-mahjong-assistant/
 ├── backend/
 │   ├── src/
-│   │   ├── roomManager.ts (710 lines)
+│   │   ├── roomManager.ts (763 lines)
 │   │   └── server.ts (372 lines)
 │   ├── .gitkeep
 │   ├── package-lock.json (1897 lines)
@@ -52,9 +52,9 @@ american-mahjong-assistant/
 │   │   │   └── RoomManager.tsx (180 lines)
 │   │   ├── hooks/
 │   │   │   ├── useCharleston.ts (211 lines)
-│   │   │   └── useSocket.ts (321 lines)
+│   │   │   └── useSocket.ts (323 lines)
 │   │   ├── pages/
-│   │   │   ├── GameLobbyPage.tsx (669 lines)
+│   │   │   ├── GameLobbyPage.tsx (735 lines)
 │   │   │   ├── HomePage.tsx (101 lines)
 │   │   │   └── TileInputTest.tsx (170 lines)
 │   │   ├── types/
@@ -116,7 +116,7 @@ DIRECTORY TREE STATISTICS
 Total directories: 21
 Total files: 89
 Files with line counts: 71
-Total lines of code: 19,851
+Total lines of code: 19,972
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv

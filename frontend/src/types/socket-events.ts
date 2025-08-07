@@ -2,7 +2,7 @@
 // Socket Event Schema & Communication Protocol
 // This defines the exact event names and data structures for real-time communication
 
-import { 
+import type { 
   GameRoom, Player, PlayerAction, Tile, PrivatePlayerState, 
   HandAnalysis, CharlestonState, DiscardedTile, GameSettings 
 } from '../types';

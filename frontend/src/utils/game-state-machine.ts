@@ -486,4 +486,5 @@ export class GameStateMachine {
   static allowsPlayerInput(phase: GamePhase): boolean {
     return phase === 'tile-input' || phase === 'charleston' || phase === 'playing';
   }
+
 }

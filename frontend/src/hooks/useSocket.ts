@@ -336,6 +336,37 @@ export const useRoom = () => {
     socket.emit('confirm-positions', { positions: positionsObj });
   }, [socket, isConnected]);
 
+  // NEW: Gameplay functions for active game phase
+  const advanceToPlaying = useCallback(() => {
+    if (!socket || !isConnected) return;
+    console.log('Advancing to playing phase');
+    socket.emit('advance-to-playing');
+  }, [socket, isConnected]);
+
+  const discardTile = useCallback((tile: Tile) => {
+    if (!socket || !isConnected) return;
+    console.log('Discarding tile:', tile);
+    socket.emit('discard-tile', { tile });
+  }, [socket, isConnected]);
+
+  const drawTile = useCallback(() => {
+    if (!socket || !isConnected) return;
+    console.log('Drawing tile');
+    socket.emit('draw-tile');
+  }, [socket, isConnected]);
+
+  const callTile = useCallback((tile: Tile, type: 'pung' | 'kong' | 'quint') => {
+    if (!socket || !isConnected) return;
+    console.log('Calling tile:', { tile, type });
+    socket.emit('call-tile', { tile, type });
+  }, [socket, isConnected]);
+
+  const declareMahjong = useCallback(() => {
+    if (!socket || !isConnected) return;
+    console.log('Declaring Mahjong');
+    socket.emit('declare-mahjong');
+  }, [socket, isConnected]);
+
   return {
     room,
     isLoading,
@@ -351,6 +382,12 @@ export const useRoom = () => {
     updatePlayerStatus,
     assignPosition,
     confirmPositions,
+    // NEW: Gameplay functions
+    advanceToPlaying,
+    discardTile,
+    drawTile,
+    callTile,
+    declareMahjong,
     // DEBUG: Add room state for debugging
     _debug: { room, isLoading, error, isConnected }
   };
@@ -378,3 +415,4 @@ export const useConnectionTest = () => {
 
   return { testConnection, pingTime, isConnected };
 };
+

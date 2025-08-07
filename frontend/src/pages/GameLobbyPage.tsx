@@ -9,6 +9,7 @@ import { PrivateHandView } from '../components/PrivateHandView';
 import PlayerPositioning from '../components/room/PlayerPositioning';
 import { GameStateMachine } from '../utils/game-state-machine';
 import TurnTimer from '../components/game/TurnTimer';
+import ActiveGamePage from './ActiveGamePage';
 
 // Socket room types (from useSocket.ts)
 interface SocketPlayer {
@@ -416,61 +417,101 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
                   )}
                 </div>
                 
+                {/* FIXED: Charleston advance logic */}
                 {isHost && charleston.canAdvancePhase && (
                   <div className="mt-2 pt-2 border-t border-gray-200">
                     <button
-                      onClick={charleston.advancePhase}
+                      onClick={() => {
+                        if (charleston.currentPhase === 'optional') {
+                          // Complete optional phase
+                          charleston.advancePhase();
+                          // After optional, Charleston should be complete, so advance to playing
+                          setTimeout(() => {
+                            console.log('Optional Charleston complete, advancing to playing...');
+                            socket.advanceToPlaying();
+                          }, 200);
+                        } else if (charleston.currentPhase === 'left') {
+                          // Complete left phase - this may lead to optional or finish Charleston
+                          charleston.advancePhase();
+                          // Don't auto-advance here - let user choose optional or skip
+                        } else {
+                          // Regular phase advance (right -> across -> left)
+                          charleston.advancePhase();
+                        }
+                      }}
                       disabled={charleston.isLoading}
                       className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
                     >
-                      {charleston.isLoading ? 'Advancing...' : 'Advance to Next Phase'}
+                      {charleston.isLoading ? 'Advancing...' : 
+                      charleston.currentPhase === 'optional' 
+                        ? 'Complete Optional & Start Game!' 
+                        : charleston.currentPhase === 'left'
+                        ? 'Complete Left Pass'
+                        : 'Advance to Next Phase'}
                     </button>
+                    
                     {charleston.currentPhase === 'optional' && (
                       <button
-                        onClick={charleston.skipOptionalPhase}
+                        onClick={() => {
+                          charleston.skipOptionalPhase();
+                          // After skipping optional, advance to playing
+                          setTimeout(() => {
+                            console.log('Skipping optional, advancing to playing...');
+                            socket.advanceToPlaying();
+                          }, 200);
+                        }}
                         disabled={charleston.isLoading}
                         className="ml-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
                       >
-                        Skip Optional Phase
+                        Skip Optional & Start Game
+                      </button>
+                    )}
+                    
+                    {charleston.currentPhase === 'left' && charleston.canAdvancePhase && (
+                      <button
+                        onClick={() => {
+                          // Skip optional phase and go straight to playing
+                          console.log('Skipping optional Charleston, advancing to playing...');
+                          socket.advanceToPlaying();
+                        }}
+                        disabled={charleston.isLoading}
+                        className="ml-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
+                      >
+                        Skip Optional & Start Game
                       </button>
                     )}
                   </div>
                 )}
+
               </div>
             </div>
           </div>
         )}
 
-        {isConnected && room && (gamePhase === 'playing' || gamePhase === 'finished') && (
+        {/* PLAYING PHASE: Render ActiveGamePage */}
+        {isConnected && room && gamePhase === 'playing' && (
+          <ActiveGamePage
+            roomId={roomId}
+            currentPlayer={currentPlayerFromRoom}
+            room={room}
+            socket={socket}
+            isConnected={isConnected}
+            connectionStatus={connectionStatus}
+            onLeaveRoom={handleLeaveRoom}
+          />
+        )}
+
+        {/* FINISHED PHASE: Game complete */}
+        {isConnected && room && gamePhase === 'finished' && (
           <div className="bg-white rounded-lg shadow-sm p-6 text-center">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              {gamePhase === 'playing' ? '🎮 Game In Progress' : 
-              '🏁 Game Finished'}
-            </h2>
-            <p className="text-gray-600 mb-4">
-              {gamePhase === 'playing' ? 'Active gameplay coming soon!' : 
-              'Thanks for playing!'}
-            </p>
-            
-            {/* FIXED: Go back to tile input instead of leaving game entirely */}
-            <div className="space-y-2">
-              <button
-                onClick={() => {
-                  // TODO: Add proper "go back to previous phase" logic
-                  console.log('Going back to tile input phase...');
-                }}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 mr-2"
-              >
-                ← Back to Tile Input
-              </button>
-              
-              <button
-                onClick={handleLeaveRoom}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                Leave Game
-              </button>
-            </div>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">🏁 Game Finished</h2>
+            <p className="text-gray-600 mb-4">Thanks for playing!</p>
+            <button
+              onClick={handleLeaveRoom}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+            >
+              Leave Game
+            </button>
           </div>
         )}
 
