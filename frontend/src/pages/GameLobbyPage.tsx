@@ -11,6 +11,7 @@ import { GameStateMachine } from '../utils/game-state-machine';
 import TurnTimer from '../components/game/TurnTimer';
 import ActiveGamePage from './ActiveGamePage';
 
+
 // Socket room types (from useSocket.ts)
 interface SocketPlayer {
   id: string;
@@ -43,14 +44,26 @@ interface SocketRoom {
 
 interface SocketFunctions {
   startGame: () => void;
-  updateTiles: (tiles: Tile[]) => void; // CHANGED: now takes actual tiles
+  updateTiles: (tiles: Tile[]) => void;
   updatePlayerStatus: (playerId: string, updates: { isParticipating?: boolean; tilesInputted?: boolean }) => void;
-  assignPosition: (playerId: string, position: PlayerPosition) => void; // NEW
-  confirmPositions: (positions: Map<string, PlayerPosition>) => void; // NEW
+  assignPosition: (playerId: string, position: PlayerPosition) => void;
+  confirmPositions: (positions: Map<string, PlayerPosition>) => void;
   toggleReady: () => void;
   isConnected: boolean;
   isLoading: boolean;
   error: string | null;
+  leaveRoom: () => void;
+  discardTile: (tile: Tile) => void;
+  drawTile: () => void;
+  // FIX: Change 'action: PlayerAction' to 'callType: "pung" | "kong" | "chow"'
+  callTile: (tile: Tile, callType: 'pung' | 'kong' | 'chow') => void;
+  declareMahjong: () => void;
+}
+
+// NEW: Define a type for the socket object
+interface GameSocket extends SocketFunctions {
+  advanceToPlaying: () => void;
+  skipOptionalPhase: () => void;
 }
 
 interface GameLobbyPageProps {
@@ -60,6 +73,7 @@ interface GameLobbyPageProps {
   onStartGame: () => void;
   onLeaveRoom: () => void;
   socketFunctions: SocketFunctions;
+  socket: GameSocket; // ADDED: The socket object itself
 }
 
 const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
@@ -67,7 +81,8 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   currentPlayer,
   room,
   onLeaveRoom,
-  socketFunctions
+  socketFunctions,
+  socket // ADDED: Destructure the socket object
 }) => {
   const { startGame, toggleReady, updateTiles, updatePlayerStatus, assignPosition, confirmPositions, isConnected } = socketFunctions;
   

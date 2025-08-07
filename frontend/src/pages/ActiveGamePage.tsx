@@ -1,7 +1,8 @@
 // frontend/src/pages/ActiveGamePage.tsx
 // Main gameplay interface - split view for private hand + shared game state
 import React, { useState, useEffect, useMemo } from 'react';
-import type { Player, PlayerPosition, Tile, PlayerAction } from '../types';
+import  { DEFAULT_GAME_SETTINGS } from '../types';
+import type { GameSettings, Player, PlayerPosition, Tile, PlayerAction } from '../types';
 import { PrivateHandView } from '../components/PrivateHandView';
 import SharedGameView from '../components/game/SharedGameView';
 import GameActions from '../components/game/GameActions';
@@ -34,6 +35,10 @@ interface SocketGameState {
     tilesRemaining: number;
     totalDiscarded: number;
   };
+  // Add these properties to match the GameRoom type
+  turnTimeLimit?: number;
+  turnStartTime?: number;
+  settings?: GameSettings;
 }
 
 interface SocketRoom {
@@ -263,19 +268,24 @@ const ActiveGamePage: React.FC<ActiveGamePageProps> = ({
         {/* Shared Game View - Takes up upper portion of screen */}
         <div className="flex-1 min-h-0 p-4 overflow-y-auto">
           <SharedGameView 
-            gameRoom={{
-              id: roomId,
-              players: players,
-              currentTurn: currentTurn as PlayerPosition,
-              phase: gamePhase as 'waiting' | 'charleston' | 'playing' | 'finished',
-              discardPile: discardedTiles.map((tile, index) => ({
-                tile: tile,
-                discardedBy: 'east' as PlayerPosition,
-                discardedAt: Date.now(),
-                timestamp: Date.now(),
-                canBeCalled: index === discardedTiles.length - 1
-              })),
-              wall: wallState
+          gameRoom={{
+            ...room, // Spread the room object to include existing properties
+            id: roomId,
+            players: players,
+            currentTurn: currentTurn as PlayerPosition,
+            phase: gamePhase as 'waiting' | 'charleston' | 'playing' | 'finished',
+            discardPile: discardedTiles.map((tile, index) => ({
+              tile: tile,
+              discardedBy: 'east' as PlayerPosition,
+              discardedAt: Date.now(),
+              timestamp: Date.now(),
+              canBeCalled: index === discardedTiles.length - 1
+            })),
+              wall: wallState,
+              hostId: room.players.find(p => p.isHost)?.id || '',
+              turnStartTime: Date.now(),
+              turnTimeLimit: room.gameState?.turnTimeLimit || DEFAULT_GAME_SETTINGS.turnTimeLimit,
+              settings: room.gameState?.settings || DEFAULT_GAME_SETTINGS
             }}
             currentPlayer={currentPlayer}
             onPlayerAction={handlePlayerAction}
