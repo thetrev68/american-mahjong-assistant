@@ -1,5 +1,5 @@
 // frontend/src/components/PrivateHandView/HandTileGrid.tsx
-// Redesigned grid for displaying player's tiles with modal-based selection - UPDATED: No numbers, drag/drop support
+// Redesigned grid for displaying player's tiles with modal-based selection - FIXED: Array gap issue
 
 import React, { useState } from 'react';
 import type { Tile } from '../../types';
@@ -59,7 +59,7 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
     setModalOpen(true);
   };
 
-  // Handle tile selection from modal
+  // FIXED: Handle tile selection from modal - prevent infinite loop
   const handleTileSelect = (selectedTile: Tile) => {
     console.log('HandTileGrid: Tile selected from modal', { selectedSlotIndex, selectedTile, currentTiles: tiles });
     
@@ -70,13 +70,10 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
       newTiles[selectedSlotIndex] = selectedTile;
       console.log('HandTileGrid: Replacing tile at slot', selectedSlotIndex);
     } else {
-      // Add new tile - find the correct insertion point
-      while (newTiles.length < selectedSlotIndex) {
-        // This shouldn't happen, but just in case
-        console.warn('Gap in tiles array, this shouldn\'t happen');
-      }
+      // FIXED: Instead of creating gaps, just add to the end of the array
+      // This prevents the infinite loop that was happening
       newTiles.push(selectedTile);
-      console.log('HandTileGrid: Adding new tile at position', newTiles.length - 1);
+      console.log('HandTileGrid: Adding new tile to end of array (was slot', selectedSlotIndex, ')');
     }
     
     console.log('HandTileGrid: Updating tiles', { oldLength: tiles.length, newLength: newTiles.length, newTiles });
@@ -139,6 +136,7 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
     setDragOverIndex(null);
   };
 
+  // FIXED: Handle drop - prevent array gaps
   const handleDrop = (e: React.DragEvent, dropIndex: number) => {
     e.preventDefault();
     
@@ -151,21 +149,30 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
     const newTiles = [...tiles];
     
     // Move the tile from draggedIndex to dropIndex
-    if (draggedIndex < tiles.length && dropIndex < maxTiles) {
+    if (draggedIndex < tiles.length) {
       const draggedTile = newTiles[draggedIndex];
       
       if (draggedTile) {
         // Remove from old position
         newTiles.splice(draggedIndex, 1);
         
+        // FIXED: Ensure we don't try to insert beyond the array length
         // Insert at new position (adjust index if we removed from before the drop point)
         const adjustedDropIndex = draggedIndex < dropIndex ? dropIndex - 1 : dropIndex;
-        newTiles.splice(adjustedDropIndex, 0, draggedTile);
+        const finalDropIndex = Math.min(adjustedDropIndex, newTiles.length);
+        
+        newTiles.splice(finalDropIndex, 0, draggedTile);
+        
+        console.log('HandTileGrid: Tile moved', { 
+          from: draggedIndex, 
+          to: finalDropIndex, 
+          draggedTile: draggedTile.id 
+        });
         
         onTilesChange(newTiles);
       }
     }
-    
+
     setDraggedIndex(null);
     setDragOverIndex(null);
   };
@@ -177,162 +184,123 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Progress indicator */}
+      {/* Header with tile count and clear button */}
       <div className="flex items-center justify-between">
-        <div className="text-sm font-medium text-gray-700">
-          Your Hand: {tiles.length}/{maxTiles === 14 ? '13' : maxTiles} tiles
-        </div>
+        <h3 className="text-lg font-medium text-gray-900">
+          Your Tiles ({tiles.length}/{maxTiles})
+        </h3>
         
-        {/* Progress bar */}
-        <div className="flex-1 mx-4 max-w-32">
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className={`h-2 rounded-full transition-all duration-300 ${
-                tiles.length >= 13 ? 'bg-green-500' : 'bg-blue-500'
-              }`}
-              style={{ width: `${Math.min((tiles.length / 13) * 100, 100)}%` }}
-            />
-          </div>
-        </div>
-        
-        {/* Status indicator */}
-        <div className={`text-sm font-medium ${
-          tiles.length === 13 ? 'text-green-600' : 
-          tiles.length > 13 ? 'text-red-600' : 
-          'text-gray-600'
-        }`}>
-          {tiles.length === 13 ? '✓ Ready' : 
-           tiles.length > 13 ? '⚠️ Too many' : 
-           '⏳ In progress'}
-        </div>
-      </div>
-
-      {/* Tile grid - UPDATED: No tile numbers, drag/drop support */}
-      <div className="bg-gray-50 rounded-lg p-4">
-        <div className="grid grid-cols-5 gap-3">
-          {handSlots.map((tile, slotIndex) => {
-            const isDraggedOver = dragOverIndex === slotIndex;
-            const isDragging = draggedIndex === slotIndex;
-            
-            if (tile) {
-              const recommendation = getTileRecommendation(tile);
-              
-              return (
-                <div 
-                  key={`slot-${slotIndex}`} 
-                  className={`relative transition-all ${
-                    isDraggedOver ? 'scale-105' : ''
-                  } ${
-                    isDragging ? 'opacity-50' : ''
-                  }`}
-                  draggable={!readOnly}
-                  onDragStart={(e) => handleDragStart(e, slotIndex)}
-                  onDragOver={(e) => handleDragOver(e, slotIndex)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, slotIndex)}
-                  onDragEnd={handleDragEnd}
-                >
-                  <TileComponent
-                    tile={tile}
-                    size="large"
-                    onClick={() => handleSlotClick(slotIndex)}
-                    isDisabled={readOnly}
-                  />
-                  
-                  {/* Recommendation border */}
-                  {recommendation && (
-                    <div className={`absolute inset-0 rounded-md ring-2 pointer-events-none ${
-                      recommendation === 'keep' ? 'ring-green-500' : 
-                      recommendation === 'discard' ? 'ring-red-500' : 
-                      'ring-yellow-500'
-                    }`} />
-                  )}
-                  
-                  {/* Drag indicator */}
-                  {!readOnly && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <span className="text-xs text-white">⋮⋮</span>
-                    </div>
-                  )}
-                </div>
-              );
-            } else {
-              return (
-                <div
-                  key={`empty-${slotIndex}`}
-                  className={`transition-all ${
-                    isDraggedOver ? 'scale-105 bg-blue-100 border-blue-300' : ''
-                  }`}
-                  onDragOver={(e) => handleDragOver(e, slotIndex)}
-                  onDragLeave={handleDragLeave}
-                  onDrop={(e) => handleDrop(e, slotIndex)}
-                >
-                  <EmptyTileSlot
-                    slotIndex={slotIndex}
-                    onClick={handleSlotClick}
-                    size="large"
-                  />
-                </div>
-              );
-            }
-          })}
-        </div>
-        
-        {/* Instructions */}
-        {!readOnly && (
-          <div className="mt-4 text-center text-sm text-gray-600">
-            {tiles.length === 0 ? (
-              <p>👆 Tap any slot to add your first tile</p>
-            ) : tiles.length < 13 ? (
-              <p>Tap slots to add/change tiles • Drag tiles to reorder • Tap existing tiles to change or remove</p>
-            ) : (
-              <p>Tap any tile to change or remove it • Drag to reorder your hand</p>
-            )}
-          </div>
+        {!readOnly && tiles.length > 0 && (
+          <button
+            onClick={handleClearAll}
+            className="text-sm text-red-600 hover:text-red-700 underline"
+          >
+            Clear All
+          </button>
         )}
       </div>
 
-      {/* Recommendation legend */}
-      {recommendations && tiles.length >= 13 && (
-        <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
-          <div className="text-sm font-medium text-blue-800 mb-2">Strategy Recommendations:</div>
-          <div className="flex flex-wrap gap-4 text-xs">
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 border-2 border-green-500 rounded"></div>
-              <span className="text-green-700">Keep ({recommendations.keep.length})</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 border-2 border-red-500 rounded"></div>
-              <span className="text-red-700">Consider discarding ({recommendations.discard.length})</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-3 h-3 border-2 border-yellow-500 rounded"></div>
-              <span className="text-yellow-700">Good for Charleston ({recommendations.charleston.length})</span>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Main tile grid */}
+      <div className="grid grid-cols-7 gap-3 p-4 bg-gray-50 rounded-lg min-h-[200px]">
+        {handSlots.map((tile, slotIndex) => {
+          const recommendation = tile ? getTileRecommendation(tile) : null;
+          const isDraggedOver = dragOverIndex === slotIndex;
+          const isDragging = draggedIndex === slotIndex;
 
-      {/* Clear all button */}
-      {tiles.length > 0 && !readOnly && (
-        <div className="flex justify-center pt-4 border-t border-gray-200">
-          <button
-            onClick={handleClearAll}
-            className="px-6 py-3 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors font-medium border border-red-200 hover:border-red-300"
-          >
-            🗑️ Clear All Tiles
-          </button>
+          if (tile) {
+            return (
+              <div
+                key={`tile-${slotIndex}-${tile.id}`}
+                className={`relative cursor-pointer transition-all ${
+                  isDraggedOver ? 'scale-105' : ''
+                } ${
+                  isDragging ? 'opacity-50' : ''
+                }`}
+                draggable={!readOnly}
+                onDragStart={(e) => handleDragStart(e, slotIndex)}
+                onDragOver={(e) => handleDragOver(e, slotIndex)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, slotIndex)}
+                onDragEnd={handleDragEnd}
+              >
+                <TileComponent
+                  tile={tile}
+                  size="large"
+                  onClick={() => handleSlotClick(slotIndex)}
+                  isDisabled={readOnly}
+                />
+                
+                {/* Recommendation border */}
+                {recommendation && (
+                  <div className={`absolute inset-0 rounded-md ring-2 pointer-events-none ${
+                    recommendation === 'keep' ? 'ring-green-500' : 
+                    recommendation === 'discard' ? 'ring-red-500' : 
+                    'ring-yellow-500'
+                  }`} />
+                )}
+                
+                {/* Drag indicator */}
+                {!readOnly && (
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-gray-400 rounded-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                    <span className="text-xs text-white">⋮⋮</span>
+                  </div>
+                )}
+              </div>
+            );
+          } else {
+            return (
+              <div
+                key={`empty-${slotIndex}`}
+                className={`transition-all ${
+                  isDraggedOver ? 'scale-105 bg-blue-100 border-blue-300' : ''
+                }`}
+                onDragOver={(e) => handleDragOver(e, slotIndex)}
+                onDragLeave={handleDragLeave}
+                onDrop={(e) => handleDrop(e, slotIndex)}
+              >
+                <EmptyTileSlot
+                  slotIndex={slotIndex}
+                  onClick={handleSlotClick}
+                  size="large"
+                />
+              </div>
+            );
+          }
+        })}
+      </div>
+      
+      {/* Instructions */}
+      {!readOnly && (
+        <div className="mt-4 text-center text-sm text-gray-600">
+          {tiles.length === 0 ? (
+            <p>👆 Tap any slot to add your first tile</p>
+          ) : tiles.length < 13 ? (
+            <div>
+              <p>Keep adding tiles... ({13 - tiles.length} more needed)</p>
+              {tiles.length === 10 && (
+                <p className="text-orange-600 font-medium mt-1">
+                  🎯 Almost there! Just 3 more tiles to go!
+                </p>
+              )}
+            </div>
+          ) : tiles.length === 13 ? (
+            <p className="text-green-600 font-medium">✅ Perfect! You have 13 tiles</p>
+          ) : (
+            <p className="text-blue-600 font-medium">
+              You have {tiles.length} tiles (dealer gets 14, others get 13)
+            </p>
+          )}
         </div>
       )}
 
       {/* Tile picker modal */}
       <TilePickerModal
         isOpen={modalOpen}
-        currentTile={getCurrentTile()}
-        currentHand={tiles}
+        onClose={handleModalClose}
         onTileSelect={handleTileSelect}
         onRemoveTile={handleTileRemove}
-        onClose={handleModalClose}
+        currentTile={getCurrentTile()}
+        currentHand={tiles}
         slotIndex={selectedSlotIndex}
       />
     </div>

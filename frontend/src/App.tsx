@@ -27,7 +27,7 @@ function App() {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   
   // Room management - UPDATED: updateTiles now takes Tile[] instead of number
-  const { room, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, isConnected, isLoading, error } = useRoom();
+  const { room, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, assignPosition, confirmPositions, isConnected, isLoading, error } = useRoom();
 
   // FIXED: Listen for successful room creation from socket
   useEffect(() => {
@@ -189,8 +189,10 @@ function App() {
             socketFunctions={{
               startGame,
               toggleReady,
-              updateTiles, // Now expects Tile[] parameter
+              updateTiles,
               updatePlayerStatus,
+              assignPosition,        // ADD THIS
+              confirmPositions,      // ADD THIS
               isConnected,
               isLoading,
               error

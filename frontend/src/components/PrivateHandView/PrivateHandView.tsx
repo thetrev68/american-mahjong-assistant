@@ -1,7 +1,7 @@
 // frontend/src/components/PrivateHandView/PrivateHandView.tsx
-// Main private player interface - RESTORED to use proper hooks
+// FIXED: State synchronization to prevent freezing
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import type { 
   Tile, 
   PlayerAction,
@@ -37,6 +37,9 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   const [selectedTiles, setSelectedTiles] = useState<Tile[]>([]);
   const [showAnalysis, setShowAnalysis] = useState(false);
   
+  // FIXED: Add ref to prevent update loops
+  const updateInProgressRef = useRef(false);
+  
   // FIXED: Custom hooks for game state and analysis
   const { privateState, updateTiles: updatePrivateStateTiles, isLoading } = usePrivateGameState(playerId);
   const { analysis, isAnalyzing } = useHandAnalysis(privateState?.tiles || []);
@@ -45,7 +48,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     playerId, 
     gamePhase, 
     tiles: privateState?.tiles?.length || 0,
-    tilesDetail: privateState?.tiles
+    updateInProgress: updateInProgressRef.current
   });
   
   // Auto-switch to appropriate mode based on game phase
@@ -100,20 +103,44 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     }
   };
 
-  // FIXED: Handle direct tile updates from the grid
-  const handleTilesChange = (newTiles: Tile[]) => {
-    console.log('PrivateHandView: Tiles changed', { 
-      oldTiles: privateState?.tiles?.length || 0,
-      newTiles: newTiles.length,
-      tilesDetail: newTiles
+  // FIXED: Prevent recursive updates and state conflicts
+  const handleTilesChange = useCallback((newTiles: Tile[]) => {
+    // Prevent recursive updates
+    if (updateInProgressRef.current) {
+      console.log('PrivateHandView: Update already in progress, skipping');
+      return;
+    }
+
+    // Check if tiles actually changed
+    const currentTiles = privateState?.tiles || [];
+    if (currentTiles.length === newTiles.length && 
+        currentTiles.every((tile, index) => tile.id === newTiles[index]?.id)) {
+      console.log('PrivateHandView: No tile changes detected, skipping update');
+      return;
+    }
+
+    console.log('PrivateHandView: Processing tile change', { 
+      oldCount: currentTiles.length,
+      newCount: newTiles.length,
+      playerId
     });
     
-    // Update the private state hook
-    updatePrivateStateTiles(newTiles);
+    updateInProgressRef.current = true;
     
-    // Also call the parent callback for socket updates
-    onTilesUpdate(newTiles);
-  };
+    try {
+      // Update local state first
+      updatePrivateStateTiles(newTiles);
+      
+      // Then notify parent - use setTimeout to break the synchronous call chain
+      setTimeout(() => {
+        onTilesUpdate(newTiles);
+        updateInProgressRef.current = false;
+      }, 0);
+    } catch (error) {
+      console.error('PrivateHandView: Error updating tiles', error);
+      updateInProgressRef.current = false;
+    }
+  }, [privateState?.tiles, updatePrivateStateTiles, onTilesUpdate, playerId]);
 
   if (isLoading) {
     return (
@@ -151,6 +178,12 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
             <span className="text-sm text-gray-500">
               {privateState.tiles.length} tiles
             </span>
+            {/* ADDED: Debug indicator */}
+            {updateInProgressRef.current && (
+              <span className="text-xs text-orange-500 bg-orange-100 px-2 py-1 rounded">
+                Updating...
+              </span>
+            )}
           </div>
           
           <div className="flex items-center space-x-2">
@@ -202,6 +235,11 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
         {handMode === 'input' && (
           <div className="mt-2 text-sm text-gray-600">
             Tap any slot to add/change tiles. Progress: {privateState.tiles.length}/13
+            {privateState.tiles.length === 10 && (
+              <span className="ml-2 text-orange-600 font-medium">
+                (3 more needed)
+              </span>
+            )}
           </div>
         )}
       </div>
@@ -225,7 +263,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
             tiles={privateState.tiles}
             onTilesChange={handleTilesChange}
             recommendations={handMode !== 'input' ? analysis?.recommendations : undefined}
-            readOnly={false} // Always allow interaction via modal
+            readOnly={updateInProgressRef.current} // FIXED: Prevent interaction during updates
           />
         </div>
 

@@ -7,6 +7,8 @@ import { Server } from 'socket.io';
 import cors from 'cors';
 import roomManager from './roomManager.js';
 
+type PlayerPosition = 'east' | 'south' | 'west' | 'north';
+
 const app = express();
 const server = http.createServer(app);
 
@@ -376,7 +378,7 @@ io.on('connection', (socket) => {
   socket.on('confirm-positions', (data: { positions?: Record<string, string> }) => {
     const { positions = {} } = data || {};
     
-    const result = roomManager.confirmPlayerPositions(socket.id, new Map(Object.entries(positions)));
+    const result = roomManager.confirmPlayerPositions(socket.id, new Map(Object.entries(positions) as [string, PlayerPosition][]));
     
     if (result.success) {
       const roomCode = result.room.code;
