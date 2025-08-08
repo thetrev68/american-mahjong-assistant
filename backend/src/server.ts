@@ -246,6 +246,8 @@ io.on('connection', (socket) => {
   }) => {
     const { roomId, playerId, phase, selectedTiles = [] } = data || {};
     
+    console.log(`Charleston confirm received: roomId=${roomId}, playerId=${playerId}, phase=${phase}`);
+    
     if (!roomId || !playerId || !phase) {
       socket.emit('charleston-error', { message: 'Missing required Charleston data' });
       return;
@@ -369,6 +371,8 @@ io.on('connection', (socket) => {
   // NEW: Charleston skip remaining phases (host only)
   socket.on('charleston-skip-remaining', (data: { roomId?: string; currentPhase?: string }) => {
     const { roomId, currentPhase } = data || {};
+    
+    console.log(`Charleston skip remaining: roomId=${roomId}, currentPhase=${currentPhase}`);
     
     if (!roomId || !currentPhase) {
       socket.emit('charleston-error', { message: 'Missing room ID or current phase' });
