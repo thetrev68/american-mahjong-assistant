@@ -471,6 +471,56 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Kick a player (host only)
+  socket.on('kick-player', (data: { targetPlayerId?: string }) => {
+    const { targetPlayerId } = data || {};
+    
+    if (!targetPlayerId) {
+      socket.emit('room-error', { message: 'Target player ID required' });
+      return;
+    }
+
+    const result = roomManager.kickPlayer(socket.id, targetPlayerId);
+    
+    if (result.success && result.room) {
+      const roomCode = result.room.code;
+      
+      // Notify the kicked player
+      socket.to(targetPlayerId).emit('player-kicked', { 
+        message: 'You have been removed from the room by the host' 
+      });
+      
+      // Update all remaining players
+      broadcastRoomUpdate(roomCode, result.room);
+      
+      console.log(`Player ${targetPlayerId} kicked from room ${roomCode}`);
+    } else {
+      socket.emit('room-error', { message: (result as any).error });
+    }
+  });
+
+  // Rename player
+  socket.on('rename-player', (data: { newName?: string }) => {
+    const { newName } = data || {};
+    
+    if (!newName) {
+      socket.emit('room-error', { message: 'New name required' });
+      return;
+    }
+
+    const result = roomManager.renamePlayer(socket.id, newName);
+    
+    if (result.success && result.room) {
+      const roomCode = result.room.code;
+      broadcastRoomUpdate(roomCode, result.room);
+      
+      socket.emit('player-renamed', { newName: newName.trim() });
+      console.log(`Player ${socket.id} renamed to ${newName.trim()} in room ${roomCode}`);
+    } else {
+      socket.emit('room-error', { message: (result as any).error });
+    }
+  });
+
   // Leave current room
   socket.on('leave-room', () => {
     const room = roomManager.getRoomByPlayer(socket.id);

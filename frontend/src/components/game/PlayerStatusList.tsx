@@ -1,7 +1,7 @@
 // frontend/src/components/game/PlayerStatusList.tsx
 // Component for displaying player status during tile-input phase
 
-import React from 'react';
+import React, { useState } from 'react';
 import type { Player } from '../../types';
 
 interface PlayerStatusListProps {
@@ -10,6 +10,8 @@ interface PlayerStatusListProps {
   participatingPlayers: string[];
   isHost: boolean;
   onToggleParticipation: (playerId: string, currentStatus: boolean) => void;
+  onKickPlayer?: (playerId: string) => void;
+  onRenamePlayer?: (newName: string) => void;
 }
 
 const PlayerStatusList: React.FC<PlayerStatusListProps> = ({
@@ -17,8 +19,12 @@ const PlayerStatusList: React.FC<PlayerStatusListProps> = ({
   currentPlayer,
   participatingPlayers,
   isHost,
-  onToggleParticipation
+  onToggleParticipation,
+  onKickPlayer,
+  onRenamePlayer
 }) => {
+  const [editingName, setEditingName] = useState<string | null>(null);
+  const [newName, setNewName] = useState('');
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
       <h2 className="text-lg font-medium text-gray-900 mb-4">
@@ -37,7 +43,54 @@ const PlayerStatusList: React.FC<PlayerStatusListProps> = ({
             `}>
               <div className="flex items-center space-x-3">
                 <div>
-                  <div className="font-medium text-gray-900">{player.name}</div>
+                  {/* Player name - clickable for editing own name */}
+                  {editingName === player.id ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="text"
+                        value={newName}
+                        onChange={(e) => setNewName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            onRenamePlayer?.(newName);
+                            setEditingName(null);
+                            setNewName('');
+                          } else if (e.key === 'Escape') {
+                            setEditingName(null);
+                            setNewName('');
+                          }
+                        }}
+                        className="text-sm px-2 py-1 border border-gray-300 rounded"
+                        placeholder="Enter new name"
+                        autoFocus
+                      />
+                      <button
+                        onClick={() => {
+                          onRenamePlayer?.(newName);
+                          setEditingName(null);
+                          setNewName('');
+                        }}
+                        className="text-xs px-2 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  ) : (
+                    <div 
+                      className={`font-medium text-gray-900 ${
+                        player.id === currentPlayer.id ? 'cursor-pointer hover:text-blue-600' : ''
+                      }`}
+                      onClick={() => {
+                        if (player.id === currentPlayer.id) {
+                          setEditingName(player.id);
+                          setNewName(player.name);
+                        }
+                      }}
+                      title={player.id === currentPlayer.id ? "Click to edit your name" : ""}
+                    >
+                      {player.name}
+                    </div>
+                  )}
                   <div className="text-xs text-gray-600">
                     {player.isHost && 'Host • '}
                     Tiles: {player.tilesInHand || 0}/13
@@ -71,6 +124,21 @@ const PlayerStatusList: React.FC<PlayerStatusListProps> = ({
                     </span>
                   )}
                 </div>
+
+                {/* Host actions: Kick button */}
+                {isHost && player.id !== currentPlayer.id && onKickPlayer && (
+                  <button
+                    onClick={() => {
+                      if (confirm(`Remove ${player.name} from the room?`)) {
+                        onKickPlayer(player.id);
+                      }
+                    }}
+                    className="px-2 py-1 text-xs rounded bg-red-100 text-red-700 hover:bg-red-200"
+                    title="Remove player from room"
+                  >
+                    🚫 Kick
+                  </button>
+                )}
 
                 {/* Tiles ready status */}
                 {isParticipating && (

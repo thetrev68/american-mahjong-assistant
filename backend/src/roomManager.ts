@@ -983,6 +983,70 @@ class RoomManager {
     return { success: true, room };
   }
 
+  // Kick a player (host only)
+  kickPlayer(hostSocketId: string, targetPlayerId: string): LeaveRoomResult | ErrorResult {
+    const room = this.getRoomByPlayer(hostSocketId);
+    if (!room) {
+      return { success: false, error: 'Host not in any room' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can kick players' };
+    }
+
+    if (targetPlayerId === hostSocketId) {
+      return { success: false, error: 'Host cannot kick themselves' };
+    }
+
+    const targetPlayer = room.players.get(targetPlayerId);
+    if (!targetPlayer) {
+      return { success: false, error: 'Player not found in room' };
+    }
+
+    // Use existing leave room logic for the target player
+    return this.leaveRoom(targetPlayerId);
+  }
+
+  // Rename player
+  renamePlayer(socketId: string, newName: string): UpdatePlayerResult | ErrorResult {
+    const room = this.getRoomByPlayer(socketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const player = room.players.get(socketId);
+    if (!player) {
+      return { success: false, error: 'Player not found' };
+    }
+
+    // Validate name
+    if (!newName || newName.trim().length === 0) {
+      return { success: false, error: 'Name cannot be empty' };
+    }
+
+    if (newName.trim().length > 20) {
+      return { success: false, error: 'Name too long (max 20 characters)' };
+    }
+
+    const trimmedName = newName.trim();
+    
+    // Check if name is already taken (except by this player)
+    const nameExists = Array.from(room.players.values()).some(p => 
+      p.id !== socketId && p.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+    
+    if (nameExists) {
+      return { success: false, error: 'Name already taken' };
+    }
+
+    // Update name
+    player.name = trimmedName;
+    
+    console.log(`Player ${socketId} renamed to ${trimmedName} in room ${room.code}`);
+    return { success: true, room };
+  }
+
   // Leave a room
   leaveRoom(socketId: string): LeaveRoomResult | ErrorResult {
     const roomCode = this.playerRooms.get(socketId);

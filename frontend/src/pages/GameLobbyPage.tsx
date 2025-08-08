@@ -11,6 +11,7 @@ import { GameStateMachine } from '../utils/game-state-machine';
 import TurnTimer from '../components/game/TurnTimer';
 import ActiveGamePage from './ActiveGamePage';
 import { useWakeLock } from '../hooks/useWakeLock';
+import { useSocket } from '../hooks/useSocket';
 
 
 // Socket room types (from useSocket.ts)
@@ -86,6 +87,18 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   socket // ADDED: Destructure the socket object
 }) => {
   const { startGame, toggleReady, updateTiles, updatePlayerStatus, assignPosition, confirmPositions, isConnected } = socketFunctions;
+  
+  // Get raw socket for kick/rename functions
+  const { socket: rawSocket } = useSocket();
+  
+  // Add kick and rename functions directly
+  const kickPlayer = (playerId: string) => {
+    rawSocket.emit('kick-player', { targetPlayerId: playerId });
+  };
+  
+  const renamePlayer = (newName: string) => {
+    rawSocket.emit('rename-player', { newName });
+  };
   
   // Keep screen awake during active gameplay
   const { isSupported: wakeLockSupported, isActive: screenAwake } = useWakeLock(true);
@@ -381,6 +394,8 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             onTilesUpdate={handleTilesUpdate}
             onToggleParticipation={handleToggleParticipation}
             allPlayersReady={allPlayersReady}
+            onKickPlayer={kickPlayer}
+            onRenamePlayer={renamePlayer}
           />
         )}
 
@@ -875,6 +890,8 @@ const TileInputPhaseContent: React.FC<{
   onTilesUpdate: (tiles: Tile[]) => void;
   onToggleParticipation: (playerId: string, currentStatus: boolean) => void;
   allPlayersReady: boolean;
+  onKickPlayer: (playerId: string) => void;
+  onRenamePlayer: (newName: string) => void;
 }> = ({ 
   players, 
   currentPlayerFromRoom, 
@@ -883,7 +900,9 @@ const TileInputPhaseContent: React.FC<{
   myTiles,
   onTilesUpdate,
   onToggleParticipation,
-  allPlayersReady
+  allPlayersReady,
+  onKickPlayer,
+  onRenamePlayer
 }) => {
   return (
     <>
@@ -917,6 +936,8 @@ const TileInputPhaseContent: React.FC<{
         participatingPlayers={participatingPlayers}
         isHost={isHost}
         onToggleParticipation={onToggleParticipation}
+        onKickPlayer={onKickPlayer}
+        onRenamePlayer={onRenamePlayer}
       />
 
       {/* Progress Status */}
