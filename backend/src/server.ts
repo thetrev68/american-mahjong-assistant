@@ -13,14 +13,20 @@ const app = express();
 const server = http.createServer(app);
 
 // Configure CORS for both Express and Socket.io
+const allowedOrigins = [
+  "http://localhost:5173", 
+  "http://192.168.1.77:5173",
+  "https://american-mahjong-assistant.vercel.app"
+];
+
 app.use(cors({
-  origin: ["http://localhost:5173", "http://192.168.1.77:5173"],
+  origin: allowedOrigins,
   credentials: true
 }));
 
 const io = new Server(server, {
   cors: {
-    origin: ["http://localhost:5173", "http://192.168.1.77:5173"],
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
     credentials: true
   }
