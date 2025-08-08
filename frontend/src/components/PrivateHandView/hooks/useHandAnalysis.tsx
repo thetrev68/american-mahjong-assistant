@@ -1,170 +1,184 @@
 // frontend/src/components/PrivateHandView/hooks/useHandAnalysis.tsx
-// Custom hook for analyzing player's hand and providing strategic recommendations
+// Enhanced hook for analyzing player's hand using advanced NMJL engines
 
-import { useState, useEffect, useMemo } from 'react';
-import type { Tile, HandAnalysis, PatternMatch, HandPattern } from '../../../types';
+import { useState, useEffect } from 'react';
+import type { Tile, HandAnalysis, PatternMatch } from '../../../types';
+import { NMJLPatternAnalyzer } from '../../../utils/nmjl-pattern-analyzer';
+import { NMJLProbabilityCalculator } from '../../../utils/nmjl-probability-calculator';
+import { StrategicAdviceEngine } from '../../../utils/strategic-advice-engine';
+import { NMJLRulesEnforcer } from '../../../utils/nmjl-rules-enforcer';
 
 interface UseHandAnalysisReturn {
   analysis: HandAnalysis | null;
   isAnalyzing: boolean;
   error: string | null;
   refreshAnalysis: () => void;
+  strategicAdvice: any | null;
+  ruleViolations: Array<{ rule: string; violation: string; severity: 'warning' | 'error' }>;
 }
 
-export const useHandAnalysis = (tiles: Tile[]): UseHandAnalysisReturn => {
+export const useHandAnalysis = (
+  tiles: Tile[], 
+  cardYear: number = 2025,
+  gamePhase: 'charleston' | 'playing' = 'playing'
+): UseHandAnalysisReturn => {
   const [analysis, setAnalysis] = useState<HandAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [strategicAdvice, setStrategicAdvice] = useState<any | null>(null);
+  const [ruleViolations, setRuleViolations] = useState<Array<{ 
+    rule: string; 
+    violation: string; 
+    severity: 'warning' | 'error' 
+  }>>([]);
 
-  // Mock pattern definitions for development
-  const mockPatterns: HandPattern[] = useMemo(() => [
-    {
-      id: 'like-numbers-1',
-      name: 'LIKE NUMBERS',
-      description: 'Four consecutive numbers in each suit',
-      requiredTiles: [],
-      optionalTiles: [],
-      points: 25,
-      difficulty: 'medium'
-    },
-    {
-      id: '2025',
-      name: '2025',
-      description: 'Special pattern for the year 2025',
-      requiredTiles: [],
-      optionalTiles: [],
-      points: 50,
-      difficulty: 'hard'
-    },
-    {
-      id: 'consecutive-run',
-      name: 'CONSECUTIVE RUN',
-      description: 'Run of consecutive numbers',
-      requiredTiles: [],
-      optionalTiles: [],
-      points: 30,
-      difficulty: 'easy'
+  // Analyze hand using advanced NMJL engines
+  const analyzeHand = async (tilesToAnalyze: Tile[]): Promise<HandAnalysis | null> => {
+    if (tilesToAnalyze.length === 0) return null;
+
+    try {
+      // Step 1: Get pattern matches using advanced analyzer
+      const patternMatches = NMJLPatternAnalyzer.analyzeAllPatterns(tilesToAnalyze, cardYear, 5);
+      const bestPattern = patternMatches[0];
+
+      // Step 2: Generate advanced recommendations
+      const recommendations = await generateAdvancedRecommendations(tilesToAnalyze, bestPattern);
+
+      // Step 3: Calculate probabilities for best patterns
+      const probabilities = bestPattern ? await calculateProbabilities(tilesToAnalyze, bestPattern) : {
+        completion: 0,
+        turnsEstimate: 0
+      };
+
+      // Step 4: Generate threat analysis (simplified for now)
+      const threats = {
+        dangerousTiles: tilesToAnalyze.filter(t => t.suit === 'jokers').slice(0, 2),
+        safeTiles: tilesToAnalyze.filter(t => t.suit === 'winds' || t.suit === 'dragons').slice(0, 3),
+        opponentThreats: [
+          {
+            playerId: 'opponent-1',
+            suspectedPatterns: ['LIKE NUMBERS'],
+            dangerLevel: 'medium' as const
+          }
+        ]
+      };
+
+      return {
+        bestPatterns: patternMatches.slice(0, 3),
+        recommendations,
+        probabilities,
+        threats
+      };
+    } catch (err) {
+      throw new Error(`Failed to analyze hand: ${err}`);
     }
-  ], []);
-
-  // Analyze how well tiles match a specific pattern
-  const analyzePatternMatch = (
-    pattern: HandPattern
-  ): PatternMatch => {
-    // Mock analysis for development
-    const randomCompletion = Math.random() * 0.8 + 0.2; // 20-100% completion
-    
-    return {
-      pattern: pattern,
-      completion: randomCompletion,
-      missingTiles: [],
-      blockedBy: [],
-      confidence: randomCompletion * 0.9
-    };
   };
 
-  // Generate strategic recommendations
-  const generateRecommendations = (
+  // Generate advanced recommendations using multiple engines
+  const generateAdvancedRecommendations = async (
     tilesToAnalyze: Tile[], 
-    patterns: PatternMatch[]
+    bestPattern: PatternMatch | undefined
   ) => {
-    const bestPattern = patterns[0];
+    
+    // Get keep/discard recommendations based on best pattern
     const keep: Tile[] = [];
     const discard: Tile[] = [];
     const charleston: Tile[] = [];
 
-    if (bestPattern && bestPattern.completion > 0.3) {
-      // Keep tiles that contribute to best pattern
-      if (bestPattern.pattern.name === 'LIKE NUMBERS') {
-        // Keep consecutive numbers
-        const numberTiles = tilesToAnalyze.filter(t => 
-          ['dots', 'bams', 'cracks'].includes(t.suit) && 
-          !isNaN(parseInt(t.value))
-        );
-        keep.push(...numberTiles.slice(0, 6));
-      }
+    if (bestPattern && bestPattern.pattern) {
+      // Use pattern analyzer to identify keep tiles
+      const keepTiles = NMJLPatternAnalyzer.identifyKeepTiles(tilesToAnalyze, bestPattern.pattern);
+      const discardTiles = NMJLPatternAnalyzer.identifyDiscardTiles(tilesToAnalyze, bestPattern.pattern, keepTiles);
       
-      // Discard isolated tiles
-      const isolatedTiles = tilesToAnalyze.filter(tile => {
-        // Consider winds and dragons as potentially isolated
-        return ['winds', 'dragons'].includes(tile.suit) && 
-               !keep.some(keepTile => keepTile.id === tile.id);
-      });
-      discard.push(...isolatedTiles.slice(0, 3));
-      
-      // Charleston recommendations - pass tiles not useful for current patterns
-      const unusefulTiles = tilesToAnalyze.filter(tile => 
-        !keep.some(keepTile => keepTile.id === tile.id) &&
-        !discard.some(discardTile => discardTile.id === tile.id)
-      );
-      charleston.push(...unusefulTiles.slice(0, 3));
+      keep.push(...keepTiles);
+      discard.push(...discardTiles.slice(0, 3)); // Top 3 discard candidates
+      charleston.push(...discardTiles.slice(3, 6)); // Charleston candidates
     } else {
-      // No strong pattern - give general advice
+      // Fallback recommendations when no strong pattern
+      const jokers = tilesToAnalyze.filter(t => t.isJoker || t.suit === 'jokers');
       const winds = tilesToAnalyze.filter(t => t.suit === 'winds');
       const dragons = tilesToAnalyze.filter(t => t.suit === 'dragons');
       
+      keep.push(...jokers); // Always keep jokers
       discard.push(...winds.slice(0, 2));
-      charleston.push(...dragons.slice(0, 2));
+      charleston.push(...dragons.slice(0, 3));
     }
 
     return { keep, discard, charleston };
   };
 
-  // Analyze defensive threats
-  const analyzeThreats = (tilesToAnalyze: Tile[]) => {
-    // Mock threat analysis for development
-    const dangerousTiles = tilesToAnalyze.filter(t => t.suit === 'jokers'); // Jokers are valuable
-    const safeTiles = tilesToAnalyze.filter(t => t.suit === 'winds' || t.suit === 'dragons');
+  // Calculate advanced probabilities
+  const calculateProbabilities = async (
+    tilesToAnalyze: Tile[], 
+    bestPattern: PatternMatch
+  ) => {
     
-    return {
-      dangerousTiles: dangerousTiles.slice(0, 2),
-      safeTiles: safeTiles.slice(0, 3),
-      opponentThreats: [
-        {
-          playerId: 'player2',
-          suspectedPatterns: ['LIKE NUMBERS'],
-          dangerLevel: 'medium' as const
-        },
-        {
-          playerId: 'player3', 
-          suspectedPatterns: ['2025', 'CONSECUTIVE RUN'],
-          dangerLevel: 'low' as const
-        }
-      ]
+    const gameState = {
+      wallTilesRemaining: 100, // Default assumption
+      discardedTiles: [],
+      exposedTiles: [],
+      turnsElapsed: 0,
+      playersRemaining: 4
     };
-  };
 
-  // Analyze hand patterns
-  const analyzeHand = useMemo(() => {
-    return (tilesToAnalyze: Tile[]): HandAnalysis | null => {
-      if (tilesToAnalyze.length === 0) return null;
+    const availableJokers = tilesToAnalyze.filter(t => t.isJoker || t.suit === 'jokers').length;
 
-      // Analyze for each pattern
-      const patternMatches: PatternMatch[] = mockPatterns.map(pattern => 
-        analyzePatternMatch(pattern)
-      ).sort((a, b) => b.completion - a.completion);
-
-      // Generate recommendations based on best patterns
-      const recommendations = generateRecommendations(tilesToAnalyze, patternMatches);
-
-      // Analyze defensive threats
-      const threats = analyzeThreats(tilesToAnalyze);
-
-      // Calculate probabilities
-      const bestMatch = patternMatches[0];
-      const probabilities = {
-        completion: bestMatch ? bestMatch.completion : 0,
-        turnsEstimate: bestMatch ? Math.ceil((1 - bestMatch.completion) * 8) : 8
-      };
+    try {
+      const probResult = NMJLProbabilityCalculator.calculatePatternProbability(
+        tilesToAnalyze,
+        bestPattern.pattern,
+        gameState,
+        availableJokers
+      );
 
       return {
-        bestPatterns: patternMatches.slice(0, 3), // Top 3 matches
-        recommendations,
-        threats,
-        probabilities
+        completion: bestPattern.completion,
+        turnsEstimate: probResult.expectedTurns
       };
-    };
-  }, [mockPatterns]);
+    } catch (err) {
+      console.warn('Probability calculation failed:', err);
+      return {
+        completion: bestPattern.completion,
+        turnsEstimate: Math.ceil((1 - bestPattern.completion) * 8)
+      };
+    }
+  };
+
+  // Generate strategic advice
+  const generateStrategicAdvice = async (tilesToAnalyze: Tile[]) => {
+    try {
+      // Mock players for advice generation
+      const mockPlayers = [
+        { id: 'p1', position: 'south', tilesInHand: 12, exposedSets: [] },
+        { id: 'p2', position: 'west', tilesInHand: 11, exposedSets: [] },
+        { id: 'p3', position: 'north', tilesInHand: 13, exposedSets: [] }
+      ] as any[];
+
+      const advice = StrategicAdviceEngine.generateAdvice(
+        tilesToAnalyze,
+        mockPlayers,
+        [], // Empty discard pile
+        gamePhase,
+        0, // Turns elapsed
+        100 // Wall tiles remaining
+      );
+
+      return advice;
+    } catch (err) {
+      console.warn('Strategic advice generation failed:', err);
+      return null;
+    }
+  };
+
+  // Check for rule violations
+  const checkRuleViolations = (tilesToAnalyze: Tile[]) => {
+    try {
+      return NMJLRulesEnforcer.getAllRuleViolations(tilesToAnalyze, []);
+    } catch (err) {
+      console.warn('Rule validation failed:', err);
+      return [];
+    }
+  };
 
   // Refresh analysis manually
   const refreshAnalysis = () => {
@@ -172,17 +186,24 @@ export const useHandAnalysis = (tiles: Tile[]): UseHandAnalysisReturn => {
       setIsAnalyzing(true);
       setError(null);
       
-      // Simulate analysis delay
-      setTimeout(() => {
+      // Add slight delay for better UX
+      setTimeout(async () => {
         try {
-          const newAnalysis = analyzeHand(tiles);
+          const [newAnalysis, newAdvice, violations] = await Promise.all([
+            analyzeHand(tiles),
+            generateStrategicAdvice(tiles),
+            Promise.resolve(checkRuleViolations(tiles))
+          ]);
+          
           setAnalysis(newAnalysis);
-        } catch {
-          setError('Failed to analyze hand');
+          setStrategicAdvice(newAdvice);
+          setRuleViolations(violations);
+        } catch (err) {
+          setError(`Analysis failed: ${err}`);
         } finally {
           setIsAnalyzing(false);
         }
-      }, 800);
+      }, 300);
     }
   };
 
@@ -190,6 +211,8 @@ export const useHandAnalysis = (tiles: Tile[]): UseHandAnalysisReturn => {
   useEffect(() => {
     if (tiles.length === 0) {
       setAnalysis(null);
+      setStrategicAdvice(null);
+      setRuleViolations([]);
       return;
     }
 
@@ -197,24 +220,34 @@ export const useHandAnalysis = (tiles: Tile[]): UseHandAnalysisReturn => {
     setError(null);
 
     // Debounce analysis to avoid excessive calculations
-    const debounceTimer = setTimeout(() => {
+    const debounceTimer = setTimeout(async () => {
       try {
-        const newAnalysis = analyzeHand(tiles);
+        const [newAnalysis, newAdvice, violations] = await Promise.all([
+          analyzeHand(tiles),
+          generateStrategicAdvice(tiles),
+          Promise.resolve(checkRuleViolations(tiles))
+        ]);
+        
         setAnalysis(newAnalysis);
-      } catch {
-        setError('Failed to analyze hand');
+        setStrategicAdvice(newAdvice);
+        setRuleViolations(violations);
+      } catch (err) {
+        setError(`Analysis failed: ${err}`);
+        console.error('Hand analysis error:', err);
       } finally {
         setIsAnalyzing(false);
       }
-    }, 500);
+    }, 800); // Slightly longer debounce for complex analysis
 
     return () => clearTimeout(debounceTimer);
-  }, [tiles, analyzeHand]);
+  }, [tiles, cardYear, gamePhase]);
 
   return {
     analysis,
     isAnalyzing,
     error,
-    refreshAnalysis
+    refreshAnalysis,
+    strategicAdvice,
+    ruleViolations
   };
 };

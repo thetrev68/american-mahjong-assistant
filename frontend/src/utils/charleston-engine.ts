@@ -25,6 +25,8 @@ import {
   groupTilesBySuit
 } from './tile-utils';
 
+import { CharlestonRecommendationEngine } from './charleston-recommendation-engine';
+
 /**
  * Main Charleston recommendation engine
  * Analyzes player's hand and provides strategic passing advice
@@ -32,12 +34,47 @@ import {
 export class CharlestonEngine {
   
   /**
-   * Generate comprehensive Charleston recommendations
+   * Generate comprehensive Charleston recommendations using advanced engine
    */
   static generateRecommendations(
     context: CharlestonAnalysisContext
   ): CharlestonRecommendation {
     
+    const { playerTiles, currentPhase } = context;
+    
+    try {
+      // Use the advanced Charleston recommendation engine
+      const advancedRecommendation = CharlestonRecommendationEngine.generateRecommendations(
+        playerTiles,
+        currentPhase,
+        2025, // Card year
+        4 // Player count
+      );
+      
+      return {
+        tilesToPass: advancedRecommendation.tilesToPass,
+        tilesToKeep: advancedRecommendation.tilesToKeep,
+        confidence: Math.min(Math.max(advancedRecommendation.confidence, 0.1), 0.95) as RecommendationConfidence,
+        reasoning: advancedRecommendation.reasoning,
+        alternatives: advancedRecommendation.alternativeOptions.map(alt => ({
+          tilesToPass: alt.tilesToPass,
+          confidence: Math.min(Math.max(alt.score / 10, 0.1), 0.95) as RecommendationConfidence,
+          reasoning: [alt.reasoning]
+        })),
+        strategicAdvice: advancedRecommendation.strategicAdvice
+      };
+    } catch (error) {
+      console.warn('Advanced Charleston engine failed, falling back to basic analysis:', error);
+      
+      // Fallback to basic analysis
+      return CharlestonEngine.generateBasicRecommendations(context);
+    }
+  }
+  
+  /**
+   * Fallback basic recommendation generation
+   */
+  static generateBasicRecommendations(context: CharlestonAnalysisContext): CharlestonRecommendation {
     const { playerTiles, currentPhase, phasesRemaining } = context;
     
     // Step 1: Analyze current hand patterns
