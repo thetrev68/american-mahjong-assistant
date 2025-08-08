@@ -360,6 +360,32 @@ io.on('connection', (socket) => {
     }
   });
 
+  // NEW: Charleston skip remaining phases (host only)
+  socket.on('charleston-skip-remaining', (data: { roomId?: string; currentPhase?: string }) => {
+    const { roomId, currentPhase } = data || {};
+    
+    if (!roomId || !currentPhase) {
+      socket.emit('charleston-error', { message: 'Missing room ID or current phase' });
+      return;
+    }
+
+    const result = roomManager.charlestonSkipRemaining(socket.id, roomId, currentPhase);
+    
+    if (result.success) {
+      io.to(roomId).emit('charleston-complete');
+      
+      // Advance game to playing phase
+      const gameAdvanceResult = roomManager.advanceToPlayingPhase(roomId);
+      if (gameAdvanceResult.success) {
+        broadcastRoomUpdate(roomId, gameAdvanceResult.room);
+      }
+      
+      console.log(`Charleston: Host skipped remaining phases from ${currentPhase} in room ${roomId}`);
+    } else {
+      socket.emit('charleston-error', { message: result.error });
+    }
+  });
+
   // NEW: Position assignment (host only)
   socket.on('assign-position', (data: { playerId?: string; position?: string }) => {
     const { playerId, position } = data || {};

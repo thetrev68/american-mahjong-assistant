@@ -4,3 +4,34 @@
 body {
   font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* Safe area support for mobile devices */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0);
+}
+
+/* Enhanced touch targets for better mobile experience */
+.touch-manipulation {
+  touch-action: manipulation;
+}
+
+/* Consistent tile highlighting system */
+.tile-selected {
+  @apply ring-2 ring-blue-500 ring-offset-2;
+}
+
+.tile-recommended-keep {
+  @apply ring-2 ring-green-500 ring-offset-2;
+}
+
+.tile-recommended-discard {
+  @apply ring-2 ring-red-500 ring-offset-2;
+}
+
+.tile-recommended-charleston {
+  @apply ring-2 ring-yellow-500 ring-offset-2;
+}

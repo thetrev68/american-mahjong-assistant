@@ -39,6 +39,7 @@ interface UseCharlestonReturn {
   canAdvancePhase: boolean;
   advancePhase: () => void;
   skipOptionalPhase: () => void;
+  skipRemainingCharleston: () => void; // Skip all remaining Charleston phases
   
   // Status
   isLoading: boolean;
@@ -215,6 +216,16 @@ export const useCharleston = (props: UseCharlestonProps): UseCharlestonReturn =>
     });
   }, [socket, isConnected, currentPhase, roomId]);
 
+  const skipRemainingCharleston = useCallback(() => {
+    if (!socket || !isConnected) return;
+
+    setIsLoading(true);
+    socket.emit('charleston-skip-remaining', {
+      roomId,
+      currentPhase
+    });
+  }, [socket, isConnected, roomId, currentPhase]);
+
   // Check if Charleston is complete
   const isComplete = currentPhase === 'complete';
 
@@ -247,6 +258,7 @@ export const useCharleston = (props: UseCharlestonProps): UseCharlestonReturn =>
     canAdvancePhase,
     advancePhase,
     skipOptionalPhase,
+    skipRemainingCharleston,
     
     // Status
     isLoading,

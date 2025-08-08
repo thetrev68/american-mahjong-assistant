@@ -75,7 +75,7 @@ export const TileActionBar: React.FC<TileActionBarProps> = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="p-4 space-y-3">
       {/* Phase indicator */}
       <div className="flex items-center justify-center">
         <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
@@ -137,10 +137,10 @@ export const TileActionBar: React.FC<TileActionBarProps> = ({
 
       {/* Confirmation actions (shown when tiles are selected) */}
       {handMode !== 'view' && (
-        <div className="flex space-x-2 pt-2 border-t border-gray-200">
+        <div className="flex space-x-3 pt-3 border-t border-gray-200">
           <button
             onClick={onCancel}
-            className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-200 transition-colors min-h-[44px]"
+            className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 border border-gray-300 rounded-lg font-medium hover:bg-gray-200 transition-colors min-h-[48px] touch-manipulation"
           >
             Cancel
           </button>
@@ -148,11 +148,11 @@ export const TileActionBar: React.FC<TileActionBarProps> = ({
           <button
             onClick={onConfirmAction}
             disabled={!canConfirm}
-            className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all min-h-[44px] ${
+            className={`flex-1 px-4 py-3 rounded-lg font-medium transition-all min-h-[48px] touch-manipulation ${
               canConfirm
                 ? handMode === 'charleston'
-                  ? 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-sm'
-                  : 'bg-red-500 text-white hover:bg-red-600 shadow-sm'
+                  ? 'bg-yellow-500 text-white hover:bg-yellow-600 shadow-lg active:scale-95'
+                  : 'bg-red-500 text-white hover:bg-red-600 shadow-lg active:scale-95'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
             }`}
           >

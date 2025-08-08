@@ -123,7 +123,7 @@ const TileComponent: React.FC<TileComponentProps> = ({
           touch-manipulation
           overflow-hidden
           ${isSelected 
-            ? 'border-blue-500 bg-blue-100 shadow-lg scale-105' 
+            ? 'border-blue-500 bg-blue-50 shadow-lg' 
             : 'border-gray-300 bg-white shadow-sm hover:shadow-md'
           }
           ${isDisabled 
@@ -170,9 +170,9 @@ const TileComponent: React.FC<TileComponentProps> = ({
         </div>
       )}
 
-      {/* Selection indicator for accessibility */}
+      {/* Unified selection indicator - replaces competing systems */}
       {isSelected && (
-        <div className="absolute inset-0 rounded-md ring-2 ring-blue-500 ring-offset-1 pointer-events-none" />
+        <div className="absolute inset-0 rounded-md ring-2 ring-blue-500 ring-offset-2 pointer-events-none" />
       )}
     </div>
   );

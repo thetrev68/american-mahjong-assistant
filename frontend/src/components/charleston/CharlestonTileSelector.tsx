@@ -143,53 +143,55 @@ const CharlestonTileSelector: React.FC<CharlestonTileSelectorProps> = ({
         maxSelection={maxSelection}
       />
 
-      {/* Action buttons */}
-      <div className="flex gap-3">
-        {/* Clear selection button */}
-        <button
-          onClick={onClearSelection}
-          disabled={selectedTiles.length === 0}
-          className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-            selectedTiles.length === 0
-              ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-          }`}
-        >
-          Clear Selection
-        </button>
-
-        {/* Skip optional phase button (only for optional phase) */}
-        {phase === 'optional' && onSkipOptional && (
+      {/* Action buttons - fixed positioning */}
+      <div className="bg-white border-t border-gray-200 p-4 space-y-3 sticky bottom-0 safe-area-bottom">
+        <div className="flex gap-3">
+          {/* Clear selection button */}
           <button
-            onClick={() => {
-              console.log('Skip optional phase requested');
-              onSkipOptional();
-            }}
-            className="flex-1 py-3 px-4 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition-colors"
+            onClick={onClearSelection}
+            disabled={selectedTiles.length === 0}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors min-h-[48px] touch-manipulation ${
+              selectedTiles.length === 0
+                ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 active:scale-95'
+            }`}
           >
-            Skip Optional Pass
+            Clear Selection
           </button>
-        )}
 
-        {/* Confirm selection button */}
-        <button
-          onClick={onConfirmSelection}
-          disabled={!canConfirm}
-          className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors ${
-            canConfirm
-              ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          {isReadyToPass
-            ? 'Waiting for Others...'
-            : selectedTiles.length < maxSelection
-              ? `Select ${maxSelection - selectedTiles.length} More`
-              : selectedTiles.length > maxSelection
-                ? 'Too Many Selected'
-                : 'Ready to Pass'
-          }
-        </button>
+          {/* Skip optional phase button (only for optional phase) */}
+          {phase === 'optional' && onSkipOptional && (
+            <button
+              onClick={() => {
+                console.log('Skip optional phase requested');
+                onSkipOptional();
+              }}
+              className="flex-1 py-3 px-4 bg-yellow-500 text-white rounded-lg font-medium hover:bg-yellow-600 transition-colors min-h-[48px] touch-manipulation active:scale-95"
+            >
+              Skip Optional Pass
+            </button>
+          )}
+
+          {/* Confirm selection button */}
+          <button
+            onClick={onConfirmSelection}
+            disabled={!canConfirm}
+            className={`flex-1 py-3 px-4 rounded-lg font-medium transition-colors min-h-[48px] touch-manipulation ${
+              canConfirm
+                ? 'bg-green-600 text-white hover:bg-green-700 shadow-lg active:scale-95'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
+          >
+            {isReadyToPass
+              ? 'Waiting for Others...'
+              : selectedTiles.length < maxSelection
+                ? `Select ${maxSelection - selectedTiles.length} More`
+                : selectedTiles.length > maxSelection
+                  ? 'Too Many Selected'
+                  : 'Ready to Pass'
+            }
+          </button>
+        </div>
       </div>
 
       {/* Status messages */}

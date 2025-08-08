@@ -247,7 +247,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
       </div>
 
       {/* Main content */}
-      <div className="p-4">
+      <div className="p-4 pb-20"> {/* Add bottom padding to prevent button overlap */}
         {/* Hand analysis panel (collapsible) - hide during input phase */}
         {showAnalysis && handMode !== 'input' && privateState.tiles.length >= 13 && (
           <div className="mb-4">
@@ -269,22 +269,24 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
           />
         </div>
 
-        {/* Action bar - hide during input mode since HandTileGrid handles it */}
+        {/* Action bar - positioned at bottom to avoid overlap */}
         {handMode !== 'view' && handMode !== 'input' && (
-          <TileActionBar
-            gamePhase={gamePhase}
-            charlestonPhase={charlestonPhase}
-            isMyTurn={isMyTurn}
-            handMode={handMode}
-            selectedTiles={selectedTiles}
-            maxSelection={getMaxSelection()}
-            onModeChange={setHandMode}
-            onConfirmAction={handleConfirmAction}
-            onCancel={() => {
-              setSelectedTiles([]);
-              setHandMode('view');
-            }}
-          />
+          <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 safe-area-bottom z-10">
+            <TileActionBar
+              gamePhase={gamePhase}
+              charlestonPhase={charlestonPhase}
+              isMyTurn={isMyTurn}
+              handMode={handMode}
+              selectedTiles={selectedTiles}
+              maxSelection={getMaxSelection()}
+              onModeChange={setHandMode}
+              onConfirmAction={handleConfirmAction}
+              onCancel={() => {
+                setSelectedTiles([]);
+                setHandMode('view');
+              }}
+            />
+          </div>
         )}
       </div>
     </div>

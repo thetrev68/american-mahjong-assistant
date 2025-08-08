@@ -324,8 +324,18 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
           </div>
         )}
 
+        {/* Show reconnecting status */}
+        {reconnecting && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center mb-4">
+            <div className="flex items-center justify-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+              <p className="text-blue-700">Rejoining your game...</p>
+            </div>
+          </div>
+        )}
+
         {/* Show loading if no room data yet */}
-        {isConnected && !room && (
+        {isConnected && !room && !reconnecting && (
           <div className="bg-white rounded-lg shadow-sm p-6 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
             <p className="text-gray-600">Loading room data...</p>
@@ -367,7 +377,7 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
         )}
 
         {isConnected && room && gamePhase === 'charleston' && charleston.currentPhase !== 'complete' && (
-          <div className="charleston-phase-container">
+          <div className="charleston-phase-container pb-20"> {/* Add bottom padding for sticky buttons */}
             <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4 text-center">
                 🔄 Charleston Phase - Pass {charleston.currentPhase.charAt(0).toUpperCase() + charleston.currentPhase.slice(1)}
@@ -433,69 +443,100 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
                   )}
                 </div>
                 
-                {/* FIXED: Charleston advance logic */}
-                {isHost && charleston.canAdvancePhase && (
+                {/* Charleston Host Controls */}
+                {isHost && (
                   <div className="mt-2 pt-2 border-t border-gray-200">
-                    <button
-                      onClick={() => {
-                        if (charleston.currentPhase === 'optional') {
-                          // Complete optional phase
-                          charleston.advancePhase();
-                          // After optional, Charleston should be complete, so advance to playing
-                          setTimeout(() => {
-                            console.log('Optional Charleston complete, advancing to playing...');
-                            socket.advanceToPlaying();
-                          }, 200);
-                        } else if (charleston.currentPhase === 'left') {
-                          // Complete left phase - this may lead to optional or finish Charleston
-                          charleston.advancePhase();
-                          // Don't auto-advance here - let user choose optional or skip
-                        } else {
-                          // Regular phase advance (right -> across -> left)
-                          charleston.advancePhase();
-                        }
-                      }}
-                      disabled={charleston.isLoading}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
-                    >
-                      {charleston.isLoading ? 'Advancing...' : 
-                      charleston.currentPhase === 'optional' 
-                        ? 'Complete Optional & Start Game!' 
-                        : charleston.currentPhase === 'left'
-                        ? 'Complete Left Pass'
-                        : 'Advance to Next Phase'}
-                    </button>
-                    
-                    {charleston.currentPhase === 'optional' && (
-                      <button
-                        onClick={() => {
-                          charleston.skipOptionalPhase();
-                          // After skipping optional, advance to playing
-                          setTimeout(() => {
-                            console.log('Skipping optional, advancing to playing...');
-                            socket.advanceToPlaying();
-                          }, 200);
-                        }}
-                        disabled={charleston.isLoading}
-                        className="ml-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50"
-                      >
-                        Skip Optional & Start Game
-                      </button>
-                    )}
-                    
-                    {charleston.currentPhase === 'left' && charleston.canAdvancePhase && (
-                      <button
-                        onClick={() => {
-                          // Skip optional phase and go straight to playing
-                          console.log('Skipping optional Charleston, advancing to playing...');
-                          socket.advanceToPlaying();
-                        }}
-                        disabled={charleston.isLoading}
-                        className="ml-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                      >
-                        Skip Optional & Start Game
-                      </button>
-                    )}
+                    <div className="flex flex-col gap-2">
+                      {/* Normal advance button */}
+                      {charleston.canAdvancePhase && (
+                        <button
+                          onClick={() => {
+                            if (charleston.currentPhase === 'optional') {
+                              // Complete optional phase
+                              charleston.advancePhase();
+                              // After optional, Charleston should be complete, so advance to playing
+                              setTimeout(() => {
+                                console.log('Optional Charleston complete, advancing to playing...');
+                                socket.advanceToPlaying();
+                              }, 200);
+                            } else if (charleston.currentPhase === 'left') {
+                              // Complete left phase - this may lead to optional or finish Charleston
+                              charleston.advancePhase();
+                              // Don't auto-advance here - let user choose optional or skip
+                            } else {
+                              // Regular phase advance (right -> across -> left)
+                              charleston.advancePhase();
+                            }
+                          }}
+                          disabled={charleston.isLoading}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                        >
+                          {charleston.isLoading ? 'Advancing...' : 
+                          charleston.currentPhase === 'optional' 
+                            ? 'Complete Optional & Start Game!' 
+                            : charleston.currentPhase === 'left'
+                            ? 'Complete Left Pass'
+                            : 'Advance to Next Phase'}
+                        </button>
+                      )}
+                      
+                      {/* Skip buttons */}
+                      <div className="flex gap-2">
+                        {charleston.currentPhase === 'optional' && (
+                          <button
+                            onClick={() => {
+                              charleston.skipOptionalPhase();
+                              // After skipping optional, advance to playing
+                              setTimeout(() => {
+                                console.log('Skipping optional, advancing to playing...');
+                                socket.advanceToPlaying();
+                              }, 200);
+                            }}
+                            disabled={charleston.isLoading}
+                            className="flex-1 px-3 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors disabled:opacity-50 text-sm"
+                          >
+                            Skip Optional & Start Game
+                          </button>
+                        )}
+                        
+                        {charleston.currentPhase === 'left' && charleston.canAdvancePhase && (
+                          <button
+                            onClick={() => {
+                              // Skip optional phase and go straight to playing
+                              console.log('Skipping optional Charleston, advancing to playing...');
+                              socket.advanceToPlaying();
+                            }}
+                            disabled={charleston.isLoading}
+                            className="flex-1 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 text-sm"
+                          >
+                            Skip Optional & Start Game
+                          </button>
+                        )}
+                        
+                        {/* Skip ALL remaining Charleston - available in any phase */}
+                        <button
+                          onClick={() => {
+                            const confirmSkip = window.confirm(
+                              `Are you sure you want to skip the remaining Charleston phases?\n\n` +
+                              `This will end Charleston and start the game immediately.`
+                            );
+                            
+                            if (confirmSkip) {
+                              console.log('Skipping all remaining Charleston phases...');
+                              charleston.skipRemainingCharleston();
+                              // After skipping all, advance to playing
+                              setTimeout(() => {
+                                socket.advanceToPlaying();
+                              }, 200);
+                            }
+                          }}
+                          disabled={charleston.isLoading}
+                          className="flex-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50 text-sm"
+                        >
+                          Skip All Charleston
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
 

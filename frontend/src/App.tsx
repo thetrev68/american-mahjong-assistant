@@ -27,7 +27,11 @@ function App() {
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   
   // Room management - UPDATED: updateTiles now takes Tile[] instead of number
-  const { room, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, assignPosition, confirmPositions, isConnected, isLoading, error } = useRoom();
+  const { 
+    room, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, 
+    assignPosition, confirmPositions, isConnected, isLoading, error, reconnecting,
+    advanceToPlaying, discardTile, drawTile, callTile, declareMahjong 
+  } = useRoom();
 
   // FIXED: Listen for successful room creation from socket
   useEffect(() => {
@@ -195,7 +199,20 @@ function App() {
               confirmPositions,      // ADD THIS
               isConnected,
               isLoading,
-              error
+              error,
+              reconnecting          // ADD THIS
+            }}
+            socket={{
+              advanceToPlaying,
+              skipOptionalPhase: () => {
+                // Add skip optional functionality  
+                console.log('Skipping optional phase');
+                // This should be handled by the charleston hook
+              },
+              discardTile,
+              drawTile,
+              callTile,
+              declareMahjong
             }}
           />
         );

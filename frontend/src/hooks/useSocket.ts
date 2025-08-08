@@ -123,6 +123,32 @@ export const useRoom = () => {
   const [room, setRoom] = useState<Room | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [reconnecting, setReconnecting] = useState<boolean>(false);
+
+  // Session persistence for refresh/rejoin
+  useEffect(() => {
+    // Try to restore session on mount
+    const savedSession = localStorage.getItem('mahjong_session');
+    if (savedSession && !room && isConnected) {
+      try {
+        const sessionData = JSON.parse(savedSession);
+        const { roomCode, playerName, playerId } = sessionData;
+        
+        // Only attempt rejoin if session is recent (less than 1 hour old)
+        const sessionAge = Date.now() - sessionData.timestamp;
+        if (sessionAge < 3600000 && roomCode && playerName) {
+          console.log('Attempting to rejoin room from saved session...', { roomCode, playerName });
+          setReconnecting(true);
+          socket.emit('join-room', { roomCode, playerName });
+        } else {
+          localStorage.removeItem('mahjong_session');
+        }
+      } catch (err) {
+        console.error('Error restoring session:', err);
+        localStorage.removeItem('mahjong_session');
+      }
+    }
+  }, [socket, isConnected, room]);
 
   // Clear error after a delay
   useEffect(() => {
@@ -131,6 +157,22 @@ export const useRoom = () => {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  // Save session when room is joined/created
+  useEffect(() => {
+    if (room && socket) {
+      const currentPlayer = room.players.find(p => p.id === socket.id);
+      if (currentPlayer) {
+        const sessionData = {
+          roomCode: room.code,
+          playerName: currentPlayer.name,
+          playerId: currentPlayer.id,
+          timestamp: Date.now()
+        };
+        localStorage.setItem('mahjong_session', JSON.stringify(sessionData));
+      }
+    }
+  }, [room, socket]);
 
   // Socket event handlers
   useEffect(() => {
@@ -149,6 +191,7 @@ export const useRoom = () => {
       console.log('Room joined:', data);
       setRoom(data);
       setIsLoading(false);
+      setReconnecting(false);
       setError(null);
     };
 
@@ -156,7 +199,10 @@ export const useRoom = () => {
       console.log('Left room');
       setRoom(null);
       setIsLoading(false);
+      setReconnecting(false);
       setError(null);
+      // Clear saved session when leaving
+      localStorage.removeItem('mahjong_session');
     };
 
     const handlePlayerJoined = (data: PlayerEventData) => {
@@ -196,6 +242,13 @@ export const useRoom = () => {
 
     const handleRoomError = (data: RoomError) => {
       console.log('Room error:', data.message);
+      setReconnecting(false);
+      
+      // If rejoin failed, clear saved session
+      if (data.message.includes('not found') || data.message.includes('in progress')) {
+        localStorage.removeItem('mahjong_session');
+      }
+      
       if (data.message !== 'Not in any room') {
         setError(data.message);
       }
@@ -372,6 +425,7 @@ export const useRoom = () => {
     isLoading,
     error,
     isConnected,
+    reconnecting,
     createRoom,
     joinRoom,
     leaveRoom,

@@ -747,6 +747,37 @@ class RoomManager {
     };
   }
 
+  // NEW: Charleston skip remaining phases (host only)
+  charlestonSkipRemaining(hostSocketId: string, roomCode: string, currentPhase: string): CharlestonAdvanceResult | ErrorResult {
+    const room = this.rooms.get(roomCode);
+    if (!room) {
+      return { success: false, error: 'Room not found' };
+    }
+
+    const host = room.players.get(hostSocketId);
+    if (!host?.isHost) {
+      return { success: false, error: 'Only host can skip Charleston phases' };
+    }
+
+    if (room.gameState.phase !== 'charleston') {
+      return { success: false, error: 'Not in Charleston phase' };
+    }
+
+    if (room.charlestonState) {
+      room.charlestonState.isActive = false;
+      room.charlestonState.currentPhase = 'complete';
+      room.charlestonState.selections.clear();
+      room.charlestonState.playersReady = [];
+    }
+
+    console.log(`Charleston: Host skipped remaining phases from ${currentPhase} in room ${roomCode}`);
+
+    return {
+      success: true,
+      nextPhase: undefined // Complete
+    };
+  }
+
   // NEW: Advance to playing phase after Charleston
   advanceToPlayingPhase(roomCode: string): UpdatePlayerResult | ErrorResult {
     const room = this.rooms.get(roomCode);
