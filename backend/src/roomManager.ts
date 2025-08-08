@@ -625,13 +625,15 @@ class RoomManager {
       confirmedAt: new Date()
     });
 
-    // Update ready players list
+    // Update ready players list for CURRENT phase only
     if (!room.charlestonState.playersReady.includes(socketId)) {
       room.charlestonState.playersReady.push(socketId);
     }
 
     const totalParticipating = room.gameState.participatingPlayers.length;
     const allPlayersReady = room.charlestonState.playersReady.length >= totalParticipating;
+    
+    console.log(`Charleston ${phase}: Player ${socketId} ready (${room.charlestonState.playersReady.length}/${totalParticipating})`);
 
     console.log(`Charleston ${phase}: Player ${socketId} confirmed selection in room ${room.code}`);
     
@@ -756,10 +758,12 @@ class RoomManager {
       room.charlestonState.currentPhase = nextPhase;
       room.charlestonState.selections.clear();
       room.charlestonState.playersReady = [];
+      console.log(`Charleston: Advanced from ${currentPhase} to ${nextPhase}, reset playersReady to []`);
     } else {
       // Charleston complete
       room.charlestonState.isActive = false;
       room.charlestonState.currentPhase = 'complete';
+      console.log(`Charleston: Complete after ${currentPhase} phase`);
     }
 
     console.log(`Charleston ${currentPhase}: Distributed tiles, next phase: ${nextPhase || 'complete'}`);
