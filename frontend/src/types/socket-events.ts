@@ -4,7 +4,8 @@
 
 import type { 
   GameRoom, Player, PlayerAction, Tile, PrivatePlayerState, 
-  HandAnalysis, CharlestonState, DiscardedTile, GameSettings 
+  HandAnalysis, CharlestonState, DiscardedTile, GameSettings,
+  PlayerPosition, GamePhase, CharlestonPhase, ExposedSet, ActionType
 } from '../types';
 
 /*
@@ -372,7 +373,7 @@ interface ErrorEvent {
   type: 'connection' | 'validation' | 'game' | 'server';
   message: string;
   code?: string;
-  details?: any;
+  details?: unknown;
   recoverable: boolean;
 }
 
@@ -530,7 +531,7 @@ RATE LIMITING & THROTTLING
 */
 
 // Events that should be rate-limited:
-const RATE_LIMITED_EVENTS = [
+export const RATE_LIMITED_EVENTS = [
   'update-tiles',          // Max 1/second per player
   'request-analysis',      // Max 1/2 seconds per player  
   'charleston-selection',  // Max 1/500ms per player
@@ -538,7 +539,7 @@ const RATE_LIMITED_EVENTS = [
 ] as const;
 
 // Events that trigger immediate responses:
-const IMMEDIATE_RESPONSE_EVENTS = [
+export const IMMEDIATE_RESPONSE_EVENTS = [
   'join-room',
   'player-action', 
   'call-tile',
@@ -552,19 +553,19 @@ SOCKET MIDDLEWARE HOOKS
 */
 
 // Authentication middleware
-interface AuthMiddleware {
+export interface AuthMiddleware {
   validatePlayer: (playerId: string, roomId: string) => boolean;
   validateHost: (playerId: string, roomId: string) => boolean;
 }
 
 // Rate limiting middleware  
-interface RateLimitMiddleware {
+export interface RateLimitMiddleware {
   checkLimit: (playerId: string, eventType: string) => boolean;
   updateLimit: (playerId: string, eventType: string) => void;
 }
 
 // Validation middleware
-interface ValidationMiddleware {
+export interface ValidationMiddleware {
   validateGameAction: (action: PlayerAction, gameState: GameRoom) => boolean;
   validateTileOperation: (tiles: Tile[], playerId: string) => boolean;
 }

@@ -113,13 +113,13 @@ function App() {
   };
 
   // SIMPLIFIED: Room creation flow - just trigger the room creation
-  const handleRoomCreated = (_roomId: string, _hostName: string) => {
+  const handleRoomCreated = () => {
     // The actual room creation and transition is handled by the useEffect above
     // This function is now just for compatibility with RoomCreation component
   };
 
   // SIMPLIFIED: Room joining flow - socket handles the actual joining
-  const handleRoomJoined = (_roomId: string, _playerName: string) => {
+  const handleRoomJoined = () => {
     // The actual room joining and transition is handled by the useEffect above
     // This function is now just for compatibility with RoomJoining component
   };

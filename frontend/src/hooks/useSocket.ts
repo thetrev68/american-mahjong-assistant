@@ -132,7 +132,7 @@ export const useRoom = () => {
     if (savedSession && !room && isConnected) {
       try {
         const sessionData = JSON.parse(savedSession);
-        const { roomCode, playerName, playerId } = sessionData;
+        const { roomCode, playerName } = sessionData;
         
         // Only attempt rejoin if session is recent (less than 1 hour old)
         const sessionAge = Date.now() - sessionData.timestamp;

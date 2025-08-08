@@ -111,7 +111,8 @@ export class CharlestonEngine {
     tile: Tile,
     count: number,
     groupedTiles: Record<TileSuit, Tile[]>,
-    context: CharlestonAnalysisContext
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _context: CharlestonAnalysisContext
   ): TileRecommendation {
     
     let action: 'pass' | 'keep' | 'neutral' = 'neutral';
@@ -330,6 +331,7 @@ export class CharlestonEngine {
   /**
    * Analyze current hand for pattern potential
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static analyzeCurrentPatterns(_tiles: Tile[]): HandPattern[] {
     // Simplified pattern analysis
     // In full implementation, would match against 2025 NMJL card patterns
@@ -354,6 +356,7 @@ export class CharlestonEngine {
    */
   private static generateAlternatives(
     tileAnalysis: TileRecommendation[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _primary: { tilesToPass: Tile[]; tilesToKeep: Tile[] }
   ) {
     // Generate 2-3 alternative tile combinations
@@ -390,6 +393,7 @@ export class CharlestonEngine {
   private static buildStrategyExplanation(
     selection: { tilesToPass: Tile[]; tilesToKeep: Tile[] },
     patterns: HandPattern[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     _context: CharlestonAnalysisContext
   ) {
     const passedTileNames = selection.tilesToPass.map(t => t.id).join(', ');
@@ -405,6 +409,7 @@ export class CharlestonEngine {
   /**
    * Predict what tiles might be received
    */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private static predictIncomingTiles(phase: CharlestonPhase, _context: CharlestonAnalysisContext): string {
     return `In ${phase} pass, expect to receive tiles that other players don't need for their patterns.`;
   }
