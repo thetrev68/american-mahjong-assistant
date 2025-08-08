@@ -54,11 +54,10 @@ export class CharlestonEngine {
       return {
         tilesToPass: advancedRecommendation.tilesToPass,
         tilesToKeep: advancedRecommendation.tilesToKeep,
-        confidence: Math.min(Math.max(advancedRecommendation.confidence, 0.1), 0.95) as RecommendationConfidence,
-        reasoning: advancedRecommendation.reasoning,
+        confidence: Math.min(Math.max(advancedRecommendation.confidence, 0.1), 0.95) as unknown as RecommendationConfidence,
         alternatives: advancedRecommendation.alternativeOptions.map(alt => ({
           tilesToPass: alt.tilesToPass,
-          confidence: Math.min(Math.max(alt.score / 10, 0.1), 0.95) as RecommendationConfidence,
+          confidence: Math.min(Math.max(alt.score / 10, 0.1), 0.95) as unknown as RecommendationConfidence,
           reasoning: [alt.reasoning]
         })),
         strategicAdvice: advancedRecommendation.strategicAdvice
