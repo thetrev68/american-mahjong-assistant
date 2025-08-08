@@ -205,9 +205,10 @@ class RoomManager {
     let tileIndex = 0;
     
     // Deal tiles to each player
+    const dealerPlayerId = room.gameState.participatingPlayers?.[0];
     for (const player of participatingPlayers) {
       // East (dealer) gets 14 tiles, others get 13
-      const tileCount = player.id === room.gameState.participatingPlayers[0] ? 14 : 13;
+      const tileCount = player.id === dealerPlayerId ? 14 : 13;
       player.tiles = [];
       
       for (let i = 0; i < tileCount && tileIndex < tileSet.length; i++) {
@@ -237,6 +238,7 @@ class RoomManager {
 
   // Create a new room
   createRoom(creatorSocketId: string, creatorName: string = 'Player'): CreateRoomResult | ErrorResult {
+    console.log(`Creating room for ${creatorName} (${creatorSocketId})`);
     const roomCode = this.generateRoomCode();
     const room: Room = {
       code: roomCode,
