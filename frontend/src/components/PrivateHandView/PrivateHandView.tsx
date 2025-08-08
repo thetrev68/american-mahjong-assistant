@@ -12,6 +12,7 @@ import { HandAnalysisPanel } from './HandAnalysisPanel';
 import { TileActionBar } from './TileActionBar';
 import { usePrivateGameState } from './hooks/usePrivateGameState';
 import { useHandAnalysis } from './hooks/useHandAnalysis';
+// Remove unused import
 
 interface PrivateHandViewProps {
   playerId: string;
@@ -45,6 +46,99 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   // FIXED: Custom hooks for game state and analysis
   const { privateState, updateTiles: updatePrivateStateTiles, isLoading } = usePrivateGameState(playerId, serverTiles);
   const { analysis, isAnalyzing } = useHandAnalysis(privateState?.tiles || []);
+  
+  // 🎲 CHEAT CODE: Generate random tiles for testing
+  const generateRandomTiles = useCallback((count: number) => {
+    const allTiles: Tile[] = [];
+    
+    // Create American Mahjong tile set
+    const suits: ('dots' | 'bams' | 'cracks')[] = ['dots', 'bams', 'cracks'];
+    const values: ('1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9')[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const winds: ('east' | 'south' | 'west' | 'north')[] = ['east', 'south', 'west', 'north'];
+    const dragons: ('red' | 'green' | 'white')[] = ['red', 'green', 'white'];
+    
+    // Add 4 of each suit tile (1-9 dots, bams, cracks)
+    suits.forEach(suit => {
+      values.forEach(value => {
+        for (let i = 0; i < 4; i++) {
+          allTiles.push({
+            id: `${suit}-${value}-${i}`,
+            suit: suit,
+            value: value
+          });
+        }
+      });
+    });
+    
+    // Add 4 of each wind tile
+    winds.forEach(wind => {
+      for (let i = 0; i < 4; i++) {
+        allTiles.push({
+          id: `winds-${wind}-${i}`,
+          suit: 'winds',
+          value: wind
+        });
+      }
+    });
+    
+    // Add 4 of each dragon tile
+    dragons.forEach(dragon => {
+      for (let i = 0; i < 4; i++) {
+        allTiles.push({
+          id: `dragons-${dragon}-${i}`,
+          suit: 'dragons',
+          value: dragon
+        });
+      }
+    });
+    
+    // Add 8 jokers
+    for (let i = 0; i < 8; i++) {
+      allTiles.push({
+        id: `joker-${i}`,
+        suit: 'jokers',
+        value: 'joker'
+      });
+    }
+    
+    // Shuffle and pick random tiles
+    const shuffled = allTiles.sort(() => Math.random() - 0.5);
+    return shuffled.slice(0, count);
+  }, []);
+  
+  // 🎲 CHEAT CODE: Keyboard shortcut listener
+  useEffect(() => {
+    const handleKeyPress = (event: KeyboardEvent) => {
+      // Ctrl+Shift+T = Generate 13 tiles
+      // Ctrl+Shift+D = Generate 14 tiles (dealer)
+      if (event.ctrlKey && event.shiftKey) {
+        if (event.key === 'T') {
+          event.preventDefault();
+          const newTiles = generateRandomTiles(13);
+          updatePrivateStateTiles(newTiles);
+          onTilesUpdate(newTiles);
+          
+          // Visual feedback
+          const originalTitle = document.title;
+          document.title = '🎲 13 TILES GENERATED! 🎲';
+          setTimeout(() => document.title = originalTitle, 2000);
+        } else if (event.key === 'D') {
+          event.preventDefault();
+          const newTiles = generateRandomTiles(14);
+          updatePrivateStateTiles(newTiles);
+          onTilesUpdate(newTiles);
+          
+          // Visual feedback
+          const originalTitle = document.title;
+          document.title = '🎲 14 DEALER TILES GENERATED! 🎲';
+          setTimeout(() => document.title = originalTitle, 2000);
+        }
+      }
+    };
+    
+    document.addEventListener('keydown', handleKeyPress);
+    return () => document.removeEventListener('keydown', handleKeyPress);
+  }, [generateRandomTiles, updatePrivateStateTiles, onTilesUpdate]);
   
   console.log('PrivateHandView: Current state', { 
     playerId, 
