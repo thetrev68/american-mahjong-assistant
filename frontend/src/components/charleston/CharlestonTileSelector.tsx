@@ -122,8 +122,6 @@ const CharlestonTileSelector: React.FC<CharlestonTileSelectorProps> = ({
         <CharlestonRecommendationPanel
           recommendations={recommendations}
           currentPhase={phase}
-          isVisible={showRecommendations}
-          onToggleVisibility={() => setShowRecommendations(!showRecommendations)}
         />
       )}
 

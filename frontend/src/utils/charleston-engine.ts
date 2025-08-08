@@ -55,12 +55,21 @@ export class CharlestonEngine {
         tilesToPass: advancedRecommendation.tilesToPass,
         tilesToKeep: advancedRecommendation.tilesToKeep,
         confidence: Math.min(Math.max(advancedRecommendation.confidence, 0.1), 0.95) as unknown as RecommendationConfidence,
-        alternatives: advancedRecommendation.alternativeOptions.map(alt => ({
-          tilesToPass: alt.tilesToPass,
+        tileAnalysis: [],
+        alternativeOptions: advancedRecommendation.alternativeOptions.map(alt => ({
+          tiles: alt.tilesToPass,
           confidence: Math.min(Math.max(alt.score / 10, 0.1), 0.95) as unknown as RecommendationConfidence,
-          reasoning: [alt.reasoning]
+          reasoning: alt.reasoning
         })),
-        strategicAdvice: advancedRecommendation.strategicAdvice
+        overallStrategy: advancedRecommendation.strategicAdvice,
+        currentPatterns: [],
+        targetPatterns: [],
+        patternShift: 'Advanced analysis applied',
+        phaseAdvice: {
+          whatToExpect: 'Tiles optimized based on advanced pattern matching',
+          nextPhaseStrategy: 'Continue with recommended strategy',
+          riskAssessment: 'Low risk - AI optimized selection'
+        }
       };
     } catch (error) {
       console.warn('Advanced Charleston engine failed, falling back to basic analysis:', error);

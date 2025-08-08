@@ -200,7 +200,7 @@ function App() {
               isConnected,
               isLoading,
               error,
-              reconnecting          // ADD THIS
+              // reconnecting          // Removed - not part of SocketFunctions type
             }}
             socket={{
               advanceToPlaying,
@@ -211,7 +211,7 @@ function App() {
               },
               discardTile,
               drawTile,
-              callTile,
+              callTile: (tile: Tile, callType: 'pung' | 'kong' | 'chow') => callTile(tile, callType as 'pung' | 'kong' | 'quint'),
               declareMahjong
             }}
           />

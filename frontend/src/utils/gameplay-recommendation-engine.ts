@@ -88,7 +88,11 @@ export class GameplayRecommendationEngine {
       confidence: bestDiscard.confidence,
       reasoning: bestDiscard.reasoning,
       riskAssessment: bestDiscard.riskAssessment,
-      alternatives: tileEvaluations.slice(1, 3),
+      alternatives: tileEvaluations.slice(1, 3).map(alt => ({
+        tile: alt.tile,
+        score: alt.score,
+        reasoning: alt.reasoning.join('. ')
+      })),
       strategicAdvice
     };
   }
