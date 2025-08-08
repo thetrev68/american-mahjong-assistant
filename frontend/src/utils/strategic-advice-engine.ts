@@ -387,7 +387,7 @@ export class StrategicAdviceEngine {
       position: player.position,
       threatLevel: player.tilesInHand <= 5 ? 'high' : 
                    player.tilesInHand <= 8 ? 'medium' : 'low',
-      suspectedPattern: 'Unknown' // Would analyze discards in full implementation
+      suspectedPattern: 'Unknown' // TODO: Would analyze discards in full implementation
     }));
     
     const highThreats = threats.filter(t => t.threatLevel === 'high').length;

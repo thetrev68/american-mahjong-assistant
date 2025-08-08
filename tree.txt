@@ -1,11 +1,13 @@
 american-mahjong-assistant/
 ├── backend/
+│   ├── api/
+│   │   └── socket.ts (32 lines)
 │   ├── src/
-│   │   ├── roomManager.ts (763 lines)
-│   │   └── server.ts (372 lines)
+│   │   ├── roomManager.ts (844 lines)
+│   │   └── server.ts (402 lines)
 │   ├── .gitkeep
 │   ├── package-lock.json (1897 lines)
-│   ├── package.json (31 lines)
+│   ├── package.json (32 lines)
 │   └── tsconfig.json (37 lines)
 ├── frontend/
 │   ├── src/
@@ -17,11 +19,12 @@ american-mahjong-assistant/
 │   │   │   │   ├── CharlestonHandDisplay.tsx (122 lines)
 │   │   │   │   ├── CharlestonPassingArea.tsx (105 lines)
 │   │   │   │   ├── CharlestonRecommendationPanel.tsx (336 lines)
-│   │   │   │   └── CharlestonTileSelector.tsx (207 lines)
+│   │   │   │   └── CharlestonTileSelector.tsx (209 lines)
 │   │   │   ├── game/
 │   │   │   │   ├── ActionButtons.tsx (201 lines)
 │   │   │   │   ├── DiscardPile.tsx (148 lines)
 │   │   │   │   ├── ExposedSets.tsx (89 lines)
+│   │   │   │   ├── GameActions.tsx (120 lines)
 │   │   │   │   ├── GameProgress.tsx (46 lines)
 │   │   │   │   ├── GameTable.tsx (143 lines)
 │   │   │   │   ├── index.ts (8 lines)
@@ -31,12 +34,12 @@ american-mahjong-assistant/
 │   │   │   │   └── TurnTimer.tsx (130 lines)
 │   │   │   ├── PrivateHandView/
 │   │   │   │   ├── hooks/
-│   │   │   │   │   ├── useHandAnalysis.tsx (193 lines)
+│   │   │   │   │   ├── useHandAnalysis.tsx (231 lines)
 │   │   │   │   │   └── usePrivateGameState.tsx (107 lines)
 │   │   │   │   ├── HandAnalysisPanel.tsx (363 lines)
 │   │   │   │   ├── HandTileGrid.tsx (266 lines)
 │   │   │   │   ├── index.ts (20 lines)
-│   │   │   │   ├── PrivateHandView.tsx (260 lines)
+│   │   │   │   ├── PrivateHandView.tsx (264 lines)
 │   │   │   │   └── TileActionBar.tsx (181 lines)
 │   │   │   ├── room/
 │   │   │   │   ├── PlayerPositioning.tsx (242 lines)
@@ -51,24 +54,32 @@ american-mahjong-assistant/
 │   │   │   ├── README.md
 │   │   │   └── RoomManager.tsx (180 lines)
 │   │   ├── hooks/
-│   │   │   ├── useCharleston.ts (211 lines)
-│   │   │   └── useSocket.ts (323 lines)
+│   │   │   ├── useCharleston.ts (221 lines)
+│   │   │   └── useSocket.ts (404 lines)
 │   │   ├── pages/
-│   │   │   ├── GameLobbyPage.tsx (735 lines)
+│   │   │   ├── ActiveGamePage.tsx (312 lines)
+│   │   │   ├── GameLobbyPage.tsx (818 lines)
 │   │   │   ├── HomePage.tsx (101 lines)
 │   │   │   └── TileInputTest.tsx (170 lines)
 │   │   ├── types/
 │   │   │   ├── charleston-types.ts (190 lines)
 │   │   │   ├── index.ts (277 lines)
-│   │   │   └── socket-events.ts (490 lines)
+│   │   │   └── socket-events.ts (491 lines)
 │   │   ├── utils/
-│   │   │   ├── charleston-engine.ts (413 lines)
+│   │   │   ├── charleston-engine.ts (458 lines)
+│   │   │   ├── charleston-recommendation-engine.ts (318 lines)
 │   │   │   ├── dealer-logic.ts (137 lines)
 │   │   │   ├── game-state-machine.ts (423 lines)
+│   │   │   ├── gameplay-recommendation-engine.ts (457 lines)
+│   │   │   ├── nmjl-pattern-analyzer.ts (315 lines)
+│   │   │   ├── nmjl-patterns-2025.ts (294 lines)
+│   │   │   ├── nmjl-probability-calculator.ts (385 lines)
+│   │   │   ├── nmjl-rules-enforcer.ts (472 lines)
+│   │   │   ├── strategic-advice-engine.ts (388 lines)
 │   │   │   └── tile-utils.ts (176 lines)
 │   │   ├── App.css (82 lines)
-│   │   ├── App.tsx (221 lines)
-│   │   ├── index.css (5 lines)
+│   │   ├── App.tsx (253 lines)
+│   │   ├── index.css (29 lines)
 │   │   ├── main.tsx (9 lines)
 │   │   └── vite-env.d.ts (1 lines)
 │   ├── .gitignore
@@ -76,7 +87,7 @@ american-mahjong-assistant/
 │   ├── eslint.config.js (22 lines)
 │   ├── index.html (13 lines)
 │   ├── package-lock.json (4342 lines)
-│   ├── package.json (36 lines)
+│   ├── package.json (37 lines)
 │   ├── postcss.config.js (6 lines)
 │   ├── README.md
 │   ├── tailwind.config.js (24 lines)
@@ -84,39 +95,26 @@ american-mahjong-assistant/
 │   ├── tsconfig.json (7 lines)
 │   ├── tsconfig.node.json (23 lines)
 │   └── vite.config.ts (10 lines)
-├── NMJL/
-│   └── NMJL/
-│       ├── src/
-│       │   ├── assets/
-│       │   │   └── react.svg
-│       │   ├── App.css (37 lines)
-│       │   ├── App.jsx
-│       │   ├── index.css (61 lines)
-│       │   └── main.jsx
-│       ├── .gitignore
-│       ├── eslint.config.js (28 lines)
-│       ├── index.html (13 lines)
-│       ├── package-lock.json (2796 lines)
-│       ├── package.json (27 lines)
-│       ├── README.md
-│       └── vite.config.js (6 lines)
 ├── .gitignore
 ├── Charleston_Audit.md
 ├── Charleston_Implementation.md
+├── CLAUDE.md
+├── game_state_implementation.md
 ├── mahjong functional analysis.md
 ├── mahjong technical analysis.md
 ├── README.md
 ├── recommendation_engine.md
 ├── tree.txt
-└── tree_scanner.py (250 lines)
+├── tree_scanner.py (250 lines)
+└── vercel.json (6 lines)
 
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 21
-Total files: 89
-Files with line counts: 71
-Total lines of code: 19,972
+Total directories: 18
+Total files: 90
+Files with line counts: 75
+Total lines of code: 20,536
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv

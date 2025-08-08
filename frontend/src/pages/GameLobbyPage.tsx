@@ -795,20 +795,38 @@ const WaitingPhaseContent: React.FC<{
 
           <button
             onClick={() => {
-              if (navigator.share) {
+              const gameUrl = `${window.location.origin}?roomId=${roomId}`;
+              const message = `Join our American Mahjong game! Room code: ${roomId}. Click here to join: ${gameUrl}`;
+              
+              // Try to open SMS app with pre-filled message
+              const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+              
+              // Check if we're on mobile (likely to have SMS)
+              const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+              
+              if (isMobile) {
+                // On mobile, try SMS first
+                window.location.href = smsUrl;
+              } else if (navigator.share) {
+                // On desktop with share API, use native sharing
                 navigator.share({
                   title: 'Join our Mahjong game!',
-                  text: `Room code: ${roomId}`,
-                  url: window.location.href
+                  text: message,
+                  url: gameUrl
                 });
               } else {
-                navigator.clipboard.writeText(roomId);
-                alert('Room code copied to clipboard!');
+                // Fallback: copy to clipboard
+                navigator.clipboard.writeText(message).then(() => {
+                  alert('Game invitation copied to clipboard! Paste it into your messaging app.');
+                }).catch(() => {
+                  // If clipboard fails, show the text to copy
+                  alert(`Copy this message to share:\n\n${message}`);
+                });
               }
             }}
             className="w-full py-3 px-4 border-2 border-gray-300 text-gray-700 rounded-lg hover:border-gray-400 hover:bg-gray-50 transition-colors touch-target"
           >
-            📋 Share Room Code
+            💬 Share via Text Message
           </button>
         </div>
 

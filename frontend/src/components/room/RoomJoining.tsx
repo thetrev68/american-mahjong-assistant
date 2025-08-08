@@ -1,5 +1,5 @@
 // frontend/src/components/room/RoomJoining.tsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRoom } from '../../hooks/useSocket';
 
 interface RoomJoiningProps {
@@ -10,6 +10,15 @@ interface RoomJoiningProps {
 const RoomJoining: React.FC<RoomJoiningProps> = ({ onBack }) => {
   const [roomCode, setRoomCode] = useState('');
   const [playerName, setPlayerName] = useState('');
+  
+  // Check for pre-filled room ID from URL sharing
+  useEffect(() => {
+    const prefilledRoomId = sessionStorage.getItem('prefilledRoomId');
+    if (prefilledRoomId) {
+      setRoomCode(prefilledRoomId);
+      sessionStorage.removeItem('prefilledRoomId'); // Clear it after using
+    }
+  }, []);
   const [isJoining, setIsJoining] = useState(false);
   
   // FIXED: Use actual socket functions instead of mock joining

@@ -26,6 +26,22 @@ function App() {
   const [currentView, setCurrentView] = useState<AppState>('home');
   const [gameSession, setGameSession] = useState<GameSession | null>(null);
   
+  // Check for roomId in URL parameters on app load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const roomIdParam = urlParams.get('roomId');
+    
+    if (roomIdParam && currentView === 'home' && !gameSession) {
+      console.log('Room ID found in URL, navigating to join room:', roomIdParam);
+      // Clean the URL
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Navigate to join room view with pre-filled room code
+      setCurrentView('join-room');
+      // Store the room ID to pre-fill the form
+      sessionStorage.setItem('prefilledRoomId', roomIdParam);
+    }
+  }, [currentView, gameSession]);
+  
   // Room management - UPDATED: updateTiles now takes Tile[] instead of number
   const { 
     room, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, 

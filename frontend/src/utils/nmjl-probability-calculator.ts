@@ -434,7 +434,7 @@ export class NMJLProbabilityCalculator {
     // Jokers generally cannot be used for flowers or in pairs (pattern-specific)
     if (tileId.includes('flower')) return false;
     
-    // This would need pattern-specific logic to determine if the tile is part of a pair
+    // TODO: This would need pattern-specific logic to determine if the tile is part of a pair
     // For now, assume most tiles can use jokers
     return true;
   }

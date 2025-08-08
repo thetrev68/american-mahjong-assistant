@@ -420,7 +420,7 @@ export class NMJLRulesEnforcer {
     pattern: HandPattern
   ): ValidationResult {
     
-    // This would validate that exposed sets are legal according to the pattern
+    // TODO: This would validate that exposed sets are legal according to the pattern
     // For now, assume they're valid if they exist
     return { valid: true };
   }
@@ -430,7 +430,7 @@ export class NMJLRulesEnforcer {
     pattern: HandPattern
   ): ValidationResult {
     
-    // Pattern-specific exposure validation would go here
+    // TODO: Pattern-specific exposure validation would go here
     // For now, basic validation
     if (proposedExposure.length < 3) {
       return {
@@ -443,7 +443,7 @@ export class NMJLRulesEnforcer {
   }
   
   private static isPatternValidForYear(pattern: HandPattern, year: number): boolean {
-    // For now, assume all patterns are valid for 2025
+    // TODO: For now, assume all patterns are valid for 2025
     return year === 2025;
   }
   
@@ -453,7 +453,7 @@ export class NMJLRulesEnforcer {
     pattern: HandPattern
   ): boolean {
     
-    // Simplified check - would need more sophisticated pattern analysis
+    // TODO: Simplified check - would need more sophisticated pattern analysis
     const jokerIndex = allTiles.indexOf(joker);
     
     // Check if this position in the pattern represents a pair
@@ -461,7 +461,7 @@ export class NMJLRulesEnforcer {
   }
   
   private static isPositionInPair(index: number, pattern: HandPattern): boolean {
-    // This would require analyzing the pattern structure
+    // TODO: This would require analyzing the pattern structure
     // For now, simplified assumption based on pattern description
     return pattern.description.includes('pair') && index >= pattern.requiredTiles.length - 2;
   }
