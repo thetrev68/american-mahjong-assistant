@@ -255,7 +255,7 @@ const RoomCreation: React.FC<RoomCreationProps> = ({ onBack }) => {
               <span className="text-blue-600 text-sm">ℹ️</span>
               <div className="text-sm text-blue-800">
                 <div className="font-medium mb-1">How it works:</div>
-                <div>You'll get a room code to share with other players. They can join from their phones using the same WiFi network.</div>
+                <div>You'll get a room code to share with other players. They can join from their phones from anywhere!</div>
               </div>
             </div>
           </div>

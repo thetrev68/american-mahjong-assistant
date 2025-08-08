@@ -10,6 +10,7 @@ import PlayerPositioning from '../components/room/PlayerPositioning';
 import { GameStateMachine } from '../utils/game-state-machine';
 import TurnTimer from '../components/game/TurnTimer';
 import ActiveGamePage from './ActiveGamePage';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 
 // Socket room types (from useSocket.ts)
@@ -85,6 +86,9 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   socket // ADDED: Destructure the socket object
 }) => {
   const { startGame, toggleReady, updateTiles, updatePlayerStatus, assignPosition, confirmPositions, isConnected } = socketFunctions;
+  
+  // Keep screen awake during active gameplay
+  const { isSupported: wakeLockSupported, isActive: screenAwake } = useWakeLock(true);
   
   // Local state for current player's tiles
   const [myTiles, setMyTiles] = useState<Tile[]>([]);
@@ -302,17 +306,31 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
           )}
 
           {/* Connection Status */}
-          <div className="flex items-center gap-2 text-sm">
-            <div className={`w-2 h-2 rounded-full ${
-              connectionStatus === 'connected' ? 'bg-green-500' : 
-              connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 
-              'bg-red-500'
-            }`} />
-            <span className="text-gray-600">
-              {connectionStatus === 'connected' ? 'Connected' :
-               connectionStatus === 'connecting' ? 'Reconnecting...' :
-               'Disconnected'}
-            </span>
+          <div className="flex items-center gap-4 text-sm">
+            <div className="flex items-center gap-2">
+              <div className={`w-2 h-2 rounded-full ${
+                connectionStatus === 'connected' ? 'bg-green-500' : 
+                connectionStatus === 'connecting' ? 'bg-yellow-500 animate-pulse' : 
+                'bg-red-500'
+              }`} />
+              <span className="text-gray-600">
+                {connectionStatus === 'connected' ? 'Connected' :
+                 connectionStatus === 'connecting' ? 'Reconnecting...' :
+                 'Disconnected'}
+              </span>
+            </div>
+            
+            {/* Wake Lock Status */}
+            {wakeLockSupported && (
+              <div className="flex items-center gap-1 text-xs">
+                <span className={screenAwake ? 'text-green-600' : 'text-gray-400'}>
+                  {screenAwake ? '🔆' : '🌙'}
+                </span>
+                <span className="text-gray-500">
+                  {screenAwake ? 'Screen awake' : 'Screen can sleep'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

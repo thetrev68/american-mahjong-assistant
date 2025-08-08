@@ -154,7 +154,7 @@ const RoomJoining: React.FC<RoomJoiningProps> = ({ onBack }) => {
               <div className="text-sm text-green-800">
                 <div className="font-medium mb-1">Connection Tips:</div>
                 <ul className="space-y-1 text-xs">
-                  <li>• Make sure you're on the same WiFi as the host</li>
+                  <li>• Works from anywhere - no WiFi restrictions!</li>
                   <li>• Room codes are usually 4-8 characters long</li>
                   <li>• Ask the host to share the exact code (case doesn't matter)</li>
                 </ul>

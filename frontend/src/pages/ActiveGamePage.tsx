@@ -8,6 +8,7 @@ import SharedGameView from '../components/game/SharedGameView';
 import GameActions from '../components/game/GameActions';
 import TurnTimer from '../components/game/TurnTimer';
 import { GameStateMachine } from '../utils/game-state-machine';
+import { useWakeLock } from '../hooks/useWakeLock';
 
 // Socket room types (matching GameLobbyPage.tsx)
 interface SocketPlayer {
@@ -79,6 +80,9 @@ const ActiveGamePage: React.FC<ActiveGamePageProps> = ({
   connectionStatus,
   onLeaveRoom
 }) => {
+  // Keep screen awake during active gameplay
+  useWakeLock(true);
+  
   // Local state for private hand
   const [myTiles, setMyTiles] = useState<Tile[]>([]);
   const [selectedTile, setSelectedTile] = useState<Tile | null>(null);
