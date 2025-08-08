@@ -7,7 +7,7 @@ import type { Tile, PlayerPosition } from '../types';
 
 const SOCKET_URL = window.location.hostname === 'localhost' 
   ? 'http://localhost:5000'
-  : 'http://192.168.1.77:5000';
+  : window.location.origin; // Use same origin for production (Vercel will handle routing)
 
 // Type definitions for room data
 interface Player {
