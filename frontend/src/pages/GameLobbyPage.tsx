@@ -333,7 +333,6 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             </div>
           </div>
         )} */
-        )}
 
         {/* Show loading if no room data yet */}
         {isConnected && !room && (
