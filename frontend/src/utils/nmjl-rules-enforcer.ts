@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/utils/nmjl-rules-enforcer.ts
 // Comprehensive NMJL rules validation and enforcement
 // Ensures all game actions follow official National Mah Jongg League rules

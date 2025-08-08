@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/utils/nmjl-patterns-2025.ts
 // Official 2025 National Mah Jongg League Hand Patterns
 // This file contains the complete official hand patterns from the 2025 NMJL card

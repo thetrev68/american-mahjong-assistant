@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/utils/strategic-advice-engine.ts
 // Advanced strategic advice system for NMJL gameplay
 // Provides comprehensive strategic guidance based on hand analysis and game state

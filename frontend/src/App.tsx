@@ -29,7 +29,7 @@ function App() {
   // Room management - UPDATED: updateTiles now takes Tile[] instead of number
   const { 
     room, leaveRoom, startGame, toggleReady, updateTiles, updatePlayerStatus, 
-    assignPosition, confirmPositions, isConnected, isLoading, error, reconnecting,
+    assignPosition, confirmPositions, isConnected, isLoading, error,
     advanceToPlaying, discardTile, drawTile, callTile, declareMahjong 
   } = useRoom();
 
@@ -197,12 +197,27 @@ function App() {
               updatePlayerStatus,
               assignPosition,        // ADD THIS
               confirmPositions,      // ADD THIS
+              leaveRoom,
+              discardTile,
+              drawTile,
+              callTile: (tile: unknown, callType: 'pung' | 'kong' | 'chow') => callTile(tile as Parameters<typeof callTile>[0], callType as Parameters<typeof callTile>[1]),
+              declareMahjong,
               isConnected,
               isLoading,
               error,
               // reconnecting          // Removed - not part of SocketFunctions type
             }}
             socket={{
+              startGame,
+              updateTiles,
+              updatePlayerStatus,
+              assignPosition,
+              confirmPositions,
+              leaveRoom,
+              toggleReady,
+              isConnected,
+              isLoading,
+              error,
               advanceToPlaying,
               skipOptionalPhase: () => {
                 // Add skip optional functionality  
@@ -211,7 +226,7 @@ function App() {
               },
               discardTile,
               drawTile,
-              callTile: (tile: Tile, callType: 'pung' | 'kong' | 'chow') => callTile(tile, callType as 'pung' | 'kong' | 'quint'),
+              callTile: (tile: unknown, callType: 'pung' | 'kong' | 'chow') => callTile(tile as Parameters<typeof callTile>[0], callType as 'pung' | 'kong' | 'quint'),
               declareMahjong
             }}
           />

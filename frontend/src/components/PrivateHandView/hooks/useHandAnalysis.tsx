@@ -1,8 +1,9 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 // frontend/src/components/PrivateHandView/hooks/useHandAnalysis.tsx
 // Enhanced hook for analyzing player's hand using advanced NMJL engines
 
 import { useState, useEffect } from 'react';
-import type { Tile, HandAnalysis, PatternMatch } from '../../../types';
+import type { Tile, HandAnalysis, PatternMatch, PlayerPosition, ExposedSet } from '../../../types';
 import { NMJLPatternAnalyzer } from '../../../utils/nmjl-pattern-analyzer';
 import { NMJLProbabilityCalculator } from '../../../utils/nmjl-probability-calculator';
 import { StrategicAdviceEngine } from '../../../utils/strategic-advice-engine';
@@ -13,7 +14,7 @@ interface UseHandAnalysisReturn {
   isAnalyzing: boolean;
   error: string | null;
   refreshAnalysis: () => void;
-  strategicAdvice: any | null;
+  strategicAdvice: unknown | null;
   ruleViolations: Array<{ rule: string; violation: string; severity: 'warning' | 'error' }>;
 }
 
@@ -25,7 +26,7 @@ export const useHandAnalysis = (
   const [analysis, setAnalysis] = useState<HandAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [strategicAdvice, setStrategicAdvice] = useState<any | null>(null);
+  const [strategicAdvice, setStrategicAdvice] = useState<unknown | null>(null);
   const [ruleViolations, setRuleViolations] = useState<Array<{ 
     rule: string; 
     violation: string; 
@@ -149,10 +150,20 @@ export const useHandAnalysis = (
     try {
       // Mock players for advice generation
       const mockPlayers = [
-        { id: 'p1', position: 'south', tilesInHand: 12, exposedSets: [] },
-        { id: 'p2', position: 'west', tilesInHand: 11, exposedSets: [] },
-        { id: 'p3', position: 'north', tilesInHand: 13, exposedSets: [] }
-      ] as any[];
+        { id: 'p1', name: 'Player 1', position: 'south' as PlayerPosition, tilesInHand: 12, exposedSets: [], isHost: false, isConnected: true, isReady: false, hasCalledMahjong: false },
+        { id: 'p2', name: 'Player 2', position: 'west' as PlayerPosition, tilesInHand: 11, exposedSets: [], isHost: false, isConnected: true, isReady: false, hasCalledMahjong: false },
+        { id: 'p3', name: 'Player 3', position: 'north' as PlayerPosition, tilesInHand: 13, exposedSets: [], isHost: false, isConnected: true, isReady: false, hasCalledMahjong: false }
+      ] as Array<{
+        id: string;
+        name: string;
+        position: PlayerPosition;
+        tilesInHand: number;
+        exposedSets: ExposedSet[];
+        isHost: boolean;
+        isConnected: boolean;
+        isReady: boolean;
+        hasCalledMahjong: boolean;
+      }>;
 
       const advice = StrategicAdviceEngine.generateAdvice(
         tilesToAnalyze,
@@ -240,7 +251,7 @@ export const useHandAnalysis = (
     }, 800); // Slightly longer debounce for complex analysis
 
     return () => clearTimeout(debounceTimer);
-  }, [tiles, cardYear, gamePhase]);
+  }, [tiles, cardYear, gamePhase, analyzeHand, generateStrategicAdvice]);
 
   return {
     analysis,

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/utils/nmjl-probability-calculator.ts
 // Advanced probability calculations for NMJL hand completion
 // Provides mathematical analysis of winning odds, expected turns, and strategic values

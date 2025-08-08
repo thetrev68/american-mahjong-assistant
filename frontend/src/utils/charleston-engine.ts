@@ -61,7 +61,7 @@ export class CharlestonEngine {
           confidence: Math.min(Math.max(alt.score / 10, 0.1), 0.95) as unknown as RecommendationConfidence,
           reasoning: alt.reasoning
         })),
-        overallStrategy: advancedRecommendation.strategicAdvice,
+        overallStrategy: Array.isArray(advancedRecommendation.strategicAdvice) ? advancedRecommendation.strategicAdvice.join('. ') : advancedRecommendation.strategicAdvice,
         currentPatterns: [],
         targetPatterns: [],
         patternShift: 'Advanced analysis applied',

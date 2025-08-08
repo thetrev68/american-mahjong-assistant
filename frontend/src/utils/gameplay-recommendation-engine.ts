@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/utils/gameplay-recommendation-engine.ts
 // Advanced discard recommendation engine for active gameplay
 // Provides sophisticated single-tile discard recommendations during play

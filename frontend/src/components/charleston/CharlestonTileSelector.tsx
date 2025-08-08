@@ -35,7 +35,7 @@ const CharlestonTileSelector: React.FC<CharlestonTileSelectorProps> = ({
   opponentCount = 3
 }) => {
   const [recommendations, setRecommendations] = useState<CharlestonRecommendation | null>(null);
-  const [showRecommendations, setShowRecommendations] = useState(true);
+  // Removed unused showRecommendations state
   const [isLoading, setIsLoading] = useState(false);
 
   // Generate recommendations when tiles change

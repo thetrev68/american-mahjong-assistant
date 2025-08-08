@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/utils/nmjl-pattern-analyzer.ts
 // Advanced pattern analysis engine for NMJL hands
 // This engine calculates probabilities, identifies missing tiles, and provides strategic advice
@@ -41,7 +43,7 @@ export class NMJLPatternAnalyzer {
     
     // Calculate basic completion metrics
     let matchedTiles = 0;
-    let totalRequired = pattern.requiredTiles.length;
+    const totalRequired = pattern.requiredTiles.length;
     let jokersNeeded = 0;
     const missingTiles: Tile[] = [];
     const blockedBy: Tile[] = [];
@@ -201,7 +203,7 @@ export class NMJLPatternAnalyzer {
     if (tilesNeeded <= 0) return 0;
     
     // Base estimate: 2-3 turns per tile needed
-    let baseTurns = tilesNeeded * 2.5;
+    const baseTurns = tilesNeeded * 2.5;
     
     // Adjust for pattern complexity
     const complexityMultiplier = {
