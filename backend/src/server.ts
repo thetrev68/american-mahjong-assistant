@@ -437,6 +437,36 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Discard a tile during gameplay
+  socket.on('discard-tile', (data: { tileId?: string }) => {
+    const { tileId } = data || {};
+    
+    if (!tileId) {
+      socket.emit('game-error', { message: 'Tile ID required' });
+      return;
+    }
+
+    const result = roomManager.discardTile(socket.id, tileId);
+    
+    if (result.success) {
+      const roomCode = result.room.code;
+      
+      // Broadcast the discard to all players in the room
+      io.to(roomCode).emit('tile-discarded', {
+        tileId: tileId,
+        playerId: socket.id,
+        discardPile: result.room.discardPile || []
+      });
+
+      // Broadcast updated room state
+      broadcastRoomUpdate(roomCode, result.room);
+      
+      console.log(`Tile ${tileId} discarded by ${socket.id}`);
+    } else {
+      socket.emit('game-error', { message: result.error });
+    }
+  });
+
   // Leave current room
   socket.on('leave-room', () => {
     const room = roomManager.getRoomByPlayer(socket.id);

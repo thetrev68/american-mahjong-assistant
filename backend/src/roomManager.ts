@@ -55,6 +55,12 @@ interface Room {
   gameState: GameState;
   charlestonState?: CharlestonState; // NEW: Charleston state
   playerPositions?: Map<string, PlayerPosition>; // NEW: Position assignments
+  discardPile?: Array<{
+    tile: Tile;
+    playerId: string;
+    playerName: string;
+    timestamp: Date;
+  }>; // NEW: Discard pile for gameplay
   minPlayers: number;
   maxPlayers: number;
 }
@@ -117,6 +123,104 @@ interface ErrorResult {
 class RoomManager {
   private rooms: Map<string, Room> = new Map();
   private playerRooms: Map<string, string> = new Map();
+  
+  // Tile generation utilities
+  private generateFullTileSet(): Tile[] {
+    const tiles: Tile[] = [];
+    
+    // Standard tiles - 4 of each
+    const suits = ['dots', 'bams', 'cracks'];
+    const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    
+    for (const suit of suits) {
+      for (const value of values) {
+        for (let i = 0; i < 4; i++) {
+          tiles.push({
+            id: `${suit}-${value}-${i}`,
+            suit,
+            value,
+            isJoker: false
+          });
+        }
+      }
+    }
+    
+    // Honor tiles (winds and dragons) - 4 of each
+    const winds = ['north', 'east', 'south', 'west'];
+    const dragons = ['red', 'green', 'white'];
+    
+    for (const wind of winds) {
+      for (let i = 0; i < 4; i++) {
+        tiles.push({
+          id: `winds-${wind}-${i}`,
+          suit: 'winds',
+          value: wind,
+          isJoker: false
+        });
+      }
+    }
+    
+    for (const dragon of dragons) {
+      for (let i = 0; i < 4; i++) {
+        tiles.push({
+          id: `dragons-${dragon}-${i}`,
+          suit: 'dragons',
+          value: dragon,
+          isJoker: false
+        });
+      }
+    }
+    
+    // Jokers - 8 total
+    for (let i = 0; i < 8; i++) {
+      tiles.push({
+        id: `joker-${i}`,
+        suit: 'jokers',
+        value: 'joker',
+        isJoker: true
+      });
+    }
+    
+    // Shuffle the tiles using Fisher-Yates algorithm
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      const temp = tiles[i];
+      const swapTile = tiles[j];
+      if (temp && swapTile) {
+        tiles[i] = swapTile;
+        tiles[j] = temp;
+      }
+    }
+    
+    return tiles;
+  }
+  
+  private dealTilesToPlayers(room: Room): void {
+    const tileSet = this.generateFullTileSet();
+    const players = Array.from(room.players.values());
+    const participatingPlayers = players.filter(p => p.isParticipating);
+    
+    if (participatingPlayers.length === 0) return;
+    
+    let tileIndex = 0;
+    
+    // Deal tiles to each player
+    for (const player of participatingPlayers) {
+      // East (dealer) gets 14 tiles, others get 13
+      const tileCount = player.id === room.gameState.participatingPlayers[0] ? 14 : 13;
+      player.tiles = [];
+      
+      for (let i = 0; i < tileCount && tileIndex < tileSet.length; i++) {
+        const tile = tileSet[tileIndex++];
+        if (tile) {
+          player.tiles.push(tile);
+        }
+      }
+      
+      player.tilesCount = player.tiles.length;
+      console.log(`Dealt ${player.tiles.length} tiles to player ${player.name}`);
+    }
+  }
 
   // Generate a 4-character room code
   generateRoomCode(): string {
@@ -789,11 +893,62 @@ class RoomManager {
       return { success: false, error: 'Not in Charleston phase' };
     }
 
+    // Deal tiles to all players
+    this.dealTilesToPlayers(room);
+
     // Advance to playing phase
     room.gameState.phase = 'playing';
     room.gameState.startedAt = new Date();
 
-    console.log(`Room ${roomCode} advanced to playing phase`);
+    console.log(`Room ${roomCode} advanced to playing phase with tiles dealt`);
+
+    return { success: true, room };
+  }
+
+  // Discard a tile during gameplay
+  discardTile(socketId: string, tileId: string): UpdatePlayerResult | ErrorResult {
+    const room = this.getRoomByPlayer(socketId);
+    if (!room) {
+      return { success: false, error: 'Not in any room' };
+    }
+
+    const player = room.players.get(socketId);
+    if (!player) {
+      return { success: false, error: 'Player not found' };
+    }
+
+    if (room.gameState.phase !== 'playing') {
+      return { success: false, error: 'Game not in playing phase' };
+    }
+
+    // Find the tile in player's hand
+    const tileIndex = player.tiles.findIndex(tile => tile.id === tileId);
+    if (tileIndex === -1) {
+      return { success: false, error: 'Tile not found in hand' };
+    }
+
+    // Remove tile from player's hand
+    const removedTiles = player.tiles.splice(tileIndex, 1);
+    const discardedTile = removedTiles[0];
+    
+    if (!discardedTile) {
+      return { success: false, error: 'Failed to remove tile from hand' };
+    }
+    
+    player.tilesCount = player.tiles.length;
+
+    // Add to room's discard pile
+    if (!room.discardPile) {
+      room.discardPile = [];
+    }
+    room.discardPile.push({
+      tile: discardedTile,
+      playerId: socketId,
+      playerName: player.name,
+      timestamp: new Date()
+    });
+
+    console.log(`Player ${player.name} discarded ${discardedTile.id}`);
 
     return { success: true, room };
   }
