@@ -1,8 +1,0 @@
-{
-  "name": "american-mahjong-assistant",
-  "version": "1.0.0",
-  "scripts": {
-    "build": "npm install --prefix frontend && npm run build --prefix frontend",
-    "dev": "npm run dev --prefix frontend"
-  }
-}
