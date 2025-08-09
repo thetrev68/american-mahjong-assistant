@@ -15,6 +15,22 @@ const HomePage: React.FC<HomePageProps> = ({ onCreateRoom, onJoinRoom }) => {
     onJoinRoom();
   };
 
+  const handleClearSession = () => {
+    // Clear all session data and reload page
+    localStorage.removeItem('mahjong_session');
+    sessionStorage.clear();
+    // Also clear any other storage items that might exist
+    Object.keys(localStorage).forEach(key => {
+      if (key.includes('mahjong') || key.includes('room')) {
+        localStorage.removeItem(key);
+      }
+    });
+    
+    // Show confirmation and reload
+    alert('Session cleared! Page will refresh.');
+    window.location.reload();
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
@@ -29,6 +45,19 @@ const HomePage: React.FC<HomePageProps> = ({ onCreateRoom, onJoinRoom }) => {
           </h2>
           <p className="text-gray-600 text-sm">
             Your digital helper for in-person gameplay
+          </p>
+        </div>
+
+        {/* Session Management */}
+        <div className="mb-4">
+          <button
+            onClick={handleClearSession}
+            className="w-full bg-red-100 text-red-700 py-2 px-4 rounded-lg text-sm font-medium hover:bg-red-200 transition-colors border border-red-200"
+          >
+            🔄 Clear Session & Reset
+          </button>
+          <p className="text-xs text-gray-500 mt-1 text-center">
+            Use this if you're stuck in auto-join or seeing duplicate players
           </p>
         </div>
 
