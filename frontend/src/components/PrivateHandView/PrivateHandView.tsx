@@ -109,12 +109,13 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   // 🎲 CHEAT CODE: Keyboard shortcut listener
   useEffect(() => {
     const handleKeyPress = (event: KeyboardEvent) => {
-      // Ctrl+Shift+T = Generate 13 tiles
+      // Ctrl+Shift+M = Generate 13 tiles (changed from T to avoid new tab)
       // Ctrl+Shift+D = Generate 14 tiles (dealer)
       if (event.ctrlKey && event.shiftKey) {
-        if (event.key === 'T') {
+        if (event.key === 'M') {
           event.preventDefault();
           const newTiles = generateRandomTiles(13);
+          console.log('Generated 13 tiles:', newTiles);
           updatePrivateStateTiles(newTiles);
           onTilesUpdate(newTiles);
           
@@ -125,6 +126,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
         } else if (event.key === 'D') {
           event.preventDefault();
           const newTiles = generateRandomTiles(14);
+          console.log('Generated 14 tiles:', newTiles);
           updatePrivateStateTiles(newTiles);
           onTilesUpdate(newTiles);
           

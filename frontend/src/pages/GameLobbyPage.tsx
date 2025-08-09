@@ -381,6 +381,9 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
             onPositionChange={handlePositionChange}
             onConfirmPositions={handleConfirmPositions}
             onShowPositioning={handleShowPositioning}
+            // NEW: Player management props
+            onKickPlayer={kickPlayer}
+            onRenamePlayer={renamePlayer}
           />
         )}
 
@@ -648,6 +651,9 @@ const WaitingPhaseContent: React.FC<{
   onPositionChange: (playerId: string, position: PlayerPosition) => void;
   onConfirmPositions: () => void;
   onShowPositioning: () => void;
+  // NEW: Player management props
+  onKickPlayer: (playerId: string) => void;
+  onRenamePlayer: (newName: string) => void;
 }> = ({ 
   players, 
   currentPlayer, 
@@ -659,7 +665,9 @@ const WaitingPhaseContent: React.FC<{
   roomId, 
   gameSettings, 
   onToggleReady,
-  onShowPositioning
+  onShowPositioning,
+  onKickPlayer,
+  onRenamePlayer
 }) => {
   
   return (
@@ -730,48 +738,16 @@ const WaitingPhaseContent: React.FC<{
           })}
         </div>
 
-        {/* Player List */}
-        <div className="space-y-2">
-          {players.map(player => (
-            <div
-              key={player.id}
-              className={`flex items-center justify-between p-3 rounded-lg border ${
-                player.id === currentPlayer.id 
-                  ? 'border-blue-200 bg-blue-50' 
-                  : 'border-gray-200 bg-gray-50'
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${player.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
-                <div>
-                  <div className="font-medium text-gray-900">
-                    {player.name}
-                    {player.id === currentPlayer.id && (
-                      <span className="ml-2 text-sm text-blue-600">(You)</span>
-                    )}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {player.isHost ? 'Host' : 'Player'} • {positionLabels[player.position]}
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                {player.isHost ? (
-                  <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-1 rounded">HOST</span>
-                ) : (
-                  <span className={`text-xs px-2 py-1 rounded ${
-                    player.isReady 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {player.isReady ? 'READY' : 'WAITING'}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
+        {/* Player List with Kick/Rename */}
+        <PlayerStatusList
+          players={players}
+          currentPlayer={currentPlayer}
+          participatingPlayers={players.map(p => p.id)} // All players participate in waiting phase
+          isHost={isHost}
+          onToggleParticipation={() => {}} // Not used in waiting phase
+          onKickPlayer={onKickPlayer}
+          onRenamePlayer={onRenamePlayer}
+        />
       </div>
 
       {/* Game Controls */}
