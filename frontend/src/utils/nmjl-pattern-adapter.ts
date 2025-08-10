@@ -1,7 +1,7 @@
 // frontend/src/utils/nmjl-pattern-adapter.ts
 // Adapter to convert real NMJL 2025 patterns to HandPattern interface
 
-import type { HandPattern, Tile } from '../types';
+import type { HandPattern, Tile, TileValue } from '../types';
 import type { NMJL2025Pattern, PatternGroup, ParsedConstraint } from '../types/nmjl-2025-types';
 import { nmjl2025Loader } from './nmjl-2025-loader';
 
@@ -304,7 +304,7 @@ export class NMJLPatternAdapter {
     return {
       id: `${value}${suit}`,
       suit: suit as 'bams' | 'cracks' | 'dots' | 'winds' | 'dragons' | 'flowers' | 'jokers',
-      value: value as string,
+      value: value as TileValue,
       isJoker: false
     };
   }
