@@ -3,8 +3,8 @@ american-mahjong-assistant/
 │   ├── api/
 │   │   └── socket.ts (32 lines)
 │   ├── src/
-│   │   ├── roomManager.ts (844 lines)
-│   │   └── server.ts (402 lines)
+│   │   ├── roomManager.ts (1028 lines)
+│   │   └── server.ts (470 lines)
 │   ├── .gitkeep
 │   ├── package-lock.json (1897 lines)
 │   ├── package.json (32 lines)
@@ -28,8 +28,8 @@ american-mahjong-assistant/
 │   │   │   │   ├── GameProgress.tsx (46 lines)
 │   │   │   │   ├── GameTable.tsx (143 lines)
 │   │   │   │   ├── index.ts (8 lines)
-│   │   │   │   ├── MyTileCounter.tsx (41 lines)
-│   │   │   │   ├── PlayerStatusList.tsx (96 lines)
+│   │   │   │   ├── MyTileCounter.tsx (75 lines)
+│   │   │   │   ├── PlayerStatusList.tsx (163 lines)
 │   │   │   │   ├── SharedGameView.tsx (139 lines)
 │   │   │   │   └── TurnTimer.tsx (130 lines)
 │   │   │   ├── PrivateHandView/
@@ -39,12 +39,12 @@ american-mahjong-assistant/
 │   │   │   │   ├── HandAnalysisPanel.tsx (363 lines)
 │   │   │   │   ├── HandTileGrid.tsx (266 lines)
 │   │   │   │   ├── index.ts (20 lines)
-│   │   │   │   ├── PrivateHandView.tsx (264 lines)
+│   │   │   │   ├── PrivateHandView.tsx (349 lines)
 │   │   │   │   └── TileActionBar.tsx (181 lines)
 │   │   │   ├── room/
 │   │   │   │   ├── PlayerPositioning.tsx (242 lines)
 │   │   │   │   ├── RoomCreation.tsx (244 lines)
-│   │   │   │   └── RoomJoining.tsx (161 lines)
+│   │   │   │   └── RoomJoining.tsx (169 lines)
 │   │   │   ├── tiles/
 │   │   │   │   ├── EmptyTileSlot.tsx (76 lines)
 │   │   │   │   ├── SpriteDebugger.tsx (92 lines)
@@ -55,11 +55,12 @@ american-mahjong-assistant/
 │   │   │   └── RoomManager.tsx (180 lines)
 │   │   ├── hooks/
 │   │   │   ├── useCharleston.ts (221 lines)
-│   │   │   └── useSocket.ts (404 lines)
+│   │   │   ├── useSocket.ts (404 lines)
+│   │   │   └── useWakeLock.ts (92 lines)
 │   │   ├── pages/
-│   │   │   ├── ActiveGamePage.tsx (312 lines)
-│   │   │   ├── GameLobbyPage.tsx (818 lines)
-│   │   │   ├── HomePage.tsx (101 lines)
+│   │   │   ├── ActiveGamePage.tsx (315 lines)
+│   │   │   ├── GameLobbyPage.tsx (844 lines)
+│   │   │   ├── HomePage.tsx (127 lines)
 │   │   │   └── TileInputTest.tsx (170 lines)
 │   │   ├── types/
 │   │   │   ├── charleston-types.ts (190 lines)
@@ -78,14 +79,14 @@ american-mahjong-assistant/
 │   │   │   ├── strategic-advice-engine.ts (388 lines)
 │   │   │   └── tile-utils.ts (176 lines)
 │   │   ├── App.css (82 lines)
-│   │   ├── App.tsx (253 lines)
+│   │   ├── App.tsx (267 lines)
 │   │   ├── index.css (29 lines)
 │   │   ├── main.tsx (9 lines)
 │   │   └── vite-env.d.ts (1 lines)
 │   ├── .gitignore
 │   ├── .gitkeep
 │   ├── eslint.config.js (22 lines)
-│   ├── index.html (13 lines)
+│   ├── index.html (14 lines)
 │   ├── package-lock.json (4342 lines)
 │   ├── package.json (37 lines)
 │   ├── postcss.config.js (6 lines)
@@ -102,8 +103,11 @@ american-mahjong-assistant/
 ├── game_state_implementation.md
 ├── mahjong functional analysis.md
 ├── mahjong technical analysis.md
+├── NMJL 2025 Card JSON prep 20250808.xlsx
+├── PROJECT_POLISH_CHECKLIST.md
 ├── README.md
 ├── recommendation_engine.md
+├── TODO.md
 ├── tree.txt
 ├── tree_scanner.py (250 lines)
 └── vercel.json (6 lines)
@@ -112,9 +116,9 @@ american-mahjong-assistant/
 DIRECTORY TREE STATISTICS
 ==================================================
 Total directories: 18
-Total files: 90
-Files with line counts: 75
-Total lines of code: 20,536
+Total files: 94
+Files with line counts: 76
+Total lines of code: 21,144
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv

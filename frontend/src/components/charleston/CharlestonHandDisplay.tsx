@@ -63,7 +63,7 @@ const CharlestonHandDisplay: React.FC<CharlestonHandDisplayProps> = ({
       </div>
 
       {/* Hand tiles grid */}
-      <div className="grid grid-cols-5 gap-2 mb-4">
+      <div className="grid grid-cols-5 gap-3 mb-4">
         {playerTiles.map((tile, index) => {
           const recommendation = getTileRecommendation(tile);
           const isSelected = isTileSelected(tile);
@@ -81,7 +81,7 @@ const CharlestonHandDisplay: React.FC<CharlestonHandDisplayProps> = ({
               
               {/* Recommendation border overlay */}
               {!isSelected && recommendation !== 'neutral' && (
-                <div className={`absolute inset-0 rounded-md ring-3 pointer-events-none ${
+                <div className={`absolute inset-0 rounded-md ring-2 pointer-events-none ${
                   recommendation === 'keep' 
                     ? 'ring-green-500' 
                     : 'ring-red-500'

@@ -51,6 +51,14 @@ const CharlestonTileSelector: React.FC<CharlestonTileSelectorProps> = ({
             phase,
             opponentCount
           );
+          console.log('Charleston Recommendations Debug:', {
+            phase,
+            playerTilesCount: playerTiles.length,
+            tilesToKeep: newRecommendations?.tilesToKeep?.length || 0,
+            tilesToPass: newRecommendations?.tilesToPass?.length || 0,
+            tilesToKeepIds: newRecommendations?.tilesToKeep?.map(t => t.id) || [],
+            tilesToPassIds: newRecommendations?.tilesToPass?.map(t => t.id) || []
+          });
           setRecommendations(newRecommendations);
         } catch (error) {
           console.error('Error generating Charleston recommendations:', error);

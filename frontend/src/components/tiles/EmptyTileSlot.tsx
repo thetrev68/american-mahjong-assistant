@@ -16,11 +16,11 @@ const EmptyTileSlot: React.FC<EmptyTileSlotProps> = ({
   size = 'medium',
   showIndex = false
 }) => {
-  // FIXED: Size configurations to match TileComponent exactly
+  // Size configurations to match TileComponent exactly with proper touch targets
   const sizeClasses = {
-    small: 'w-8 h-11',      // Match TileComponent small
-    medium: 'w-10 h-14',    // Match TileComponent medium
-    large: 'w-13 h-17'      // Match TileComponent large
+    small: 'w-11 h-[58px]',  // Match TileComponent small (44x58px)
+    medium: 'w-12 h-16',     // Match TileComponent medium (48x64px)
+    large: 'w-13 h-17'       // Match TileComponent large (52x68px)
   };
 
   const handleClick = () => {
@@ -46,7 +46,7 @@ const EmptyTileSlot: React.FC<EmptyTileSlotProps> = ({
         flex
         items-center
         justify-center
-        min-h-[44px] min-w-[44px]
+        // Size now handled by sizeClasses with proper touch targets
         group
       `}
       aria-label={`Empty tile slot ${slotIndex + 1}, tap to add tile`}

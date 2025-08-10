@@ -200,8 +200,8 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
         )}
       </div>
 
-      {/* Main tile grid */}
-      <div className="grid grid-cols-7 gap-3 p-4 bg-gray-50 rounded-lg min-h-[200px]">
+      {/* Main tile grid - 5x3 layout (5/5/4) with centering */}
+      <div className="grid grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg min-h-[200px] justify-items-center">
         {handSlots.map((tile, slotIndex) => {
           const recommendation = tile ? getTileRecommendation(tile) : null;
           const isDraggedOver = dragOverIndex === slotIndex;
@@ -232,7 +232,7 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
                 
                 {/* Recommendation border - matches tile size exactly */}
                 {recommendation && (
-                  <div className={`absolute inset-0 rounded-md ring-2 ring-offset-2 pointer-events-none ${
+                  <div className={`absolute inset-0 rounded-md ring-2 pointer-events-none ${
                     recommendation === 'keep' ? 'ring-green-500' : 
                     recommendation === 'discard' ? 'ring-red-500' : 
                     'ring-yellow-500'

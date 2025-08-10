@@ -17,32 +17,19 @@ const TurnTimer: React.FC<TurnTimerProps> = ({
   currentTurn,
   onTimeUp
 }) => {
-  const [localTimeRemaining, setLocalTimeRemaining] = useState(timeRemaining);
-
-  // Update local time remaining when prop changes
+  // Use server-provided time directly instead of local countdown
+  // This ensures all clients show the same time
+  const displayTime = Math.max(0, timeRemaining);
+  
+  // Trigger callback when server time reaches 0
   useEffect(() => {
-    setLocalTimeRemaining(timeRemaining);
-  }, [timeRemaining]);
-
-  // Local countdown timer
-  useEffect(() => {
-    if (!isActive || localTimeRemaining <= 0) return;
-
-    const timer = setInterval(() => {
-      setLocalTimeRemaining(prev => {
-        const newTime = Math.max(0, prev - 1);
-        if (newTime === 0 && onTimeUp) {
-          onTimeUp();
-        }
-        return newTime;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [isActive, localTimeRemaining, onTimeUp]);
+    if (timeRemaining <= 0 && onTimeUp) {
+      onTimeUp();
+    }
+  }, [timeRemaining, onTimeUp]);
 
   // Calculate percentage remaining
-  const percentage = (localTimeRemaining / totalTime) * 100;
+  const percentage = (displayTime / totalTime) * 100;
   
   // Determine urgency level
   const getUrgencyLevel = () => {
@@ -105,7 +92,7 @@ const TurnTimer: React.FC<TurnTimerProps> = ({
         </div>
         <div>
           <div className="text-lg font-bold">
-            {formatTime(localTimeRemaining)}
+            {formatTime(displayTime)}
           </div>
           <div className="text-xs opacity-90">
             {positionLabels[currentTurn]}

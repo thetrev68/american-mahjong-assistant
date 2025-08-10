@@ -31,6 +31,9 @@ interface GameState {
   startedAt?: Date;
   participatingPlayers: string[];
   playersReady: string[];
+  // Playing phase turn management
+  currentTurn?: 'east' | 'south' | 'west' | 'north';
+  turnStartTime?: number;
 }
 
 // NEW: Charleston state interfaces
@@ -899,12 +902,15 @@ class RoomManager {
       return { success: false, error: 'Not in Charleston phase' };
     }
 
-    // Deal tiles to all players
-    this.dealTilesToPlayers(room);
+    // Don't deal new tiles - players already have tiles from Charleston phase
 
     // Advance to playing phase
     room.gameState.phase = 'playing';
     room.gameState.startedAt = new Date();
+    
+    // Set the current turn to the dealer (East)
+    room.gameState.currentTurn = 'east';
+    room.gameState.turnStartTime = Date.now();
 
     console.log(`Room ${roomCode} advanced to playing phase with tiles dealt`);
 

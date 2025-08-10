@@ -57,12 +57,14 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     const winds: ('east' | 'south' | 'west' | 'north')[] = ['east', 'south', 'west', 'north'];
     const dragons: ('red' | 'green' | 'white')[] = ['red', 'green', 'white'];
     
-    // Add 4 of each suit tile (1-9 dots, bams, cracks)
+    // Add 4 of each suit tile (1-9 dots, bams, cracks) 
+    // Use proper IDs that match TileComponent expectations
     suits.forEach(suit => {
       values.forEach(value => {
         for (let i = 0; i < 4; i++) {
+          const suitCode = suit === 'dots' ? 'D' : suit === 'bams' ? 'B' : 'C';
           allTiles.push({
-            id: `${suit}-${value}-${i}`,
+            id: `${value}${suitCode}`,
             suit: suit,
             value: value
           });
@@ -74,7 +76,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     winds.forEach(wind => {
       for (let i = 0; i < 4; i++) {
         allTiles.push({
-          id: `winds-${wind}-${i}`,
+          id: wind,
           suit: 'winds',
           value: wind
         });
@@ -85,7 +87,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     dragons.forEach(dragon => {
       for (let i = 0; i < 4; i++) {
         allTiles.push({
-          id: `dragons-${dragon}-${i}`,
+          id: dragon,
           suit: 'dragons',
           value: dragon
         });
@@ -95,7 +97,7 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
     // Add 8 jokers
     for (let i = 0; i < 8; i++) {
       allTiles.push({
-        id: `joker-${i}`,
+        id: 'joker',
         suit: 'jokers',
         value: 'joker'
       });

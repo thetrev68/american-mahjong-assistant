@@ -83,7 +83,8 @@ const TilePickerModal: React.FC<TilePickerModalProps> = ({
             </div>
             <button
               onClick={onClose}
-              className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
+              className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors touch-manipulation"
+              aria-label="Close tile picker"
             >
               ✕
             </button>
@@ -107,7 +108,7 @@ const TilePickerModal: React.FC<TilePickerModalProps> = ({
             {/* Dots */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Dots</h3>
-              <div className="grid grid-cols-9 gap-2">
+              <div className="grid grid-cols-9 gap-3">
                 {groupedTiles.dots.map(tile => {
                   const tileCount = handCounts[tile.id] || 0;
                   const isCurrentTile = currentTile?.id === tile.id;
@@ -152,7 +153,7 @@ const TilePickerModal: React.FC<TilePickerModalProps> = ({
             {/* Bams */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Bams</h3>
-              <div className="grid grid-cols-9 gap-2">
+              <div className="grid grid-cols-9 gap-3">
                 {groupedTiles.bams.map(tile => {
                   const tileCount = handCounts[tile.id] || 0;
                   const isCurrentTile = currentTile?.id === tile.id;
@@ -194,7 +195,7 @@ const TilePickerModal: React.FC<TilePickerModalProps> = ({
             {/* Cracks */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Cracks</h3>
-              <div className="grid grid-cols-9 gap-2">
+              <div className="grid grid-cols-9 gap-3">
                 {groupedTiles.cracks.map(tile => {
                   const tileCount = handCounts[tile.id] || 0;
                   const isCurrentTile = currentTile?.id === tile.id;
@@ -236,7 +237,7 @@ const TilePickerModal: React.FC<TilePickerModalProps> = ({
             {/* Honor Tiles Row */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Honor Tiles</h3>
-              <div className="grid grid-cols-8 gap-2 max-w-2xl">
+              <div className="grid grid-cols-8 gap-3 max-w-2xl">
                 {/* Winds */}
                 {groupedTiles.winds.map(tile => {
                   const tileCount = handCounts[tile.id] || 0;
@@ -353,7 +354,7 @@ const TilePickerModal: React.FC<TilePickerModalProps> = ({
             {/* Flowers */}
             <div>
               <h3 className="text-sm font-semibold text-gray-700 mb-3">Flowers</h3>
-              <div className="grid grid-cols-4 gap-2 max-w-md">
+              <div className="grid grid-cols-4 gap-3 max-w-md">
                 {groupedTiles.flowers.map(tile => {
                   const tileCount = handCounts[tile.id] || 0;
                   const isCurrentTile = currentTile?.id === tile.id;

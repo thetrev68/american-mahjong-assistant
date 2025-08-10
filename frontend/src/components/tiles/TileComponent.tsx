@@ -30,11 +30,12 @@ const TileComponent: React.FC<TileComponentProps> = ({
   const SPRITE_WIDTH = 52;
   const SPRITE_HEIGHT = 69;
   
-  // Size configurations based on actual sprite dimensions
+  // Size configurations based on actual sprite dimensions with 44px minimum touch target
+  // Original ratio: 52x69 = 0.754:1 (width:height)
   const sizeClasses = {
-    small: 'w-8 h-11',      // ~32x44px (0.6x scale)
-    medium: 'w-10 h-14',    // ~40x56px (0.8x scale)  
-    large: 'w-13 h-17'      // 52x68px (1.0x scale - matches sprite)
+    small: 'w-11 h-[58px]',  // 44x58px (maintains ratio, meets touch target)
+    medium: 'w-12 h-16',     // 48x64px (better touch target)
+    large: 'w-13 h-17'       // 52x68px (1.0x scale - matches sprite)
   };
 
   const handleClick = () => {
@@ -130,7 +131,7 @@ const TileComponent: React.FC<TileComponentProps> = ({
             ? 'opacity-50 cursor-not-allowed' 
             : 'cursor-pointer hover:border-gray-400 active:scale-95'
           }
-          ${!isDisabled ? 'min-h-[44px] min-w-[44px]' : ''} // Mobile touch target
+          // All sizes now meet 44px minimum touch target with proper ratio
         `}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}

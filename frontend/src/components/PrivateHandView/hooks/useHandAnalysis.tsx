@@ -2,7 +2,7 @@
 // frontend/src/components/PrivateHandView/hooks/useHandAnalysis.tsx
 // Enhanced hook for analyzing player's hand using advanced NMJL engines
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Tile, HandAnalysis, PatternMatch, PlayerPosition, ExposedSet } from '../../../types';
 import { NMJLPatternAnalyzer } from '../../../utils/nmjl-pattern-analyzer';
 import { NMJLProbabilityCalculator } from '../../../utils/nmjl-probability-calculator';
@@ -34,7 +34,7 @@ export const useHandAnalysis = (
   }>>([]);
 
   // Analyze hand using advanced NMJL engines
-  const analyzeHand = async (tilesToAnalyze: Tile[]): Promise<HandAnalysis | null> => {
+  const analyzeHand = useCallback(async (tilesToAnalyze: Tile[]): Promise<HandAnalysis | null> => {
     if (tilesToAnalyze.length === 0) return null;
 
     try {
@@ -73,7 +73,7 @@ export const useHandAnalysis = (
     } catch (err) {
       throw new Error(`Failed to analyze hand: ${err}`);
     }
-  };
+  }, [cardYear]);
 
   // Generate advanced recommendations using multiple engines
   const generateAdvancedRecommendations = async (
@@ -146,7 +146,7 @@ export const useHandAnalysis = (
   };
 
   // Generate strategic advice
-  const generateStrategicAdvice = async (tilesToAnalyze: Tile[]) => {
+  const generateStrategicAdvice = useCallback(async (tilesToAnalyze: Tile[]) => {
     try {
       // Mock players for advice generation
       const mockPlayers = [
@@ -179,7 +179,7 @@ export const useHandAnalysis = (
       console.warn('Strategic advice generation failed:', err);
       return null;
     }
-  };
+  }, [cardYear]);
 
   // Check for rule violations
   const checkRuleViolations = (tilesToAnalyze: Tile[]) => {

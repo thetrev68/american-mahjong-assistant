@@ -16,6 +16,7 @@ interface UseCharlestonProps {
   roomId: string;
   playerTiles: Tile[];
   totalPlayers: number;
+  onTilesReceived?: (tiles: Tile[]) => void;
 }
 
 interface UseCharlestonReturn {
@@ -48,7 +49,7 @@ interface UseCharlestonReturn {
 }
 
 export const useCharleston = (props: UseCharlestonProps): UseCharlestonReturn => {
-  const { playerId, roomId, playerTiles, totalPlayers } = props;
+  const { playerId, roomId, playerTiles, totalPlayers, onTilesReceived } = props;
   const { socket, isConnected } = useSocket();
   
   // Local Charleston state
@@ -89,15 +90,27 @@ export const useCharleston = (props: UseCharlestonProps): UseCharlestonReturn =>
       setPlayersReady(data.playersReady);
     };
 
-    const handleCharlestonPhaseComplete = (data: { phase: CharlestonPhase; nextPhase?: CharlestonPhase; tilesReceived?: Tile[] }) => {
+    const handleCharlestonPhaseComplete = (data: { phase: CharlestonPhase; nextPhase?: CharlestonPhase; distributions?: Array<{ fromPlayerId: string; toPlayerId: string; tiles: Tile[] }> }) => {
       console.log('Charleston: Phase complete', data);
+      
+      // Find tiles distributed TO the current player
+      if (data.distributions && onTilesReceived) {
+        const tilesForMe = data.distributions
+          .filter(dist => dist.toPlayerId === playerId)
+          .flatMap(dist => dist.tiles);
+          
+        if (tilesForMe.length > 0) {
+          console.log(`Charleston: Received ${tilesForMe.length} tiles:`, tilesForMe);
+          onTilesReceived(tilesForMe);
+        }
+      }
+      
       if (data.nextPhase) {
         setCurrentPhase(data.nextPhase);
         setSelectedTiles([]);
         setIsConfirmed(false);
         setPlayersReady([]);
       }
-      // TODO: Handle tilesReceived - update playerTiles through parent
     };
 
     const handleCharlestonComplete = () => {

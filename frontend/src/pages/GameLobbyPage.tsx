@@ -162,7 +162,12 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
     playerId: currentPlayer?.id || '',
     roomId: room?.code || '',
     playerTiles: myTiles,
-    totalPlayers: room?.players.length || 0
+    totalPlayers: room?.players.length || 0,
+    onTilesReceived: (receivedTiles: Tile[]) => {
+      // Server handles tile distribution automatically via room updates
+      // We just log for debugging - tiles will be updated via broadcastRoomUpdate
+      console.log(`Charleston: Received ${receivedTiles.length} tiles (server will handle distribution):`, receivedTiles.map(t => t.id));
+    }
   });
 
   // Current player from room data
