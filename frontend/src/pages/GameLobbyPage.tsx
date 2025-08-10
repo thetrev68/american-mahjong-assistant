@@ -11,6 +11,7 @@ import { GameStateMachine } from '../utils/game-state-machine';
 import TurnTimer from '../components/game/TurnTimer';
 import ActiveGamePage from './ActiveGamePage';
 import { useWakeLock } from '../hooks/useWakeLock';
+import { testNMJL2025Loading } from '../utils/nmjl-2025-test';
 import { useSocket } from '../hooks/useSocket';
 
 
@@ -102,6 +103,13 @@ const GameLobbyPage: React.FC<GameLobbyPageProps> = ({
   
   // Keep screen awake during active gameplay
   const { isSupported: wakeLockSupported, isActive: screenAwake } = useWakeLock(true);
+  
+  // Test NMJL 2025 data loading once
+  React.useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      testNMJL2025Loading();
+    }
+  }, []);
   
   // Local state for current player's tiles
   const [myTiles, setMyTiles] = useState<Tile[]>([]);

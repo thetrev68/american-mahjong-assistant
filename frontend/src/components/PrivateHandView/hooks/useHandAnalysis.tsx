@@ -8,6 +8,7 @@ import { NMJLPatternAnalyzer } from '../../../utils/nmjl-pattern-analyzer';
 import { NMJLProbabilityCalculator } from '../../../utils/nmjl-probability-calculator';
 import { StrategicAdviceEngine } from '../../../utils/strategic-advice-engine';
 import { NMJLRulesEnforcer } from '../../../utils/nmjl-rules-enforcer';
+import { EnhancedHandAnalyzer } from '../../../utils/enhanced-hand-analyzer';
 
 interface UseHandAnalysisReturn {
   analysis: HandAnalysis | null;
@@ -33,45 +34,54 @@ export const useHandAnalysis = (
     severity: 'warning' | 'error' 
   }>>([]);
 
-  // Analyze hand using advanced NMJL engines
+  // Analyze hand using enhanced NMJL engines with real 2025 data
   const analyzeHand = useCallback(async (tilesToAnalyze: Tile[]): Promise<HandAnalysis | null> => {
     if (tilesToAnalyze.length === 0) return null;
 
     try {
-      // Step 1: Get pattern matches using advanced analyzer
-      const patternMatches = NMJLPatternAnalyzer.analyzeAllPatterns(tilesToAnalyze, cardYear, 5);
-      const bestPattern = patternMatches[0];
+      // Use the enhanced analyzer with real NMJL 2025 patterns
+      const analysis = await EnhancedHandAnalyzer.analyzeHand(tilesToAnalyze, cardYear, {
+        wallTilesRemaining: 100, // Could be passed from game state
+        turnsElapsed: 0,
+        discardedTiles: [],
+        exposedTiles: []
+      });
 
-      // Step 2: Generate advanced recommendations
-      const recommendations = await generateAdvancedRecommendations(tilesToAnalyze, bestPattern);
-
-      // Step 3: Calculate probabilities for best patterns
-      const probabilities = bestPattern ? await calculateProbabilities(tilesToAnalyze, bestPattern) : {
-        completion: 0,
-        turnsEstimate: 0
-      };
-
-      // Step 4: Generate threat analysis (simplified for now)
-      const threats = {
-        dangerousTiles: tilesToAnalyze.filter(t => t.suit === 'jokers').slice(0, 2),
-        safeTiles: tilesToAnalyze.filter(t => t.suit === 'winds' || t.suit === 'dragons').slice(0, 3),
-        opponentThreats: [
-          {
-            playerId: 'opponent-1',
-            suspectedPatterns: ['LIKE NUMBERS'],
-            dangerLevel: 'medium' as const
-          }
-        ]
-      };
-
-      return {
-        bestPatterns: patternMatches.slice(0, 3),
-        recommendations,
-        probabilities,
-        threats
-      };
+      return analysis;
     } catch (err) {
-      throw new Error(`Failed to analyze hand: ${err}`);
+      console.warn('Enhanced analysis failed, falling back to basic analyzer:', err);
+      
+      // Fallback to original analyzer if enhanced version fails
+      try {
+        const patternMatches = NMJLPatternAnalyzer.analyzeAllPatterns(tilesToAnalyze, cardYear, 5);
+        const bestPattern = patternMatches[0];
+        const recommendations = await generateAdvancedRecommendations(tilesToAnalyze, bestPattern);
+        const probabilities = bestPattern ? await calculateProbabilities(tilesToAnalyze, bestPattern) : {
+          completion: 0,
+          turnsEstimate: 0
+        };
+
+        const threats = {
+          dangerousTiles: tilesToAnalyze.filter(t => t.suit === 'jokers').slice(0, 2),
+          safeTiles: tilesToAnalyze.filter(t => t.suit === 'winds' || t.suit === 'dragons').slice(0, 3),
+          opponentThreats: [
+            {
+              playerId: 'fallback-analysis',
+              suspectedPatterns: ['BASIC PATTERNS'],
+              dangerLevel: 'medium' as const
+            }
+          ]
+        };
+
+        return {
+          bestPatterns: patternMatches.slice(0, 3),
+          recommendations,
+          probabilities,
+          threats
+        };
+      } catch (fallbackErr) {
+        throw new Error(`All analysis methods failed: ${fallbackErr}`);
+      }
     }
   }, [cardYear]);
 

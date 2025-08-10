@@ -5,8 +5,9 @@
 // This engine calculates probabilities, identifies missing tiles, and provides strategic advice
 
 import type { Tile, HandPattern, PatternMatch } from '../types';
-import { NMJL_2025_PATTERNS, NMJL_RULES } from './nmjl-patterns-2025';
+import { NMJL_RULES } from './nmjl-patterns-2025';
 import { countTiles, groupTilesBySuit } from './tile-utils';
+import { NMJLPatternAdapter } from './nmjl-pattern-adapter';
 
 interface TileCount {
   [key: string]: number;
@@ -320,14 +321,14 @@ export class NMJLPatternAnalyzer {
   }
   
   /**
-   * Get patterns for specific year
+   * Get patterns for specific year using real NMJL 2025 data
    */
   private static getPatternsByYear(year: number): HandPattern[] {
     switch (year) {
       case 2025:
-        return NMJL_2025_PATTERNS;
+        return NMJLPatternAdapter.getAllHandPatterns();
       default:
-        return NMJL_2025_PATTERNS;
+        return NMJLPatternAdapter.getAllHandPatterns();
     }
   }
   

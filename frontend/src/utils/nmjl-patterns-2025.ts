@@ -298,22 +298,28 @@ export const PATTERN_DIFFICULTY_MULTIPLIERS = {
 };
 
 /**
- * Get patterns by year
+ * Get patterns by year - now uses real NMJL 2025 data
  */
 export const getPatternsByYear = (year: number): HandPattern[] => {
+  // Import dynamically to avoid circular dependencies
+  const { NMJLPatternAdapter } = require('./nmjl-pattern-adapter');
+  
   switch (year) {
     case 2025:
-      return NMJL_2025_PATTERNS;
+      return NMJLPatternAdapter.getAllHandPatterns();
     default:
-      return NMJL_2025_PATTERNS; // Default to 2025
+      return NMJLPatternAdapter.getAllHandPatterns(); // Default to 2025
   }
 };
 
 /**
- * Get patterns by category
+ * Get patterns by category - now uses real NMJL 2025 data
  */
 export const getPatternsByCategory = (category: string): HandPattern[] => {
-  return NMJL_2025_PATTERNS.filter(pattern => 
+  // Import dynamically to avoid circular dependencies
+  const { NMJLPatternAdapter } = require('./nmjl-pattern-adapter');
+  
+  return NMJLPatternAdapter.getAllHandPatterns().filter(pattern => 
     pattern.name.toLowerCase().includes(category.toLowerCase())
   );
 };

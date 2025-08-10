@@ -166,6 +166,18 @@ export interface HandAnalysis {
     keep: Tile[];
     discard: Tile[];
     charleston: Tile[];
+    // Enhanced recommendation data (optional for backward compatibility)
+    reasoning?: {
+      keepReasons: string[];
+      discardReasons: string[];
+      charlestonReasons: string[];
+    };
+    priorityTiles?: {
+      mostCritical: Tile[];
+      highValue: Tile[];
+      flexible: Tile[];
+      expendable: Tile[];
+    };
   };
   probabilities: {
     completion: number;     // 0-1, likelihood of completing best pattern

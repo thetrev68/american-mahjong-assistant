@@ -6,8 +6,8 @@
 
 import type { Tile, CharlestonPhase } from '../types';
 import { NMJLPatternAnalyzer } from './nmjl-pattern-analyzer';
-// NMJL patterns imported in pattern analyzer
-// import { NMJL_2025_PATTERNS } from './nmjl-patterns-2025';
+import { NMJLPatternAdapter } from './nmjl-pattern-adapter';
+import { nmjl2025Loader } from './nmjl-2025-loader';
 
 interface CharlestonRecommendation {
   tilesToPass: Tile[];
@@ -36,7 +36,7 @@ interface TileValue {
 export class CharlestonRecommendationEngine {
   
   /**
-   * Generate comprehensive Charleston recommendations
+   * Generate comprehensive Charleston recommendations using real NMJL 2025 data
    */
   static generateRecommendations(
     playerTiles: Tile[],
@@ -45,34 +45,43 @@ export class CharlestonRecommendationEngine {
     playerCount: number = 4
   ): CharlestonRecommendation {
     
-    // Step 1: Analyze current hand against all patterns
-    const patternAnalyses = NMJLPatternAnalyzer.analyzeAllPatterns(playerTiles, cardYear, 10);
-    const topPatterns = patternAnalyses.slice(0, 3); // Focus on top 3 patterns
+    // Step 1: Analyze current hand against all real NMJL 2025 patterns
+    const patternAnalyses = NMJLPatternAnalyzer.analyzeAllPatterns(playerTiles, cardYear, 15);
+    const topPatterns = patternAnalyses.slice(0, 5); // Analyze top 5 patterns for better depth
     
-    // Step 2: Evaluate each tile's strategic value
-    const tileValues = this.evaluateAllTiles(playerTiles, topPatterns, phase);
+    // Step 2: Get pattern-specific insights from real NMJL data
+    const patternInsights = this.analyzePatternRequirements(playerTiles, topPatterns);
     
-    // Step 3: Generate optimal 3-tile combinations to pass
-    const passOptions = this.generatePassCombinations(tileValues, playerTiles);
+    // Step 3: Evaluate each tile's strategic value using real pattern data
+    const tileValues = this.evaluateAllTilesWithRealPatterns(playerTiles, topPatterns, patternInsights, phase);
     
-    // Step 4: Select best option
-    const bestOption = passOptions[0];
+    // Step 4: Generate optimal 3-tile combinations with pattern awareness
+    const passOptions = this.generatePatternAwarePassCombinations(tileValues, playerTiles, patternInsights);
+    
+    // Step 5: Select best option
+    const bestOption = passOptions[0] || {
+      tilesToPass: this.getDefaultPass(playerTiles),
+      score: 0,
+      reasoning: 'Default safe pass - no clear pattern direction'
+    };
+    
     const tilesToPass = bestOption.tilesToPass;
     const tilesToKeep = playerTiles.filter(tile => 
       !tilesToPass.some(passedTile => passedTile.id === tile.id)
     );
     
-    // Step 5: Generate strategic advice
-    const strategicAdvice = this.generateStrategicAdvice(
+    // Step 6: Generate advanced strategic advice using real pattern data
+    const strategicAdvice = this.generateAdvancedStrategicAdvice(
       playerTiles, 
       tilesToPass, 
-      topPatterns, 
+      topPatterns,
+      patternInsights,
       phase,
       playerCount
     );
     
-    // Step 6: Calculate confidence
-    const confidence = this.calculateOverallConfidence(bestOption, topPatterns);
+    // Step 7: Calculate confidence based on real pattern match quality
+    const confidence = this.calculateAdvancedConfidence(bestOption, topPatterns, patternInsights);
     
     return {
       tilesToPass,
@@ -85,11 +94,83 @@ export class CharlestonRecommendationEngine {
   }
   
   /**
-   * Evaluate strategic value of each tile
+   * Analyze pattern requirements using real NMJL 2025 data
    */
-  private static evaluateAllTiles(
+  private static analyzePatternRequirements(
     playerTiles: Tile[],
-    topPatterns: Array<{ pattern: unknown; completion: number; confidence: number }>,
+    topPatterns: Array<{ pattern: any; completion: number; confidence: number }>
+  ) {
+    const insights = {
+      criticalTiles: new Set<string>(), // Tiles essential across multiple patterns
+      flexibleTiles: new Set<string>(), // Tiles useful in multiple patterns
+      isolatedTiles: new Set<string>(), // Tiles not useful in any top patterns
+      jokerSubstitutions: new Map<string, number>(), // How many jokers needed per pattern
+      patternCategories: new Map<string, string[]>() // Group patterns by type for strategy
+    };
+
+    // Analyze each top pattern for insights
+    topPatterns.forEach((patternMatch, index) => {
+      const pattern = patternMatch.pattern;
+      const weight = Math.max(1, 5 - index); // Give more weight to better patterns
+      
+      if (pattern?.requiredTiles) {
+        // Count tile requirements
+        const tileRequirements = new Map<string, number>();
+        pattern.requiredTiles.forEach((tile: Tile) => {
+          tileRequirements.set(tile.id, (tileRequirements.get(tile.id) || 0) + 1);
+        });
+        
+        // Identify critical vs flexible tiles
+        tileRequirements.forEach((needed, tileId) => {
+          const playerCount = playerTiles.filter(t => t.id === tileId).length;
+          
+          if (needed > playerCount) {
+            // We need more of this tile
+            if (weight >= 3) {
+              insights.criticalTiles.add(tileId);
+            } else {
+              insights.flexibleTiles.add(tileId);
+            }
+          }
+        });
+        
+        // Categorize pattern types for strategic insights
+        const patternName = pattern.name?.toLowerCase() || '';
+        let category = 'mixed';
+        if (patternName.includes('like') || patternName.includes('number')) {
+          category = 'like_numbers';
+        } else if (patternName.includes('wind') || patternName.includes('dragon')) {
+          category = 'honors';
+        } else if (patternName.includes('2025') || patternName.includes('year')) {
+          category = 'year_hands';
+        } else if (patternName.includes('consecutive') || patternName.includes('run')) {
+          category = 'sequences';
+        }
+        
+        if (!insights.patternCategories.has(category)) {
+          insights.patternCategories.set(category, []);
+        }
+        insights.patternCategories.get(category)!.push(pattern.description || pattern.name);
+      }
+    });
+
+    // Identify isolated tiles (not needed by any top pattern)
+    playerTiles.forEach(tile => {
+      if (!insights.criticalTiles.has(tile.id) && !insights.flexibleTiles.has(tile.id)) {
+        insights.isolatedTiles.add(tile.id);
+      }
+    });
+
+    return insights;
+  }
+
+  /**
+   * Enhanced tile evaluation using real NMJL pattern data
+   */
+  private static evaluateAllTilesWithRealPatterns(
+    playerTiles: Tile[],
+    topPatterns: Array<{ pattern: any; completion: number; confidence: number }>,
+    patternInsights: any,
     phase: CharlestonPhase
   ): TileValue[] {
     
@@ -98,10 +179,22 @@ export class CharlestonRecommendationEngine {
       let keepValue = 0;
       let passValue = 0;
       
-      // Evaluate tile against each top pattern
+      // Enhanced pattern-based evaluation using insights
+      if (patternInsights.criticalTiles.has(tile.id)) {
+        keepValue += 15;
+        reasoning.push(`Critical tile needed for top pattern completion`);
+      } else if (patternInsights.flexibleTiles.has(tile.id)) {
+        keepValue += 8;
+        reasoning.push(`Useful for secondary pattern options`);
+      } else if (patternInsights.isolatedTiles.has(tile.id)) {
+        passValue += 6;
+        reasoning.push(`Not needed for any viable patterns - good to pass`);
+      }
+      
+      // Evaluate tile against each top pattern with more nuance
       topPatterns.forEach((patternMatch, index) => {
         const pattern = patternMatch.pattern;
-        const weight = (3 - index) / 3; // Weight top patterns more heavily
+        const weight = Math.max(0.2, (5 - index) / 5); // Better weight distribution
         
         // Check if tile is required for this pattern
         const isRequired = (pattern as any)?.requiredTiles?.some((req: Tile) => req.id === tile.id) || false;
@@ -373,5 +466,203 @@ export class CharlestonRecommendationEngine {
     
     // Ensure confidence is in valid range
     return Math.max(0.3, Math.min(0.95, confidence));
+  }
+
+  /**
+   * Generate pattern-aware pass combinations
+   */
+  private static generatePatternAwarePassCombinations(
+    tileValues: TileValue[],
+    playerTiles: Tile[],
+    patternInsights: any
+  ): Array<{ tilesToPass: Tile[]; score: number; reasoning: string }> {
+    
+    const combinations: Array<{ tilesToPass: Tile[]; score: number; reasoning: string }> = [];
+    
+    // Prioritize isolated tiles first
+    const isolatedTiles = tileValues.filter(tv => patternInsights.isolatedTiles.has(tv.tile.id));
+    const flexibleTiles = tileValues.filter(tv => patternInsights.flexibleTiles.has(tv.tile.id));
+    const criticalTiles = tileValues.filter(tv => patternInsights.criticalTiles.has(tv.tile.id));
+    
+    // Strategy 1: Pass 3 isolated tiles (safest)
+    if (isolatedTiles.length >= 3) {
+      const topIsolated = isolatedTiles
+        .sort((a, b) => b.passValue - a.passValue)
+        .slice(0, 3);
+      
+      combinations.push({
+        tilesToPass: topIsolated.map(tv => tv.tile),
+        score: 20 + topIsolated.reduce((sum, tv) => sum + tv.passValue, 0),
+        reasoning: `Pass isolated tiles: ${topIsolated.map(tv => tv.tile.id).join(', ')} - not needed for any viable patterns`
+      });
+    }
+    
+    // Strategy 2: Mix isolated + flexible (balanced approach)
+    if (isolatedTiles.length >= 2 && flexibleTiles.length >= 1) {
+      const topIsolatedMix = isolatedTiles.sort((a, b) => b.passValue - a.passValue).slice(0, 2);
+      const topFlexibleMix = flexibleTiles.sort((a, b) => b.passValue - a.passValue).slice(0, 1);
+      const mixedPass = [...topIsolatedMix, ...topFlexibleMix];
+      
+      combinations.push({
+        tilesToPass: mixedPass.map(tv => tv.tile),
+        score: 15 + mixedPass.reduce((sum, tv) => sum + tv.passValue, 0),
+        reasoning: `Mixed pass: ${mixedPass.map(tv => tv.tile.id).join(', ')} - balance safety with potential`
+      });
+    }
+    
+    // Strategy 3: All flexible (strategic)
+    if (flexibleTiles.length >= 3) {
+      const topFlexible = flexibleTiles
+        .sort((a, b) => b.passValue - a.passValue)
+        .slice(0, 3);
+      
+      combinations.push({
+        tilesToPass: topFlexible.map(tv => tv.tile),
+        score: 12 + topFlexible.reduce((sum, tv) => sum + tv.passValue, 0),
+        reasoning: `Strategic pass: ${topFlexible.map(tv => tv.tile.id).join(', ')} - focus on strongest pattern`
+      });
+    }
+    
+    // Fallback: Use original combination logic if no clear strategic options
+    if (combinations.length === 0) {
+      return this.generatePassCombinations(tileValues, playerTiles);
+    }
+    
+    // Sort by score and return top options
+    return combinations
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 5);
+  }
+
+  /**
+   * Generate advanced strategic advice with real pattern insights
+   */
+  private static generateAdvancedStrategicAdvice(
+    playerTiles: Tile[],
+    tilesToPass: Tile[],
+    topPatterns: Array<{ pattern: any; completion: number; confidence: number }>,
+    patternInsights: any,
+    phase: CharlestonPhase,
+    playerCount: number
+  ): string[] {
+    
+    const advice: string[] = [];
+    
+    // Pattern category insights
+    const categories = Array.from(patternInsights.patternCategories.keys());
+    if (categories.length > 0) {
+      const dominantCategory = categories[0];
+      switch (dominantCategory) {
+        case 'like_numbers':
+          advice.push('Focus on Like Numbers patterns - collect same numbers across different suits');
+          break;
+        case 'honors':
+          advice.push('Honor tiles (winds/dragons) strategy - prioritize complete pungs/kongs');
+          break;
+        case 'year_hands':
+          advice.push('2025 Year patterns available - look for 2s, 0s, and 5s combinations');
+          break;
+        case 'sequences':
+          advice.push('Sequential patterns viable - maintain consecutive number runs');
+          break;
+      }
+    }
+    
+    // Critical tile count advice
+    const criticalCount = patternInsights.criticalTiles.size;
+    if (criticalCount > 8) {
+      advice.push(`${criticalCount} critical tiles identified - be very selective in Charleston`);
+    } else if (criticalCount < 3) {
+      advice.push('Few critical tiles - you have flexibility to adapt strategies');
+    }
+    
+    // Pattern-specific strategic advice
+    const bestPattern = topPatterns[0];
+    if (bestPattern && bestPattern.completion > 0.4) {
+      const pattern = bestPattern.pattern;
+      advice.push(`Strong ${pattern.name} potential (${(bestPattern.completion * 100).toFixed(0)}% complete, ${pattern.points} pts) - prioritize completing this pattern`);
+      
+      // Add pattern difficulty context
+      if (pattern.difficulty === 'hard') {
+        advice.push('Attempting challenging pattern - ensure you have joker support');
+      } else if (pattern.difficulty === 'easy') {
+        advice.push('Good foundation for reliable pattern completion');
+      }
+    }
+    
+    // Add the original strategic advice for additional context
+    const originalAdvice = this.generateStrategicAdvice(playerTiles, tilesToPass, topPatterns, phase, playerCount);
+    advice.push(...originalAdvice);
+    
+    return advice;
+  }
+
+  /**
+   * Calculate advanced confidence using pattern insights
+   */
+  private static calculateAdvancedConfidence(
+    bestOption: { score: number; reasoning: string },
+    topPatterns: Array<{ pattern: any; completion: number; confidence: number }>,
+    patternInsights: any
+  ): number {
+    
+    let confidence = 0.5; // Base confidence
+    
+    // Boost confidence for good option scores
+    confidence += Math.min(bestOption.score / 30, 0.3);
+    
+    // Boost confidence for strong pattern matches
+    const topPattern = topPatterns[0];
+    if (topPattern) {
+      confidence += topPattern.completion * 0.2;
+      confidence += topPattern.confidence * 0.15;
+    }
+    
+    // Boost confidence when we have clear strategic direction
+    const criticalTileCount = patternInsights.criticalTiles.size;
+    const isolatedTileCount = patternInsights.isolatedTiles.size;
+    
+    if (isolatedTileCount >= 3) {
+      confidence += 0.1; // Clear tiles to pass
+    }
+    
+    if (criticalTileCount >= 5) {
+      confidence += 0.1; // Clear pattern direction
+    }
+    
+    // Reduce confidence for unclear situations
+    if (criticalTileCount === 0 && isolatedTileCount === 0) {
+      confidence -= 0.15; // No clear direction
+    }
+    
+    // Ensure confidence is in valid range
+    return Math.max(0.3, Math.min(0.95, confidence));
+  }
+
+  /**
+   * Get default safe pass when no patterns are viable
+   */
+  private static getDefaultPass(playerTiles: Tile[]): Tile[] {
+    // Default to passing flowers, isolated winds/dragons, and single tiles
+    const candidates = playerTiles.filter(tile => {
+      if (tile.suit === 'flowers') return true;
+      if (tile.suit === 'winds' || tile.suit === 'dragons') {
+        const sameType = playerTiles.filter(t => t.suit === tile.suit && t.value === tile.value);
+        return sameType.length === 1; // Only isolated honor tiles
+      }
+      return false;
+    });
+    
+    // If not enough, add some number tiles
+    while (candidates.length < 3 && candidates.length < playerTiles.length) {
+      const remaining = playerTiles.filter(tile => !candidates.includes(tile));
+      if (remaining.length > 0) {
+        candidates.push(remaining[0]);
+      } else {
+        break;
+      }
+    }
+    
+    return candidates.slice(0, 3);
   }
 }
