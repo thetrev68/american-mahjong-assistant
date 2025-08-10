@@ -26,11 +26,13 @@ This is a **shared game assistant** for in-person play, not a digital version of
 - Basic scoring and winner declaration
 
 ### 🧠 Strategic Assistance
-- Hand pattern matching against 2025 NMJL card
-- Probability calculations based on visible tiles
-- Charleston passing recommendations
-- Basic defensive play suggestions
-- Joker usage validation
+- **Complete NMJL 2025 card integration** with all 71 authentic patterns
+- Advanced hand analysis with real tournament-quality pattern matching
+- Sophisticated probability calculations based on visible tiles
+- Intelligent Charleston passing recommendations using pattern analysis
+- Enhanced defensive play suggestions and opponent threat assessment
+- Advanced pattern search and filtering capabilities
+- Joker usage validation and optimization
 
 ## 🚀 Quick Start
 
@@ -139,19 +141,23 @@ User Action → Local State → Socket Emit → Server Validation → Broadcast 
 /
 ├── frontend/          # React + TypeScript frontend
 │   ├── src/
-│   │   ├── components/    # Reusable UI components
-│   │   ├── pages/         # Route components
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── utils/         # Game logic and utilities
+│   │   ├── components/    # UI components (PatternExplorer, PrivateHandView, etc.)
+│   │   ├── pages/         # Route components and demo pages
+│   │   ├── hooks/         # Custom React hooks (useSocket, useCharleston, etc.)
+│   │   ├── utils/         # Game logic and NMJL pattern analysis
+│   │   │   ├── nmjl-2025-loader.ts      # Real NMJL data loader
+│   │   │   ├── enhanced-hand-analyzer.ts # Advanced pattern analysis
+│   │   │   ├── pattern-search-engine.ts  # Pattern filtering & search
+│   │   │   └── charleston-recommendation-engine.ts
 │   │   └── types/         # TypeScript definitions
 │   └── ...
 ├── backend/           # Node.js + Express backend
 │   ├── src/
-│   │   ├── routes/        # API endpoints
-│   │   ├── socket/        # Socket.io handlers
-│   │   ├── game/          # Game state logic
-│   │   └── utils/         # Helper functions
+│   │   ├── roomManager.ts    # Core game state management
+│   │   ├── server.ts         # Socket.io handlers
+│   │   └── api/              # REST endpoints
 │   └── ...
+├── CLAUDE.md         # Development guidance
 └── README.md
 ```
 
@@ -165,7 +171,8 @@ User Action → Local State → Socket Emit → Server Validation → Broadcast 
 
 **Frontend:**
 - `npm run dev` - Start development server
-- `npm run build` - Build for production
+- `npm run build` - Build for production (with TypeScript validation)
+- `npm run lint` - Run ESLint code quality checks
 - `npm run preview` - Preview production build
 
 **Backend:**
@@ -175,29 +182,38 @@ User Action → Local State → Socket Emit → Server Validation → Broadcast 
 
 ## 🔮 Roadmap
 
-### Phase 1: Foundation (Current)
+### Phase 1: Foundation ✅
 - [x] Project setup and basic architecture
-- [ ] Room creation and joining system
-- [ ] Basic tile input interface
-- [ ] Simple shared game state
+- [x] Room creation and joining system
+- [x] Basic tile input interface
+- [x] Simple shared game state
+- [x] Real-time synchronization with Socket.io
 
-### Phase 2: Core Gameplay
-- [ ] Charleston coordination system
-- [ ] Hand analysis and recommendations
-- [ ] Tile calling and exposed sets
-- [ ] Game timer and flow management
+### Phase 2: Core Gameplay ✅
+- [x] Charleston coordination system with advanced skip functionality
+- [x] Complete hand analysis with real NMJL 2025 patterns
+- [x] Tile calling and exposed sets management
+- [x] Game timer and comprehensive flow management
+- [x] Player position management and tile distribution
+- [x] Session recovery and reconnection handling
 
-### Phase 3: Polish & Enhancement
-- [ ] Advanced strategy features
-- [ ] Better error handling and reconnection
-- [ ] Performance optimization
-- [ ] PWA features for mobile installation
+### Phase 3: Polish & Enhancement 🚧
+- [x] Advanced strategy features with pattern search engine
+- [x] Comprehensive error handling and automatic reconnection
+- [x] Performance optimization and code quality standards
+- [x] PWA features for mobile installation
+- [x] Wake lock support to prevent screen sleep
+- [x] Mobile-first responsive design
 
-### Future Enhancements
+### Phase 4: Advanced Features 🔄
+- [x] Pattern Explorer for browsing all NMJL patterns
+- [x] Enhanced Charleston recommendation engine
+- [x] Detailed pattern analysis with completion tracking
 - [ ] Voice announcements for discards
 - [ ] Multiple simultaneous games
-- [ ] Basic statistics tracking
-- [ ] Integration with multiple card years
+- [ ] Advanced statistics and game history
+- [ ] Integration with multiple card years (2024, 2026+)
+- [ ] Offline mode capabilities
 
 ## 🤝 Contributing
 

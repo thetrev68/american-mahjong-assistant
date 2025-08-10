@@ -87,6 +87,14 @@ User Action → Local State → Socket Emit → Server Validation → Broadcast 
 - `frontend/src/utils/charleston-engine.ts` - Charleston passing logic
 - `frontend/src/utils/tile-utils.ts` - Tile manipulation utilities
 
+#### NMJL 2025 Pattern System
+- `frontend/src/utils/nmjl-2025-loader.ts` - Real NMJL pattern data loader with indexing
+- `frontend/src/utils/enhanced-hand-analyzer.ts` - Advanced hand analysis engine
+- `frontend/src/utils/pattern-search-engine.ts` - Pattern filtering and search capabilities
+- `frontend/src/utils/nmjl-pattern-adapter.ts` - Converts NMJL data to HandPattern format
+- `frontend/src/utils/charleston-recommendation-engine.ts` - Charleston strategy using real patterns
+- `frontend/src/types/nmjl-2025-types.ts` - TypeScript interfaces for NMJL data
+
 #### Socket Communication
 - `frontend/src/types/socket-events.ts` - Complete event schema and types
 - `backend/src/server.ts` - Socket.io handlers and room broadcasting
@@ -94,9 +102,10 @@ User Action → Local State → Socket Emit → Server Validation → Broadcast 
 
 #### UI Components
 - `frontend/src/components/game/` - Shared game view components
-- `frontend/src/components/PrivateHandView/` - Private tile management
+- `frontend/src/components/PrivateHandView/` - Private tile management with pattern analysis
 - `frontend/src/components/charleston/` - Charleston coordination UI
 - `frontend/src/components/room/` - Room creation/joining
+- `frontend/src/components/PatternExplorer/` - Browse and search NMJL 2025 patterns
 
 ### Important Development Patterns
 
@@ -147,6 +156,35 @@ Charleston phases follow American Mahjong rules:
 - All skip actions immediately advance to playing phase
 
 Charleston tile distribution uses modular arithmetic for player targeting based on phase and player count.
+
+### NMJL 2025 Pattern Integration
+
+The application now uses **authentic 2025 National Mah Jongg League card data** instead of mock patterns:
+
+#### Data Architecture
+- `nmjl-card-2025.json` - Complete JSON export of all 71 official NMJL 2025 patterns
+- Each pattern includes: ID, description, point value, difficulty, groups, joker allowances
+- Comprehensive validation and type safety with `NMJL2025Pattern` interface
+- Advanced indexing for fast lookups by ID, points, difficulty, and joker requirements
+
+#### Pattern Analysis Pipeline
+1. **Data Loading**: `NMJL2025Loader` validates and indexes all patterns with error handling
+2. **Pattern Matching**: `EnhancedHandAnalyzer` analyzes player tiles against real patterns
+3. **Strategic Recommendations**: Context-aware suggestions for keep/discard/charleston decisions
+4. **Search & Filtering**: `PatternSearchEngine` enables pattern exploration with 10+ filter criteria
+
+#### Key Features
+- **Real Tournament Data**: All analysis based on official 2025 NMJL card patterns
+- **Advanced Completion Tracking**: Precise tile-by-tile pattern completion analysis  
+- **Strategic Charleston**: Pass recommendations consider pattern requirements
+- **Pattern Explorer UI**: Browse, search, and filter all patterns with detailed views
+- **Difficulty Assessment**: Easy/Medium/Hard classifications with strategic value scoring
+
+#### Development Notes
+- Pattern data loaded as singleton for performance
+- Adapter pattern converts NMJL format to existing `HandPattern` interface
+- Backward compatible with existing hand analysis systems
+- All pattern analysis happens client-side for privacy
 
 ### Configuration Files
 - `frontend/eslint.config.js` - TypeScript-aware ESLint with React hooks
