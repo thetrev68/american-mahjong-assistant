@@ -52,7 +52,7 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
     }
   };
 
-  const handleFilterChange = (key: keyof PatternSearchFilters, value: any) => {
+  const handleFilterChange = (key: keyof PatternSearchFilters, value: unknown) => {
     setFilters(prev => ({ ...prev, [key]: value }));
     setSelectedPreset(''); // Clear preset when manually filtering
   };
@@ -158,7 +158,7 @@ export const PatternExplorer: React.FC<PatternExplorerProps> = ({
             >
               All Patterns
             </button>
-            {Object.entries(filterPresets).map(([key, preset]) => (
+            {Object.entries(filterPresets).map(([key]) => (
               <button
                 key={key}
                 onClick={() => handlePresetChange(key)}

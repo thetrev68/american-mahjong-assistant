@@ -141,7 +141,7 @@ export const useCharleston = (props: UseCharlestonProps): UseCharlestonReturn =>
       socket.off('charleston-complete', handleCharlestonComplete);
       socket.off('charleston-error', handleCharlestonError);
     };
-  }, [socket, isConnected]);
+  }, [socket, isConnected, onTilesReceived, playerId]);
 
   // Tile selection functions
   const selectTile = useCallback((tile: Tile) => {

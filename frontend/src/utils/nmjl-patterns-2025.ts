@@ -302,6 +302,7 @@ export const PATTERN_DIFFICULTY_MULTIPLIERS = {
  */
 export const getPatternsByYear = (year: number): HandPattern[] => {
   // Import dynamically to avoid circular dependencies
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { NMJLPatternAdapter } = require('./nmjl-pattern-adapter');
   
   switch (year) {
@@ -317,6 +318,7 @@ export const getPatternsByYear = (year: number): HandPattern[] => {
  */
 export const getPatternsByCategory = (category: string): HandPattern[] => {
   // Import dynamically to avoid circular dependencies
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { NMJLPatternAdapter } = require('./nmjl-pattern-adapter');
   
   return NMJLPatternAdapter.getAllHandPatterns().filter(pattern => 

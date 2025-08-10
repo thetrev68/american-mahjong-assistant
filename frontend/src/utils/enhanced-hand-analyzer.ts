@@ -5,7 +5,7 @@
 import type { Tile, HandPattern, PatternMatch, HandAnalysis } from '../types';
 import { NMJLPatternAdapter } from './nmjl-pattern-adapter';
 import { nmjl2025Loader } from './nmjl-2025-loader';
-import type { NMJL2025Pattern, PatternGroup } from '../types/nmjl-2025-types';
+import type { NMJL2025Pattern } from '../types/nmjl-2025-types';
 
 interface DetailedPatternAnalysis {
   pattern: HandPattern;
@@ -47,7 +47,8 @@ export class EnhancedHandAnalyzer {
    */
   static async analyzeHand(
     playerTiles: Tile[],
-    cardYear: number = 2025,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _cardYear: number = 2025,
     gameContext?: {
       discardedTiles?: Tile[];
       exposedTiles?: Tile[];
@@ -351,7 +352,13 @@ export class EnhancedHandAnalyzer {
   private static generateEnhancedRecommendations(
     playerTiles: Tile[],
     analyses: DetailedPatternAnalysis[],
-    gameContext?: any
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _gameContext?: {
+      discardedTiles?: Tile[];
+      exposedTiles?: Tile[];
+      wallTilesRemaining?: number;
+      turnsElapsed?: number;
+    }
   ): EnhancedRecommendations {
     
     const keep: Tile[] = [];
@@ -463,7 +470,13 @@ export class EnhancedHandAnalyzer {
   private static calculateEnhancedProbabilities(
     playerTiles: Tile[],
     analyses: DetailedPatternAnalysis[],
-    gameContext?: any
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _gameContext?: {
+      discardedTiles?: Tile[];
+      exposedTiles?: Tile[];
+      wallTilesRemaining?: number;
+      turnsElapsed?: number;
+    }
   ) {
     const bestPattern = analyses[0];
     if (!bestPattern) {
@@ -471,8 +484,6 @@ export class EnhancedHandAnalyzer {
     }
     
     const tilesNeeded = bestPattern.missingTiles.length;
-    const wallRemaining = gameContext?.wallTilesRemaining || 80;
-    const turnsElapsed = gameContext?.turnsElapsed || 0;
     
     // Enhanced probability calculation
     let completionProb = bestPattern.completion;
@@ -504,13 +515,19 @@ export class EnhancedHandAnalyzer {
   private static generateDefensiveAnalysis(
     playerTiles: Tile[],
     analyses: DetailedPatternAnalysis[],
-    gameContext?: any
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _gameContext?: {
+      discardedTiles?: Tile[];
+      exposedTiles?: Tile[];
+      wallTilesRemaining?: number;
+      turnsElapsed?: number;
+    }
   ) {
     // This is a placeholder for defensive analysis
     // In the real implementation, this would analyze opponent threats
     return {
-      dangerousTiles: playerTiles.filter(t => t.suit === 'jokers').slice(0, 2),
-      safeTiles: playerTiles.filter(t => t.suit === 'winds' || t.suit === 'dragons').slice(0, 3),
+      dangerousTiles: [],
+      safeTiles: [],
       opponentThreats: [
         {
           playerId: 'opponent-estimate',

@@ -1,7 +1,7 @@
 // frontend/src/hooks/useWakeLock.ts
 // Hook to manage screen wake lock to prevent device sleep during gameplay
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Simple types for Wake Lock API
 interface WakeLockSentinel {
@@ -27,12 +27,12 @@ export const useWakeLock = (shouldKeepAwake: boolean = false) => {
   }, []);
 
   // Function to request wake lock
-  const requestWakeLock = async () => {
+  const requestWakeLock = useCallback(async () => {
     if (!isSupported) return false;
 
     try {
       // Use any to bypass TypeScript issues with experimental API
-      const nav = navigator as any;
+      const nav = navigator as { wakeLock?: { request: (type: string) => Promise<WakeLockSentinel> } };
       wakeLockRef.current = await nav.wakeLock.request('screen');
       
       // Note: Wake lock will automatically release when user switches tabs/apps
@@ -48,7 +48,7 @@ export const useWakeLock = (shouldKeepAwake: boolean = false) => {
       console.error(errorMsg);
       return false;
     }
-  };
+  }, [isSupported]);
 
   // Function to release wake lock
   const releaseWakeLock = async () => {
@@ -71,7 +71,7 @@ export const useWakeLock = (shouldKeepAwake: boolean = false) => {
     } else if (!shouldKeepAwake && isActive) {
       releaseWakeLock();
     }
-  }, [shouldKeepAwake, isSupported, isActive]);
+  }, [shouldKeepAwake, isSupported, isActive, requestWakeLock]);
 
   // Handle visibility change (when user switches tabs/apps)
   useEffect(() => {
@@ -87,7 +87,7 @@ export const useWakeLock = (shouldKeepAwake: boolean = false) => {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [shouldKeepAwake, isActive]);
+  }, [shouldKeepAwake, isActive, requestWakeLock]);
 
   // Cleanup on unmount
   useEffect(() => {

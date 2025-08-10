@@ -58,9 +58,10 @@ export class NMJL2025Loader {
   /**
    * Load JSON data with proper null handling
    */
-  private loadJSONData(): any[] {
+  private loadJSONData(): unknown[] {
     try {
-      // Import the JSON data (NaN values have been replaced with null)
+      // Import the JSON data (NaN values have been replaced with null)  
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
       const nmjl2025Data = require('./nmjl-card-2025.json');
       return Array.isArray(nmjl2025Data) ? nmjl2025Data : [];
     } catch (error) {
@@ -100,24 +101,26 @@ export class NMJL2025Loader {
   /**
    * Validate and clean a single pattern
    */
-  private validatePattern(raw: any): NMJL2025Pattern | null {
+  private validatePattern(raw: unknown): NMJL2025Pattern | null {
     if (!raw || typeof raw !== 'object') return null;
+    
+    const pattern = raw as Record<string, unknown>;
     
     // Required fields validation
     const requiredFields = ['Year', 'Pattern ID', 'Hand_Pattern', 'Hand_Description', 'Hand_Points', 'Groups'];
     for (const field of requiredFields) {
-      if (raw[field] === undefined || raw[field] === null) {
+      if (pattern[field] === undefined || pattern[field] === null) {
         throw new Error(`Missing required field: ${field}`);
       }
     }
     
     // Validate groups
-    if (!Array.isArray(raw.Groups) || raw.Groups.length === 0) {
+    if (!Array.isArray(pattern.Groups) || pattern.Groups.length === 0) {
       throw new Error('Pattern must have at least one group');
     }
     
     const validatedGroups: PatternGroup[] = [];
-    for (const group of raw.Groups) {
+    for (const group of pattern.Groups as unknown[]) {
       const validatedGroup = this.validateGroup(group);
       if (validatedGroup) {
         validatedGroups.push(validatedGroup);
@@ -130,17 +133,17 @@ export class NMJL2025Loader {
     
     // Clean and validate the pattern
     return {
-      Year: parseInt(raw.Year) || 2025,
-      Section: parseInt(raw.Section) || 2025,
-      Line: parseInt(raw.Line) || 1,
-      "Pattern ID": parseInt(raw["Pattern ID"]),
-      Hands_Key: raw.Hands_Key || `${raw.Year}-${raw.Section}-${raw.Line}-${raw["Pattern ID"]}`,
-      Hand_Pattern: raw.Hand_Pattern.toString(),
-      Hand_Description: raw.Hand_Description.toString(),
-      Hand_Points: parseInt(raw.Hand_Points) || 25,
-      Hand_Conceiled: Boolean(raw.Hand_Conceiled),
-      Hand_Difficulty: this.validateDifficulty(raw.Hand_Difficulty),
-      Hand_Notes: raw.Hand_Notes && raw.Hand_Notes !== null ? raw.Hand_Notes.toString() : null,
+      Year: parseInt(String(pattern.Year)) || 2025,
+      Section: parseInt(String(pattern.Section)) || 2025,
+      Line: parseInt(String(pattern.Line)) || 1,
+      "Pattern ID": parseInt(String(pattern["Pattern ID"])),
+      Hands_Key: String(pattern.Hands_Key) || `${pattern.Year}-${pattern.Section}-${pattern.Line}-${pattern["Pattern ID"]}`,
+      Hand_Pattern: String(pattern.Hand_Pattern),
+      Hand_Description: String(pattern.Hand_Description),
+      Hand_Points: parseInt(String(pattern.Hand_Points)) || 25,
+      Hand_Conceiled: Boolean(pattern.Hand_Conceiled),
+      Hand_Difficulty: this.validateDifficulty(pattern.Hand_Difficulty),
+      Hand_Notes: pattern.Hand_Notes && pattern.Hand_Notes !== null ? String(pattern.Hand_Notes) : null,
       Groups: validatedGroups
     };
   }
@@ -148,24 +151,26 @@ export class NMJL2025Loader {
   /**
    * Validate a pattern group
    */
-  private validateGroup(raw: any): PatternGroup | null {
+  private validateGroup(raw: unknown): PatternGroup | null {
     if (!raw || typeof raw !== 'object') return null;
+    
+    const group = raw as Record<string, unknown>;
     
     try {
       return {
-        Group: raw.Group?.toString() || '',
-        Suit_Role: this.validateSuitRole(raw.Suit_Role),
-        Suit_Note: raw.Suit_Note && raw.Suit_Note !== null ? raw.Suit_Note.toString() : null,
-        Constraint_Type: this.validateConstraintType(raw.Constraint_Type),
-        Constraint_Values: raw.Constraint_Values?.toString() || '',
-        Constraint_Must_Match: raw.Constraint_Must_Match && raw.Constraint_Must_Match !== null ? 
-          raw.Constraint_Must_Match.toString() : null,
-        Constraint_Extra: raw.Constraint_Extra && raw.Constraint_Extra !== null ? 
-          raw.Constraint_Extra.toString() : null,
-        Jokers_Allowed: Boolean(raw.Jokers_Allowed)
+        Group: String(group.Group || ''),
+        Suit_Role: this.validateSuitRole(group.Suit_Role),
+        Suit_Note: group.Suit_Note && group.Suit_Note !== null ? String(group.Suit_Note) : null,
+        Constraint_Type: this.validateConstraintType(group.Constraint_Type),
+        Constraint_Values: String(group.Constraint_Values || ''),
+        Constraint_Must_Match: group.Constraint_Must_Match && group.Constraint_Must_Match !== null ? 
+          String(group.Constraint_Must_Match) : null,
+        Constraint_Extra: group.Constraint_Extra && group.Constraint_Extra !== null ? 
+          String(group.Constraint_Extra) : null,
+        Jokers_Allowed: Boolean(group.Jokers_Allowed)
       };
     } catch (error) {
-      console.warn(`Invalid group ${raw.Group}: ${error}`);
+      console.warn(`Invalid group ${String(group.Group)}: ${error}`);
       return null;
     }
   }
@@ -173,9 +178,9 @@ export class NMJL2025Loader {
   /**
    * Validate difficulty level
    */
-  private validateDifficulty(difficulty: any): HandDifficulty {
+  private validateDifficulty(difficulty: unknown): HandDifficulty {
     const validDifficulties: HandDifficulty[] = ['easy', 'medium', 'hard'];
-    const normalized = difficulty?.toString().toLowerCase();
+    const normalized = String(difficulty || '').toLowerCase();
     
     if (validDifficulties.includes(normalized as HandDifficulty)) {
       return normalized as HandDifficulty;
@@ -187,12 +192,12 @@ export class NMJL2025Loader {
   /**
    * Validate suit role
    */
-  private validateSuitRole(role: any): 'first' | 'second' | 'third' | 'any' | 'none' {
+  private validateSuitRole(role: unknown): 'first' | 'second' | 'third' | 'any' | 'none' {
     const validRoles = ['first', 'second', 'third', 'any', 'none'];
-    const normalized = role?.toString().toLowerCase();
+    const normalized = String(role || '').toLowerCase();
     
     if (validRoles.includes(normalized)) {
-      return normalized as any;
+      return normalized as 'first' | 'second' | 'third' | 'any' | 'none';
     }
     
     return 'any'; // Default
@@ -201,12 +206,12 @@ export class NMJL2025Loader {
   /**
    * Validate constraint type
    */
-  private validateConstraintType(type: any): 'kong' | 'pung' | 'sequence' | 'pair' | 'single' | 'consecutive' | 'like' {
+  private validateConstraintType(type: unknown): 'kong' | 'pung' | 'sequence' | 'pair' | 'single' | 'consecutive' | 'like' {
     const validTypes = ['kong', 'pung', 'sequence', 'pair', 'single', 'consecutive', 'like'];
-    const normalized = type?.toString().toLowerCase();
+    const normalized = String(type || '').toLowerCase();
     
     if (validTypes.includes(normalized)) {
-      return normalized as any;
+      return normalized as 'kong' | 'pung' | 'sequence' | 'pair' | 'single' | 'consecutive' | 'like';
     }
     
     return 'pung'; // Default

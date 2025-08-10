@@ -1,5 +1,5 @@
 // frontend/src/components/game/TurnTimer.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import type { PlayerPosition } from '../../types';
 
 interface TurnTimerProps {

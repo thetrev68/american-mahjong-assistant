@@ -2,7 +2,6 @@
 // Detailed view of a specific NMJL pattern with comprehensive information
 
 import React, { useMemo } from 'react';
-import type { PatternSearchResult } from '../../utils/pattern-search-engine';
 import { PatternSearchEngine } from '../../utils/pattern-search-engine';
 import type { NMJL2025Pattern } from '../../types/nmjl-2025-types';
 
@@ -38,7 +37,7 @@ export const PatternDetailView: React.FC<PatternDetailViewProps> = ({
     return 'text-gray-600';
   };
 
-  const formatGroupInfo = (groups: any[]) => {
+  const formatGroupInfo = (groups: NonNullable<NMJL2025Pattern['Groups']>) => {
     return groups.map((group, index) => ({
       index: index + 1,
       type: group.Constraint_Type || 'unknown',

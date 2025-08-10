@@ -43,7 +43,9 @@ export class NMJLPatternAdapter {
   /**
    * Parse a pattern group into specific tiles
    */
-  private static parseGroupToTiles(group: PatternGroup, pattern: NMJL2025Pattern): Tile[] {
+  private static parseGroupToTiles(group: PatternGroup, 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _pattern: NMJL2025Pattern): Tile[] {
     const constraint = nmjl2025Loader.parseConstraint(group);
     const tiles: Tile[] = [];
     
@@ -301,8 +303,8 @@ export class NMJLPatternAdapter {
   private static createTile(suit: string, value: string): Tile {
     return {
       id: `${value}${suit}`,
-      suit: suit as any,
-      value: value as any,
+      suit: suit as 'bams' | 'cracks' | 'dots' | 'winds' | 'dragons' | 'flowers' | 'jokers',
+      value: value as string,
       isJoker: false
     };
   }

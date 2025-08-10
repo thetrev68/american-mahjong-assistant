@@ -76,7 +76,7 @@ export class PatternSearchEngine {
    */
   static searchPatterns(filters: PatternSearchFilters = {}): PatternSearchResult[] {
     const allPatterns = nmjl2025Loader.getAllPatterns();
-    let results: PatternSearchResult[] = [];
+    const results: PatternSearchResult[] = [];
     
     // Convert patterns and categorize
     for (const nmjlPattern of allPatterns) {

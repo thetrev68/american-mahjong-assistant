@@ -23,7 +23,8 @@ export function findViablePatternsForHand(
 export function getContextualPatternRecommendations(
   playerTiles: Tile[],
   gamePhase: 'charleston' | 'playing',
-  availableJokers: number = 0
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _availableJokers: number = 0
 ): {
   recommended: PatternSearchResult[];
   alternative: PatternSearchResult[];

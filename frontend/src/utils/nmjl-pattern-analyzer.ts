@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable @typescript-eslint/no-explicit-any */
 // frontend/src/utils/nmjl-pattern-analyzer.ts
 // Advanced pattern analysis engine for NMJL hands
 // This engine calculates probabilities, identifies missing tiles, and provides strategic advice
