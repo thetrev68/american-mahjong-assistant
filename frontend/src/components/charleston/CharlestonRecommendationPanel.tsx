@@ -18,12 +18,11 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
   selectedTiles = [], // Provide a default value
   isLoading = false
 }) => {
-  const [activeTab, setActiveTab] = useState<'strategy' | 'analysis' | 'alternatives'>('strategy');
+  const [activeTab, setActiveTab] = useState<'strategy' | 'analysis'>('strategy');
 
   const tabs = [
     { key: 'strategy' as const, label: 'Strategy', icon: '🎯' },
-    { key: 'analysis' as const, label: 'Analysis', icon: '🔍' },
-    { key: 'alternatives' as const, label: 'Options', icon: '⚡' }
+    { key: 'analysis' as const, label: 'Analysis', icon: '🔍' }
   ];
 
   const getConfidenceColor = (confidence: string) => {
@@ -161,29 +160,6 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
             </div>
           )}
 
-          {/* Phase advice */}
-          {recommendations.phaseAdvice && (
-            <div className="bg-white rounded-lg p-3">
-              <h4 className="font-medium text-gray-800 mb-2 flex items-center">
-                <span className="mr-2">💡</span>
-                Phase Guidance
-              </h4>
-              <div className="space-y-2 text-sm text-gray-700">
-                <div className="bg-blue-50 p-2 rounded">
-                  <span className="font-medium text-blue-800">What to expect:</span>
-                  <p className="text-blue-700 mt-1">{recommendations.phaseAdvice.whatToExpect}</p>
-                </div>
-                <div className="bg-green-50 p-2 rounded">
-                  <span className="font-medium text-green-800">Next phase:</span>
-                  <p className="text-green-700 mt-1">{recommendations.phaseAdvice.nextPhaseStrategy}</p>
-                </div>
-                <div className="bg-amber-50 p-2 rounded">
-                  <span className="font-medium text-amber-800">Risk assessment:</span>
-                  <p className="text-amber-700 mt-1">{recommendations.phaseAdvice.riskAssessment}</p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       )}
 
@@ -264,46 +240,6 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
         </div>
       )}
 
-      {activeTab === 'alternatives' && (
-        <div className="space-y-3">
-          <div className="bg-white rounded-lg p-3">
-            <h4 className="font-medium text-gray-800 mb-2 flex items-center">
-              <span className="mr-2">⚡</span>
-              Alternative Passing Options
-            </h4>
-            {recommendations.alternativeOptions && recommendations.alternativeOptions.length > 0 ? (
-              <div className="space-y-3">
-                {recommendations.alternativeOptions.map((option, index) => (
-                  <div key={index} className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h5 className="font-medium text-gray-800">
-                        Option {index + 1}
-                      </h5>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getConfidenceColor(option.confidence)}`}>
-                        {option.confidence}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1 mb-2">
-                      {option.tiles.map((tile, tileIndex) => (
-                        <span key={tileIndex} className="px-2 py-1 bg-white text-gray-700 text-xs rounded font-mono border border-gray-300">
-                          {tile.id}
-                        </span>
-                      ))}
-                    </div>
-                    <p className="text-sm text-gray-700">{option.reasoning}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-gray-50 rounded-lg p-3 text-center">
-                <p className="text-sm text-gray-600">No alternative options available</p>
-                <p className="text-xs text-gray-500 mt-1">The recommended tiles are the clear best choice</p>
-              </div>
-            )}
-          </div>
-
-        </div>
-      )}
 
     </div>
   );

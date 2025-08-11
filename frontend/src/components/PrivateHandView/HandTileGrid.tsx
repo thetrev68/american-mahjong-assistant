@@ -232,10 +232,10 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
                 
                 {/* Recommendation border - matches tile size exactly */}
                 {recommendation && (
-                  <div className={`absolute inset-0 rounded-md ring-2 pointer-events-none ${
-                    recommendation === 'keep' ? 'ring-green-500' : 
-                    recommendation === 'discard' ? 'ring-red-500' : 
-                    'ring-yellow-500'
+                  <div className={`absolute inset-0 rounded-md border-2 pointer-events-none ${
+                    recommendation === 'keep' ? 'border-green-500' : 
+                    recommendation === 'discard' ? 'border-red-500' : 
+                    'border-yellow-500'
                   }`} />
                 )}
                 
