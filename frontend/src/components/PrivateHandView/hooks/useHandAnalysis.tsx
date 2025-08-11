@@ -94,7 +94,7 @@ export const useHandAnalysis = (
     // Get keep/discard recommendations based on best pattern
     const keep: Tile[] = [];
     const discard: Tile[] = [];
-    const charleston: Tile[] = [];
+    let charleston: Tile[] = [];
 
     if (bestPattern && bestPattern.pattern) {
       // Use pattern analyzer to identify keep tiles
@@ -103,16 +103,67 @@ export const useHandAnalysis = (
       
       keep.push(...keepTiles);
       discard.push(...discardTiles.slice(0, 3)); // Top 3 discard candidates
-      charleston.push(...discardTiles.slice(3, 6)); // Charleston candidates
+      
+      // For Charleston, use the actual Charleston recommendation engine
+      if (gamePhase === 'charleston') {
+        try {
+          const { CharlestonEngine } = await import('../../../utils/charleston-engine');
+          const charlestonRec = CharlestonEngine.generateRecommendations({
+            playerTiles: tilesToAnalyze,
+            currentPhase: 'right', // Default to right phase
+            phasesRemaining: ['right', 'across', 'left'],
+            opponentCount: 3,
+            gameSettings: {
+              enableOptional: true,
+              timeLimit: 60,
+              cardYear: 2025
+            }
+          });
+          charleston = charlestonRec.tilesToPass;
+        } catch (err) {
+          console.warn('Charleston engine failed, using fallback:', err);
+          charleston = discardTiles.slice(0, 3); // Fallback to first 3 discard tiles
+        }
+      } else {
+        charleston = discardTiles.slice(0, 3); // Regular discard mode
+      }
     } else {
       // Fallback recommendations when no strong pattern
       const jokers = tilesToAnalyze.filter(t => t.isJoker || t.suit === 'jokers');
       const winds = tilesToAnalyze.filter(t => t.suit === 'winds');
       const dragons = tilesToAnalyze.filter(t => t.suit === 'dragons');
+      const flowers = tilesToAnalyze.filter(t => t.suit === 'flowers');
       
       keep.push(...jokers); // Always keep jokers
-      discard.push(...winds.slice(0, 2));
-      charleston.push(...dragons.slice(0, 3));
+      
+      // For Charleston, prioritize isolated tiles (not useful for patterns)
+      if (gamePhase === 'charleston') {
+        // Pass isolated winds/dragons and flowers first
+        const isolatedWinds = winds.filter(w => {
+          const sameWindCount = tilesToAnalyze.filter(t => t.value === w.value && t.suit === 'winds').length;
+          return sameWindCount === 1;
+        });
+        const isolatedDragons = dragons.filter(d => {
+          const sameDragonCount = tilesToAnalyze.filter(t => t.value === d.value && t.suit === 'dragons').length;
+          return sameDragonCount === 1;
+        });
+        
+        charleston.push(...flowers.slice(0, 2)); // Pass flowers first
+        charleston.push(...isolatedWinds.slice(0, 2));
+        charleston.push(...isolatedDragons.slice(0, 1));
+        charleston = charleston.slice(0, 3); // Ensure exactly 3 tiles
+        
+        // Keep the remaining tiles
+        const charlestonIds = new Set(charleston.map(t => t.id));
+        const remainingTiles = tilesToAnalyze.filter(t => !charlestonIds.has(t.id));
+        keep.push(...remainingTiles);
+        
+        discard.push(...winds.slice(0, 2));
+      } else {
+        discard.push(...winds.slice(0, 2));
+        charleston.push(...dragons.slice(0, 3));
+        keep.push(...tilesToAnalyze.filter(t => !discard.includes(t) && !charleston.includes(t)));
+      }
     }
 
     return { keep, discard, charleston };

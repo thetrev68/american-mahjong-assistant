@@ -45,7 +45,11 @@ export const PrivateHandView: React.FC<PrivateHandViewProps> = ({
   
   // FIXED: Custom hooks for game state and analysis
   const { privateState, updateTiles: updatePrivateStateTiles, isLoading } = usePrivateGameState(playerId, serverTiles);
-  const { analysis, isAnalyzing } = useHandAnalysis(privateState?.tiles || []);
+  const { analysis, isAnalyzing } = useHandAnalysis(
+    privateState?.tiles || [], 
+    2025, 
+    gamePhase === 'charleston' ? 'charleston' : 'playing'
+  );
   
   // 🎲 CHEAT CODE: Generate random tiles for testing
   const generateRandomTiles = useCallback((count: number) => {

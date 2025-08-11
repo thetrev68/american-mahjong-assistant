@@ -83,11 +83,20 @@ export class CharlestonRecommendationEngine {
     // Step 7: Calculate confidence based on real pattern match quality
     const confidence = this.calculateAdvancedConfidence(bestOption, topPatterns, patternInsights);
     
+    // Generate detailed reasoning for each recommendation
+    const detailedReasoning = this.generateDetailedReasoning(
+      tilesToPass,
+      tilesToKeep,
+      topPatterns,
+      patternInsights,
+      phase
+    );
+
     return {
       tilesToPass,
       tilesToKeep,
       confidence,
-      reasoning: bestOption.reasoning.split('. '),
+      reasoning: detailedReasoning,
       alternativeOptions: passOptions.slice(1, 3), // Next 2 best options
       strategicAdvice
     };
@@ -664,5 +673,102 @@ export class CharlestonRecommendationEngine {
     }
     
     return candidates.slice(0, 3);
+  }
+
+  /**
+   * Generate detailed reasoning for Charleston recommendations
+   */
+  private static generateDetailedReasoning(
+    tilesToPass: Tile[],
+    tilesToKeep: Tile[],
+    topPatterns: Array<{ pattern: any; completion: number; confidence: number }>,
+    patternInsights: any,
+    phase: CharlestonPhase
+  ): string[] {
+    const reasoning: string[] = [];
+
+    // Explain why each tile is being passed
+    if (tilesToPass.length > 0) {
+      reasoning.push(`**Tiles to Pass (${tilesToPass.length}):**`);
+      tilesToPass.forEach(tile => {
+        let tileReason = `• **${tile.id}**: `;
+        
+        if (patternInsights.isolatedTiles.has(tile.id)) {
+          tileReason += "Not needed for any viable patterns - safe to pass";
+        } else if (tile.suit === 'flowers') {
+          tileReason += "Flowers have limited pattern uses - good Charleston candidate";
+        } else if (tile.suit === 'winds' || tile.suit === 'dragons') {
+          const sameTypeCount = tilesToKeep.filter(t => t.value === tile.value && t.suit === tile.suit).length;
+          if (sameTypeCount === 0) {
+            tileReason += "Isolated honor tile - unlikely to form sets";
+          } else {
+            tileReason += "Excess honor tile beyond pattern needs";
+          }
+        } else if (tile.isJoker || tile.suit === 'jokers') {
+          tileReason += "Passing joker - you likely have multiple or strong alternatives";
+        } else {
+          tileReason += "Less critical for your strongest patterns";
+        }
+        
+        reasoning.push(tileReason);
+      });
+    }
+
+    // Explain the keep strategy
+    if (tilesToKeep.length > 0) {
+      reasoning.push(`\n**Tiles to Keep (${tilesToKeep.length}):**`);
+      
+      const criticalTiles = tilesToKeep.filter(t => patternInsights.criticalTiles.has(t.id));
+      const flexibleTiles = tilesToKeep.filter(t => patternInsights.flexibleTiles.has(t.id));
+      
+      if (criticalTiles.length > 0) {
+        reasoning.push(`• **${criticalTiles.length} Critical tiles** - Essential for top patterns`);
+      }
+      
+      if (flexibleTiles.length > 0) {
+        reasoning.push(`• **${flexibleTiles.length} Flexible tiles** - Useful across multiple patterns`);
+      }
+
+      const jokers = tilesToKeep.filter(t => t.isJoker || t.suit === 'jokers');
+      if (jokers.length > 0) {
+        reasoning.push(`• **${jokers.length} Jokers** - Maximum versatility for pattern completion`);
+      }
+    }
+
+    // Pattern-specific insights
+    const bestPattern = topPatterns[0];
+    if (bestPattern && bestPattern.completion > 0.3) {
+      reasoning.push(`\n**Pattern Focus:**`);
+      reasoning.push(`• Targeting **${bestPattern.pattern.name}** (${(bestPattern.completion * 100).toFixed(0)}% complete, ${bestPattern.pattern.points} points)`);
+      
+      if (bestPattern.pattern.difficulty === 'hard') {
+        reasoning.push(`• High-value challenging pattern - requires careful tile selection`);
+      } else if (bestPattern.pattern.difficulty === 'easy') {
+        reasoning.push(`• Reliable pattern with good completion odds`);
+      }
+    }
+
+    // Phase-specific advice
+    reasoning.push(`\n**${this.getPhaseAdvice(phase)}**`);
+
+    return reasoning;
+  }
+
+  /**
+   * Get phase-specific advice
+   */
+  private static getPhaseAdvice(phase: CharlestonPhase): string {
+    switch (phase) {
+      case 'right':
+        return "Phase 1 (Right): Focus on passing clearly unwanted tiles while keeping pattern potential";
+      case 'across':
+        return "Phase 2 (Across): Balance your hand - don't give opponents exactly what they need";
+      case 'left':
+        return "Phase 3 (Left): Final optimization - only pass if it significantly helps your hand";
+      case 'optional':
+        return "Optional Phase: Only participate if you have a clear strategic advantage";
+      default:
+        return "Charleston Phase: Strategic tile passing to optimize your hand";
+    }
   }
 }

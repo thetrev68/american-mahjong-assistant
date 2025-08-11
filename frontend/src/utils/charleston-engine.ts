@@ -26,6 +26,7 @@ import {
 } from './tile-utils';
 
 import { CharlestonRecommendationEngine } from './charleston-recommendation-engine';
+import { NMJLPatternAnalyzer } from './nmjl-pattern-analyzer';
 
 /**
  * Main Charleston recommendation engine
@@ -50,6 +51,20 @@ export class CharlestonEngine {
         2025, // Card year
         4 // Player count
       );
+
+      // Get pattern analysis to populate currentPatterns
+      const patternAnalyses = NMJLPatternAnalyzer.analyzeAllPatterns(playerTiles, 2025, 5);
+      const topPatterns = patternAnalyses.slice(0, 3)
+        .filter(analysis => analysis.pattern) // Only include valid patterns
+        .map(analysis => ({
+          id: `pattern-${analysis.pattern.id || Math.random()}`,
+          name: analysis.pattern.name || 'Unknown Pattern',
+          description: analysis.pattern.description || 'Pattern description not available',
+          requiredTiles: analysis.pattern.requiredTiles || [],
+          optionalTiles: analysis.pattern.optionalTiles || [],
+          points: analysis.pattern.points || 25,
+          difficulty: analysis.pattern.difficulty || 'medium' as const
+        }));
       
       return {
         tilesToPass: advancedRecommendation.tilesToPass,
@@ -62,9 +77,9 @@ export class CharlestonEngine {
           reasoning: alt.reasoning
         })),
         overallStrategy: Array.isArray(advancedRecommendation.strategicAdvice) ? advancedRecommendation.strategicAdvice.join('. ') : advancedRecommendation.strategicAdvice,
-        currentPatterns: [],
-        targetPatterns: [],
-        patternShift: 'Advanced analysis applied',
+        currentPatterns: topPatterns,
+        targetPatterns: topPatterns.slice(0, 1), // Focus on the best pattern
+        patternShift: topPatterns.length > 0 ? `Focusing on ${topPatterns[0].name} (${topPatterns[0].points} points)` : 'Advanced analysis applied',
         phaseAdvice: {
           whatToExpect: 'Tiles optimized based on advanced pattern matching',
           nextPhaseStrategy: 'Continue with recommended strategy',
