@@ -105,12 +105,17 @@ export class NMJL2025Loader {
     
     const pattern = raw as Record<string, unknown>;
     
-    // Required fields validation
-    const requiredFields = ['Year', 'Pattern ID', 'Hand_Pattern', 'Hand_Description', 'Hand_Points', 'Groups'];
+    // Required fields validation (allow null for Hand_Description)
+    const requiredFields = ['Year', 'Pattern ID', 'Hand_Pattern', 'Hand_Points', 'Groups'];
     for (const field of requiredFields) {
       if (pattern[field] === undefined || pattern[field] === null) {
         throw new Error(`Missing required field: ${field}`);
       }
+    }
+    
+    // Hand_Description can be null, we'll provide a default
+    if (pattern.Hand_Description === undefined) {
+      throw new Error(`Missing required field: Hand_Description`);
     }
     
     // Validate groups
@@ -138,7 +143,7 @@ export class NMJL2025Loader {
       "Pattern ID": parseInt(String(pattern["Pattern ID"])),
       Hands_Key: String(pattern.Hands_Key) || `${pattern.Year}-${pattern.Section}-${pattern.Line}-${pattern["Pattern ID"]}`,
       Hand_Pattern: String(pattern.Hand_Pattern),
-      Hand_Description: String(pattern.Hand_Description),
+      Hand_Description: pattern.Hand_Description ? String(pattern.Hand_Description) : `Pattern ${pattern["Pattern ID"]} - Section ${pattern.Section}`,
       Hand_Points: parseInt(String(pattern.Hand_Points)) || 25,
       Hand_Conceiled: Boolean(pattern.Hand_Conceiled),
       Hand_Difficulty: this.validateDifficulty(pattern.Hand_Difficulty),
