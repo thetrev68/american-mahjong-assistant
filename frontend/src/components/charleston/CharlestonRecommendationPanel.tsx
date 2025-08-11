@@ -193,7 +193,7 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
           <div className="bg-white rounded-lg p-3">
             <h4 className="font-medium text-gray-800 mb-2 flex items-center">
               <span className="mr-2">🎯</span>
-              Recommendations Summary
+              Charleston Recommendations
             </h4>
             <div className="grid grid-cols-3 gap-4 text-center">
               <div className="bg-red-50 p-2 rounded">
