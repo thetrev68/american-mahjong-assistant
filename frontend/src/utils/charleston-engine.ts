@@ -56,15 +56,22 @@ export class CharlestonEngine {
       const patternAnalyses = NMJLPatternAnalyzer.analyzeAllPatterns(playerTiles, 2025, 5);
       const topPatterns = patternAnalyses.slice(0, 3)
         .filter(analysis => analysis.pattern) // Only include valid patterns
-        .map(analysis => ({
-          id: `pattern-${analysis.pattern.id || Math.random()}`,
-          name: analysis.pattern.name || 'Unknown Pattern',
-          description: analysis.pattern.description || 'Pattern description not available',
-          requiredTiles: analysis.pattern.requiredTiles || [],
-          optionalTiles: analysis.pattern.optionalTiles || [],
-          points: analysis.pattern.points || 25,
-          difficulty: analysis.pattern.difficulty || 'medium' as const
-        }));
+        .map((analysis, index) => {
+          // Create more specific pattern name with completion percentage
+          const completionPercent = Math.round(analysis.completion * 100);
+          const patternName = analysis.pattern.name || 'Unknown Pattern';
+          const patternDesc = analysis.pattern.description || 'Pattern description not available';
+          
+          return {
+            id: `pattern-${analysis.pattern.id || Math.random()}`,
+            name: `${patternName} (${completionPercent}% complete)`,
+            description: patternDesc,
+            requiredTiles: analysis.pattern.requiredTiles || [],
+            optionalTiles: analysis.pattern.optionalTiles || [],
+            points: analysis.pattern.points || 25,
+            difficulty: analysis.pattern.difficulty || 'medium' as const
+          };
+        });
       
       return {
         tilesToPass: advancedRecommendation.tilesToPass,
@@ -79,11 +86,11 @@ export class CharlestonEngine {
         overallStrategy: Array.isArray(advancedRecommendation.strategicAdvice) ? advancedRecommendation.strategicAdvice.join('. ') : advancedRecommendation.strategicAdvice,
         currentPatterns: topPatterns,
         targetPatterns: topPatterns.slice(0, 1), // Focus on the best pattern
-        patternShift: topPatterns.length > 0 ? `Focusing on ${topPatterns[0].name} (${topPatterns[0].points} points)` : 'Advanced analysis applied',
+        patternShift: topPatterns.length > 0 ? `Targeting ${topPatterns[0].name.split(' (')[0]} - ${topPatterns[0].points} points` : 'No clear pattern focus',
         phaseAdvice: {
-          whatToExpect: 'Tiles optimized based on advanced pattern matching',
-          nextPhaseStrategy: 'Continue with recommended strategy',
-          riskAssessment: 'Low risk - AI optimized selection'
+          whatToExpect: `Charleston Round 1: Pass your 3 least useful tiles`,
+          nextPhaseStrategy: `${topPatterns.length > 0 ? `Keep working toward ${topPatterns[0].name.split(' (')[0]}` : 'Remain flexible until a clear pattern emerges'}`,
+          riskAssessment: `${topPatterns.length > 0 && Math.round((topPatterns[0] as any).completion * 100) > 40 ? 'Conservative approach - strong pattern emerging' : 'Balanced approach - exploring options'}`
         }
       };
     } catch (error) {

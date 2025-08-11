@@ -92,7 +92,7 @@ export const useHandAnalysis = (
   ) => {
     
     // Get keep/discard recommendations based on best pattern
-    const keep: Tile[] = [];
+    let keep: Tile[] = [];
     const discard: Tile[] = [];
     let charleston: Tile[] = [];
 
@@ -100,9 +100,6 @@ export const useHandAnalysis = (
       // Use pattern analyzer to identify keep tiles
       const keepTiles = NMJLPatternAnalyzer.identifyKeepTiles(tilesToAnalyze, bestPattern.pattern);
       const discardTiles = NMJLPatternAnalyzer.identifyDiscardTiles(tilesToAnalyze, bestPattern.pattern, keepTiles);
-      
-      keep.push(...keepTiles);
-      discard.push(...discardTiles.slice(0, 3)); // Top 3 discard candidates
       
       // For Charleston, use the actual Charleston recommendation engine
       if (gamePhase === 'charleston') {
@@ -120,11 +117,16 @@ export const useHandAnalysis = (
             }
           });
           charleston = charlestonRec.tilesToPass;
+          keep = charlestonRec.tilesToKeep;
+          // Don't set discard for Charleston - let remaining tiles be neutral
         } catch (err) {
           console.warn('Charleston engine failed, using fallback:', err);
-          charleston = discardTiles.slice(0, 3); // Fallback to first 3 discard tiles
+          charleston = discardTiles.slice(0, 3);
+          keep = keepTiles.slice(0, Math.min(7, keepTiles.length)); // Limit keep tiles
         }
       } else {
+        keep.push(...keepTiles);
+        discard.push(...discardTiles.slice(0, 3));
         charleston = discardTiles.slice(0, 3); // Regular discard mode
       }
     } else {
@@ -136,7 +138,7 @@ export const useHandAnalysis = (
       
       keep.push(...jokers); // Always keep jokers
       
-      // For Charleston, prioritize isolated tiles (not useful for patterns)
+      // For Charleston, create balanced recommendations
       if (gamePhase === 'charleston') {
         // Pass isolated winds/dragons and flowers first
         const isolatedWinds = winds.filter(w => {
@@ -148,15 +150,26 @@ export const useHandAnalysis = (
           return sameDragonCount === 1;
         });
         
+        // Build charleston pass recommendations (exactly 3 tiles)
         charleston.push(...flowers.slice(0, 2)); // Pass flowers first
         charleston.push(...isolatedWinds.slice(0, 2));
         charleston.push(...isolatedDragons.slice(0, 1));
         charleston = charleston.slice(0, 3); // Ensure exactly 3 tiles
         
-        // Keep the remaining tiles
-        const charlestonIds = new Set(charleston.map(t => t.id));
-        const remainingTiles = tilesToAnalyze.filter(t => !charlestonIds.has(t.id));
-        keep.push(...remainingTiles);
+        // Keep jokers and some strong tiles (5-7 tiles)
+        keep.push(...jokers); // Always keep jokers
+        
+        // Add some non-isolated tiles to keep
+        const nonIsolatedTiles = tilesToAnalyze.filter(t => 
+          !charleston.some(c => c.id === t.id) && 
+          !jokers.some(j => j.id === t.id)
+        );
+        
+        // Keep 3-5 additional tiles that might form patterns
+        keep.push(...nonIsolatedTiles.slice(0, Math.min(5, nonIsolatedTiles.length)));
+        
+        // Everything else is neutral (neither explicitly keep nor pass)
+        // The remaining tiles are neither highlighted green nor red
         
         discard.push(...winds.slice(0, 2));
       } else {

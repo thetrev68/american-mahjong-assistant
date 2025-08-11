@@ -189,42 +189,26 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
 
       {activeTab === 'analysis' && (
         <div className="space-y-3">
-          {/* Recommended tiles to pass */}
+          {/* Tile recommendation summary */}
           <div className="bg-white rounded-lg p-3">
-            <h4 className="font-medium text-red-700 mb-2 flex items-center">
-              <span className="mr-2">➡️</span>
-              Recommended to Pass ({recommendations.tilesToPass?.length || 0})
+            <h4 className="font-medium text-gray-800 mb-2 flex items-center">
+              <span className="mr-2">🎯</span>
+              Recommendations Summary
             </h4>
-            {(recommendations.tilesToPass?.length || 0) > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {recommendations.tilesToPass.map((tile, index) => (
-                  <span key={index} className="px-2 py-1 bg-red-100 text-red-700 text-xs rounded font-mono border border-red-200">
-                    {tile.id}
-                  </span>
-                ))}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="bg-red-50 p-2 rounded">
+                <div className="text-lg font-bold text-red-700">{recommendations.tilesToPass?.length || 0}</div>
+                <div className="text-xs text-red-600">Pass (red highlight)</div>
               </div>
-            ) : (
-              <p className="text-sm text-gray-600">No specific tiles recommended to pass</p>
-            )}
-          </div>
-
-          {/* Recommended tiles to keep */}
-          <div className="bg-white rounded-lg p-3">
-            <h4 className="font-medium text-green-700 mb-2 flex items-center">
-              <span className="mr-2">✋</span>
-              Recommended to Keep ({recommendations.tilesToKeep?.length || 0})
-            </h4>
-            {(recommendations.tilesToKeep?.length || 0) > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {recommendations.tilesToKeep.map((tile, index) => (
-                  <span key={index} className="px-2 py-1 bg-green-100 text-green-700 text-xs rounded font-mono border border-green-200">
-                    {tile.id}
-                  </span>
-                ))}
+              <div className="bg-green-50 p-2 rounded">
+                <div className="text-lg font-bold text-green-700">{recommendations.tilesToKeep?.length || 0}</div>
+                <div className="text-xs text-green-600">Keep (green highlight)</div>
               </div>
-            ) : (
-              <p className="text-sm text-gray-600">No specific tiles to prioritize keeping</p>
-            )}
+              <div className="bg-gray-50 p-2 rounded">
+                <div className="text-lg font-bold text-gray-700">{(14 - (recommendations.tilesToPass?.length || 0) - (recommendations.tilesToKeep?.length || 0))}</div>
+                <div className="text-xs text-gray-600">Neutral</div>
+              </div>
+            </div>
           </div>
 
           {/* Detailed tile analysis */}
@@ -318,41 +302,9 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
             )}
           </div>
 
-          {/* Strategy comparison */}
-          <div className="bg-white rounded-lg p-3">
-            <h4 className="font-medium text-gray-800 mb-2 flex items-center">
-              <span className="mr-2">⚖️</span>
-              Strategy Comparison
-            </h4>
-            <div className="text-sm text-gray-700 space-y-1">
-              <div className="flex justify-between">
-                <span>Aggressive (pass strong tiles):</span>
-                <span className="text-red-600">High risk, high reward</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Conservative (pass weak tiles):</span>
-                <span className="text-green-600">Low risk, steady progress</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Balanced (recommended):</span>
-                <span className="text-blue-600">Optimal risk/reward</span>
-              </div>
-            </div>
-          </div>
         </div>
       )}
 
-      {/* Quick tips footer */}
-      <div className="bg-yellow-100 rounded-lg p-3 border border-yellow-200">
-        <p className="text-xs text-yellow-800">
-          <span className="font-medium">💡 Charleston Tip:</span>
-          {currentPhase === 'right' && " Focus on passing isolated tiles and excess duplicates."}
-          {currentPhase === 'across' && " Consider defensive passing - what might help opponents?"}
-          {currentPhase === 'left' && " Final adjustments - optimize for your strongest patterns."}
-          {currentPhase === 'optional' && " Only pass if it significantly improves your hand."}
-          {currentPhase === 'complete' && " Charleston complete! Review your final hand composition."}
-        </p>
-      </div>
     </div>
   );
 };

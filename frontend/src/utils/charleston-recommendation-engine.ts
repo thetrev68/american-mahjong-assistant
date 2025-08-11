@@ -129,15 +129,15 @@ export class CharlestonRecommendationEngine {
           tileRequirements.set(tile.id, (tileRequirements.get(tile.id) || 0) + 1);
         });
         
-        // Identify critical vs flexible tiles
+        // Identify critical vs flexible tiles (only for tiles we actually have)
         tileRequirements.forEach((needed, tileId) => {
           const playerCount = playerTiles.filter(t => t.id === tileId).length;
           
-          if (needed > playerCount) {
-            // We need more of this tile
-            if (weight >= 3) {
+          if (playerCount > 0) {
+            // We have this tile - is it critical for this pattern?
+            if (playerCount <= needed && weight >= 3) {
               insights.criticalTiles.add(tileId);
-            } else {
+            } else if (playerCount > 0 && weight >= 2) {
               insights.flexibleTiles.add(tileId);
             }
           }
@@ -557,51 +557,35 @@ export class CharlestonRecommendationEngine {
     
     const advice: string[] = [];
     
-    // Pattern category insights
-    const categories = Array.from(patternInsights.patternCategories.keys());
-    if (categories.length > 0) {
-      const dominantCategory = categories[0];
-      switch (dominantCategory) {
-        case 'like_numbers':
-          advice.push('Focus on Like Numbers patterns - collect same numbers across different suits');
-          break;
-        case 'honors':
-          advice.push('Honor tiles (winds/dragons) strategy - prioritize complete pungs/kongs');
-          break;
-        case 'year_hands':
-          advice.push('2025 Year patterns available - look for 2s, 0s, and 5s combinations');
-          break;
-        case 'sequences':
-          advice.push('Sequential patterns viable - maintain consecutive number runs');
-          break;
+    // Specific pattern insights (only add if we have useful info)
+    const topPattern = topPatterns[0];
+    if (topPattern && topPattern.completion > 0.3) {
+      const pattern = topPattern.pattern;
+      const completionPercent = Math.round(topPattern.completion * 100);
+      advice.push(`${pattern.name}: ${completionPercent}% complete, ${pattern.points} points - ${completionPercent > 50 ? 'strong candidate' : 'developing option'}`);
+      
+      // Add pattern difficulty context
+      if (pattern.difficulty === 'hard') {
+        advice.push('Challenging pattern - ensure you have joker support');
+      } else if (pattern.difficulty === 'easy') {
+        advice.push('Reliable pattern with good completion odds');
       }
     }
     
     // Critical tile count advice
     const criticalCount = patternInsights.criticalTiles.size;
-    if (criticalCount > 8) {
-      advice.push(`${criticalCount} critical tiles identified - be very selective in Charleston`);
-    } else if (criticalCount < 3) {
-      advice.push('Few critical tiles - you have flexibility to adapt strategies');
+    if (criticalCount > 5) {
+      advice.push(`${criticalCount} key tiles identified for your best patterns`);
+    } else if (criticalCount === 0) {
+      advice.push('No strong pattern focus yet - remain flexible');
     }
     
-    // Pattern-specific strategic advice
-    const bestPattern = topPatterns[0];
-    if (bestPattern && bestPattern.completion > 0.4) {
-      const pattern = bestPattern.pattern;
-      advice.push(`Strong ${pattern.name} potential (${(bestPattern.completion * 100).toFixed(0)}% complete, ${pattern.points} pts) - prioritize completing this pattern`);
-      
-      // Add pattern difficulty context
-      if (pattern.difficulty === 'hard') {
-        advice.push('Attempting challenging pattern - ensure you have joker support');
-      } else if (pattern.difficulty === 'easy') {
-        advice.push('Good foundation for reliable pattern completion');
-      }
+    // Only add specific Charleston phase guidance if relevant
+    if (phase === 'right') {
+      advice.push('Round 1: Safe to pass obvious discards and duplicates');
+    } else if (phase === 'optional') {
+      advice.push('Optional round: Only pass if you gain more than you give');
     }
-    
-    // Add the original strategic advice for additional context
-    const originalAdvice = this.generateStrategicAdvice(playerTiles, tilesToPass, topPatterns, phase, playerCount);
-    advice.push(...originalAdvice);
     
     return advice;
   }
