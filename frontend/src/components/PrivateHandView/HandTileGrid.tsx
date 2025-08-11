@@ -230,9 +230,9 @@ export const HandTileGrid: React.FC<HandTileGridProps> = ({
                   isDisabled={readOnly}
                 />
                 
-                {/* Recommendation border - matches tile size exactly */}
+                {/* Recommendation border - surrounds tile exactly with proper proportions */}
                 {recommendation && (
-                  <div className={`absolute inset-0 rounded-md border-2 pointer-events-none ${
+                  <div className={`absolute -inset-1 w-[54px] h-[70px] rounded-md border-2 pointer-events-none ${
                     recommendation === 'keep' ? 'border-green-500' : 
                     recommendation === 'discard' ? 'border-red-500' : 
                     'border-yellow-500'
