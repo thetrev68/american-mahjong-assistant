@@ -7,6 +7,7 @@ import type {
   ParsedConstraint, 
   HandDifficulty 
 } from '../types/nmjl-2025-types';
+import nmjl2025Data from './nmjl-card-2025.json';
 
 /**
  * Indexed pattern data for fast lookups
@@ -60,9 +61,7 @@ export class NMJL2025Loader {
    */
   private loadJSONData(): unknown[] {
     try {
-      // Import the JSON data (NaN values have been replaced with null)  
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      const nmjl2025Data = require('./nmjl-card-2025.json');
+      // Use the imported JSON data (NaN values have been replaced with null)  
       return Array.isArray(nmjl2025Data) ? nmjl2025Data : [];
     } catch (error) {
       console.error('Failed to load NMJL JSON data:', error);
