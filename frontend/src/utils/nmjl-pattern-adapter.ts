@@ -109,9 +109,10 @@ export class NMJLPatternAdapter {
         tiles.push(this.createTile('winds', windType));
       }
     } else if (constraint.values.length > 0) {
-      // Regular number tiles
-      const value = constraint.values[0];
-      if (value !== null) {
+      // Regular number tiles - only use valid tile values (1-9)
+      const validValues = constraint.values.filter(v => v !== null && v >= 1 && v <= 9) as number[];
+      if (validValues.length > 0) {
+        const value = validValues[0]; // Use first valid value
         const suits = this.getSuitsForRole(group.Suit_Role);
         // For kong, we need 4 tiles, distributed among available suits
         for (let i = 0; i < 4; i++) {
@@ -148,8 +149,11 @@ export class NMJLPatternAdapter {
         tiles.push(this.createTile('winds', windType));
       }
     } else if (constraint.values.length > 0) {
-      const value = constraint.values[0];
-      if (value !== null) {
+      // For pungs with multiple values (like "2,5"), create tiles for the first valid value
+      // TODO: This should be enhanced to handle "OR" constraints properly
+      const validValues = constraint.values.filter(v => v !== null && v >= 1 && v <= 9) as number[];
+      if (validValues.length > 0) {
+        const value = validValues[0]; // Use first valid value for now
         const suits = this.getSuitsForRole(group.Suit_Role);
         for (let i = 0; i < 3; i++) {
           const suit = suits[i % suits.length];
@@ -183,8 +187,10 @@ export class NMJLPatternAdapter {
         tiles.push(this.createTile('winds', windType));
       }
     } else if (constraint.values.length > 0) {
-      const value = constraint.values[0];
-      if (value !== null) {
+      // Only use valid tile values (1-9)
+      const validValues = constraint.values.filter(v => v !== null && v >= 1 && v <= 9) as number[];
+      if (validValues.length > 0) {
+        const value = validValues[0]; // Use first valid value
         const suits = this.getSuitsForRole(group.Suit_Role);
         for (let i = 0; i < 2; i++) {
           const suit = suits[i % suits.length];
@@ -211,11 +217,11 @@ export class NMJLPatternAdapter {
       const windType = this.inferWindType(constraint.raw || '');
       tiles.push(this.createTile('winds', windType));
     } else if (constraint.values.length > 0) {
-      for (const value of constraint.values) {
-        if (value !== null) {
-          const suits = this.getSuitsForRole(group.Suit_Role);
-          tiles.push(this.createTile(suits[0], value.toString()));
-        }
+      // Only use valid tile values (1-9)
+      const validValues = constraint.values.filter(v => v !== null && v >= 1 && v <= 9) as number[];
+      for (const value of validValues) {
+        const suits = this.getSuitsForRole(group.Suit_Role);
+        tiles.push(this.createTile(suits[0], value.toString()));
       }
     }
     
@@ -230,11 +236,27 @@ export class NMJLPatternAdapter {
     
     if (constraint.values.length >= 2) {
       const suits = this.getSuitsForRole(group.Suit_Role);
-      const startValue = Math.min(...constraint.values.filter(v => v !== null) as number[]);
-      const endValue = Math.max(...constraint.values.filter(v => v !== null) as number[]);
       
-      for (let value = startValue; value <= endValue; value++) {
-        tiles.push(this.createTile(suits[0], value.toString()));
+      // Handle zero_is_neutral constraint - filter out zeros and create tiles for specific values
+      if (constraint.allowsZeroNeutral) {
+        // For zero_is_neutral, create tiles only for non-zero values
+        const nonZeroValues = constraint.values.filter(v => v !== null && v !== 0) as number[];
+        for (const value of nonZeroValues) {
+          if (value >= 1 && value <= 9) { // Valid tile values
+            tiles.push(this.createTile(suits[0], value.toString()));
+          }
+        }
+      } else {
+        // Standard sequence logic
+        const validValues = constraint.values.filter(v => v !== null && v >= 1 && v <= 9) as number[];
+        if (validValues.length >= 2) {
+          const startValue = Math.min(...validValues);
+          const endValue = Math.max(...validValues);
+          
+          for (let value = startValue; value <= endValue; value++) {
+            tiles.push(this.createTile(suits[0], value.toString()));
+          }
+        }
       }
     }
     
@@ -255,8 +277,10 @@ export class NMJLPatternAdapter {
     const tiles: Tile[] = [];
     
     if (constraint.values.length > 0) {
-      const value = constraint.values[0];
-      if (value !== null) {
+      // Only use valid tile values (1-9)
+      const validValues = constraint.values.filter(v => v !== null && v >= 1 && v <= 9) as number[];
+      if (validValues.length > 0) {
+        const value = validValues[0]; // Use first valid value
         const suits = this.getSuitsForRole(group.Suit_Role);
         for (const suit of suits) {
           tiles.push(this.createTile(suit, value.toString()));

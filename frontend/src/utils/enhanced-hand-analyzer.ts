@@ -107,8 +107,9 @@ export class EnhancedHandAnalyzer {
     
     const availableJokers = playerTiles.filter(t => t.isJoker || t.suit === 'jokers').length;
     
-    allNMJLPatterns.forEach(nmjlPattern => {
+    allNMJLPatterns.forEach((nmjlPattern) => {
       const handPattern = NMJLPatternAdapter.convertToHandPattern(nmjlPattern);
+      
       const analysis = this.analyzePatternMatch(
         playerTiles,
         tileCountMap,
@@ -296,16 +297,9 @@ export class EnhancedHandAnalyzer {
     exactMatches: number,
     totalRequired: number
   ): number {
-    let value = 0;
-    
-    // Base value from pattern points
-    value += handPattern.points;
-    
-    // Multiply by completion rate
-    value *= completion;
-    
-    // Multiply by confidence
-    value *= confidence;
+    // Base value from pattern points, weighted by completion and confidence
+    // Use Math.max to ensure some base value even with 0% completion
+    let value = handPattern.points * Math.max(0.1, completion) * confidence;
     
     // Bonus for having many exact matches
     value += (exactMatches / totalRequired) * 10;
