@@ -56,7 +56,7 @@ export class CharlestonEngine {
       const patternAnalyses = NMJLPatternAnalyzer.analyzeAllPatterns(playerTiles, 2025, 5);
       const topPatterns = patternAnalyses.slice(0, 3)
         .filter(analysis => analysis.pattern) // Only include valid patterns
-        .map((analysis, index) => {
+        .map((analysis) => {
           // Create more specific pattern name with completion percentage
           const completionPercent = Math.round(analysis.completion * 100);
           const patternName = analysis.pattern.name || 'Unknown Pattern';
@@ -68,7 +68,7 @@ export class CharlestonEngine {
             description: patternDesc,
             requiredTiles: analysis.pattern.requiredTiles || [],
             optionalTiles: analysis.pattern.optionalTiles || [],
-            points: analysis.pattern.points || 25,
+            points: analysis.pattern.points || 25, // FIX: Direct use, no multiplication
             difficulty: analysis.pattern.difficulty || 'medium' as const
           };
         });
@@ -90,7 +90,7 @@ export class CharlestonEngine {
         phaseAdvice: {
           whatToExpect: `Charleston Round 1: Pass your 3 least useful tiles`,
           nextPhaseStrategy: `${topPatterns.length > 0 ? `Keep working toward ${topPatterns[0].name.split(' (')[0]}` : 'Remain flexible until a clear pattern emerges'}`,
-          riskAssessment: `${topPatterns.length > 0 && Math.round((topPatterns[0] as any).completion * 100) > 40 ? 'Conservative approach - strong pattern emerging' : 'Balanced approach - exploring options'}`
+          riskAssessment: `${topPatterns.length > 0 && Math.round(topPatterns[0].completion * 100) > 40 ? 'Conservative approach - strong pattern emerging' : 'Balanced approach - exploring options'}`
         }
       };
     } catch (error) {

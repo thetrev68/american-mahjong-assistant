@@ -18,7 +18,7 @@ american-mahjong-assistant/
 │   │   │   ├── charleston/
 │   │   │   │   ├── CharlestonHandDisplay.tsx (122 lines)
 │   │   │   │   ├── CharlestonPassingArea.tsx (105 lines)
-│   │   │   │   ├── CharlestonRecommendationPanel.tsx (336 lines)
+│   │   │   │   ├── CharlestonRecommendationPanel.tsx (289 lines)
 │   │   │   │   └── CharlestonTileSelector.tsx (217 lines)
 │   │   │   ├── game/
 │   │   │   │   ├── ActionButtons.tsx (201 lines)
@@ -34,16 +34,16 @@ american-mahjong-assistant/
 │   │   │   │   └── TurnTimer.tsx (120 lines)
 │   │   │   ├── PatternExplorer/
 │   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   ├── PatternDetailView.tsx (250 lines)
+│   │   │   │   ├── PatternDetailView.tsx (249 lines)
 │   │   │   │   └── PatternExplorer.tsx (356 lines)
 │   │   │   ├── PrivateHandView/
 │   │   │   │   ├── hooks/
-│   │   │   │   │   ├── useHandAnalysis.tsx (241 lines)
+│   │   │   │   │   ├── useHandAnalysis.tsx (298 lines)
 │   │   │   │   │   └── usePrivateGameState.tsx (107 lines)
 │   │   │   │   ├── HandAnalysisPanel.tsx (363 lines)
 │   │   │   │   ├── HandTileGrid.tsx (266 lines)
 │   │   │   │   ├── index.ts (20 lines)
-│   │   │   │   ├── PrivateHandView.tsx (351 lines)
+│   │   │   │   ├── PrivateHandView.tsx (355 lines)
 │   │   │   │   └── TileActionBar.tsx (181 lines)
 │   │   │   ├── room/
 │   │   │   │   ├── PlayerPositioning.tsx (242 lines)
@@ -73,22 +73,22 @@ american-mahjong-assistant/
 │   │   │   ├── nmjl-2025-types.ts (125 lines)
 │   │   │   └── socket-events.ts (491 lines)
 │   │   ├── utils/
-│   │   │   ├── charleston-engine.ts (458 lines)
-│   │   │   ├── charleston-recommendation-engine.ts (566 lines)
+│   │   │   ├── charleston-engine.ts (478 lines)
+│   │   │   ├── charleston-recommendation-engine.ts (642 lines)
 │   │   │   ├── dealer-logic.ts (137 lines)
-│   │   │   ├── enhanced-hand-analyzer.ts (456 lines)
+│   │   │   ├── enhanced-hand-analyzer.ts (473 lines)
 │   │   │   ├── game-state-machine.ts (423 lines)
 │   │   │   ├── gameplay-recommendation-engine.ts (457 lines)
-│   │   │   ├── nmjl-2025-loader.ts (357 lines)
+│   │   │   ├── nmjl-2025-loader.ts (363 lines)
 │   │   │   ├── nmjl-2025-test.ts (64 lines)
 │   │   │   ├── nmjl-card-2025-original.json (4367 lines)
 │   │   │   ├── nmjl-card-2025.json (4367 lines)
-│   │   │   ├── nmjl-pattern-adapter.ts (304 lines)
-│   │   │   ├── nmjl-pattern-analyzer.ts (316 lines)
-│   │   │   ├── nmjl-patterns-2025.ts (298 lines)
+│   │   │   ├── nmjl-pattern-adapter.ts (310 lines)
+│   │   │   ├── nmjl-pattern-analyzer.ts (315 lines)
+│   │   │   ├── nmjl-patterns-2025.ts (300 lines)
 │   │   │   ├── nmjl-probability-calculator.ts (385 lines)
 │   │   │   ├── nmjl-rules-enforcer.ts (472 lines)
-│   │   │   ├── pattern-integration-helpers.ts (216 lines)
+│   │   │   ├── pattern-integration-helpers.ts (217 lines)
 │   │   │   ├── pattern-search-engine.ts (459 lines)
 │   │   │   ├── strategic-advice-engine.ts (388 lines)
 │   │   │   └── tile-utils.ts (176 lines)
@@ -120,6 +120,7 @@ american-mahjong-assistant/
 ├── mahjong technical analysis.md
 ├── NMJL 2025 Card JSON prep 20250808.xlsx
 ├── PROJECT_POLISH_CHECKLIST.md
+├── QA_Charleston.md
 ├── README.md
 ├── recommendation_engine.md
 ├── TODO.md
@@ -131,9 +132,9 @@ american-mahjong-assistant/
 DIRECTORY TREE STATISTICS
 ==================================================
 Total directories: 19
-Total files: 108
+Total files: 109
 Files with line counts: 89
-Total lines of code: 32,854
+Total lines of code: 32,994
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv

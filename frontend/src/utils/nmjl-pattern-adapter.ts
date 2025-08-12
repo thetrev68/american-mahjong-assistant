@@ -1,5 +1,6 @@
 // frontend/src/utils/nmjl-pattern-adapter.ts
 // Adapter to convert real NMJL 2025 patterns to HandPattern interface
+// FIXED: Tile ID format now matches player tiles
 
 import type { HandPattern, Tile, TileValue } from '../types';
 import type { NMJL2025Pattern, PatternGroup, ParsedConstraint } from '../types/nmjl-2025-types';
@@ -88,10 +89,13 @@ export class NMJLPatternAdapter {
     const tiles: Tile[] = [];
     
     if (constraint.isFlower) {
-      // 4 flowers
-      for (let i = 0; i < 4; i++) {
-        tiles.push(this.createTile('flowers', 'f1'));
-      }
+      // 4 flowers - using f1, f2, f3, f4 for variety
+      tiles.push(
+        this.createTile('flowers', 'f1'),
+        this.createTile('flowers', 'f2'),
+        this.createTile('flowers', 'f3'),
+        this.createTile('flowers', 'f4')
+      );
     } else if (constraint.isDragon) {
       // 4 dragons of same color
       const dragonType = this.inferDragonType(constraint.raw || '');
@@ -127,9 +131,12 @@ export class NMJLPatternAdapter {
     const tiles: Tile[] = [];
     
     if (constraint.isFlower) {
-      for (let i = 0; i < 3; i++) {
-        tiles.push(this.createTile('flowers', 'f1'));
-      }
+      // Use first 3 flower types
+      tiles.push(
+        this.createTile('flowers', 'f1'),
+        this.createTile('flowers', 'f2'),
+        this.createTile('flowers', 'f3')
+      );
     } else if (constraint.isDragon) {
       const dragonType = this.inferDragonType(constraint.raw || '');
       for (let i = 0; i < 3; i++) {
@@ -161,9 +168,10 @@ export class NMJLPatternAdapter {
     const tiles: Tile[] = [];
     
     if (constraint.isFlower) {
-      for (let i = 0; i < 2; i++) {
-        tiles.push(this.createTile('flowers', 'f1'));
-      }
+      tiles.push(
+        this.createTile('flowers', 'f1'),
+        this.createTile('flowers', 'f2')
+      );
     } else if (constraint.isDragon) {
       const dragonType = this.inferDragonType(constraint.raw || '');
       for (let i = 0; i < 2; i++) {
@@ -302,14 +310,52 @@ export class NMJLPatternAdapter {
   }
 
   /**
-   * Create a tile with the proper interface
+   * FIXED: Create a tile with the proper ID format matching player tiles
+   * Player tiles from tile-utils.ts use: 
+   * - 1D, 2D, 3D, etc. for dots
+   * - 1B, 2B, 3B, etc. for bams
+   * - 1C, 2C, 3C, etc. for cracks
+   * - east, south, west, north for winds
+   * - red, green, white for dragons
+   * - f1, f2, f3, f4 for flowers
+   * - joker for jokers
    */
   private static createTile(suit: string, value: string): Tile {
+    let tileId: string;
+    
+    // Create ID based on suit and value to match player tile format from tile-utils.ts
+    if (suit === 'dots') {
+      // Dots: 1D, 2D, 3D, etc.
+      tileId = `${value}D`;
+    } else if (suit === 'bams') {
+      // Bams: 1B, 2B, 3B, etc.
+      tileId = `${value}B`;
+    } else if (suit === 'cracks') {
+      // Cracks: 1C, 2C, 3C, etc.
+      tileId = `${value}C`;
+    } else if (suit === 'winds') {
+      // Wind tiles: east, south, west, north
+      tileId = value; // value is already 'east', 'south', etc.
+    } else if (suit === 'dragons') {
+      // Dragon tiles: red, green, white
+      tileId = value; // value is already 'red', 'green', 'white'
+    } else if (suit === 'flowers') {
+      // Flower tiles: f1, f2, f3, f4
+      tileId = value; // value is already 'f1', 'f2', etc.
+    } else if (suit === 'jokers') {
+      // Joker tiles: joker
+      tileId = 'joker';
+    } else {
+      // Fallback (shouldn't happen)
+      console.warn(`Unknown suit "${suit}" for tile value "${value}"`);
+      tileId = `${value}${suit}`;
+    }
+    
     return {
-      id: `${value}${suit}`,
+      id: tileId,
       suit: suit as 'bams' | 'cracks' | 'dots' | 'winds' | 'dragons' | 'flowers' | 'jokers',
       value: value as TileValue,
-      isJoker: false
+      isJoker: suit === 'jokers'
     };
   }
 

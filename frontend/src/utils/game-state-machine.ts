@@ -29,6 +29,7 @@ export const PHASE_SETTINGS = {
   DEALER_TILE_COUNT: 14,       // East (dealer) tile count
   PLAYER_TILE_COUNT: 13,       // Other players tile count
   REQUIRED_CHARLESTON_TILES: 3, // Tiles to pass in Charleston
+  CHARLESTON_TIMER_VISUAL_ONLY: true, // FIX: Charleston timer is visual only
 } as const;
 
 // Convert to milliseconds (used internally)

@@ -786,7 +786,9 @@ class RoomManager {
   ): CharlestonAdvanceResult | ErrorResult {
     const room = this.rooms.get(roomCode);
     if (!room) {
-      return { success: false, error: 'Room not found' };
+      // FIX: More helpful error message
+      console.warn(`Charleston advance failed: Room ${roomCode} not found`);
+      return { success: false, error: `Room ${roomCode} not found. You may need to rejoin.` };
     }
 
     const host = room.players.get(hostSocketId);
@@ -794,8 +796,21 @@ class RoomManager {
       return { success: false, error: 'Only host can advance Charleston phase' };
     }
 
+    // FIX: Check if Charleston is still active
+    if (!room.charlestonState || !room.charlestonState.isActive) {
+      console.warn(`Charleston advance failed: Charleston not active in room ${roomCode}`);
+      // Allow graceful recovery instead of error
+      return {
+        success: true,
+        nextPhase: undefined // Charleston is already complete
+      };
+    }
+
     if (room.gameState.phase !== 'charleston') {
-      return { success: false, error: 'Not in Charleston phase' };
+      // FIX: Allow advancing even if phase mismatch (for recovery)
+      console.warn(`Charleston phase mismatch in room ${roomCode}: expected charleston, got ${room.gameState.phase}`);
+      // Try to recover by setting phase correctly
+      room.gameState.phase = 'charleston';
     }
 
     // Use the same logic as distribution to get next phase
