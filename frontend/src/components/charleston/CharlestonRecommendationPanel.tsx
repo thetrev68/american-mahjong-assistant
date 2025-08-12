@@ -74,11 +74,55 @@ const CharlestonRecommendationPanel: React.FC<CharlestonRecommendationPanelProps
     );
   }
 
+  // DEBUG: Log recommendation state for debugging
+  console.log('[DEBUG CharlestonPanel] Recommendations received:', {
+    hasRecommendations: !!recommendations,
+    confidence: recommendations?.confidence,
+    tilesToPassLength: recommendations?.tilesToPass?.length,
+    tilesToKeepLength: recommendations?.tilesToKeep?.length,
+    currentPhase,
+    isLoading
+  });
+
   if (!recommendations) {
+    console.error('[ERROR CharlestonPanel] No recommendations received - check useCharleston hook');
     return (
-      <div className="bg-yellow-50 rounded-lg p-4 text-center">
-        <p className="text-sm text-gray-600">
-          Input your tiles to get Charleston passing recommendations
+      <div className="bg-red-50 rounded-lg p-4 text-center border border-red-200">
+        <div className="text-red-600 mb-2">⚠️ No Recommendations Available</div>
+        <p className="text-sm text-red-700 mb-2">
+          Unable to generate Charleston recommendations
+        </p>
+        <p className="text-xs text-red-600">
+          Check console for debug information
+        </p>
+      </div>
+    );
+  }
+
+  // Validate recommendation data
+  if (!recommendations.tilesToPass || !recommendations.tilesToKeep) {
+    console.error('[ERROR CharlestonPanel] Invalid recommendation data:', recommendations);
+    return (
+      <div className="bg-red-50 rounded-lg p-4 text-center border border-red-200">
+        <div className="text-red-600 mb-2">⚠️ Invalid Recommendation Data</div>
+        <p className="text-sm text-red-700">
+          Recommendations are missing required data
+        </p>
+      </div>
+    );
+  }
+
+  // Check for 0% confidence specifically
+  if (typeof recommendations.confidence === 'number' && recommendations.confidence === 0) {
+    console.warn('[WARN CharlestonPanel] 0% confidence detected:', recommendations);
+    return (
+      <div className="bg-orange-50 rounded-lg p-4 text-center border border-orange-200">
+        <div className="text-orange-600 mb-2">⚠️ Low Confidence Recommendations</div>
+        <p className="text-sm text-orange-700 mb-2">
+          Charleston engine has 0% confidence in these recommendations
+        </p>
+        <p className="text-xs text-orange-600">
+          This usually indicates a pattern loading or analysis issue
         </p>
       </div>
     );

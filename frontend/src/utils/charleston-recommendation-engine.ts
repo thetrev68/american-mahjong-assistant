@@ -45,8 +45,21 @@ export class CharlestonRecommendationEngine {
     playerCount: number = 4
   ): CharlestonRecommendation {
     
+    // DEBUG: Check pattern loading and input data
+    console.log('[DEBUG Charleston] Pattern count:', nmjl2025Loader.getAllPatterns().length); // Should be 71
+    console.log('[DEBUG Charleston] Input tiles:', playerTiles.map(t => t.id));
+    console.log('[DEBUG Charleston] Phase:', phase);
+    console.log('[DEBUG Charleston] Card year:', cardYear);
+    
     // Step 1: Analyze current hand against all real NMJL 2025 patterns
     const patternAnalyses = NMJLPatternAnalyzer.analyzeAllPatterns(playerTiles, cardYear, 15);
+    console.log('[DEBUG Charleston] Pattern analyses count:', patternAnalyses.length);
+    console.log('[DEBUG Charleston] Top pattern analyses:', patternAnalyses.slice(0, 3).map(p => ({
+      name: p.pattern?.name,
+      completion: p.completion,
+      confidence: p.confidence
+    })));
+    
     const topPatterns = patternAnalyses.slice(0, 5); // Analyze top 5 patterns for better depth
     
     // Step 2: Get pattern-specific insights from real NMJL data
@@ -92,7 +105,8 @@ export class CharlestonRecommendationEngine {
       phase
     );
 
-    return {
+    // DEBUG: Final recommendation output
+    const finalRecommendation = {
       tilesToPass,
       tilesToKeep,
       confidence,
@@ -100,6 +114,18 @@ export class CharlestonRecommendationEngine {
       alternativeOptions: passOptions.slice(1, 3), // Next 2 best options
       strategicAdvice
     };
+    
+    console.log('[DEBUG Charleston] Final recommendation:', {
+      confidence: finalRecommendation.confidence,
+      tilesToPassCount: finalRecommendation.tilesToPass.length,
+      tilesToPassIds: finalRecommendation.tilesToPass.map(t => t.id),
+      reasoningCount: finalRecommendation.reasoning.length,
+      alternativeOptionsCount: finalRecommendation.alternativeOptions.length,
+      strategicAdviceCount: finalRecommendation.strategicAdvice.length,
+      bestOptionScore: bestOption.score
+    });
+
+    return finalRecommendation;
   }
   
   /**
@@ -255,16 +281,29 @@ export class CharlestonRecommendationEngine {
     let keepBonus = 0;
     let passBonus = 0;
     
-    // Jokers - extremely valuable, almost never pass
+    // Jokers - extremely valuable, NEVER pass unless extreme circumstances
     if (tile.isJoker || tile.suit === 'jokers') {
-      keepBonus += 20;
-      reasoning.push('Jokers are extremely versatile - keep unless you have 4+');
+      keepBonus += 50; // Massive keep bonus - jokers are invaluable
+      reasoning.push('JOKERS ARE PRECIOUS - Keep at all costs');
       
+      // DEBUG: Check joker detection
+      console.log('[DEBUG Charleston] Joker detected:', {
+        tileId: tile.id,
+        isJoker: tile.isJoker,
+        suit: tile.suit,
+        totalJokersInHand: playerTiles.filter(t => t.isJoker || t.suit === 'jokers').length
+      });
+      
+      // Only consider passing if we have 4+ jokers (extremely rare)
       const jokerCount = playerTiles.filter(t => t.isJoker || t.suit === 'jokers').length;
-      if (jokerCount > 3) {
-        keepBonus -= 5; // Slight reduction if we have many jokers
-        passBonus += 2;
-        reasoning.push('Have multiple jokers - could pass one');
+      if (jokerCount >= 4) {
+        keepBonus = 30; // Still high, but could consider passing 1
+        passBonus += 5;
+        reasoning.push(`Have ${jokerCount} jokers - could consider passing one`);
+      } else {
+        // Normal case: 1-3 jokers, NEVER pass
+        passBonus = -50; // Massive penalty for passing
+        reasoning.push(`Only ${jokerCount} joker(s) - NEVER pass these`);
       }
     }
     
@@ -357,8 +396,10 @@ export class CharlestonRecommendationEngine {
     
     const combinations: Array<{ tilesToPass: Tile[]; score: number; reasoning: string }> = [];
     
-    // Sort tiles by pass value (highest first)
-    const sortedForPassing = [...tileValues].sort((a, b) => b.passValue - a.passValue);
+    // Sort tiles by pass value (highest first) - NEVER include jokers
+    const sortedForPassing = [...tileValues]
+      .filter(tv => !tv.tile.isJoker && tv.tile.suit !== 'jokers') // CRITICAL: Filter out jokers
+      .sort((a, b) => b.passValue - a.passValue);
     
     // Generate combinations of 3 tiles to pass
     for (let i = 0; i < Math.min(sortedForPassing.length - 2, 10); i++) {
@@ -369,6 +410,12 @@ export class CharlestonRecommendationEngine {
           const tile3 = sortedForPassing[k];
           
           const tilesToPass = [tile1.tile, tile2.tile, tile3.tile];
+          
+          // Double-check: NEVER pass jokers
+          if (tilesToPass.some(t => t.isJoker || t.suit === 'jokers')) {
+            console.error('[CRITICAL] Attempted to pass joker in fallback method!', tilesToPass);
+            continue; // Skip this combination
+          }
           const score = tile1.passValue + tile2.passValue + tile3.passValue;
           
           // Penalize passing tiles we really need
@@ -496,40 +543,52 @@ export class CharlestonRecommendationEngine {
     // Strategy 1: Pass 3 isolated tiles (safest)
     if (isolatedTiles.length >= 3) {
       const topIsolated = isolatedTiles
+        .filter(tv => !tv.tile.isJoker && tv.tile.suit !== 'jokers') // NEVER include jokers
         .sort((a, b) => b.passValue - a.passValue)
         .slice(0, 3);
       
-      combinations.push({
-        tilesToPass: topIsolated.map(tv => tv.tile),
-        score: 20 + topIsolated.reduce((sum, tv) => sum + tv.passValue, 0),
-        reasoning: `Pass isolated tiles: ${topIsolated.map(tv => tv.tile.id).join(', ')} - not needed for any viable patterns`
-      });
+      if (topIsolated.length >= 3) {
+        combinations.push({
+          tilesToPass: topIsolated.map(tv => tv.tile),
+          score: 20 + topIsolated.reduce((sum, tv) => sum + tv.passValue, 0),
+          reasoning: `Pass isolated tiles: ${topIsolated.map(tv => tv.tile.id).join(', ')} - not needed for any viable patterns`
+        });
+      }
     }
     
     // Strategy 2: Mix isolated + flexible (balanced approach)
     if (isolatedTiles.length >= 2 && flexibleTiles.length >= 1) {
-      const topIsolatedMix = isolatedTiles.sort((a, b) => b.passValue - a.passValue).slice(0, 2);
-      const topFlexibleMix = flexibleTiles.sort((a, b) => b.passValue - a.passValue).slice(0, 1);
+      const topIsolatedMix = isolatedTiles
+        .filter(tv => !tv.tile.isJoker && tv.tile.suit !== 'jokers') // NEVER include jokers
+        .sort((a, b) => b.passValue - a.passValue).slice(0, 2);
+      const topFlexibleMix = flexibleTiles
+        .filter(tv => !tv.tile.isJoker && tv.tile.suit !== 'jokers') // NEVER include jokers
+        .sort((a, b) => b.passValue - a.passValue).slice(0, 1);
       const mixedPass = [...topIsolatedMix, ...topFlexibleMix];
       
-      combinations.push({
-        tilesToPass: mixedPass.map(tv => tv.tile),
-        score: 15 + mixedPass.reduce((sum, tv) => sum + tv.passValue, 0),
-        reasoning: `Mixed pass: ${mixedPass.map(tv => tv.tile.id).join(', ')} - balance safety with potential`
-      });
+      if (mixedPass.length >= 3) {
+        combinations.push({
+          tilesToPass: mixedPass.map(tv => tv.tile),
+          score: 15 + mixedPass.reduce((sum, tv) => sum + tv.passValue, 0),
+          reasoning: `Mixed pass: ${mixedPass.map(tv => tv.tile.id).join(', ')} - balance safety with potential`
+        });
+      }
     }
     
     // Strategy 3: All flexible (strategic)
     if (flexibleTiles.length >= 3) {
       const topFlexible = flexibleTiles
+        .filter(tv => !tv.tile.isJoker && tv.tile.suit !== 'jokers') // NEVER include jokers
         .sort((a, b) => b.passValue - a.passValue)
         .slice(0, 3);
       
-      combinations.push({
-        tilesToPass: topFlexible.map(tv => tv.tile),
-        score: 12 + topFlexible.reduce((sum, tv) => sum + tv.passValue, 0),
-        reasoning: `Strategic pass: ${topFlexible.map(tv => tv.tile.id).join(', ')} - focus on strongest pattern`
-      });
+      if (topFlexible.length >= 3) {
+        combinations.push({
+          tilesToPass: topFlexible.map(tv => tv.tile),
+          score: 12 + topFlexible.reduce((sum, tv) => sum + tv.passValue, 0),
+          reasoning: `Strategic pass: ${topFlexible.map(tv => tv.tile.id).join(', ')} - focus on strongest pattern`
+        });
+      }
     }
     
     // Fallback: Use original combination logic if no clear strategic options

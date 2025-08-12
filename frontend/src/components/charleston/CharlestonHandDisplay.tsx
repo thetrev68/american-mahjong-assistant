@@ -25,9 +25,21 @@ const CharlestonHandDisplay: React.FC<CharlestonHandDisplayProps> = ({
   const getTileRecommendation = (tile: Tile): 'keep' | 'pass' | 'neutral' => {
     if (!recommendations) return 'neutral';
     
-    // Check if this tile type is in recommendations
-    const isRecommendedToPass = recommendations.tilesToPass.some(t => t.id === tile.id);
-    const isRecommendedToKeep = recommendations.tilesToKeep.some(t => t.id === tile.id);
+    // Check if this EXACT tile instance is in recommendations
+    // This handles cases where you have multiple copies of the same tile
+    const isRecommendedToPass = recommendations.tilesToPass.some(t => t === tile);
+    const isRecommendedToKeep = recommendations.tilesToKeep.some(t => t === tile);
+    
+    // DEBUG: Log tile recommendation check
+    if (tile.id === 'joker') {
+      console.log(`[DEBUG Charleston Display] Joker recommendation check:`, {
+        tileId: tile.id,
+        isInPassList: isRecommendedToPass,
+        isInKeepList: isRecommendedToKeep,
+        passListCount: recommendations.tilesToPass.length,
+        passListIds: recommendations.tilesToPass.map(t => t.id)
+      });
+    }
     
     if (isRecommendedToPass) return 'pass';
     if (isRecommendedToKeep) return 'keep';

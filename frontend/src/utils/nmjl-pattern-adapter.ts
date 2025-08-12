@@ -16,14 +16,18 @@ export class NMJLPatternAdapter {
    * Convert NMJL2025Pattern to HandPattern for use in existing systems
    */
   static convertToHandPattern(nmjlPattern: NMJL2025Pattern): HandPattern {
-    // Create proper section/line naming based on NMJL card structure
+    // Use the actual pattern name from Hand_Pattern (e.g., "LIKE NUMBERS", "BIG DRAGONS", etc.)
+    const patternName = nmjlPattern.Hand_Pattern || `Pattern ${nmjlPattern["Pattern ID"]}`;
+    
+    // Create detailed description with section/line info
     const sectionName = typeof nmjlPattern.Section === 'string' ? nmjlPattern.Section : nmjlPattern.Section.toString();
-    const patternName = `Section ${sectionName}, Line ${nmjlPattern.Line}, Pattern ${nmjlPattern.Hand_Pattern}`;
+    const description = nmjlPattern.Hand_Description || 
+      `Section ${sectionName}, Line ${nmjlPattern.Line} - ${patternName}`;
     
     return {
       id: `nmjl-2025-${nmjlPattern.Hands_Key || nmjlPattern["Pattern ID"]}`,
-      name: patternName,
-      description: nmjlPattern.Hand_Description || nmjlPattern.Hand_Pattern,
+      name: patternName, // Use actual pattern name
+      description: description,
       requiredTiles: this.extractRequiredTiles(nmjlPattern),
       optionalTiles: [], // NMJL patterns don't have optional tiles
       points: nmjlPattern.Hand_Points,

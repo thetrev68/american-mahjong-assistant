@@ -137,8 +137,25 @@ export class NMJLPatternAnalyzer {
     const patterns = this.getPatternsByYear(cardYear);
     const availableJokers = playerTiles.filter(t => t.isJoker || t.suit === 'jokers').length;
     
-    const results: PatternMatch[] = patterns.map(pattern => {
+    // DEBUG: Log pattern analysis details
+    console.log('[DEBUG Pattern Analyzer] Analyzing', patterns.length, 'patterns');
+    console.log('[DEBUG Pattern Analyzer] Player tiles:', playerTiles.map(t => t.id));
+    console.log('[DEBUG Pattern Analyzer] Available jokers:', availableJokers);
+    
+    const results: PatternMatch[] = patterns.map((pattern, index) => {
       const analysis = this.analyzePattern(playerTiles, pattern, availableJokers);
+      
+      // DEBUG: Log first few pattern analyses
+      if (index < 3) {
+        console.log(`[DEBUG Pattern Analyzer] Pattern ${index + 1}: ${pattern.name}`, {
+          points: pattern.points,
+          difficulty: pattern.difficulty,
+          completion: analysis.completion,
+          confidence: analysis.confidence,
+          requiredTilesCount: pattern.requiredTiles.length,
+          requiredTilesSample: pattern.requiredTiles.slice(0, 5).map(t => t.id)
+        });
+      }
       
       return {
         pattern,
