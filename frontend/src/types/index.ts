@@ -158,6 +158,7 @@ export interface HandPattern {
   optionalTiles: Tile[];
   points: number;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  completion?: number;    // 0-1, how close to completing (optional for backward compatibility)
 }
 
 export interface HandAnalysis {

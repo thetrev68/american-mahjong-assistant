@@ -69,7 +69,8 @@ export class CharlestonEngine {
             requiredTiles: analysis.pattern.requiredTiles || [],
             optionalTiles: analysis.pattern.optionalTiles || [],
             points: analysis.pattern.points || 25, // FIX: Direct use, no multiplication
-            difficulty: analysis.pattern.difficulty || 'medium' as const
+            difficulty: analysis.pattern.difficulty || 'medium' as const,
+            completion: analysis.completion // Preserve completion data
           };
         });
       
@@ -90,7 +91,7 @@ export class CharlestonEngine {
         phaseAdvice: {
           whatToExpect: `Charleston Round 1: Pass your 3 least useful tiles`,
           nextPhaseStrategy: `${topPatterns.length > 0 ? `Keep working toward ${topPatterns[0].name.split(' (')[0]}` : 'Remain flexible until a clear pattern emerges'}`,
-          riskAssessment: `${topPatterns.length > 0 && Math.round(topPatterns[0].completion * 100) > 40 ? 'Conservative approach - strong pattern emerging' : 'Balanced approach - exploring options'}`
+          riskAssessment: `${topPatterns.length > 0 && topPatterns[0].completion && Math.round(topPatterns[0].completion * 100) > 40 ? 'Conservative approach - strong pattern emerging' : 'Balanced approach - exploring options'}`
         }
       };
     } catch (error) {
