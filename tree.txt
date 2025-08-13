@@ -3,7 +3,7 @@ american-mahjong-assistant/
 │   ├── api/
 │   │   └── socket.ts (32 lines)
 │   ├── src/
-│   │   ├── roomManager.ts (1033 lines)
+│   │   ├── roomManager.ts (1047 lines)
 │   │   └── server.ts (470 lines)
 │   ├── .gitkeep
 │   ├── package-lock.json (1897 lines)
@@ -18,7 +18,7 @@ american-mahjong-assistant/
 │   │   │   ├── charleston/
 │   │   │   │   ├── CharlestonHandDisplay.tsx (122 lines)
 │   │   │   │   ├── CharlestonPassingArea.tsx (105 lines)
-│   │   │   │   ├── CharlestonRecommendationPanel.tsx (289 lines)
+│   │   │   │   ├── CharlestonRecommendationPanel.tsx (226 lines)
 │   │   │   │   └── CharlestonTileSelector.tsx (217 lines)
 │   │   │   ├── game/
 │   │   │   │   ├── ActionButtons.tsx (201 lines)
@@ -76,14 +76,14 @@ american-mahjong-assistant/
 │   │   │   ├── charleston-engine.ts (478 lines)
 │   │   │   ├── charleston-recommendation-engine.ts (642 lines)
 │   │   │   ├── dealer-logic.ts (137 lines)
-│   │   │   ├── enhanced-hand-analyzer.ts (473 lines)
-│   │   │   ├── game-state-machine.ts (423 lines)
+│   │   │   ├── enhanced-hand-analyzer.ts (469 lines)
+│   │   │   ├── game-state-machine.ts (424 lines)
 │   │   │   ├── gameplay-recommendation-engine.ts (457 lines)
 │   │   │   ├── nmjl-2025-loader.ts (363 lines)
 │   │   │   ├── nmjl-2025-test.ts (64 lines)
 │   │   │   ├── nmjl-card-2025-original.json (4367 lines)
 │   │   │   ├── nmjl-card-2025.json (4367 lines)
-│   │   │   ├── nmjl-pattern-adapter.ts (310 lines)
+│   │   │   ├── nmjl-pattern-adapter.ts (376 lines)
 │   │   │   ├── nmjl-pattern-analyzer.ts (315 lines)
 │   │   │   ├── nmjl-patterns-2025.ts (300 lines)
 │   │   │   ├── nmjl-probability-calculator.ts (385 lines)
@@ -115,6 +115,7 @@ american-mahjong-assistant/
 ├── Charleston_Audit.md
 ├── Charleston_Implementation.md
 ├── CLAUDE.md
+├── Code_Flow_Happy_Path.md
 ├── game_state_implementation.md
 ├── mahjong functional analysis.md
 ├── mahjong technical analysis.md
@@ -132,9 +133,9 @@ american-mahjong-assistant/
 DIRECTORY TREE STATISTICS
 ==================================================
 Total directories: 19
-Total files: 109
+Total files: 110
 Files with line counts: 89
-Total lines of code: 32,994
+Total lines of code: 33,008
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv

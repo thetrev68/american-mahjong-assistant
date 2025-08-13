@@ -1,0 +1,4367 @@
+[
+  {
+    "Year": 2025,
+    "Section": 2025,
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2025-1-1",
+    "Hand_Pattern": "FFFF 2025 222 222",
+    "Hand_Description": "Any 3 Suits, Like Pungs 2s or 5s In Opp. Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": 2025,
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,0,2,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "zero_is_neutral",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222_1",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2,5",
+        "Constraint_Must_Match": "222_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "222_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2,5",
+        "Constraint_Must_Match": "222_1",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2025",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2025-2-1",
+    "Hand_Pattern": "222 0000 222 5555",
+    "Hand_Description": "Any 2 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "222_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": 2,
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "0000",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "222_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": 2,
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "5555",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2025",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2025-3-1",
+    "Hand_Pattern": "2025 222 555 DDDD",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "2025",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,0,2,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "zero_is_neutral",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "555",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDDD",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2025",
+    "Line": 4,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2025-4-1",
+    "Hand_Pattern": "FF 222 000 222 555",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "000",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "0",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "zero_is_neutral",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "555",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-1-1",
+    "Hand_Pattern": "222 4444 666 8888",
+    "Hand_Description": "Any 1 or 2 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "222",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "4444",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "8888",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 1,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-2468-1-2",
+    "Hand_Pattern": "222 4444 666 8888",
+    "Hand_Description": "Any 1 or 2 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "222",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "4444",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "8888",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-2-1",
+    "Hand_Pattern": "FF 2222 + 4444 = 6666",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2222",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "4444",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "6666",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 2,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-2468-2-2",
+    "Hand_Pattern": "FF 2222 + 6666 = 8888",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2222",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "6666",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "8888",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-3-1",
+    "Hand_Pattern": "22 444 66 888 DDDD",
+    "Hand_Description": "Any 1 Suit",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "22",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "444",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "66",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "888",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDDD",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 4,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-4-1",
+    "Hand_Pattern": "FFFF 2468 222 222",
+    "Hand_Description": "Any 3 Suits, Like Pungs, Any Even No.",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "2468",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222_1",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "222_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 5,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-5-1",
+    "Hand_Pattern": "FFF 22 44 666 8888",
+    "Hand_Description": "Any 1 Suit",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "22",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "44",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "8888",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 6,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-6-1",
+    "Hand_Pattern": "222 4444 666 88 88",
+    "Hand_Description": "Any 3 Suits. Parts 8s Only",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "222",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "4444",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "88_1",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "88_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 7,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-7-1",
+    "Hand_Pattern": "FF 2222 DDDD 2222",
+    "Hand_Description": "Any 3 Suits, Like Kongs. Any Even No.",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2222_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": "2222_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDDD",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "2222_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": "2222_1",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "2468",
+    "Line": 8,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-2468-8-1",
+    "Hand_Pattern": "22 44 66 88 222 222",
+    "Hand_Description": "Any 3 Suits. Like Pungs. Any Even No.",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "22",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "44",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "66",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "88",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222_1",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": "222_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": "222_1",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "ANY LIKE NUMBERS",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-ANY_LIKE_NUMBERS-1-1",
+    "Hand_Pattern": "FF 1111 D 1111 D 11",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "1111_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "11,1111_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "D_1",
+        "Suit_Role": "same_as:1111_1",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "1111_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "1111_1,11",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "D_2",
+        "Suit_Role": "same_as:1111_2",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "1111_1, 1111_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "ANY LIKE NUMBERS",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-ANY_LIKE_NUMBERS-2-1",
+    "Hand_Pattern": "FFFF 11 111 111 11",
+    "Hand_Description": "Any 3 Suits. Pairs Must Be Same Suit",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "11_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "111_1, 111_2, 11_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "111_1",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "11_1, 111_2, 11_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "111_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "11_1, 111_1, 11_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "11_2",
+        "Suit_Role": "same_as:11_1",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "11_1, 111_1, 111_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "ANY LIKE NUMBERS",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-ANY_LIKE_NUMBERS-3-1",
+    "Hand_Pattern": "FF 111 111 111 DDD",
+    "Hand_Description": "Any 3 Suits. Any Dragon",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "111_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "111_2, 111_3",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "111_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "111_1, 111_3",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "111_3",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "111_1, 111_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DDD",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "QUINTS",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-QUINTS-1-1",
+    "Hand_Pattern": "FF 111 2222 3333",
+    "Hand_Description": "Any 3 Suits, Any 3 Consec. Nos",
+    "Hand_Points": 40,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,33333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "2222",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "2,3,4,5,6,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,33333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "33333",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "quint",
+        "Constraint_Values": "3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,33333",
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "QUINTS",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-QUINTS-2-1",
+    "Hand_Pattern": "11 111 NNNN 22222",
+    "Hand_Description": "Any 1 Suit, Any Consec. Nos, Any Wind",
+    "Hand_Points": 45,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "11111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "quint",
+        "Constraint_Values": "1,2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11111,22222",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "NNNN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "n,e,w,s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "22222",
+        "Suit_Role": "same_as:11111",
+        "Suit_Note": null,
+        "Constraint_Type": "quint",
+        "Constraint_Values": "2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11111,22222",
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "QUINTS",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-QUINTS-3-1",
+    "Hand_Pattern": "FF 11111 11 11111",
+    "Hand_Description": "Any 3 Suits, Any Like Nos",
+    "Hand_Points": 45,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11111_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "quint",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "11,11111_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "11",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "11111_1, 11111_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11111_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "quint",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": "11111_1",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-1-1",
+    "Hand_Pattern": "11 222 3333 444 55",
+    "Hand_Description": "Any 1 Suit, These Nos Only",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "11",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222",
+        "Suit_Role": "same_as:11",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "444",
+        "Suit_Role": "same_as:3333",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "4",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "55",
+        "Suit_Role": "same_as:444",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 1,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-1-2",
+    "Hand_Pattern": "55 666 7777 888 99",
+    "Hand_Description": "Any 1 Suit, These Nos Only",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "55",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "same_as:55",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "7777",
+        "Suit_Role": "same_as:666",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "888",
+        "Suit_Role": "same_as:7777",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "99",
+        "Suit_Role": "same_as:888",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-2-1",
+    "Hand_Pattern": "111 2222 333 4444",
+    "Hand_Description": "Any 1 or 2 Suits, Any 4 Consec Nos",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "2222",
+        "Suit_Role": "same_as:111",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "same_as:2222",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "4444",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 2,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-2-2",
+    "Hand_Pattern": "111 2222 333 4444",
+    "Hand_Description": "Any 1 or 2 Suits, Any 4 Consec Nos",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "2222",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "4444",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,2222,333,4444",
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-3-1",
+    "Hand_Pattern": "FFFF 1111 22 3333",
+    "Hand_Description": "Any 1 or 3 Suits, Any 3 Consec Nos",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "1111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "22",
+        "Suit_Role": "same_as:1111",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 3,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-3-2",
+    "Hand_Pattern": "FFFF 1111 22 3333",
+    "Hand_Description": "Any 1 or 3 Suits, Any 3 Consec Nos",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "1111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1111,22,3333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "22",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1111,22,3333",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1111,22,3333",
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 4,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-4-1",
+    "Hand_Pattern": "FFF 123 4444 5555",
+    "Hand_Description": "Any 3 Suits, Any 5 Consec Nos",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "123",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:123,4444,5555",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "4444",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:123,4444,5555",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "5555",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:123,4444,5555",
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 5,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-5-1",
+    "Hand_Pattern": "FF 11 222 3333 DDD",
+    "Hand_Description": "Any 1 Suite, Any 3 Consec Nos",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11,222,333",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222",
+        "Suit_Role": "same_as:11",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11,222,333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11,222,333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDD",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 6,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-6-1",
+    "Hand_Pattern": "111 222 3333 DD DD",
+    "Hand_Description": "Any 3 Suits, Any 3 consec Nos v Opp Dragons",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "easy",
+    "Hand_Notes": "v Opp Dragons",
+    "Groups": [
+      {
+        "Group": "111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,222,3333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "222",
+        "Suit_Role": "same_as:111",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,222,3333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "same_as:222",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:111,222,3333",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DD_1",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DD_2",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 7,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-7-1",
+    "Hand_Pattern": "112345 1111 1111",
+    "Hand_Description": "Any 5 Consec Nos, Pair Any Nos In Run, Kongs Match Pair",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": "6 tile sequence with pair at positions 1-5, kongs match pair",
+    "Groups": [
+      {
+        "Group": "112345",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "pair_in_sequence:1,2,3,4,5, consecutive_after_pair",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "1111_1",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "match_pair:112345",
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "1111_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1,2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "match_pair:112345",
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "CONSECUTIVE RUN",
+    "Line": 8,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-CONSECUTIVE_RUN-8-1",
+    "Hand_Pattern": "FF 1 22 333 1 22 333",
+    "Hand_Description": "Any 2 Suits, Any Same 3 Consec Nos",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "1_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1_1,22_1,333_1",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "22_1",
+        "Suit_Role": "same_as:1_1",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1_1,22_1,333_1",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "333_1",
+        "Suit_Role": "same_as:22_1",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1_1,22_1,333_1",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "1_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "1,2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1_2,22_2,333_2",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "22_2",
+        "Suit_Role": "same_as:1_2",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1_2,22_2,333_2",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "333_2",
+        "Suit_Role": "same_as:22_2",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:1_2,22_2,333_2",
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-1-1",
+    "Hand_Pattern": "11 333 5555 777 99",
+    "Hand_Description": "Any 1 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "11",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": 1,
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "same_as:11",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "5555",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "777",
+        "Suit_Role": "same_as:5555",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "99",
+        "Suit_Role": "same_as:777",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 1,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-13579-1-2",
+    "Hand_Pattern": "11 333 5555 777 99",
+    "Hand_Description": "Any 1 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "11",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": 1,
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": 333,
+        "Suit_Role": "same_as:11",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": 5555,
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": 777,
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": 99,
+        "Suit_Role": "same_as:777",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-2-1",
+    "Hand_Pattern": "111 3333 333 555",
+    "Hand_Description": "Any 2 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "same_as:111",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "5555",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 2,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-13579-2-2",
+    "Hand_Pattern": "555 7777 777 9999",
+    "Hand_Description": "Any 2 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "555",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "7777",
+        "Suit_Role": "same_as:555",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "777",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "same_as:777",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-3-1",
+    "Hand_Pattern": "1111 333 5555 DDD",
+    "Hand_Description": "Any 1 Suit",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "1111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "same_as:1111",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "5555",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDD",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 3,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-13579-3-2",
+    "Hand_Pattern": "5555 777 9999 DDD",
+    "Hand_Description": "Any 1 Suit",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "5555",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "777",
+        "Suit_Role": "same_as:5555",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "same_as:777",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDD",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 4,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-4-1",
+    "Hand_Pattern": "FFFF 1111 + 9999 = 10",
+    "Hand_Description": "Any 2 Suits, These Nos Only",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "1111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "same_as:1111",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "10",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "1,0",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 5,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-5-1",
+    "Hand_Pattern": "FFF 135 7777 9999",
+    "Hand_Description": "Any 1 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "135",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "1,3,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "7777",
+        "Suit_Role": "same_as:135",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "same_as:7777",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 5,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-13579-5-2",
+    "Hand_Pattern": "FFF 135 7777 9999",
+    "Hand_Description": "Any 1 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "135",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "1,3,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "7777",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 6,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-6-1",
+    "Hand_Pattern": "111 333 555 DD DD",
+    "Hand_Description": "Any 3 Suits w/ Opp. Dragons",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "same_as:111",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "5555",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DD_1",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DD_2",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 6,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-13579-6-2",
+    "Hand_Pattern": "555 777 9999 DD DD",
+    "Hand_Description": "Any 3 Suits w/ Opp. Dragons",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "555",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "777",
+        "Suit_Role": "same_as:555",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "same_as:777",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DD_1",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DD_2",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 7,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-7-1",
+    "Hand_Pattern": "11 333 NEWS 333 55",
+    "Hand_Description": "Any 2 Suits",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "11",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "333_1",
+        "Suit_Role": "same_as:11",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "NEWS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "n,e,w,s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "333_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "55",
+        "Suit_Role": "same_as:333_2",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 7,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-13579-7-2",
+    "Hand_Pattern": "55 777 NEWS 777 99",
+    "Hand_Description": "Any 2 Suits",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "55",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "777_1",
+        "Suit_Role": "same_as:55",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "NEWS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "n,e,w,s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "777_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "99",
+        "Suit_Role": "same_as:777_2",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 8,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-8-1",
+    "Hand_Pattern": "1111 33 55 77 9999",
+    "Hand_Description": "Any 2 Suits",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "1111",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "33",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "55",
+        "Suit_Role": "same_as:33",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "77",
+        "Suit_Role": "same_as:55",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 9,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-13579-9-1",
+    "Hand_Pattern": "FF 11 33 111 333 55",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "33",
+        "Suit_Role": "same_as:11",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "111",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "same_as:111",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "55",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "13579",
+    "Line": 9,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-13579-9-2",
+    "Hand_Pattern": "FF 55 77 555 777 99",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "55",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "77",
+        "Suit_Role": "same_as:55",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "555",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "777",
+        "Suit_Role": "same_as:555",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "99",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-1-1",
+    "Hand_Pattern": "NNNN EEE WWW SSS",
+    "Hand_Description": null,
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "NNNN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "EEE",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "e",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "WWW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "SSSS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 1,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-1-2",
+    "Hand_Pattern": "NNN EEEE WWWW SSS",
+    "Hand_Description": null,
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "NNN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "EEEE",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "e",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "WWWW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "SSS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-2-1",
+    "Hand_Pattern": "FF 123 DD DDD DDDD",
+    "Hand_Description": "Any 3 Consec Nos in Any 1 Suite, Any 3 Dragons",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "123",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "1,2,3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DD",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DDD",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDDD",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "kong",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-3-1",
+    "Hand_Pattern": "FFF NN EE WWW SSSS",
+    "Hand_Description": null,
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "NN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "EE",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "e",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "WWW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "SSSS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 4,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-4-1",
+    "Hand_Pattern": "FFFF DDD NEWS DDD",
+    "Hand_Description": "Dragons Any 2 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDD_1",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "NEWS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "n,e,w,s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DDD_2",
+        "Suit_Role": "none",
+        "Suit_Note": "v. Opp Dragons",
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 5,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-5-1",
+    "Hand_Pattern": "NNNN 1 11 111 SSSS",
+    "Hand_Description": "Any Like Odd Nos in 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "NNNN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "1,3,5,7,9",
+        "Constraint_Must_Match": "11, 111",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,3,5,7,9",
+        "Constraint_Must_Match": "1,111",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "111",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "1,3,5,7,9",
+        "Constraint_Must_Match": "1,11",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "SSSS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 6,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-6-1",
+    "Hand_Pattern": "EEEE 2 22 222 WWWW",
+    "Hand_Description": "Any Like Even Nos in 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "EEEE",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "e",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "2",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": "22,222",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "22",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": "2,222",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "222",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": "2,22",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "WWWW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 7,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-7-1",
+    "Hand_Pattern": "NN EEE WWW SS 2025",
+    "Hand_Description": "2025 Any 1 Suit",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "NN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "EEE",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "e",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "WWW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "SS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2025",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,0,2,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 7,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-7-2",
+    "Hand_Pattern": "NNN EE WW SSS 2025",
+    "Hand_Description": "2025 Any 1 Suit",
+    "Hand_Points": 30,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "NNN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "EE",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "e",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "WW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "SSS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "2025",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,0,2,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "WINDS - DRAGONS",
+    "Line": 8,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-WINDS_-_DRAGONS-8-1",
+    "Hand_Pattern": "NN EE WWW SSS DDDD",
+    "Hand_Description": "Kong Any Dragon",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "NN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "EE",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "e",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "WWW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "SSS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DDDD",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-369-1-1",
+    "Hand_Pattern": "333 6666 666 9999",
+    "Hand_Description": "Any 2 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "333",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "6666",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "same_as:666",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 1,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-369-1-2",
+    "Hand_Pattern": "333 6666 666 9999",
+    "Hand_Description": "Any 2 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "333",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "6666",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-369-2-1",
+    "Hand_Pattern": "FF 3333 + 6666 = 9999",
+    "Hand_Description": "Any 1 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "6666",
+        "Suit_Role": "same_as:3333",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "same_as:6666",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 2,
+    "Pattern ID": 2,
+    "Hands_Key": "2025-369-2-2",
+    "Hand_Pattern": "FF 3333 + 6666 = 9999",
+    "Hand_Description": "Any 1 or 3 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "6666",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-369-3-1",
+    "Hand_Pattern": "3333 DDD 3333 DDD",
+    "Hand_Description": "Any 2 Suits, Like Kongs 3, 6, or 9 w Matching Dragons",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "3333_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDD_1",
+        "Suit_Role": "same_as:3333_1",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "3333_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "DDD_2",
+        "Suit_Role": "same_as:3333_2",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 4,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-369-4-1",
+    "Hand_Pattern": "FFF 3333 369 9999",
+    "Hand_Description": "Any 2 Suits",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FFF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "3333",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "369",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "3,6,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "9999",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 5,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-369-5-1",
+    "Hand_Pattern": "33 66 99 3333 3333",
+    "Hand_Description": "Any 3 Suits, Like Kongs 3, 6, or 9",
+    "Hand_Points": 25,
+    "Hand_Conceiled": false,
+    "Hand_Difficulty": "medium",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "33",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "66",
+        "Suit_Role": "same_as:33",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "99",
+        "Suit_Role": "same_as:66",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "3333_1",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3,6,9",
+        "Constraint_Must_Match": "3333_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      },
+      {
+        "Group": "3333_2",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "kong",
+        "Constraint_Values": "3,6,9",
+        "Constraint_Must_Match": "3333_1",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": true
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "369",
+    "Line": 6,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-369-6-1",
+    "Hand_Pattern": "FF 333 D 666 D 999 D",
+    "Hand_Description": "Any 3 Suits w Matching Dragons",
+    "Hand_Points": 30,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "333",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "D_1",
+        "Suit_Role": "same_as:333",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "666",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "D_2",
+        "Suit_Role": "same_as:666",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "999",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pung",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "D_3",
+        "Suit_Role": "same_as:999",
+        "Suit_Note": null,
+        "Constraint_Type": "single",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "SINGLES AND PAIRS",
+    "Line": 1,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-SINGLES_AND_PAIRS-1-1",
+    "Hand_Pattern": "NN EW SS 11 22 33 44",
+    "Hand_Description": "Any 1 Suit, Any 4 Consec Nos",
+    "Hand_Points": 50,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "NN",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "n",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "EW",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "e,w",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "SS",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "s",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "22",
+        "Suit_Role": "same_as:11",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "33",
+        "Suit_Role": "same_as:22",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:22",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "44",
+        "Suit_Role": "same_as:33",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:33",
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "SINGLES AND PAIRS",
+    "Line": 2,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-SINGLES_AND_PAIRS-2-1",
+    "Hand_Pattern": "FF 2468 DD 2468 DD",
+    "Hand_Description": "Any 2 Suits w Matching Dragons",
+    "Hand_Points": 50,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2468_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DD_1",
+        "Suit_Role": "same_as:2468_1",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2468_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,4,6,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "DD_2",
+        "Suit_Role": "same_as:2468_2",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "dragon",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "SINGLES AND PAIRS",
+    "Line": 3,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-SINGLES_AND_PAIRS-3-1",
+    "Hand_Pattern": "336699 336699 33",
+    "Hand_Description": "Any 3 Suits, Pair 3, 6, or 9 in Third Suit",
+    "Hand_Points": 50,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "336699_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "3,3,6,6,9,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "336699_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "3,3,6,6,9,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "33",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "SINGLES AND PAIRS",
+    "Line": 4,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-SINGLES_AND_PAIRS-4-1",
+    "Hand_Pattern": "FF 11 22 11 22 11 22",
+    "Hand_Description": "Any 3 Suits, Any 2 Consec Nos",
+    "Hand_Points": 50,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "22_1",
+        "Suit_Role": "same_as:11_1",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11_1",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11_2",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "22_2",
+        "Suit_Role": "same_as:11_2",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11_2",
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11_3",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,2,3,4,5,6,7,8",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "22_3",
+        "Suit_Role": "same_as:11_3",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "2,3,4,5,6,7,8,9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": "consecutive:11_3",
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "SINGLES AND PAIRS",
+    "Line": 5,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-SINGLES_AND_PAIRS-5-1",
+    "Hand_Pattern": "11 33 55 77 99 11 11",
+    "Hand_Description": "Any 3 Suits, Pairs Any Like Odd Nos in Opp. Suits",
+    "Hand_Points": 50,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "11_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "33",
+        "Suit_Role": "same_as:11_1",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "3",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "55",
+        "Suit_Role": "same_as:33",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "77",
+        "Suit_Role": "same_as:55",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "7",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "99",
+        "Suit_Role": "same_as:77",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "9",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,3,5,7,9",
+        "Constraint_Must_Match": "11_1",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "11_3",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "1,3,5,7,9",
+        "Constraint_Must_Match": "11_2",
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  },
+  {
+    "Year": 2025,
+    "Section": "SINGLES AND PAIRS",
+    "Line": 6,
+    "Pattern ID": 1,
+    "Hands_Key": "2025-SINGLES_AND_PAIRS-6-1",
+    "Hand_Pattern": "FF 2025 2025 2025",
+    "Hand_Description": "Any 3 Suits",
+    "Hand_Points": 75,
+    "Hand_Conceiled": true,
+    "Hand_Difficulty": "hard",
+    "Hand_Notes": null,
+    "Groups": [
+      {
+        "Group": "FF",
+        "Suit_Role": "none",
+        "Suit_Note": null,
+        "Constraint_Type": "pair",
+        "Constraint_Values": "flower",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2025_1",
+        "Suit_Role": "any",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,0,2,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2025_2",
+        "Suit_Role": "second",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,0,2,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      },
+      {
+        "Group": "2025_3",
+        "Suit_Role": "third",
+        "Suit_Note": null,
+        "Constraint_Type": "sequence",
+        "Constraint_Values": "2,0,2,5",
+        "Constraint_Must_Match": null,
+        "Constraint_Extra": null,
+        "Jokers_Allowed": false
+      }
+    ]
+  }
+]

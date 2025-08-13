@@ -1,7 +1,4 @@
 -Include blanks option
 -use camera to identify tiles
--keep screen alive during gameplay
 -make discard pile viewable (modal?)
 -strategic-advice-engine.ts, analyzeOpponentThreats, analyze discards
--Find actual 2025 nmjl data and update nmjl-patterns-2025.ts
--add pws app

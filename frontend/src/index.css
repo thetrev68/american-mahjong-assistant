@@ -1,37 +1,109 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-/* Mobile-optimized base styles */
-body {
-  font-family: system-ui, -apple-system, sans-serif;
+/* Modern CSS Reset and Base Styles */
+@layer base {
+  * {
+    @apply box-border;
+  }
+
+  html {
+    @apply h-full;
+  }
+
+  body {
+    @apply h-full font-primary text-slate-900 bg-white;
+    font-feature-settings: 'rlig' 1, 'calt' 1;
+  }
+
+  #root {
+    @apply h-full;
+  }
 }
 
-/* Safe area support for mobile devices */
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom, 0);
+/* Modern Component Patterns */
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-white/20 rounded-xl shadow-glass;
+  }
+
+  .floating-element {
+    @apply bg-gradient-to-r from-primary to-secondary rounded-full shadow-floating transition-all duration-300 hover:translate-y-[-3px] hover:shadow-xl;
+  }
+
+  .tile-component {
+    @apply rounded-xl shadow-md transition-all duration-300 bg-white border border-gray-200;
+  }
+
+  .tile-component.keep {
+    @apply border-accent shadow-[0_0_0_4px_rgba(16,185,129,0.1),0_4px_12px_rgba(16,185,129,0.15)] translate-y-[-2px];
+  }
+
+  .tile-component.pass {
+    @apply border-warning shadow-[0_0_0_4px_rgba(249,115,22,0.1),0_4px_12px_rgba(249,115,22,0.15)] translate-y-[-2px];
+  }
+
+  .intelligence-panel {
+    @apply bg-white border border-gray-200 rounded-2xl shadow-[0_10px_25px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)] backdrop-blur-sm;
+  }
+
+  .pattern-progress {
+    @apply bg-gradient-to-r from-primary via-secondary to-gray-200 rounded-xl h-2 relative overflow-hidden;
+  }
+
+  .pattern-progress::before {
+    content: '';
+    @apply absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-shimmer;
+  }
+
+  /* Typography Styles */
+  .metric-number {
+    @apply font-primary text-4xl font-black text-primary tracking-tight;
+  }
+
+  .caption-text {
+    @apply font-primary text-xs font-medium text-muted uppercase tracking-wider;
+  }
+
+  .tile-label {
+    @apply font-mono text-sm font-semibold tracking-tight;
+  }
 }
 
-.safe-area-top {
-  padding-top: env(safe-area-inset-top, 0);
+/* Animation Utilities */
+@layer utilities {
+  .animate-select {
+    animation: selectBounce 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  }
+
+  .animate-keep-float {
+    animation: keepFloat 0.5s ease-out;
+  }
+
+  .animate-pass-wiggle {
+    animation: passWiggle 0.4s ease-in-out;
+  }
 }
 
-/* Enhanced touch targets for better mobile experience */
-.touch-manipulation {
-  touch-action: manipulation;
+/* Custom Keyframes */
+@keyframes keepFloat {
+  0% { transform: translateY(0) scale(1); }
+  50% { 
+    transform: translateY(-8px) scale(1.1); 
+    box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+  }
+  100% { 
+    transform: translateY(-2px) scale(1.05); 
+  }
 }
 
-/* Consistent tile highlighting system */
-.tile-selected {
-  @apply ring-2 ring-blue-500 ring-offset-2;
-}
-
-.tile-recommended-keep {
-  @apply ring-2 ring-green-500 ring-offset-2;
-}
-
-.tile-recommended-discard {
-  @apply ring-2 ring-red-500 ring-offset-2;
-}
-
-.tile-recommended-charleston {
-  @apply ring-2 ring-yellow-500 ring-offset-2;
+@keyframes passWiggle {
+  0%, 100% { transform: translateX(0); }
+  25% { 
+    transform: translateX(-3px) scale(1.05); 
+  }
+  75% { 
+    transform: translateX(3px) scale(1.05); 
+  }
 }

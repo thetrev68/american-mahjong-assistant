@@ -1,31 +1,25 @@
 {
-  "name": "backend",
+  "name": "mahjong-co-pilot-backend",
   "version": "1.0.0",
-  "type": "module",
-  "main": "index.js",
+  "description": "Backend server for Mahjong Co-Pilot application",
+  "main": "dist/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cross-env HOST=0.0.0.0 nodemon --exec \"node --loader ts-node/esm\" src/server.ts",
+    "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "vercel-build": "npm run build"
+    "type-check": "tsc --noEmit"
   },
-  "keywords": [],
+  "keywords": ["mahjong", "co-pilot", "socket.io", "multiplayer"],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.1",
-    "express": "^5.1.0",
-    "socket.io": "^4.8.1"
-  },
-  "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
-    "@types/node": "^24.1.0",
-    "cross-env": "^10.0.0",
+    "@types/node": "^24.2.1",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "nodemon": "^3.1.10",
+    "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   }
