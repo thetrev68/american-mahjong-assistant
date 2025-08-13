@@ -2,6 +2,7 @@
 // Main interface for browsing and selecting NMJL patterns
 
 import { useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Container } from '../../ui-components/layout/Container'
 import { Button } from '../../ui-components/Button'
 import { PatternFilters } from './PatternFilters'
@@ -17,6 +18,7 @@ export const PatternSelectionPage = () => {
   } = usePatternStore()
   
   const selectedPattern = getSelectedPattern()
+  const navigate = useNavigate()
   
   useEffect(() => {
     loadPatterns()
@@ -70,6 +72,7 @@ export const PatternSelectionPage = () => {
                   size="lg"
                   className="w-full"
                   disabled={!selectedPattern}
+                  onClick={() => navigate('/tile-input')}
                 >
                   Continue with {selectedPattern?.displayName || 'Selection'}
                 </Button>

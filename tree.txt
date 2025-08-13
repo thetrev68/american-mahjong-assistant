@@ -1,130 +1,105 @@
 american-mahjong-assistant/
 ├── backend/
-│   ├── api/
-│   │   └── socket.ts (32 lines)
 │   ├── src/
-│   │   ├── roomManager.ts (1047 lines)
-│   │   └── server.ts (470 lines)
-│   ├── .gitkeep
-│   ├── package-lock.json (1897 lines)
-│   ├── package.json (32 lines)
-│   └── tsconfig.json (37 lines)
+│   │   ├── features/
+│   │   │   ├── game-coordination/
+│   │   │   ├── room-lifecycle/
+│   │   │   └── state-sync/
+│   │   ├── types/
+│   │   ├── utils/
+│   │   └── server.ts (37 lines)
+│   ├── package-lock.json (1729 lines)
+│   ├── package.json (26 lines)
+│   ├── README.md
+│   └── tsconfig.json (19 lines)
 ├── frontend/
+│   ├── .vite/
+│   │   └── deps/
+│   │       ├── _metadata.json (8 lines)
+│   │       └── package.json (3 lines)
 │   ├── src/
 │   │   ├── assets/
-│   │   │   └── images/
-│   │   │       └── tiles.json (323 lines)
-│   │   ├── components/
+│   │   │   └── react.svg
+│   │   ├── features/
 │   │   │   ├── charleston/
-│   │   │   │   ├── CharlestonHandDisplay.tsx (122 lines)
-│   │   │   │   ├── CharlestonPassingArea.tsx (105 lines)
-│   │   │   │   ├── CharlestonRecommendationPanel.tsx (226 lines)
-│   │   │   │   └── CharlestonTileSelector.tsx (217 lines)
-│   │   │   ├── game/
-│   │   │   │   ├── ActionButtons.tsx (201 lines)
-│   │   │   │   ├── DiscardPile.tsx (148 lines)
-│   │   │   │   ├── ExposedSets.tsx (89 lines)
-│   │   │   │   ├── GameActions.tsx (120 lines)
-│   │   │   │   ├── GameProgress.tsx (46 lines)
-│   │   │   │   ├── GameTable.tsx (143 lines)
-│   │   │   │   ├── index.ts (8 lines)
-│   │   │   │   ├── MyTileCounter.tsx (75 lines)
-│   │   │   │   ├── PlayerStatusList.tsx (163 lines)
-│   │   │   │   ├── SharedGameView.tsx (139 lines)
-│   │   │   │   └── TurnTimer.tsx (120 lines)
-│   │   │   ├── PatternExplorer/
-│   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   ├── PatternDetailView.tsx (249 lines)
-│   │   │   │   └── PatternExplorer.tsx (356 lines)
-│   │   │   ├── PrivateHandView/
-│   │   │   │   ├── hooks/
-│   │   │   │   │   ├── useHandAnalysis.tsx (298 lines)
-│   │   │   │   │   └── usePrivateGameState.tsx (107 lines)
-│   │   │   │   ├── HandAnalysisPanel.tsx (363 lines)
-│   │   │   │   ├── HandTileGrid.tsx (266 lines)
-│   │   │   │   ├── index.ts (20 lines)
-│   │   │   │   ├── PrivateHandView.tsx (355 lines)
-│   │   │   │   └── TileActionBar.tsx (181 lines)
-│   │   │   ├── room/
-│   │   │   │   ├── PlayerPositioning.tsx (242 lines)
-│   │   │   │   ├── RoomCreation.tsx (244 lines)
-│   │   │   │   └── RoomJoining.tsx (169 lines)
-│   │   │   ├── tiles/
-│   │   │   │   ├── EmptyTileSlot.tsx (76 lines)
-│   │   │   │   ├── SpriteDebugger.tsx (92 lines)
-│   │   │   │   ├── TileComponent.tsx (163 lines)
-│   │   │   │   ├── TileGrid.tsx (135 lines)
-│   │   │   │   └── TilePickerModal.tsx (367 lines)
-│   │   │   ├── README.md
-│   │   │   └── RoomManager.tsx (180 lines)
+│   │   │   ├── gameplay/
+│   │   │   ├── intelligence-panel/
+│   │   │   ├── landing/
+│   │   │   │   └── LandingPage.tsx (146 lines)
+│   │   │   ├── pattern-selection/
+│   │   │   │   ├── index.ts (6 lines)
+│   │   │   │   ├── PatternCard.tsx (120 lines)
+│   │   │   │   ├── PatternFilters.tsx (153 lines)
+│   │   │   │   ├── PatternGrid.tsx (119 lines)
+│   │   │   │   ├── PatternSelectionPage.tsx (96 lines)
+│   │   │   │   └── SelectedPatternsPanel.tsx (145 lines)
+│   │   │   ├── post-game/
+│   │   │   ├── room-setup/
+│   │   │   ├── tile-input/
+│   │   │   ├── tutorial/
+│   │   │   └── README.md
 │   │   ├── hooks/
-│   │   │   ├── useCharleston.ts (231 lines)
-│   │   │   ├── useSocket.ts (404 lines)
-│   │   │   └── useWakeLock.ts (92 lines)
-│   │   ├── pages/
-│   │   │   ├── ActiveGamePage.tsx (315 lines)
-│   │   │   ├── GameLobbyPage.tsx (856 lines)
-│   │   │   ├── HomePage.tsx (127 lines)
-│   │   │   ├── PatternExplorerDemo.tsx (80 lines)
-│   │   │   └── TileInputTest.tsx (170 lines)
+│   │   ├── services/
+│   │   │   └── nmjl-service.ts (133 lines)
+│   │   ├── stores/
+│   │   │   ├── game-store.ts (69 lines)
+│   │   │   ├── index.ts (18 lines)
+│   │   │   ├── pattern-store.ts (201 lines)
+│   │   │   └── ui-store.ts (86 lines)
 │   │   ├── types/
-│   │   │   ├── charleston-types.ts (190 lines)
-│   │   │   ├── index.ts (289 lines)
-│   │   │   ├── nmjl-2025-types.ts (125 lines)
-│   │   │   └── socket-events.ts (491 lines)
+│   │   │   └── nmjl-types.ts (47 lines)
+│   │   ├── ui-components/
+│   │   │   ├── analysis/
+│   │   │   ├── layout/
+│   │   │   │   ├── AppLayout.tsx (17 lines)
+│   │   │   │   ├── Container.tsx (36 lines)
+│   │   │   │   └── Header.tsx (48 lines)
+│   │   │   ├── patterns/
+│   │   │   ├── tiles/
+│   │   │   ├── Button.tsx (52 lines)
+│   │   │   ├── Card.tsx (45 lines)
+│   │   │   ├── index.ts (8 lines)
+│   │   │   └── LoadingSpinner.tsx (43 lines)
 │   │   ├── utils/
-│   │   │   ├── charleston-engine.ts (478 lines)
-│   │   │   ├── charleston-recommendation-engine.ts (642 lines)
-│   │   │   ├── dealer-logic.ts (137 lines)
-│   │   │   ├── enhanced-hand-analyzer.ts (469 lines)
-│   │   │   ├── game-state-machine.ts (424 lines)
-│   │   │   ├── gameplay-recommendation-engine.ts (457 lines)
-│   │   │   ├── nmjl-2025-loader.ts (363 lines)
-│   │   │   ├── nmjl-2025-test.ts (64 lines)
-│   │   │   ├── nmjl-card-2025-original.json (4367 lines)
-│   │   │   ├── nmjl-card-2025.json (4367 lines)
-│   │   │   ├── nmjl-pattern-adapter.ts (376 lines)
-│   │   │   ├── nmjl-pattern-analyzer.ts (315 lines)
-│   │   │   ├── nmjl-patterns-2025.ts (300 lines)
-│   │   │   ├── nmjl-probability-calculator.ts (385 lines)
-│   │   │   ├── nmjl-rules-enforcer.ts (472 lines)
-│   │   │   ├── pattern-integration-helpers.ts (217 lines)
-│   │   │   ├── pattern-search-engine.ts (459 lines)
-│   │   │   ├── strategic-advice-engine.ts (388 lines)
-│   │   │   └── tile-utils.ts (176 lines)
-│   │   ├── App.css (82 lines)
-│   │   ├── App.tsx (267 lines)
-│   │   ├── index.css (29 lines)
+│   │   │   └── router.tsx (21 lines)
+│   │   ├── App.tsx (11 lines)
+│   │   ├── index.css (89 lines)
 │   │   ├── main.tsx (9 lines)
 │   │   └── vite-env.d.ts (1 lines)
-│   ├── .gitignore
-│   ├── .gitkeep
 │   ├── eslint.config.js (22 lines)
-│   ├── hand_integration.md
-│   ├── index.html (14 lines)
-│   ├── package-lock.json (4342 lines)
-│   ├── package.json (37 lines)
+│   ├── index.html (13 lines)
+│   ├── package-lock.json (4379 lines)
+│   ├── package.json (38 lines)
 │   ├── postcss.config.js (6 lines)
 │   ├── README.md
-│   ├── tailwind.config.js (24 lines)
+│   ├── tailwind.config.js (60 lines)
 │   ├── tsconfig.app.json (25 lines)
 │   ├── tsconfig.json (7 lines)
 │   ├── tsconfig.node.json (23 lines)
-│   └── vite.config.ts (10 lines)
+│   └── vite.config.ts (6 lines)
+├── intelligence/
+│   ├── analyzers/
+│   │   ├── enhanced-hand-analyzer.ts (469 lines)
+│   │   ├── nmjl-pattern-analyzer.ts (330 lines)
+│   │   └── nmjl-probability-calculator.ts (385 lines)
+│   ├── nmjl-patterns/
+│   │   ├── nmjl-2025-loader.ts (363 lines)
+│   │   ├── nmjl-card-2025.json (4367 lines)
+│   │   ├── nmjl-pattern-adapter.ts (379 lines)
+│   │   └── pattern-search-engine.ts (459 lines)
+│   └── recommendations/
+│       ├── charleston-recommendation-engine.ts (695 lines)
+│       ├── gameplay-recommendation-engine.ts (457 lines)
+│       └── strategic-advice-engine.ts (388 lines)
+├── shared/
+│   ├── game-types.ts (290 lines)
+│   ├── nmjl-2025-types.ts (125 lines)
+│   ├── socket-events.ts (491 lines)
+│   └── tile-utils.ts (176 lines)
 ├── .gitignore
-├── Charleston_Audit.md
-├── Charleston_Implementation.md
 ├── CLAUDE.md
-├── Code_Flow_Happy_Path.md
-├── game_state_implementation.md
-├── mahjong functional analysis.md
-├── mahjong technical analysis.md
 ├── NMJL 2025 Card JSON prep 20250808.xlsx
-├── PROJECT_POLISH_CHECKLIST.md
-├── QA_Charleston.md
 ├── README.md
-├── recommendation_engine.md
-├── TODO.md
 ├── tree.txt
 ├── tree_scanner.py (250 lines)
 └── vercel.json (6 lines)
@@ -132,11 +107,11 @@ american-mahjong-assistant/
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 19
-Total files: 110
-Files with line counts: 89
-Total lines of code: 33,008
+Total directories: 38
+Total files: 66
+Files with line counts: 57
+Total lines of code: 17,750
 
 Configuration:
-  Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, logs, node_modules, public, venv
+  Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv
   Line counting for: .c, .cpp, .css, .dart, .h, .html, .java, .js, .json, .py, .ts, .tsx, .yaml, .yml

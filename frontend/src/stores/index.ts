@@ -2,6 +2,7 @@
 export { useGameStore, type GameState, type Player } from './game-store'
 export { useUIStore, type UIState } from './ui-store'
 export { usePatternStore } from './pattern-store'
+export { useTileStore } from './tile-store'
 
 // Store Selectors (commonly used combinations)
 import { useGameStore } from './game-store'

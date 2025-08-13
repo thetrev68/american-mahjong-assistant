@@ -60,7 +60,7 @@ class TreeScanner:
         """
         self.excludes = excludes or {
             "node_modules", ".git", ".ruff_cache", "docs", ".github", "public", "__pycache__",
-            ".vscode", ".idea", "dist", "build", "logs", ".pytest_cache", "venv"
+            ".vscode", ".idea", "dist", "build", "legacy", "logs", ".pytest_cache", "venv"
         }
         
         self.count_lines_for = count_lines_for or {
@@ -262,7 +262,7 @@ def main():
     # Setup excludes
     default_excludes = {
         "node_modules", ".git", ".ruff_cache", "docs", ".github", "public", "__pycache__",
-            ".vscode", ".idea", "dist", "build", "logs", ".pytest_cache", "venv"
+            ".vscode", ".vite", ".idea", "dist", "build", "legacy", "logs", ".pytest_cache", "venv"
     }
     custom_excludes = set(args.exclude) if args.exclude else set()
     all_excludes = default_excludes | custom_excludes

@@ -1,0 +1,241 @@
+// Tile Selector Component
+// Touch-optimized interface for selecting tiles to add to hand
+
+import { useState } from 'react'
+import { Card } from '../../ui-components/Card'
+import { Button } from '../../ui-components/Button'
+import { Tile } from '../../ui-components/Tile'
+import { useTileStore } from '../../stores'
+import { tileService } from '../../services/tile-service'
+import type { TileSuit, PlayerTile } from '../../types/tile-types'
+
+interface TileSelectorProps {
+  onTileSelect?: (tileId: string) => void
+  compact?: boolean
+}
+
+export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProps) => {
+  const [selectedSuit, setSelectedSuit] = useState<TileSuit>('dots')
+  const [quickAddMode, setQuickAddMode] = useState(false)
+  const { addTile, playerHand } = useTileStore()
+  
+  const suits: Array<{ suit: TileSuit; label: string; emoji: string }> = [
+    { suit: 'dots', label: 'Dots', emoji: '🔴' },
+    { suit: 'bams', label: 'Bams', emoji: '🟢' },
+    { suit: 'cracks', label: 'Cracks', emoji: '🔵' },
+    { suit: 'winds', label: 'Winds', emoji: '💨' },
+    { suit: 'dragons', label: 'Dragons', emoji: '🐉' },
+    { suit: 'flowers', label: 'Flowers', emoji: '🌸' },
+    { suit: 'jokers', label: 'Jokers', emoji: '🃏' }
+  ]
+  
+  const availableTiles = tileService.getTilesBySuit(selectedSuit)
+  
+  // Count how many of each tile we already have
+  const tileCounts = new Map<string, number>()
+  playerHand.forEach(tile => {
+    tileCounts.set(tile.id, (tileCounts.get(tile.id) || 0) + 1)
+  })
+  
+  const handleTileClick = (tile: any) => {
+    const currentCount = tileCounts.get(tile.id) || 0
+    
+    if (currentCount >= 4) {
+      // Visual feedback for max tiles
+      return
+    }
+    
+    addTile(tile.id)
+    if (onTileSelect) {
+      onTileSelect(tile.id)
+    }
+  }
+  
+  const createDummyPlayerTile = (baseTile: any): PlayerTile => ({
+    ...baseTile,
+    instanceId: `selector_${baseTile.id}`,
+    isSelected: false
+  })
+  
+  if (compact) {
+    return (
+      <Card variant="default" className="p-4">
+        <div className="space-y-4">
+          {/* Quick Add Joker */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => addTile('joker')}
+            className="w-full"
+            icon="🃏"
+          >
+            Add Joker
+          </Button>
+          
+          {/* Suit Selection */}
+          <div className="grid grid-cols-4 gap-2">
+            {suits.slice(0, 4).map(({ suit, emoji }) => (
+              <Button
+                key={suit}
+                variant={selectedSuit === suit ? 'primary' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedSuit(suit)}
+              >
+                {emoji}
+              </Button>
+            ))}
+          </div>
+          
+          {/* Tiles Grid */}
+          <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
+            {availableTiles.map(tile => {
+              const currentCount = tileCounts.get(tile.id) || 0
+              const isMaxed = currentCount >= 4
+              
+              return (
+                <div key={tile.id} className="relative">
+                  <Tile
+                    tile={createDummyPlayerTile(tile)}
+                    size="sm"
+                    onClick={() => !isMaxed && handleTileClick(tile)}
+                    className={isMaxed ? 'opacity-50 cursor-not-allowed' : ''}
+                  />
+                  {currentCount > 0 && (
+                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white rounded-full text-xs flex items-center justify-center">
+                      {currentCount}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </Card>
+    )
+  }
+  
+  return (
+    <Card variant="elevated" className="p-6">
+      <div className="space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Add Tiles to Hand
+          </h3>
+          
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setQuickAddMode(!quickAddMode)}
+          >
+            {quickAddMode ? '⚡ Quick' : '🎯 Precise'}
+          </Button>
+        </div>
+        
+        {/* Suit Tabs */}
+        <div className="flex flex-wrap gap-2">
+          {suits.map(({ suit, label, emoji }) => (
+            <Button
+              key={suit}
+              variant={selectedSuit === suit ? 'primary' : 'outline'}
+              size="sm"
+              onClick={() => setSelectedSuit(suit)}
+              className="flex items-center gap-2"
+            >
+              <span>{emoji}</span>
+              <span className="hidden sm:inline">{label}</span>
+            </Button>
+          ))}
+        </div>
+        
+        {/* Tiles Grid */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-4">
+          {availableTiles.map(tile => {
+            const currentCount = tileCounts.get(tile.id) || 0
+            const isMaxed = currentCount >= 4
+            
+            return (
+              <div key={tile.id} className="relative">
+                <Tile
+                  tile={createDummyPlayerTile(tile)}
+                  size="md"
+                  onClick={() => !isMaxed && handleTileClick(tile)}
+                  className={`
+                    ${isMaxed ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}
+                    transition-transform duration-200
+                  `}
+                />
+                
+                {/* Count Badge */}
+                {currentCount > 0 && (
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary text-white rounded-full text-sm font-bold flex items-center justify-center shadow-lg">
+                    {currentCount}
+                  </div>
+                )}
+                
+                {/* Max Badge */}
+                {isMaxed && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 rounded-lg">
+                    <span className="text-white text-xs font-bold">MAX</span>
+                  </div>
+                )}
+                
+                {/* Quick Add Button */}
+                {quickAddMode && !isMaxed && (
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => handleTileClick(tile)}
+                    className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs px-2 py-1"
+                  >
+                    +
+                  </Button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+        
+        {/* Quick Actions */}
+        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => addTile('joker')}
+            disabled={(tileCounts.get('joker') || 0) >= 8}
+          >
+            🃏 Add Joker
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              ['red', 'green', 'white'].forEach(dragonId => {
+                if ((tileCounts.get(dragonId) || 0) < 4) {
+                  addTile(dragonId)
+                }
+              })
+            }}
+          >
+            🐉 Add All Dragons
+          </Button>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              ['east', 'south', 'west', 'north'].forEach(windId => {
+                if ((tileCounts.get(windId) || 0) < 4) {
+                  addTile(windId)
+                }
+              })
+            }}
+          >
+            💨 Add All Winds
+          </Button>
+        </div>
+      </div>
+    </Card>
+  )
+}

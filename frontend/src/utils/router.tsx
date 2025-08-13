@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router-dom'
 import { LandingPage } from '../features/landing/LandingPage'
 import { PatternSelectionPage } from '../features/pattern-selection'
+import { TileInputPage } from '../features/tile-input'
 
 export const router = createBrowserRouter([
   {
@@ -14,6 +15,10 @@ export const router = createBrowserRouter([
   {
     path: '/pattern-selection',
     element: <PatternSelectionPage />,
+  },
+  {
+    path: '/tile-input',
+    element: <TileInputPage />,
   },
   {
     path: '/game',
