@@ -1,6 +1,23 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  /* Modern Co-Pilot Color Palette */
+  --color-primary: #6366F1;
+  --color-secondary: #3B82F6;
+  --color-accent: #10B981;
+  --color-warning: #F97316;
+  --color-surface: #F8FAFC;
+  --color-muted: #64748B;
+  
+  /* Custom shadows */
+  --shadow-glass: 0 8px 32px rgba(0, 0, 0, 0.1);
+  --shadow-floating: 0 8px 25px rgba(99, 102, 241, 0.3);
+  
+  /* Custom animations */
+  --animate-select-bounce: select-bounce 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+  --animate-shimmer: shimmer 2s infinite;
+  --animate-pop-in: pop-in 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
 
 /* Modern CSS Reset and Base Styles */
 @layer base {
