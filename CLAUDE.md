@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Development Commands
 
-### Frontend (React + Vite + TypeScript)
+### Frontend (React 18 + Vite + TypeScript + Zustand)
 ```bash
 cd frontend
 npm run dev        # Start development server at http://localhost:5173
@@ -19,6 +19,7 @@ cd backend
 npm run dev        # Start development server with hot reload at http://localhost:5000
 npm run build      # Compile TypeScript
 npm start          # Run compiled JavaScript
+npm run type-check # TypeScript validation only
 ```
 
 ### Full Application Setup
@@ -30,9 +31,9 @@ npm start          # Run compiled JavaScript
 ## Architecture Overview
 
 ### Project Structure
-This is a **local network multiplayer web application** for assisting in-person American Mahjong games, not a digital version of the game itself. It creates a digital overlay for physical gameplay.
+This is a **local network multiplayer web application** for assisting in-person American Mahjong games with an **intelligent co-pilot system**. It creates a digital overlay for physical gameplay with AI-powered pattern analysis and recommendations.
 
-**Key Principle**: Players use phones to input tiles privately while playing with physical tiles and boards.
+**Key Principle**: Players use phones as intelligent co-pilots while playing with physical tiles and boards.
 
 ### Core Components
 

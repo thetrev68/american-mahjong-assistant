@@ -13,7 +13,7 @@
   }
 
   body {
-    @apply h-full font-primary text-slate-900 bg-white;
+    @apply h-full text-slate-900 bg-white;
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 
@@ -59,11 +59,11 @@
 
   /* Typography Styles */
   .metric-number {
-    @apply font-primary text-4xl font-black text-primary tracking-tight;
+    @apply text-4xl font-black text-primary tracking-tight;
   }
 
   .caption-text {
-    @apply font-primary text-xs font-medium text-muted uppercase tracking-wider;
+    @apply text-xs font-medium text-muted uppercase tracking-wider;
   }
 
   .tile-label {
