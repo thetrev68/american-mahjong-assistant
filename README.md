@@ -1,44 +1,44 @@
-# American Mahjong Web Assistant
+# American Mahjong Intelligent Co-Pilot
 
-A local network web application that assists groups playing American Mahjong in person. Players connect their phones to a shared game session where they can input their tiles privately, receive strategic recommendations, and coordinate Charleston passes digitally while playing with physical tiles.
+A modern web application that serves as an **intelligent co-pilot** for groups playing American Mahjong in person. Players connect their devices to receive AI-powered pattern analysis and strategic recommendations while maintaining full control over their gameplay decisions.
 
-## 🎯 Key Principle
+## 🎯 Core Philosophy: Co-Pilot, Not Auto-Pilot
 
-This is a **shared game assistant** for in-person play, not a digital version of the game. It creates a digital layer over physical gameplay to enhance the social experience rather than replace it.
+This is a **co-pilot system** that enhances human decision-making rather than replacing it:
 
-## ✨ Features
+- **You choose** your target patterns from authentic NMJL 2025 data
+- **AI suggests** keep/pass/discard recommendations with clear reasoning  
+- **You decide** which advice to follow based on your strategy
+- **Everyone wins** through better understanding and improved gameplay
 
-### 🏠 Local Network Gaming
-- Host creates a room with a simple code (e.g., "TILE123")
-- Players join via room code on their phones
-- All communication stays on local WiFi - no internet required after initial load
+## ✨ Current Features
 
-### 🔒 Private Tile Management
-- Each player inputs their tiles privately on their device
-- Hand analysis and strategic recommendations shown only to that player
-- Charleston pass selections made privately
-- Mahjong validation when declared
+### 🎯 Intelligent Pattern Selection
+- Browse and search all **71 authentic NMJL 2025 patterns**
+- Advanced filtering by difficulty, points, jokers, and sections
+- Interactive pattern cards with visual difficulty indicators
+- Multiple target pattern tracking with strategic insights
+- Real tournament-quality pattern data integration
 
-### 🌐 Shared Game State
-- Track all discarded tiles (visible to everyone)
-- Record exposed sets when players call tiles
-- Coordinate Charleston passes between players
-- Basic scoring and winner declaration
+### 🧠 AI-Powered Intelligence (Coming Soon)
+- Real-time hand analysis against selected patterns
+- Strategic tile recommendations with clear reasoning
+- Charleston passing suggestions based on pattern requirements
+- Completion probability calculations
+- Defensive play recommendations
 
-### 🧠 Strategic Assistance
-- **Complete NMJL 2025 card integration** with all 71 authentic patterns
-- Advanced hand analysis with real tournament-quality pattern matching
-- Sophisticated probability calculations based on visible tiles
-- Intelligent Charleston passing recommendations using pattern analysis
-- Enhanced defensive play suggestions and opponent threat assessment
-- Advanced pattern search and filtering capabilities
-- Joker usage validation and optimization
+### 🌐 Social Gaming Features (Legacy System Preserved)
+- Local network multiplayer for in-person groups
+- Private tile input with shared game coordination
+- Charleston passing coordination
+- Shared discard tracking and game state management
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ (we're using v22.17.0)
-- All players need smartphones/tablets on the same WiFi network
+- **Node.js 18+** (tested on v22.17.0)
+- **Modern web browser** (Chrome, Safari, Firefox, Edge)
+- **Local WiFi network** for multiplayer features
 
 ### Installation
 
@@ -48,189 +48,181 @@ This is a **shared game assistant** for in-person play, not a digital version of
    cd american-mahjong-assistant
    ```
 
-2. **Install frontend dependencies**
+2. **Install dependencies**
    ```bash
    cd frontend
-   npm install
-   ```
-
-3. **Install backend dependencies**
-   ```bash
-   cd ../backend
    npm install
    ```
 
 ### Running the Application
 
-1. **Start the backend server** (in one terminal)
-   ```bash
-   cd backend
-   npm run dev
-   ```
-   Server runs at `http://localhost:3001`
-
-2. **Start the frontend** (in another terminal)
-   ```bash
-   cd frontend
-   npm run dev
-   ```
-   App available at `http://localhost:5173`
-
-3. **Connect other players**
-   - Host shares their computer's local IP address
-   - Other players visit `http://[HOST_IP]:5173` on their phones
-   - Enter the room code to join the game
-
-## 🏗️ Technical Architecture
-
-### Frontend
-- **React** with **TypeScript** for type safety
-- **Vite** for fast development and building
-- **Tailwind CSS** for responsive, mobile-first design
-- **Socket.io-client** for real-time communication
-- **Progressive Web App** capabilities for mobile experience
-
-### Backend
-- **Node.js** with **Express** server
-- **Socket.io** for WebSocket real-time communication
-- **TypeScript** for better code reliability
-- **In-memory storage** (no database required)
-- **CORS configured** for local network access
-
-### Communication Flow
+**Start the frontend development server:**
+```bash
+cd frontend
+npm run dev
 ```
-User Action → Local State → Socket Emit → Server Validation → Broadcast → All Clients Update
+
+The app will be available at **http://localhost:5175**
+
+**For multiplayer features** (when implemented):
+- Start the backend: `cd backend && npm run dev`
+- Other players visit `http://[HOST_IP]:5175` on their devices
+
+## 🏗️ Modern Architecture
+
+### Frontend Technology Stack
+- **React 18** with **TypeScript** for type safety and modern features
+- **Vite** for lightning-fast development and building
+- **Zustand** for efficient state management with devtools
+- **Tailwind CSS** with custom design system and glassmorphism effects
+- **Feature-based architecture** for scalable code organization
+
+### Project Structure
+```
+frontend/src/
+├── features/              # User-facing features
+│   ├── landing/          # Hello Co-Pilot welcome experience
+│   ├── pattern-selection/ # NMJL pattern browsing & selection
+│   └── [future features] # Tile input, charleston, game interface
+├── ui-components/        # Reusable design system
+│   ├── Button.tsx        # Modern buttons with variants
+│   ├── Card.tsx          # Glassmorphism card components
+│   └── layout/           # Responsive layout components
+├── stores/               # Zustand state management
+├── services/             # Data services and API clients
+├── types/                # TypeScript type definitions
+└── utils/                # Utilities and routing
+```
+
+### Intelligence Architecture
+```
+intelligence/             # AI and data processing
+├── nmjl-patterns/       # Authentic NMJL 2025 pattern data
+└── [analysis engines]   # Pattern matching and recommendation systems
+
+legacy/                   # Preserved working systems
+├── frontend/            # Original multiplayer implementation
+├── backend/             # Socket.io server and game logic
+└── [documentation]     # Original analysis and planning docs
 ```
 
 ## 📱 User Experience
 
-### Connection Flow
-1. Host opens website and starts new game
-2. App generates simple room code
-3. Other players enter room code on their devices
-4. All players join shared game session
+### Pattern Selection Flow
+1. **Welcome** - Hello Co-Pilot introduction with feature overview
+2. **Browse** - Explore all 71 authentic NMJL 2025 patterns  
+3. **Filter** - Search by difficulty, points, jokers, or sections
+4. **Select** - Choose your primary target and star additional options
+5. **Strategize** - Get AI insights and pattern completion tips
 
-### Gameplay Flow
-1. **Setup**: Players input their starting tiles privately
-2. **Charleston**: Coordinate passes digitally while handling physical tiles
-3. **Live Play**: 
-   - Track discards in shared view
-   - Get private strategic recommendations
-   - Coordinate tile calls and exposed sets
-4. **Scoring**: Assist with final score calculation
+### Future Game Flow (In Development)
+1. **Setup** - Input tiles privately with AI validation
+2. **Analysis** - Real-time pattern matching and recommendations
+3. **Charleston** - AI-guided passing suggestions (optional)
+4. **Live Play** - Strategic advice throughout the game
+5. **Learning** - Post-game insights and improvement suggestions
 
-## 🎮 Game States
+## 🎮 Development Progress
 
-### Private State (per player)
-- Current tiles in hand
-- Strategic analysis and recommendations
-- Charleston pass selections
-- Personal game statistics
+### ✅ CHUNK 1: Foundation Setup & Basic UI
+- Modern React 18 + TypeScript + Vite architecture
+- Zustand stores with devtools and persistence
+- UI component library with modern design system
+- Responsive layout components and routing
+- Hello Co-Pilot landing page with feature showcase
 
-### Shared State (room-wide)
-- All discarded tiles
-- Exposed sets for each player
-- Current turn and game phase
-- Charleston coordination status
-- Timer and game flow
+### ✅ CHUNK 2: Pattern Selection Foundation
+- NMJL 2025 service loading authentic pattern data
+- Pattern store with selection and filtering capabilities
+- Interactive pattern cards with visual indicators
+- Advanced search and multi-criteria filtering
+- Pattern grid with responsive layout and empty states
+- Selected patterns panel with strategic tips
+
+### 🔄 CHUNK 3-10: Upcoming Features
+- **Tile Input System** - Private tile management with animations
+- **Intelligence Panel** - Layer Cake UI for progressive information disclosure
+- **Charleston Coordination** - AI-assisted passing recommendations
+- **Live Game Interface** - Real-time strategic assistance
+- **Statistics & History** - Learning insights and progress tracking
+- **Polish & Optimization** - Performance, accessibility, and PWA features
 
 ## 🛠️ Development
-
-### Project Structure
-```
-/
-├── frontend/          # React + TypeScript frontend
-│   ├── src/
-│   │   ├── components/    # UI components (PatternExplorer, PrivateHandView, etc.)
-│   │   ├── pages/         # Route components and demo pages
-│   │   ├── hooks/         # Custom React hooks (useSocket, useCharleston, etc.)
-│   │   ├── utils/         # Game logic and NMJL pattern analysis
-│   │   │   ├── nmjl-2025-loader.ts      # Real NMJL data loader
-│   │   │   ├── enhanced-hand-analyzer.ts # Advanced pattern analysis
-│   │   │   ├── pattern-search-engine.ts  # Pattern filtering & search
-│   │   │   └── charleston-recommendation-engine.ts
-│   │   └── types/         # TypeScript definitions
-│   └── ...
-├── backend/           # Node.js + Express backend
-│   ├── src/
-│   │   ├── roomManager.ts    # Core game state management
-│   │   ├── server.ts         # Socket.io handlers
-│   │   └── api/              # REST endpoints
-│   └── ...
-├── CLAUDE.md         # Development guidance
-└── README.md
-```
-
-### Development Standards
-- **Mobile-first responsive design** - Primary interface is phone screens
-- **Real-time synchronization** - All shared state updates instantly
-- **Privacy boundaries** - Clear separation between private/shared data
-- **Graceful degradation** - Core features work with connection issues
 
 ### Available Scripts
 
 **Frontend:**
-- `npm run dev` - Start development server
-- `npm run build` - Build for production (with TypeScript validation)
+- `npm run dev` - Start development server at http://localhost:5175
+- `npm run build` - Build for production (includes TypeScript validation)
 - `npm run lint` - Run ESLint code quality checks
-- `npm run preview` - Preview production build
+- `npm run preview` - Preview production build locally
 
-**Backend:**
-- `npm run dev` - Start development server with hot reload
+**Backend (Legacy System):**
+- `npm run dev` - Start Socket.io server with hot reload
 - `npm run build` - Compile TypeScript
 - `npm start` - Run compiled JavaScript
 
-## 🔮 Roadmap
+### Development Standards
+- **TypeScript strict mode** for maximum type safety
+- **Mobile-first responsive design** optimized for touch devices
+- **Feature-based architecture** with clear separation of concerns
+- **Modern state management** with Zustand over Redux
+- **Real-time synchronization** for multiplayer features
+- **Comprehensive error handling** with graceful degradation
 
-### Phase 1: Foundation ✅
-- [x] Project setup and basic architecture
-- [x] Room creation and joining system
-- [x] Basic tile input interface
-- [x] Simple shared game state
-- [x] Real-time synchronization with Socket.io
+### Design System
+- **Color Palette**: Purple (#6366F1) and Blue (#3B82F6) with semantic colors
+- **Typography**: System fonts with careful hierarchy and accessibility
+- **Components**: Glassmorphism cards, modern buttons, responsive layouts
+- **Animations**: Respect for `prefers-reduced-motion` with contextual feedback
+- **Mobile-First**: Touch-optimized interface with large tap targets
 
-### Phase 2: Core Gameplay ✅
-- [x] Charleston coordination system with advanced skip functionality
-- [x] Complete hand analysis with real NMJL 2025 patterns
-- [x] Tile calling and exposed sets management
-- [x] Game timer and comprehensive flow management
-- [x] Player position management and tile distribution
-- [x] Session recovery and reconnection handling
+## 📊 NMJL 2025 Integration
 
-### Phase 3: Polish & Enhancement 🚧
-- [x] Advanced strategy features with pattern search engine
-- [x] Comprehensive error handling and automatic reconnection
-- [x] Performance optimization and code quality standards
-- [x] PWA features for mobile installation
-- [x] Wake lock support to prevent screen sleep
-- [x] Mobile-first responsive design
+### Authentic Tournament Data
+- **Complete NMJL 2025 card** with all 71 official patterns
+- **Detailed pattern information** including points, difficulty, and joker rules
+- **Type-safe data structures** with comprehensive validation
+- **Fast pattern lookups** with indexed search capabilities
 
-### Phase 4: Advanced Features 🔄
-- [x] Pattern Explorer for browsing all NMJL patterns
-- [x] Enhanced Charleston recommendation engine
-- [x] Detailed pattern analysis with completion tracking
-- [ ] Voice announcements for discards
-- [ ] Multiple simultaneous games
-- [ ] Advanced statistics and game history
-- [ ] Integration with multiple card years (2024, 2026+)
-- [ ] Offline mode capabilities
+### Pattern Analysis Features
+- **Visual pattern cards** with difficulty badges and point values
+- **Advanced filtering** across multiple criteria simultaneously
+- **Pattern progress tracking** with completion percentage visualization
+- **Strategic insights** based on pattern characteristics and requirements
+
+### AI Recommendations (Coming Soon)
+- **Hand analysis** comparing current tiles against all possible patterns
+- **Completion probability** calculations based on remaining tiles
+- **Strategic suggestions** for keep/pass/discard decisions
+- **Charleston integration** with pattern-aware passing recommendations
+
+## 🎯 Success Metrics
+
+We measure success by whether players say:
+- **"Let's use the co-pilot"** instead of **"Let's play without help"**
+- **"I understand patterns better now"** instead of **"This is too confusing"**  
+- **"I'm making better decisions"** instead of **"I don't know what to do"**
+- **"This enhances our game"** instead of **"This distracts from playing"**
 
 ## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+3. Follow the chunk-based development approach in `docs/CO_PILOT_BUILD_PLAN.md`
+4. Ensure TypeScript compliance and mobile responsiveness
+5. Commit with clear messages (`git commit -m 'Add amazing feature'`)
+6. Push to the branch (`git push origin feature/amazing-feature`)
+7. Open a Pull Request with detailed description
 
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🎯 Success Definition
+## 🎲 Built for Players Who Want to Learn and Improve
 
-When groups say **"let's use the app"** instead of **"let's play without it."**
+Whether you're a **beginner** learning patterns, an **intermediate** player improving strategy, or an **expert** looking for optimal decisions, this co-pilot system adapts to your needs while preserving the social joy of in-person American Mahjong.
 
 ---
 
-**Built for the social players, learning players, and mixed groups who want to enhance their American Mahjong experience while maintaining the joy of in-person play.**
+**Transform your American Mahjong experience with intelligent assistance that enhances rather than replaces human judgment.**
