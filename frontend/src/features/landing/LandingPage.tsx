@@ -77,6 +77,15 @@ export const LandingPage = () => {
           </Button>
           
           <Button 
+            variant="secondary" 
+            size="lg"
+            onClick={() => navigate('/intelligence')}
+            icon="🧠"
+          >
+            AI Intelligence
+          </Button>
+          
+          <Button 
             variant="outline" 
             size="lg"
             onClick={() => setSelectedFeature('demo')}
@@ -124,14 +133,14 @@ export const LandingPage = () => {
             <div className="text-left">
               <h4 className="font-semibold text-gray-900">Development Status</h4>
               <p className="text-sm text-gray-600">
-                Co-pilot foundation ready • Pattern intelligence active
+                Intelligence Panel ready • Layer Cake UI active • Pattern analysis online
               </p>
             </div>
             
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-accent rounded-full animate-pulse" />
               <span className="text-sm font-medium text-accent">
-                CHUNK 1 Complete
+                CHUNK 4 Complete
               </span>
             </div>
           </div>

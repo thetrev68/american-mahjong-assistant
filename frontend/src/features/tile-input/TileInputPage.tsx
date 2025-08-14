@@ -8,6 +8,7 @@ import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { HandValidation } from './HandValidation'
+import { BadgePositionTest } from '../../debug-badge-test'
 import { useTileStore, usePatternStore } from '../../stores'
 
 export const TileInputPage = () => {
@@ -84,6 +85,11 @@ export const TileInputPage = () => {
             {selectedPattern && ` Working toward: ${selectedPattern.displayName}`}
           </p>
         </div>
+        
+        {/* DEBUG: Badge Position Test */}
+        <Card variant="elevated" className="p-4 mb-6">
+          <BadgePositionTest />
+        </Card>
         
         {/* Game Controls */}
         <Card variant="default" className="p-4">

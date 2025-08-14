@@ -3,6 +3,7 @@ export { Button } from './Button'
 export { Card } from './Card'  
 export { LoadingSpinner } from './LoadingSpinner'
 export { Tile } from './Tile'
+export { TileSprite } from './TileSprite'
 
 // Layout Components
 export { AppLayout } from './layout/AppLayout'

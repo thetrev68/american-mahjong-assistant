@@ -20,9 +20,9 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
   const { addTile, playerHand } = useTileStore()
   
   const suits: Array<{ suit: TileSuit; label: string; emoji: string }> = [
-    { suit: 'dots', label: 'Dots', emoji: '🔴' },
+    { suit: 'dots', label: 'Dots', emoji: '🔵' },
     { suit: 'bams', label: 'Bams', emoji: '🟢' },
-    { suit: 'cracks', label: 'Cracks', emoji: '🔵' },
+    { suit: 'cracks', label: 'Cracks', emoji: '🔴' },
     { suit: 'winds', label: 'Winds', emoji: '💨' },
     { suit: 'dragons', label: 'Dragons', emoji: '🐉' },
     { suit: 'flowers', label: 'Flowers', emoji: '🌸' },
@@ -93,7 +93,7 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
               const isMaxed = currentCount >= 4
               
               return (
-                <div key={tile.id} className="relative">
+                <div key={tile.id} style={{ position: 'relative', display: 'inline-block' }}>
                   <Tile
                     tile={createDummyPlayerTile(tile)}
                     size="sm"
@@ -101,7 +101,25 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
                     className={isMaxed ? 'opacity-50 cursor-not-allowed' : ''}
                   />
                   {currentCount > 0 && (
-                    <div className="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white rounded-full text-xs flex items-center justify-center">
+                    <div style={{
+                      position: 'absolute',
+                      top: '0px',
+                      right: '0px',
+                      width: '20px',
+                      height: '20px',
+                      backgroundColor: 'rgb(99 102 241)',
+                      borderRadius: '50%',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      zIndex: 9999,
+                      border: '1px solid white',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      transform: 'translate(50%, -50%)'
+                    }}>
                       {currentCount}
                     </div>
                   )}
@@ -155,7 +173,7 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
             const isMaxed = currentCount >= 4
             
             return (
-              <div key={tile.id} className="relative">
+              <div key={tile.id}>
                 <Tile
                   tile={createDummyPlayerTile(tile)}
                   size="md"
@@ -164,18 +182,36 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
                     ${isMaxed ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}
                     transition-transform duration-200
                   `}
-                />
-                
-                {/* Count Badge */}
-                {currentCount > 0 && (
-                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-primary text-white rounded-full text-sm font-bold flex items-center justify-center shadow-lg">
-                    {currentCount}
-                  </div>
-                )}
+                >
+                  {/* Count Badge */}
+                  {currentCount > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      right: '-10px',
+                      width: '20px',
+                      height: '20px',
+                      backgroundColor: 'rgb(99 102 241)',
+                      borderRadius: '50%',
+                      color: 'white',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold',
+                      zIndex: 9999,
+                      border: '1px solid white',
+                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
+                      pointerEvents: 'none'
+                    }}>
+                      {currentCount}
+                    </div>
+                  )}
+                </Tile>
                 
                 {/* Max Badge */}
                 {isMaxed && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50 rounded-lg">
+                  <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
                     <span className="text-white text-xs font-bold">MAX</span>
                   </div>
                 )}
