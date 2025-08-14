@@ -87,8 +87,17 @@ class NMJLService {
       Constraint_Values: String(group.Constraint_Values || ''),
       Constraint_Must_Match: group.Constraint_Must_Match ? String(group.Constraint_Must_Match) : null,
       Constraint_Extra: group.Constraint_Extra ? String(group.Constraint_Extra) : null,
-      Jokers_Allowed: Boolean(group.Jokers_Allowed)
+      Jokers_Allowed: Boolean(group.Jokers_Allowed),
+      display_color: this.normalizeColor(group.display_color)
     }
+  }
+
+  private normalizeColor(color: unknown): 'blue' | 'red' | 'green' {
+    const normalized = String(color || '').toLowerCase()
+    if (['blue', 'red', 'green'].includes(normalized)) {
+      return normalized as 'blue' | 'red' | 'green'
+    }
+    return 'blue' // Default fallback
   }
 
   // Public API methods

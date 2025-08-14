@@ -14,6 +14,7 @@ export interface PatternGroup {
   Constraint_Must_Match: string | null
   Constraint_Extra: string | null
   Jokers_Allowed: boolean
+  display_color: 'blue' | 'red' | 'green'
 }
 
 export interface NMJL2025Pattern {
