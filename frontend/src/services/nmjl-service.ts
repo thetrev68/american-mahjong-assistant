@@ -135,7 +135,9 @@ class NMJLService {
       description: pattern.Hand_Description,
       section: pattern.Section,
       line: pattern.Line, // Add line number from section
-      allowsJokers: pattern.Groups.some(group => group.Jokers_Allowed)
+      allowsJokers: pattern.Groups.some(group => group.Jokers_Allowed),
+      concealed: pattern.Hand_Conceiled, // Add concealed field
+      groups: pattern.Groups // Include groups for color display
     }))
   }
 

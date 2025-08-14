@@ -103,14 +103,19 @@ export const PatternFilters = () => {
           </label>
           <select
             value={sectionFilter}
-            onChange={(e) => setSectionFilter(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+            onChange={(e) => setSectionFilter(e.target.value === 'all' ? 'all' : e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             <option value="all">All Sections</option>
-            <option value="2025">2025 Section</option>
-            <option value="369">369 Section</option>
-            <option value="147">147 Section</option>
-            <option value="258">258 Section</option>
+            <option value="2025">2025</option>
+            <option value="2468">2468</option>
+            <option value="13579">13579</option>
+            <option value="369">369</option>
+            <option value="ANY LIKE NUMBERS">ANY LIKE NUMBERS</option>
+            <option value="QUINTS">QUINTS</option>
+            <option value="CONSECUTIVE RUN">CONSECUTIVE RUN</option>
+            <option value="SINGLES AND PAIRS">SINGLES AND PAIRS</option>
+            <option value="WINDS - DRAGONS">WINDS - DRAGONS</option>
           </select>
         </div>
       </div>

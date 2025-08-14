@@ -43,6 +43,8 @@ export interface PatternSelectionOption {
   section: string | number // Can be string like "2025" or "ANY LIKE NUMBERS"
   line: number // Line number within the section
   allowsJokers: boolean
+  concealed: boolean // Hand_Conceiled field
+  groups: PatternGroup[] // Groups for color mapping
 }
 
 export interface PatternProgress {

@@ -4,6 +4,7 @@
 import { Card } from '../../ui-components/Card'
 import { useAnimationsEnabled } from '../../stores'
 import type { PatternSelectionOption, PatternProgress } from '../../types/nmjl-types'
+import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface PatternCardProps {
   pattern: PatternSelectionOption
@@ -47,15 +48,47 @@ export const PatternCard = ({
       onClick={() => onSelect(pattern.id)}
     >
       <div className="p-5 space-y-4">
-        {/* Header */}
+        {/* Header with Target Star */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <h3 className="text-lg font-bold text-gray-900 truncate">
-              {pattern.displayName}
-            </h3>
-            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+            {/* Section #Line: Pattern (colorized) */}
+            <div className="mb-2">
+              <span className="text-lg font-bold text-gray-900">
+                {pattern.section} #{pattern.line}: 
+              </span>
+              <div className="inline-flex flex-wrap gap-1 ml-2">
+                {getColoredPatternParts(pattern.pattern, pattern.groups).map((part, index) => (
+                  <span 
+                    key={index}
+                    className={`font-mono font-semibold ${getColorClasses(part.color, 'text')}`}
+                  >
+                    {part.text}
+                  </span>
+                ))}
+              </div>
+            </div>
+            
+            {/* Hand Description */}
+            <p className="text-sm text-gray-700 mb-2">
               {pattern.description}
             </p>
+            
+            {/* Difficulty, Concealed, Points */}
+            <div className="flex items-center gap-3 text-sm">
+              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getDifficultyBadgeColor(pattern.difficulty)}`}>
+                {pattern.difficulty.toUpperCase()}
+              </span>
+              
+              {pattern.concealed && (
+                <span className="text-purple-600 font-medium">
+                  CONCEALED
+                </span>
+              )}
+              
+              <span className="font-bold text-primary">
+                {pattern.points} pts
+              </span>
+            </div>
           </div>
           
           <button
@@ -72,13 +105,6 @@ export const PatternCard = ({
           >
             <span className="text-lg">{isTarget ? '⭐' : '☆'}</span>
           </button>
-        </div>
-        
-        {/* Pattern Display */}
-        <div className="bg-surface rounded-lg p-3 border border-gray-200">
-          <code className="text-sm font-mono text-gray-800 tracking-wider">
-            {pattern.pattern}
-          </code>
         </div>
         
         {/* Progress Bar (if available) */}
@@ -99,26 +125,6 @@ export const PatternCard = ({
           </div>
         )}
         
-        {/* Footer */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-3">
-            <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getDifficultyBadgeColor(pattern.difficulty)}`}>
-              {pattern.difficulty.toUpperCase()}
-            </span>
-            
-            {pattern.allowsJokers && (
-              <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                Jokers OK
-              </span>
-            )}
-          </div>
-          
-          <div className="text-right">
-            <div className="text-lg font-bold text-primary">
-              {pattern.points} pts
-            </div>
-          </div>
-        </div>
         
         {/* Selection Indicator */}
         {isSelected && (

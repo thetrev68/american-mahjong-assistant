@@ -22,7 +22,7 @@ interface PatternState {
   difficultyFilter: 'all' | 'easy' | 'medium' | 'hard'
   pointsFilter: 'all' | '25' | '30' | '35' | '40' | '50'
   jokerFilter: 'all' | 'allows' | 'no-jokers'
-  sectionFilter: 'all' | number
+  sectionFilter: 'all' | string
   
   // Progress Tracking
   patternProgress: Record<number, PatternProgress>
@@ -39,7 +39,7 @@ interface PatternState {
   setDifficultyFilter: (difficulty: 'all' | 'easy' | 'medium' | 'hard') => void
   setPointsFilter: (points: 'all' | '25' | '30' | '35' | '40' | '50') => void
   setJokerFilter: (jokers: 'all' | 'allows' | 'no-jokers') => void
-  setSectionFilter: (section: 'all' | number) => void
+  setSectionFilter: (section: 'all' | string) => void
   clearAllFilters: () => void
   
   // Progress Actions
