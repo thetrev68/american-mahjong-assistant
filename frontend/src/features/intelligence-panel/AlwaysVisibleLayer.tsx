@@ -78,7 +78,7 @@ export const AlwaysVisibleLayer = ({
           <div className="flex flex-wrap gap-2">
             {topRecommendations.map((rec, index) => (
               <RecommendationBadge
-                key={`${rec.tileId}-${index}`}
+                key={`${rec.tileId}-${rec.action}-${rec.priority}-${index}`}
                 recommendation={rec}
                 size="sm"
                 showConfidence={true}

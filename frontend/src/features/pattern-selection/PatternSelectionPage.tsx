@@ -74,7 +74,7 @@ export const PatternSelectionPage = () => {
                   disabled={!selectedPattern}
                   onClick={() => navigate('/tile-input')}
                 >
-                  Continue with {selectedPattern?.displayName || 'Selection'}
+                  Continue with {selectedPattern ? `${selectedPattern.section} #${selectedPattern.line}` : 'Selection'}
                 </Button>
                 
                 <Button

@@ -70,7 +70,7 @@ export const LandingPage = () => {
           <Button 
             variant="primary" 
             size="lg"
-            onClick={() => navigate('/pattern-selection')}
+            onClick={() => navigate('/tiles')}
             icon="🚀"
           >
             Start Playing
@@ -79,7 +79,7 @@ export const LandingPage = () => {
           <Button 
             variant="secondary" 
             size="lg"
-            onClick={() => navigate('/intelligence')}
+            onClick={() => navigate('/tiles')}
             icon="🧠"
           >
             AI Intelligence
@@ -115,10 +115,27 @@ export const LandingPage = () => {
                 
                 {selectedFeature === feature.id && (
                   <div className="pt-4 border-t border-gray-100 animate-pop-in">
-                    <div className="bg-primary/5 rounded-lg p-3">
+                    <div className="bg-primary/5 rounded-lg p-3 space-y-3">
                       <p className="text-sm text-primary font-medium">
                         💡 {feature.demo}
                       </p>
+                      {/* Add Try It buttons for available features */}
+                      {(feature.id === 'pattern-selection' || 
+                        feature.id === 'tile-intelligence' ||
+                        feature.id === 'charleston-ai') && (
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            if (feature.id === 'pattern-selection') navigate('/pattern-selection')
+                            if (feature.id === 'tile-intelligence') navigate('/intelligence')
+                            if (feature.id === 'charleston-ai') navigate('/charleston')
+                          }}
+                        >
+                          Try It Now
+                        </Button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -133,14 +150,14 @@ export const LandingPage = () => {
             <div className="text-left">
               <h4 className="font-semibold text-gray-900">Development Status</h4>
               <p className="text-sm text-gray-600">
-                Intelligence Panel ready • Layer Cake UI active • Pattern analysis online
+                Charleston Intelligence • Pattern analysis • Layer Cake UI online
               </p>
             </div>
             
             <div className="flex items-center gap-2">
               <div className="w-3 h-3 bg-accent rounded-full animate-pulse" />
               <span className="text-sm font-medium text-accent">
-                CHUNK 4 Complete
+                CHUNK 5 Complete
               </span>
             </div>
           </div>

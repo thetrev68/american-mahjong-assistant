@@ -3,6 +3,8 @@
 
 import { useState } from 'react'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
+import { useTileStore } from '../../stores/tile-store'
+import { usePatternStore } from '../../stores/pattern-store'
 import { AlwaysVisibleLayer } from './AlwaysVisibleLayer'
 import { ExpandableLayer } from './ExpandableLayer'
 import { AdvancedStatsLayer } from './AdvancedStatsLayer'
@@ -72,9 +74,22 @@ export const LayerCakeUI = ({ className = '' }: LayerCakeUIProps) => {
         <div className="p-6 text-center">
           <div className="text-4xl mb-4">🤖</div>
           <div className="text-muted font-medium mb-2">Co-Pilot Ready</div>
-          <div className="text-xs text-gray-500">
-            Select patterns and input tiles to see AI analysis
+          <div className="text-xs text-gray-500 mb-4">
+            Ready to analyze your hand and provide recommendations
           </div>
+          <button
+            onClick={async () => {
+              const { playerHand } = useTileStore.getState()
+              const { getTargetPatterns } = usePatternStore.getState()
+              const targetPatterns = getTargetPatterns()
+              const { analyzeHand } = useIntelligenceStore.getState()
+              await analyzeHand(playerHand, targetPatterns)
+            }}
+            disabled={isAnalyzing}
+            className="px-4 py-2 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isAnalyzing ? 'Analyzing...' : 'Analyze My Hand'}
+          </button>
         </div>
       </div>
     )

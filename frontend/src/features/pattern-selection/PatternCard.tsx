@@ -47,20 +47,20 @@ export const PatternCard = ({
       } ${animationsEnabled ? 'transform' : ''}`}
       onClick={() => onSelect(pattern.id)}
     >
-      <div className="p-5 space-y-4">
+      <div className="p-3 space-y-2 md:p-5 md:space-y-4">
         {/* Header with Target Star */}
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             {/* Section #Line: Pattern (colorized) */}
-            <div className="mb-2">
-              <span className="text-lg font-bold text-gray-900">
+            <div className="mb-1 md:mb-2">
+              <span className="text-base md:text-lg font-bold text-gray-900">
                 {pattern.section} #{pattern.line}: 
               </span>
               <div className="inline-flex flex-wrap gap-1 ml-2">
                 {getColoredPatternParts(pattern.pattern, pattern.groups).map((part, index) => (
                   <span 
                     key={index}
-                    className={`font-mono font-semibold ${getColorClasses(part.color, 'text')}`}
+                    className={`font-mono font-semibold text-sm md:text-base ${getColorClasses(part.color, 'text')}`}
                   >
                     {part.text}
                   </span>
@@ -69,13 +69,13 @@ export const PatternCard = ({
             </div>
             
             {/* Hand Description */}
-            <p className="text-sm text-gray-700 mb-2">
+            <p className="text-xs md:text-sm text-gray-700 mb-1 md:mb-2">
               {pattern.description}
             </p>
             
             {/* Difficulty, Concealed, Points */}
-            <div className="flex items-center gap-3 text-sm">
-              <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getDifficultyBadgeColor(pattern.difficulty)}`}>
+            <div className="flex items-center gap-2 md:gap-3 text-xs md:text-sm">
+              <span className={`px-1 py-0.5 md:px-2 md:py-1 rounded-full text-xs font-semibold ${getDifficultyBadgeColor(pattern.difficulty)}`}>
                 {pattern.difficulty.toUpperCase()}
               </span>
               

@@ -4,6 +4,7 @@
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { usePatternStore } from '../../stores'
+import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 export const SelectedPatternsPanel = () => {
   const {
@@ -48,11 +49,17 @@ export const SelectedPatternsPanel = () => {
             <div className="bg-primary/5 rounded-lg p-4 border border-primary/20">
               <div className="space-y-2">
                 <h4 className="font-semibold text-primary text-sm">
-                  {selectedPattern.displayName}
+                  Section {selectedPattern.section} #{selectedPattern.line}
                 </h4>
-                <code className="block text-xs font-mono text-gray-700 bg-white p-2 rounded border">
-                  {selectedPattern.pattern}
-                </code>
+                <div className="font-mono text-sm bg-white p-2 rounded border">
+                  {getColoredPatternParts(selectedPattern.pattern, selectedPattern.groups).map((part, index) => (
+                    <span key={index} className={getColorClasses(part.color)}>
+                      {part.text}
+                      {index < getColoredPatternParts(selectedPattern.pattern, selectedPattern.groups).length - 1 && ' '}
+                    </span>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600">{selectedPattern.description}</p>
                 <div className="flex items-center justify-between text-xs">
                   <span className={`px-2 py-1 rounded-full ${
                     selectedPattern.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
@@ -91,12 +98,18 @@ export const SelectedPatternsPanel = () => {
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h5 className="font-medium text-secondary text-xs truncate">
-                        {pattern.displayName}
+                      <h5 className="font-medium text-secondary text-xs">
+                        Section {pattern.section} #{pattern.line}
                       </h5>
-                      <code className="block text-xs font-mono text-gray-600 mt-1 truncate">
-                        {pattern.pattern}
-                      </code>
+                      <div className="font-mono text-xs text-gray-600 mt-1">
+                        {getColoredPatternParts(pattern.pattern, pattern.groups).map((part, index) => (
+                          <span key={index} className={getColorClasses(part.color)}>
+                            {part.text}
+                            {index < getColoredPatternParts(pattern.pattern, pattern.groups).length - 1 && ' '}
+                          </span>
+                        ))}
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1 truncate">{pattern.description}</p>
                       <div className="flex items-center justify-between mt-2 text-xs">
                         <span className={`px-1.5 py-0.5 rounded-full ${
                           pattern.difficulty === 'easy' ? 'bg-green-100 text-green-700' :

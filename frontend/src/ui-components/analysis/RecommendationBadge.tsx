@@ -83,9 +83,14 @@ export const RecommendationBadge = ({
         <span className="text-lg leading-none">
           {getActionIcon(recommendation.action)}
         </span>
-        <span className="capitalize font-bold">
-          {recommendation.action}
-        </span>
+        <div className="flex flex-col items-center">
+          <span className="font-bold text-xs">
+            {recommendation.tileId}
+          </span>
+          <span className="capitalize font-bold text-xs">
+            {recommendation.action}
+          </span>
+        </div>
       </div>
       
       {/* Confidence Display */}

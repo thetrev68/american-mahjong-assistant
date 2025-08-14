@@ -31,9 +31,19 @@ export interface PatternAnalysis {
   strategicValue: number // 1-10
 }
 
+export interface PatternRecommendation {
+  pattern: PatternSelectionOption
+  confidence: number
+  completionPercentage: number
+  reasoning: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  isPrimary: boolean
+}
+
 export interface HandAnalysis {
   overallScore: number // 1-100
-  bestPatterns: PatternAnalysis[]
+  recommendedPatterns: PatternRecommendation[] // AI's top 3 recommendations
+  bestPatterns: PatternAnalysis[] // Detailed analysis of all viable patterns
   tileRecommendations: TileRecommendation[]
   strategicAdvice: string[]
   threats: {
@@ -141,8 +151,8 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       analysisCache: {},
       cacheTimeout: 5 * 60 * 1000, // 5 minutes
       
-      // Analysis Actions
-      analyzeHand: async (tiles, patterns) => {
+      // Analysis Actions  
+      analyzeHand: async (tiles, patterns = []) => {
         set({ isAnalyzing: true, analysisError: null })
         
         try {
@@ -162,16 +172,38 @@ export const useIntelligenceStore = create<IntelligenceState>()(
           // Simulate AI analysis (in real implementation, this would call the intelligence layer)
           await new Promise(resolve => setTimeout(resolve, 1500))
           
+          // Get all available patterns for AI recommendation (mock)
+          const { nmjlService } = await import('../services/nmjl-service')
+          const allPatterns = await nmjlService.getSelectionOptions()
+          
+          // Mock AI pattern selection - pick 3 random patterns as recommendations
+          const shuffledPatterns = [...allPatterns].sort(() => Math.random() - 0.5)
+          const topRecommendations = shuffledPatterns.slice(0, 3)
+          
           // Mock analysis results
           const analysis: HandAnalysis = {
             overallScore: Math.floor(Math.random() * 40) + 60, // 60-100
-            bestPatterns: patterns.slice(0, 3).map((pattern, index) => ({
-              patternId: pattern.id,
+            
+            // AI pattern recommendations (primary + 2 alternates)
+            recommendedPatterns: topRecommendations.map((pattern, index) => ({
+              pattern,
+              confidence: Math.floor(Math.random() * 30) + 70 - (index * 10), // Primary has highest confidence
+              completionPercentage: Math.floor(Math.random() * 60) + 20 + (index === 0 ? 20 : 0), // Primary gets bonus
+              reasoning: index === 0 
+                ? `Best match for your current tiles - highest completion probability`
+                : `Strong alternative option with good strategic value`,
+              difficulty: pattern.difficulty,
+              isPrimary: index === 0
+            })),
+            
+            // Detailed analysis of recommended patterns
+            bestPatterns: topRecommendations.map((pattern, index) => ({
+              patternId: parseInt(pattern.id) || index,
               completionPercentage: Math.floor(Math.random() * 60) + 20, // 20-80
               tilesNeeded: Math.floor(Math.random() * 8) + 2, // 2-10
               missingTiles: ['1D', '2B', '3C'].slice(0, Math.floor(Math.random() * 3) + 1),
               confidenceScore: Math.floor(Math.random() * 30) + 70, // 70-100
-              difficulty: ['easy', 'medium', 'hard'][index % 3] as 'easy' | 'medium' | 'hard',
+              difficulty: pattern.difficulty,
               estimatedTurns: Math.floor(Math.random() * 10) + 3, // 3-13
               riskLevel: ['low', 'medium', 'high'][index % 3] as 'low' | 'medium' | 'high',
               strategicValue: Math.floor(Math.random() * 4) + 6 // 6-10

@@ -182,21 +182,23 @@ export const HandDisplay = ({
         
         {/* Sort Controls */}
         {allowReordering && (
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-sm text-gray-600">Sort:</span>
-            {(['suit', 'recommendation', 'manual'] as const).map(sort => (
-              <Button
-                key={sort}
-                variant={sortBy === sort ? 'primary' : 'ghost'}
-                size="sm"
-                onClick={() => setSortBy(sort)}
-              >
-                {sort === 'suit' && '🎨'}
-                {sort === 'recommendation' && '🧠'}
-                {sort === 'manual' && '✋'}
-                <span className="ml-1 capitalize text-xs">{sort}</span>
-              </Button>
-            ))}
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            <span className="text-sm text-gray-600 whitespace-nowrap">Sort:</span>
+            <div className="flex gap-2 flex-wrap">
+              {(['suit', 'recommendation'] as const).map(sort => (
+                <Button
+                  key={sort}
+                  variant={sortBy === sort ? 'primary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setSortBy(sort)}
+                  className="min-w-0"
+                >
+                  {sort === 'suit' && '🎨'}
+                  {sort === 'recommendation' && '🧠'}
+                  <span className="ml-1 capitalize text-xs whitespace-nowrap">{sort}</span>
+                </Button>
+              ))}
+            </div>
           </div>
         )}
         

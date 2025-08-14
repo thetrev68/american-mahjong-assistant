@@ -40,8 +40,15 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
   const handleTileClick = (tile: any) => {
     const currentCount = tileCounts.get(tile.id) || 0
     
+    // Check if we're at max hand size
+    const maxHandSize = dealerHand ? 14 : 13
+    if (playerHand.length >= maxHandSize) {
+      // Visual feedback - could add toast/alert here
+      return
+    }
+    
     if (currentCount >= 4) {
-      // Visual feedback for max tiles
+      // Visual feedback for max tiles of this type
       return
     }
     
@@ -65,7 +72,13 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
           <Button
             variant="outline"
             size="sm"
-            onClick={() => addTile('joker')}
+            onClick={() => {
+              const maxHandSize = dealerHand ? 14 : 13
+              if (playerHand.length < maxHandSize) {
+                addTile('joker')
+              }
+            }}
+            disabled={playerHand.length >= (dealerHand ? 14 : 13)}
             className="w-full"
             icon="🃏"
           >

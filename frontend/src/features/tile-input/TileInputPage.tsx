@@ -1,7 +1,7 @@
 // Tile Input Page
 // Complete interface for inputting and managing player tiles
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Container } from '../../ui-components/layout/Container'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
@@ -32,15 +32,40 @@ export const TileInputPage = () => {
   const targetPatterns = getTargetPatterns() // Array of selected pattern objects
   
   // Intelligence Panel Integration
-  const { currentAnalysis, autoAnalyze, setAutoAnalyze } = useIntelligenceStore()
+  const { currentAnalysis, autoAnalyze, setAutoAnalyze, analyzeHand, isAnalyzing } = useIntelligenceStore()
   
   // Check if we should show intelligence panel
-  const showIntelligencePanel = playerHand.length >= 10 && targetPatterns.length > 0
+  const showIntelligencePanel = playerHand.length >= 10
+  
+  // Track if we've already triggered analysis to prevent loops
+  const analysisTriggeredRef = useRef(false)
+  
+  useEffect(() => {
+    // Clear hand when starting fresh (check if we came from home)
+    const referrer = document.referrer
+    const isFromHome = referrer.includes('/') && !referrer.includes('/patterns') && !referrer.includes('/tiles')
+    if (isFromHome && playerHand.length > 0) {
+      clearHand()
+    }
+  }, []) // Run only on mount
   
   useEffect(() => {
     // Validate hand whenever it changes
     validateHand()
   }, [playerHand, validateHand])
+  
+  // Auto-analyze when conditions are met
+  useEffect(() => {
+    const shouldAnalyze = autoAnalyze && playerHand.length >= 10 && !isAnalyzing
+    
+    if (shouldAnalyze && !analysisTriggeredRef.current) {
+      analysisTriggeredRef.current = true
+      analyzeHand(playerHand, targetPatterns).finally(() => {
+        // Reset flag after analysis completes
+        analysisTriggeredRef.current = false
+      })
+    }
+  }, [autoAnalyze, playerHand.length]) // Only track hand length, patterns optional
   
   const handleQuickStart = () => {
     // Add a sample hand for testing
@@ -121,14 +146,6 @@ export const TileInputPage = () => {
             </div>
             
             <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectorMode(selectorMode === 'full' ? 'compact' : 'full')}
-              >
-                {selectorMode === 'full' ? '📱 Compact' : '🖥️ Full'}
-              </Button>
-              
               <Button
                 variant="outline"
                 size="sm"

@@ -7,11 +7,11 @@ import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { LayerCakeUI } from './LayerCakeUI'
+import { PatternRecommendations } from './PatternRecommendations'
 
 export const IntelligencePanelPage = () => {
   const {
     currentAnalysis,
-    isAnalyzing,
     analyzeHand,
     clearAnalysis,
     autoAnalyze
@@ -35,7 +35,6 @@ export const IntelligencePanelPage = () => {
   }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, clearAnalysis, currentAnalysis])
   
   const tileCount = handSize || 0
-  const hasSelectedPatterns = (selectedPatterns?.length || 0) > 0
   const hasEnoughTiles = tileCount >= 10
   
   return (
@@ -75,53 +74,15 @@ export const IntelligencePanelPage = () => {
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Prerequisites Check */}
-        {(!hasSelectedPatterns || !hasEnoughTiles) && (
+        {!hasEnoughTiles && (
           <div className="mb-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="text-center">
               <div className="text-4xl mb-4">🤖</div>
               <h2 className="text-lg font-semibold text-gray-900 mb-3">
-                Complete Setup to Enable AI Analysis
+                Input Your Tiles to Get AI Analysis
               </h2>
               
               <div className="space-y-3 max-w-md mx-auto">
-                {/* Pattern Selection Status */}
-                <div className={`
-                  flex items-center gap-3 p-3 rounded-lg border
-                  ${hasSelectedPatterns 
-                    ? 'bg-green-50 border-green-200' 
-                    : 'bg-gray-50 border-gray-200'
-                  }
-                `}>
-                  <div className={`
-                    w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold
-                    ${hasSelectedPatterns 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-gray-300 text-gray-600'
-                    }
-                  `}>
-                    {hasSelectedPatterns ? '✓' : '1'}
-                  </div>
-                  <div className="flex-1 text-left">
-                    <div className="font-medium text-gray-900">
-                      Select Target Patterns
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {hasSelectedPatterns 
-                        ? `${selectedPatterns?.length || 0} patterns selected` 
-                        : 'Choose patterns to analyze'
-                      }
-                    </div>
-                  </div>
-                  {!hasSelectedPatterns && (
-                    <Link
-                      to="/patterns"
-                      className="px-3 py-1 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/80 transition-colors"
-                    >
-                      Select
-                    </Link>
-                  )}
-                </div>
-                
                 {/* Tile Input Status */}
                 <div className={`
                   flex items-center gap-3 p-3 rounded-lg border
@@ -134,19 +95,19 @@ export const IntelligencePanelPage = () => {
                     w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold
                     ${hasEnoughTiles 
                       ? 'bg-green-500 text-white' 
-                      : 'bg-gray-300 text-gray-600'
+                      : 'bg-indigo-500 text-white'
                     }
                   `}>
-                    {hasEnoughTiles ? '✓' : '2'}
+                    {hasEnoughTiles ? '✓' : '1'}
                   </div>
                   <div className="flex-1 text-left">
                     <div className="font-medium text-gray-900">
-                      Input Your Tiles
+                      Input Your Hand Tiles
                     </div>
                     <div className="text-sm text-gray-600">
                       {hasEnoughTiles 
-                        ? `${tileCount} tiles entered` 
-                        : `${tileCount}/10 tiles minimum`
+                        ? `${tileCount} tiles entered - ready for analysis!` 
+                        : `${tileCount}/10 tiles minimum needed`
                       }
                     </div>
                   </div>
@@ -155,32 +116,42 @@ export const IntelligencePanelPage = () => {
                       to="/tiles"
                       className="px-3 py-1 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/80 transition-colors"
                     >
-                      Input
+                      Input Tiles
                     </Link>
                   )}
                 </div>
+                
+                {hasEnoughTiles && (
+                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                    <h4 className="font-medium text-indigo-900 mb-1">✨ AI-Powered Flow</h4>
+                    <p className="text-sm text-indigo-800">
+                      AI will analyze your tiles and recommend the best patterns, 
+                      then you can accept or override the recommendations.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
         
         {/* Intelligence Panel */}
-        {(hasSelectedPatterns && hasEnoughTiles) && (
+        {hasEnoughTiles && (
           <div className="space-y-6">
             {/* Context Summary */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
               <div className="flex flex-wrap items-center gap-4 text-sm">
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600">Patterns:</span>
+                  <span className="text-gray-600">Tiles:</span>
                   <span className="font-semibold text-primary">
-                    {selectedPatterns?.length || 0} selected
+                    {tileCount} entered
                   </span>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <span className="text-gray-600">Tiles:</span>
+                  <span className="text-gray-600">Patterns:</span>
                   <span className="font-semibold text-primary">
-                    {tileCount} entered
+                    {selectedPatterns?.length || 0} selected
                   </span>
                 </div>
                 
@@ -201,6 +172,13 @@ export const IntelligencePanelPage = () => {
                 )}
               </div>
             </div>
+            
+            {/* AI Pattern Recommendations */}
+            {currentAnalysis?.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 0 && (
+              <PatternRecommendations 
+                recommendations={currentAnalysis.recommendedPatterns}
+              />
+            )}
             
             {/* Layer Cake UI */}
             <LayerCakeUI />
