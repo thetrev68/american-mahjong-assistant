@@ -12,25 +12,29 @@ export interface ColoredPatternPart {
  * Maps pattern parts to their group colors
  * e.g., "FFFF 2025 222 222" with groups [FFFF, 2025, 222_1, 222_2]
  * returns colored parts for each space-separated component
+ * 
+ * This handles duplicate pattern parts by matching them sequentially to groups
  */
 export function getColoredPatternParts(pattern: string, groups: PatternGroup[]): ColoredPatternPart[] {
   const patternParts = pattern.split(' ')
   const coloredParts: ColoredPatternPart[] = []
   
-  // Create a lookup map of group names to colors
-  // Remove suffixes like _1, _2 when matching
-  const groupColorMap = new Map<string, 'blue' | 'red' | 'green'>()
-  
-  groups.forEach(group => {
+  // Create array of group base names (without suffixes) and their colors
+  const groupSequence = groups.map(group => {
     const groupName = String(group.Group)
     const baseGroupName = groupName.replace(/_\d+$/, '') // Remove _1, _2, etc.
-    groupColorMap.set(baseGroupName, group.display_color)
-    groupColorMap.set(groupName, group.display_color) // Also store with suffix for exact matches
+    return {
+      baseName: baseGroupName,
+      color: group.display_color
+    }
   })
   
-  // Map each pattern part to its color
-  patternParts.forEach(part => {
-    const color = groupColorMap.get(part) || 'blue' // Default to blue if not found
+  // Map each pattern part to its corresponding group in sequence
+  patternParts.forEach((part, index) => {
+    // Find the matching group at this position in the sequence
+    const matchingGroup = groupSequence[index]
+    const color = matchingGroup?.color || 'blue' // Default to blue if not found
+    
     coloredParts.push({
       text: part,
       color: color
@@ -46,8 +50,8 @@ export function getColoredPatternParts(pattern: string, groups: PatternGroup[]):
 export function getColorClasses(color: 'blue' | 'red' | 'green', variant: 'text' | 'background' = 'text'): string {
   const colorMap = {
     blue: {
-      text: 'text-blue-600',
-      background: 'bg-blue-100 text-blue-800'
+      text: 'text-blue-900', // Darker navy blue to match physical card
+      background: 'bg-blue-100 text-blue-900'
     },
     red: {
       text: 'text-red-600', 
