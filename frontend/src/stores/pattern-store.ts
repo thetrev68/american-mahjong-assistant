@@ -14,8 +14,8 @@ interface PatternState {
   error: string | null
   
   // User Selection
-  selectedPatternId: number | null
-  targetPatterns: number[] // Multiple patterns user is considering
+  selectedPatternId: string | null
+  targetPatterns: string[] // Multiple patterns user is considering
   
   // Search & Filtering
   searchQuery: string
@@ -29,9 +29,9 @@ interface PatternState {
   
   // Actions
   loadPatterns: () => Promise<void>
-  selectPattern: (patternId: number) => void
-  addTargetPattern: (patternId: number) => void
-  removeTargetPattern: (patternId: number) => void
+  selectPattern: (patternId: string) => void
+  addTargetPattern: (patternId: string) => void
+  removeTargetPattern: (patternId: string) => void
   clearSelection: () => void
   
   // Search & Filtering Actions

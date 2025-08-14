@@ -117,13 +117,15 @@ class NMJLService {
     await this.loadPatterns()
     
     return this.patterns.map(pattern => ({
-      id: pattern['Pattern ID'],
-      displayName: `#${pattern['Pattern ID']}: ${pattern.Hand_Description.toUpperCase()}`,
+      id: pattern.Hands_Key, // Use unique Hands_Key instead of duplicate Pattern ID
+      patternId: pattern['Pattern ID'], // Keep original ID for reference
+      displayName: `${pattern.Section} #${pattern.Line}: ${pattern.Hand_Description.toUpperCase()}`,
       pattern: pattern.Hand_Pattern,
       points: pattern.Hand_Points,
       difficulty: pattern.Hand_Difficulty,
       description: pattern.Hand_Description,
       section: pattern.Section,
+      line: pattern.Line, // Add line number from section
       allowsJokers: pattern.Groups.some(group => group.Jokers_Allowed)
     }))
   }

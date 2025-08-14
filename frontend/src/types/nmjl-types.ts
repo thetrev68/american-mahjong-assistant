@@ -32,13 +32,15 @@ export interface NMJL2025Pattern {
 }
 
 export interface PatternSelectionOption {
-  id: number
+  id: string // Now using Hands_Key which is a string
+  patternId: number // Original Pattern ID for reference
   displayName: string
   pattern: string
   points: number
   difficulty: HandDifficulty
   description: string
-  section: number
+  section: string | number // Can be string like "2025" or "ANY LIKE NUMBERS"
+  line: number // Line number within the section
   allowsJokers: boolean
 }
 
