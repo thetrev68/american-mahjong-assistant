@@ -1005,7 +1005,7 @@
         "Constraint_Must_Match": "111_1, 111_2, 11_2",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "111_1",
@@ -1016,7 +1016,7 @@
         "Constraint_Must_Match": "11_1, 111_2, 11_2",
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "111_2",
@@ -1038,7 +1038,7 @@
         "Constraint_Must_Match": "11_1, 111_1, 111_2",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       }
     ]
   },
@@ -1075,7 +1075,7 @@
         "Constraint_Must_Match": "111_2, 111_3",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "111_2",
@@ -1086,7 +1086,7 @@
         "Constraint_Must_Match": "111_1, 111_3",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "111_3",
@@ -1108,7 +1108,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       }
     ]
   },
@@ -1145,7 +1145,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,2222,33333",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "2222",
@@ -1156,7 +1156,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,2222,33333",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "33333",
@@ -1252,7 +1252,7 @@
         "Constraint_Must_Match": "11,11111_2",
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "11",
@@ -1263,7 +1263,7 @@
         "Constraint_Must_Match": "11111_1, 11111_2",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "11111_2",
@@ -1499,7 +1499,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,2222,333,4444",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "2222",
@@ -1510,7 +1510,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,2222,333,4444",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "333",
@@ -1521,7 +1521,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,2222,333,4444",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "4444",
@@ -1532,7 +1532,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,2222,333,4444",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -1628,7 +1628,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1111,22,3333",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "22",
@@ -1639,7 +1639,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1111,22,3333",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "3333",
@@ -1687,7 +1687,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:123,4444,5555",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "4444",
@@ -1698,7 +1698,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:123,4444,5555",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "5555",
@@ -1805,7 +1805,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,222,3333",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "222",
@@ -1816,7 +1816,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,222,3333",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "3333",
@@ -1827,7 +1827,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:111,222,3333",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "DD_1",
@@ -1838,7 +1838,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "DD_2",
@@ -1875,7 +1875,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "pair_in_sequence:1,2,3,4,5, consecutive_after_pair",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "1111_1",
@@ -1886,7 +1886,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "match_pair:112345",
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "1111_2",
@@ -1934,7 +1934,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1_1,22_1,333_1",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "22_1",
@@ -1945,7 +1945,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1_1,22_1,333_1",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "333_1",
@@ -1956,7 +1956,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1_1,22_1,333_1",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "1_2",
@@ -1967,7 +1967,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1_2,22_2,333_2",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "22_2",
@@ -1978,7 +1978,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1_2,22_2,333_2",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "333_2",
@@ -1989,7 +1989,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:1_2,22_2,333_2",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -2085,7 +2085,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": 333,
@@ -2096,7 +2096,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": 5555,
@@ -2107,7 +2107,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": 777,
@@ -2155,7 +2155,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "3333",
@@ -2166,7 +2166,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "333",
@@ -2177,7 +2177,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "5555",
@@ -2188,7 +2188,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -2214,7 +2214,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "7777",
@@ -2225,7 +2225,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "777",
@@ -2236,7 +2236,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "9999",
@@ -2247,7 +2247,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -2402,7 +2402,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "9999",
@@ -2413,7 +2413,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "10",
@@ -2424,7 +2424,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -2520,7 +2520,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "7777",
@@ -2531,7 +2531,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "9999",
@@ -2568,7 +2568,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "333",
@@ -2579,7 +2579,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "5555",
@@ -2590,7 +2590,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "DD_1",
@@ -2601,7 +2601,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "DD_2",
@@ -2638,7 +2638,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "777",
@@ -2649,7 +2649,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "9999",
@@ -2660,7 +2660,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "DD_1",
@@ -2671,7 +2671,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "DD_2",
@@ -2708,7 +2708,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "333_1",
@@ -2719,7 +2719,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "NEWS",
@@ -2741,7 +2741,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "55",
@@ -2752,7 +2752,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -2778,7 +2778,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "777_1",
@@ -2789,7 +2789,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "NEWS",
@@ -2811,7 +2811,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "99",
@@ -2822,7 +2822,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -2848,7 +2848,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "33",
@@ -2859,7 +2859,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "55",
@@ -2870,7 +2870,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "77",
@@ -2881,7 +2881,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "9999",
@@ -2892,7 +2892,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       }
     ]
   },
@@ -2929,7 +2929,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "33",
@@ -2940,7 +2940,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "111",
@@ -2951,7 +2951,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "333",
@@ -2962,7 +2962,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "55",
@@ -3010,7 +3010,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "77",
@@ -3021,7 +3021,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "555",
@@ -3032,7 +3032,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "777",
@@ -3043,7 +3043,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "99",
@@ -3220,7 +3220,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "DDD",
@@ -3231,7 +3231,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "DDDD",
@@ -3349,7 +3349,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "NEWS",
@@ -3371,7 +3371,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -3419,7 +3419,7 @@
         "Constraint_Must_Match": "1,111",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "111",
@@ -3478,7 +3478,7 @@
         "Constraint_Must_Match": "22,222",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "22",
@@ -3489,7 +3489,7 @@
         "Constraint_Must_Match": "2,222",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "222",
@@ -3747,7 +3747,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "6666",
@@ -3758,7 +3758,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "666",
@@ -3769,7 +3769,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "9999",
@@ -3780,7 +3780,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -3806,7 +3806,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "6666",
@@ -3817,7 +3817,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "666",
@@ -3828,7 +3828,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "9999",
@@ -3935,7 +3935,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "6666",
@@ -3946,7 +3946,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "9999",
@@ -3983,7 +3983,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "DDD_1",
@@ -3994,7 +3994,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "3333_2",
@@ -4005,7 +4005,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "DDD_2",
@@ -4016,7 +4016,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -4053,7 +4053,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "369",
@@ -4064,7 +4064,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "9999",
@@ -4075,7 +4075,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "green"
       }
     ]
   },
@@ -4101,7 +4101,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "66",
@@ -4112,7 +4112,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "99",
@@ -4123,7 +4123,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "3333_1",
@@ -4134,7 +4134,7 @@
         "Constraint_Must_Match": "3333_2",
         "Constraint_Extra": null,
         "Jokers_Allowed": true,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "3333_2",
@@ -4182,7 +4182,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "D_1",
@@ -4193,7 +4193,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "666",
@@ -4204,7 +4204,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "D_2",
@@ -4215,7 +4215,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "999",
@@ -4366,7 +4366,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "DD_1",
@@ -4377,7 +4377,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "2468_2",
@@ -4388,7 +4388,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "DD_2",
@@ -4399,7 +4399,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       }
     ]
   },
@@ -4425,7 +4425,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "336699_2",
@@ -4436,7 +4436,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "33",
@@ -4484,7 +4484,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "22_1",
@@ -4495,7 +4495,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:11_1",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "11_2",
@@ -4506,7 +4506,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "22_2",
@@ -4517,7 +4517,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": "consecutive:11_2",
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "11_3",
@@ -4565,7 +4565,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "33",
@@ -4576,7 +4576,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "55",
@@ -4587,7 +4587,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "77",
@@ -4598,7 +4598,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "99",
@@ -4609,7 +4609,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "11_2",
@@ -4620,7 +4620,7 @@
         "Constraint_Must_Match": "11_1",
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "11_3",
@@ -4668,7 +4668,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "green"
       },
       {
         "Group": "2025_2",
@@ -4679,7 +4679,7 @@
         "Constraint_Must_Match": null,
         "Constraint_Extra": null,
         "Jokers_Allowed": false,
-        "display_color": "blue"
+        "display_color": "red"
       },
       {
         "Group": "2025_3",
