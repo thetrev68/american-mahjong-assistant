@@ -31,8 +31,8 @@ class NMJLService {
 
   private validatePatterns(rawData: unknown[]): NMJL2025Pattern[] {
     return rawData
-      .filter(this.isValidPattern)
-      .map(this.normalizePattern)
+      .filter((item) => this.isValidPattern(item))
+      .map((item) => this.normalizePattern(item))
   }
 
   private isValidPattern(raw: unknown): boolean {
@@ -63,7 +63,7 @@ class NMJLService {
       Hand_Conceiled: Boolean(pattern.Hand_Conceiled),
       Hand_Difficulty: this.normalizeDifficulty(pattern.Hand_Difficulty),
       Hand_Notes: pattern.Hand_Notes ? String(pattern.Hand_Notes) : null,
-      Groups: (pattern.Groups as unknown[]).map(this.normalizeGroup)
+      Groups: (pattern.Groups as unknown[]).map((group) => this.normalizeGroup(group))
     }
   }
 

@@ -8,7 +8,8 @@ import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { HandValidation } from './HandValidation'
-import { useTileStore, usePatternStore } from '../../stores'
+import { LayerCakeUI } from '../intelligence-panel/LayerCakeUI'
+import { useTileStore, usePatternStore, useIntelligenceStore } from '../../stores'
 
 export const TileInputPage = () => {
   const [selectorMode, setSelectorMode] = useState<'full' | 'compact'>('full')
@@ -26,8 +27,15 @@ export const TileInputPage = () => {
     importTilesFromString
   } = useTileStore()
   
-  const { getSelectedPattern } = usePatternStore()
+  const { getSelectedPattern, getTargetPatterns } = usePatternStore()
   const selectedPattern = getSelectedPattern()
+  const targetPatterns = getTargetPatterns() // Array of selected pattern objects
+  
+  // Intelligence Panel Integration
+  const { currentAnalysis, autoAnalyze, setAutoAnalyze } = useIntelligenceStore()
+  
+  // Check if we should show intelligence panel
+  const showIntelligencePanel = playerHand.length >= 10 && targetPatterns.length > 0
   
   useEffect(() => {
     // Validate hand whenever it changes
@@ -170,6 +178,91 @@ export const TileInputPage = () => {
           showRecommendations={true}
           allowReordering={true}
         />
+        
+        {/* Intelligence Panel */}
+        {showIntelligencePanel && (
+          <Card variant="elevated" className="p-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  🧠 AI Intelligence Panel
+                </h3>
+                
+                <div className="flex items-center gap-4">
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={autoAnalyze}
+                      onChange={(e) => setAutoAnalyze(e.target.checked)}
+                      className="rounded border-gray-300 text-primary focus:ring-primary"
+                    />
+                    <span>Auto-analyze</span>
+                  </label>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open('/intelligence', '_blank')}
+                  >
+                    🔗 Full Panel
+                  </Button>
+                </div>
+              </div>
+              
+              {currentAnalysis ? (
+                <LayerCakeUI />
+              ) : (
+                <div className="text-center p-8 text-gray-500">
+                  <div className="text-2xl mb-2">🤔</div>
+                  <p>Analyzing your hand and patterns...</p>
+                  <p className="text-sm mt-1">
+                    Select patterns and add tiles to see AI recommendations
+                  </p>
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+        
+        {/* Intelligence Panel Hint */}
+        {!showIntelligencePanel && (
+          <Card variant="default" className="p-4 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <div className="text-center">
+              <div className="text-lg mb-2">🧠✨</div>
+              <h4 className="font-semibold text-gray-800 mb-1">
+                AI Intelligence Panel Available
+              </h4>
+              <p className="text-sm text-gray-600">
+                {playerHand.length < 10 
+                  ? `Add ${10 - playerHand.length} more tiles to unlock AI analysis`
+                  : targetPatterns.length === 0
+                    ? "Go to Pattern Selection first to choose target patterns"
+                    : "AI analysis will appear here"
+                }
+              </p>
+              {playerHand.length < 10 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleQuickStart}
+                  className="mt-2"
+                >
+                  🎲 Add Sample Hand
+                </Button>
+              )}
+              {targetPatterns.length === 0 && playerHand.length >= 10 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.location.href = '/patterns'}
+                  className="mt-2"
+                >
+                  🎯 Select Patterns
+                </Button>
+              )}
+            </div>
+          </Card>
+        )}
         
         {/* Action Buttons */}
         <div className="flex justify-center gap-4">
