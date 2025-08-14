@@ -173,7 +173,7 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
             const isMaxed = currentCount >= 4
             
             return (
-              <div key={tile.id}>
+              <div key={tile.id} style={{ width: '52px', height: '69px', position: 'relative' }}>
                 <Tile
                   tile={createDummyPlayerTile(tile)}
                   size="md"

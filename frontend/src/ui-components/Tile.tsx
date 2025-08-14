@@ -76,7 +76,7 @@ export const Tile = ({
       
       {/* Custom Children Overlay */}
       {children && (
-        <div className="absolute inset-0 pointer-events-none">
+        <div className="pointer-events-none">
           {children}
         </div>
       )}
