@@ -53,7 +53,7 @@ class NMJLService {
     
     return {
       Year: Number(pattern.Year) || 2025,
-      Section: Number(pattern.Section) || 2025,
+      Section: pattern.Section || 2025, // Keep as original type (string or number)
       Line: Number(pattern.Line) || 1,
       'Pattern ID': Number(pattern['Pattern ID']),
       Hands_Key: String(pattern.Hands_Key) || `2025-${pattern.Section}-${pattern.Line}-${pattern['Pattern ID']}`,

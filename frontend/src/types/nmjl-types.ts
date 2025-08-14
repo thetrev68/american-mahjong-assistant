@@ -19,7 +19,7 @@ export interface PatternGroup {
 
 export interface NMJL2025Pattern {
   Year: number
-  Section: number
+  Section: string | number // Can be number (2025, 2468) or string (ANY LIKE NUMBERS, etc.)
   Line: number
   'Pattern ID': number
   Hands_Key: string
