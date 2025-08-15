@@ -2,7 +2,7 @@
 // Shows selected target patterns during Charleston with colorized display
 
 import { useMemo } from 'react'
-import type { PatternSelectionOption } from '../../types/nmjl-types'
+import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface TargetPatternDisplayProps {

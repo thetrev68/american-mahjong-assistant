@@ -3,7 +3,7 @@
 
 import { Card } from '../../ui-components/Card'
 import { useAnimationsEnabled } from '../../stores'
-import type { PatternSelectionOption, PatternProgress } from '../../types/nmjl-types'
+import type { PatternSelectionOption, PatternProgress } from '../../../../shared/nmjl-types'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface PatternCardProps {

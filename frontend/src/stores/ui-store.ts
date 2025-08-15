@@ -11,8 +11,6 @@ export interface UIState {
   
   // UI State
   sidebarOpen: boolean
-  layerCakeExpanded: boolean
-  currentLayer: 1 | 2 | 3
   
   // Tutorial State
   tutorialCompleted: boolean
@@ -25,8 +23,6 @@ export interface UIState {
   setHapticFeedback: (enabled: boolean) => void
   setSoundEnabled: (enabled: boolean) => void
   setSidebarOpen: (open: boolean) => void
-  setLayerCakeExpanded: (expanded: boolean) => void
-  setCurrentLayer: (layer: UIState['currentLayer']) => void
   setTutorialCompleted: (completed: boolean) => void
   setOnboardingStep: (step: number) => void
   resetUIState: () => void
@@ -39,8 +35,6 @@ const initialState = {
   hapticFeedbackEnabled: true,
   soundEnabled: true,
   sidebarOpen: false,
-  layerCakeExpanded: false,
-  currentLayer: 1 as const,
   tutorialCompleted: false,
   onboardingStep: 0,
 }
@@ -69,11 +63,6 @@ export const useUIStore = create<UIState>()(
         setSidebarOpen: (sidebarOpen) =>
           set({ sidebarOpen }, false, 'setSidebarOpen'),
         
-        setLayerCakeExpanded: (layerCakeExpanded) =>
-          set({ layerCakeExpanded }, false, 'setLayerCakeExpanded'),
-        
-        setCurrentLayer: (currentLayer) =>
-          set({ currentLayer }, false, 'setCurrentLayer'),
         
         setTutorialCompleted: (tutorialCompleted) =>
           set({ tutorialCompleted }, false, 'setTutorialCompleted'),

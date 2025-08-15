@@ -1,12 +1,12 @@
 // Intelligence Panel Page - Main interface for AI analysis and recommendations
-// Integrates Layer Cake UI with pattern and tile data
+// Simplified interface using PrimaryAnalysisCard
 
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
-import { LayerCakeUI } from './LayerCakeUI'
+import { PrimaryAnalysisCard } from './PrimaryAnalysisCard'
 import { PatternRecommendations } from './PatternRecommendations'
 
 export const IntelligencePanelPage = () => {
@@ -180,8 +180,8 @@ export const IntelligencePanelPage = () => {
               />
             )}
             
-            {/* Layer Cake UI */}
-            <LayerCakeUI />
+            {/* Primary Analysis */}
+            <PrimaryAnalysisCard />
           </div>
         )}
         

@@ -1,7 +1,7 @@
 // NMJL 2025 Pattern Service
 // Simplified loader for the co-pilot architecture
 
-import type { NMJL2025Pattern, PatternSelectionOption } from '../types/nmjl-types'
+import type { NMJL2025Pattern, PatternSelectionOption } from '../../../shared/nmjl-types'
 
 class NMJLService {
   private patterns: NMJL2025Pattern[] = []

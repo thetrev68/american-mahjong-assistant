@@ -1,7 +1,7 @@
 // Charleston Adapter
 // Adapts the legacy Charleston recommendation engine for the modern co-pilot architecture
 
-import type { PatternSelectionOption } from '../types/nmjl-types'
+import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 
 // Modern simplified types for Charleston in co-pilot architecture
 export type CharlestonPhase = 'right' | 'across' | 'left' | 'optional' | 'complete'

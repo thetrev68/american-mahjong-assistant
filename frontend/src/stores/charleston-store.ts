@@ -4,7 +4,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { CharlestonAdapter, type Tile, type CharlestonPhase, type CharlestonRecommendation } from '../utils/charleston-adapter'
-import type { PatternSelectionOption } from '../types/nmjl-types'
+import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 
 interface CharlestonState {
   // Current phase and settings

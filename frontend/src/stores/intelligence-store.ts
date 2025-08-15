@@ -1,9 +1,9 @@
 // Intelligence Store - AI analysis and recommendations state
-// Handles pattern analysis, tile recommendations, and Layer Cake UI state
+// Handles pattern analysis, tile recommendations, and What If scenarios
 
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { PatternSelectionOption } from '../types/nmjl-types'
+import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 import type { PlayerTile } from '../types/tile-types'
 import { AnalysisEngine } from '../services/analysis-engine'
 
@@ -77,10 +77,6 @@ export interface IntelligenceState {
   isAnalyzing: boolean
   analysisError: string | null
   
-  // Layer Cake UI State
-  currentLayer: 1 | 2 | 3
-  layersExpanded: Record<1 | 2 | 3, boolean>
-  animationsEnabled: boolean
   
   // What If Analysis
   whatIfMode: boolean
@@ -101,13 +97,6 @@ export interface IntelligenceState {
   clearAnalysis: () => void
   refreshAnalysis: () => Promise<void>
   
-  // Actions - Layer Cake UI
-  setCurrentLayer: (layer: 1 | 2 | 3) => void
-  toggleLayer: (layer: 1 | 2 | 3) => void
-  expandLayer: (layer: 1 | 2 | 3) => void
-  collapseLayer: (layer: 1 | 2 | 3) => void
-  expandAllLayers: () => void
-  collapseAllLayers: () => void
   
   // Actions - What If Mode
   enableWhatIfMode: () => void
@@ -141,9 +130,6 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       isAnalyzing: false,
       analysisError: null,
       
-      currentLayer: 1,
-      layersExpanded: { 1: true, 2: false, 3: false },
-      animationsEnabled: true,
       
       whatIfMode: false,
       whatIfScenarios: [],
@@ -212,45 +198,6 @@ export const useIntelligenceStore = create<IntelligenceState>()(
         }
       },
       
-      // Layer Cake UI Actions
-      setCurrentLayer: (layer) => {
-        set({ currentLayer: layer })
-      },
-      
-      toggleLayer: (layer) => {
-        set((state) => ({
-          layersExpanded: {
-            ...state.layersExpanded,
-            [layer]: !state.layersExpanded[layer]
-          }
-        }))
-      },
-      
-      expandLayer: (layer) => {
-        set((state) => ({
-          layersExpanded: {
-            ...state.layersExpanded,
-            [layer]: true
-          }
-        }))
-      },
-      
-      collapseLayer: (layer) => {
-        set((state) => ({
-          layersExpanded: {
-            ...state.layersExpanded,
-            [layer]: false
-          }
-        }))
-      },
-      
-      expandAllLayers: () => {
-        set({ layersExpanded: { 1: true, 2: true, 3: true } })
-      },
-      
-      collapseAllLayers: () => {
-        set({ layersExpanded: { 1: true, 2: false, 3: false } })
-      },
       
       // What If Actions
       enableWhatIfMode: () => {

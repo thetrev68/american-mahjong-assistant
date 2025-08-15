@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import type { CharlestonPhase } from '../../utils/charleston-adapter'
-import type { PatternSelectionOption } from '../../types/nmjl-types'
+import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 
 interface StrategyExplanationProps {
   phase: CharlestonPhase

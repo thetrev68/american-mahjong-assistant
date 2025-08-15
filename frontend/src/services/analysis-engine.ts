@@ -2,7 +2,7 @@
 // Clean, single-file analysis engine using proven mathematical formulas
 // Returns data in exact intelligence store format
 
-import type { PatternSelectionOption } from '../types/nmjl-types'
+import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 import type { PlayerTile } from '../types/tile-types'
 import type { HandAnalysis, PatternRecommendation, TileRecommendation, PatternAnalysis } from '../stores/intelligence-store'
 import { nmjlService } from './nmjl-service'

@@ -1,5 +1,5 @@
 // NMJL 2025 Pattern Type Definitions
-// Simplified and modernized for the co-pilot architecture
+// Master types used by both frontend and backend
 
 export type ConstraintType = 'kong' | 'pung' | 'sequence' | 'pair' | 'single' | 'consecutive' | 'like'
 export type SuitRole = 'first' | 'second' | 'third' | 'any' | 'none'

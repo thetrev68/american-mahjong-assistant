@@ -1,7 +1,7 @@
 // Pattern Color Utilities
 // Helpers for colorizing pattern displays based on group colors
 
-import type { PatternGroup } from '../types/nmjl-types'
+import type { PatternGroup } from '../../../shared/nmjl-types'
 
 export interface ColoredPatternPart {
   text: string
