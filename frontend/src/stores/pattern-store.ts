@@ -98,7 +98,7 @@ export const usePatternStore = create<PatternState>()(
         }
       },
       
-      selectPattern: (patternId: number) => {
+      selectPattern: (patternId: string) => {
         set({ selectedPatternId: patternId })
         
         // Auto-add to target patterns if not already there
@@ -108,14 +108,14 @@ export const usePatternStore = create<PatternState>()(
         }
       },
       
-      addTargetPattern: (patternId: number) => {
+      addTargetPattern: (patternId: string) => {
         const { targetPatterns } = get()
         if (!targetPatterns.includes(patternId)) {
           set({ targetPatterns: [...targetPatterns, patternId] })
         }
       },
       
-      removeTargetPattern: (patternId: number) => {
+      removeTargetPattern: (patternId: string) => {
         const { targetPatterns, selectedPatternId } = get()
         const newTargets = targetPatterns.filter(id => id !== patternId)
         set({ 

@@ -22,6 +22,14 @@ npm start          # Run compiled JavaScript
 npm run type-check # TypeScript validation only
 ```
 
+### Testing (Jest + React Testing Library)
+```bash
+cd frontend
+npm run test        # Run all tests with watch mode
+npm run test:ci     # Run tests once (for CI/CD)
+npm run coverage    # Generate test coverage report
+```
+
 ### Full Application Setup
 1. Start backend: `cd backend && npm run dev`
 2. Start frontend: `cd frontend && npm run dev` (in another terminal)
@@ -120,9 +128,24 @@ Development follows a **context-window-sized chunk approach** documented in `doc
 - Pattern grid with responsive layout
 - Selected patterns panel with strategy tips
 
+#### ✅ CHUNK 2+: Architecture Consolidation (COMPLETE)
+- Unified NMJL type system in `/shared` as single source of truth
+- Eliminated duplicate analysis engines and state management
+- Simplified component hierarchy (TileSprite → Tile)
+- Complete ESLint cleanup with 0 errors/warnings
+- Consolidated 6,000+ lines of duplicate code
+- Established clean testing foundation
+
+#### 🔄 Current Focus: Testing Infrastructure & Chunk 3
+- Jest + React Testing Library setup
+- Store testing (Zustand patterns)
+- Service testing (NMJL, analysis engine)
+- Component testing (UI interactions)
+- Integration testing (user flows)
+
 #### 🔄 Future Chunks (3-10)
 - Tile input systems with animations
-- Intelligence panel with Layer Cake UI
+- Intelligence panel integration
 - Charleston coordination
 - Live game interface
 - Statistics and history
@@ -201,6 +224,20 @@ Development follows a **context-window-sized chunk approach** documented in `doc
 - `backend/tsconfig.json` - TypeScript compiler options for Node.js
 
 ### Testing Strategy
+
+#### Testing Priorities (Immediate Implementation)
+1. **Store Testing** - Zustand stores (pattern, intelligence, tile)
+2. **Service Testing** - NMJL service, analysis engine  
+3. **Component Testing** - UI components with user interactions
+4. **Integration Testing** - Full user flows (pattern selection → tile input)
+
+#### Test Structure
+- `__tests__/` folders alongside source files
+- `.test.tsx` for components, `.test.ts` for logic
+- Focus on behavior, not implementation details
+- Mock external dependencies (API calls, localStorage)
+
+#### Testing Implementation
 - **Component Testing**: React Testing Library for UI components
 - **Store Testing**: Direct Zustand store testing without mocking
 - **Integration Testing**: Feature-level testing with user flows
@@ -208,18 +245,43 @@ Development follows a **context-window-sized chunk approach** documented in `doc
 
 ## Important Instructions
 
+### Code Quality Standards
+- **ESLint**: Run `npm run lint` before any commit - must show 0 errors, 0 warnings
+- **TypeScript**: Strict mode compliance required - no `any` types without justification
+- **Pre-commit Checks**: Always run lint + build + test before commits
+- **Import Cleanup**: Remove unused imports immediately
+- **Consistent Type Usage**: Use proper union types instead of `any` assertions
+- **Testing**: All new features require corresponding tests
+
+### Development Workflow
+1. **Architecture First**: Understand existing patterns before adding features
+2. **Quality Gates**: ESLint + TypeScript + Tests must pass
+3. **Incremental Commits**: Small, focused commits with clear messages
+4. **Code Review**: Use TodoWrite tool for progress tracking
+5. **Consolidation**: Regular cleanup of duplicates and unused code
+
+### Current Architecture Status (Post-Consolidation)
+- ✅ **Type System**: Unified in `/shared/nmjl-types.ts`
+- ✅ **Analysis Engine**: Single working engine in `/services/analysis-engine.ts`
+- ✅ **State Management**: Clean Zustand stores with proper typing
+- ✅ **Component Hierarchy**: Simplified Tile → TileSprite relationship
+- ✅ **Code Quality**: 0 ESLint errors/warnings, strict TypeScript
+- 🔄 **Testing**: Comprehensive test suite implementation in progress
+
 ### File Organization
 - **NEVER** move files from `legacy/` - they contain working systems
 - **ALWAYS** create new files in the modern architecture folders
 - **PREFER** editing existing files over creating new ones
 - **NEVER** create markdown documentation files unless explicitly requested
+- **Co-locate tests** with source files in `__tests__/` folders
 
 ### Development Approach
-- **Follow the chunk plan** in `docs/CO_PILOT_BUILD_PLAN.md`
+- **Follow the chunk plan** with current focus on testing infrastructure
 - **Complete chunks fully** before moving to the next
 - **Test thoroughly** on mobile devices and different screen sizes
 - **Maintain TypeScript strict mode** compliance
 - **Use TodoWrite tool** proactively for progress tracking
+- **Write tests alongside feature development** (not after)
 
 ### Code Style & Quality
 - **No comments** unless explicitly requested

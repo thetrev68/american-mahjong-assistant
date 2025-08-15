@@ -27,12 +27,8 @@ american-mahjong-assistant/
 │   │   │   │   └── TilePassingArea.tsx (209 lines)
 │   │   │   ├── gameplay/
 │   │   │   ├── intelligence-panel/
-│   │   │   │   ├── AdvancedStatsLayer.tsx (244 lines)
-│   │   │   │   ├── AlwaysVisibleLayer.tsx (125 lines)
-│   │   │   │   ├── ExpandableLayer.tsx (155 lines)
-│   │   │   │   ├── index.ts (6 lines)
+│   │   │   │   ├── index.ts (5 lines)
 │   │   │   │   ├── IntelligencePanelPage.tsx (183 lines)
-│   │   │   │   ├── LayerCakeUI.tsx (175 lines)
 │   │   │   │   ├── PatternRecommendations.tsx (201 lines)
 │   │   │   │   ├── PatternSwitchModal.tsx (167 lines)
 │   │   │   │   └── PrimaryAnalysisCard.tsx (211 lines)
@@ -59,19 +55,18 @@ american-mahjong-assistant/
 │   │   │   └── useTileSprites.ts (133 lines)
 │   │   ├── services/
 │   │   │   ├── analysis-engine.ts (396 lines)
-│   │   │   ├── nmjl-service.ts (145 lines)
+│   │   │   ├── nmjl-service.ts (157 lines)
 │   │   │   └── tile-service.ts (237 lines)
 │   │   ├── stores/
 │   │   │   ├── charleston-store.ts (302 lines)
 │   │   │   ├── game-store.ts (69 lines)
 │   │   │   ├── index.ts (21 lines)
-│   │   │   ├── intelligence-store.ts (331 lines)
+│   │   │   ├── intelligence-store.ts (283 lines)
 │   │   │   ├── pattern-store.ts (201 lines)
 │   │   │   ├── tile-store.ts (355 lines)
-│   │   │   └── ui-store.ts (86 lines)
+│   │   │   └── ui-store.ts (76 lines)
 │   │   ├── types/
-│   │   │   ├── nmjl-types.ts (52 lines)
-│   │   │   └── tile-types.ts (54 lines)
+│   │   │   └── tile-types.ts (57 lines)
 │   │   ├── ui-components/
 │   │   │   ├── analysis/
 │   │   │   │   ├── ConfidenceMeter.tsx (148 lines)
@@ -89,10 +84,10 @@ american-mahjong-assistant/
 │   │   │   ├── Card.tsx (45 lines)
 │   │   │   ├── index.ts (10 lines)
 │   │   │   ├── LoadingSpinner.tsx (43 lines)
-│   │   │   ├── Tile.tsx (76 lines)
-│   │   │   └── TileSprite.tsx (217 lines)
+│   │   │   ├── Tile.tsx (59 lines)
+│   │   │   └── TileSprite.tsx (151 lines)
 │   │   ├── utils/
-│   │   │   ├── charleston-adapter.ts (407 lines)
+│   │   │   ├── charleston-adapter.ts (404 lines)
 │   │   │   ├── pattern-color-utils.ts (58 lines)
 │   │   │   └── router.tsx (44 lines)
 │   │   ├── App.tsx (11 lines)
@@ -111,22 +106,11 @@ american-mahjong-assistant/
 │   ├── tsconfig.node.json (23 lines)
 │   └── vite.config.ts (6 lines)
 ├── intelligence/
-│   ├── analyzers/
-│   │   ├── enhanced-hand-analyzer.ts (469 lines)
-│   │   ├── nmjl-pattern-analyzer.ts (330 lines)
-│   │   └── nmjl-probability-calculator.ts (385 lines)
-│   ├── nmjl-patterns/
-│   │   ├── nmjl-2025-loader.ts (363 lines)
-│   │   ├── nmjl-card-2025.json (4367 lines)
-│   │   ├── nmjl-pattern-adapter.ts (379 lines)
-│   │   └── pattern-search-engine.ts (459 lines)
-│   └── recommendations/
-│       ├── charleston-recommendation-engine.ts (695 lines)
-│       ├── gameplay-recommendation-engine.ts (457 lines)
-│       └── strategic-advice-engine.ts (388 lines)
+│   └── nmjl-patterns/
+│       └── nmjl-card-2025.json (4367 lines)
 ├── shared/
 │   ├── game-types.ts (290 lines)
-│   ├── nmjl-2025-types.ts (125 lines)
+│   ├── nmjl-types.ts (52 lines)
 │   ├── socket-events.ts (491 lines)
 │   └── tile-utils.ts (176 lines)
 ├── .gitignore
@@ -142,10 +126,10 @@ american-mahjong-assistant/
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 36
-Total files: 103
-Files with line counts: 91
-Total lines of code: 25,044
+Total directories: 34
+Total files: 89
+Files with line counts: 77
+Total lines of code: 20,165
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv
