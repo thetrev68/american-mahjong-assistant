@@ -2,35 +2,81 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { usePatternStore } from '../pattern-store'
 import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 
-// Mock pattern data
+// Mock pattern data based on real NMJL 2025 patterns
 const mockPatterns: PatternSelectionOption[] = [
   {
-    id: 'test-1',
+    id: '2025-2025-1-1',
     patternId: 1,
-    displayName: '2025 #1: TEST PATTERN ONE',
-    pattern: '1D 2D 3D 1B 2B 3B 1C 2C 3C EE SS',
+    displayName: '2025 #1: ANY 3 SUITS, LIKE PUNGS 2S OR 5S IN OPP. SUITS',
+    pattern: 'FFFF 2025 222 222',
     points: 25,
-    difficulty: 'easy',
-    description: 'Test Pattern One',
+    difficulty: 'medium',
+    description: 'Any 3 Suits, Like Pungs 2s or 5s In Opp. Suits',
     section: 2025,
     line: 1,
-    allowsJokers: false,
+    allowsJokers: true,
     concealed: false,
-    groups: []
+    groups: [
+      {
+        Group: 'FFFF',
+        Suit_Role: 'none',
+        Suit_Note: null,
+        Constraint_Type: 'kong',
+        Constraint_Values: 'flower',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'blue'
+      },
+      {
+        Group: '2025',
+        Suit_Role: 'any',
+        Suit_Note: null,
+        Constraint_Type: 'sequence',
+        Constraint_Values: '2,0,2,5',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'green'
+      }
+    ]
   },
   {
-    id: 'test-2',
-    patternId: 2,
-    displayName: '2025 #2: TEST PATTERN TWO',
-    pattern: '1D 1D 1D 2B 2B 2B 3C 3C 3C WW joker',
-    points: 30,
+    id: '2025-2025-2-1',
+    patternId: 1, // Same Pattern ID as first but different line
+    displayName: '2025 #2: ANY 2 SUITS',
+    pattern: '222 0000 222 5555',
+    points: 25,
     difficulty: 'medium',
-    description: 'Test Pattern Two',
-    section: 2025,
+    description: 'Any 2 Suits',
+    section: '2025',
     line: 2,
     allowsJokers: true,
     concealed: false,
-    groups: []
+    groups: [
+      {
+        Group: '222_1',
+        Suit_Role: 'any',
+        Suit_Note: null,
+        Constraint_Type: 'pung',
+        Constraint_Values: '2',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'green'
+      },
+      {
+        Group: '0000',
+        Suit_Role: 'none',
+        Suit_Note: null,
+        Constraint_Type: 'kong',
+        Constraint_Values: 'dragon',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'blue'
+      }
+    ]
   }
 ]
 
@@ -69,8 +115,8 @@ describe('Pattern Store', () => {
       const store = usePatternStore.getState()
       
       expect(store.selectionOptions).toHaveLength(2)
-      expect(store.selectionOptions[0].displayName).toBe('2025 #1: TEST PATTERN ONE')
-      expect(store.selectionOptions[1].points).toBe(30)
+      expect(store.selectionOptions[0].displayName).toBe('2025 #1: ANY 3 SUITS, LIKE PUNGS 2S OR 5S IN OPP. SUITS')
+      expect(store.selectionOptions[1].points).toBe(25)
     })
   })
 
@@ -78,22 +124,22 @@ describe('Pattern Store', () => {
     it('should select a pattern', () => {
       const store = usePatternStore.getState()
       
-      store.selectPattern('test-1')
+      store.selectPattern('2025-2025-1-1')
       
       // Need to get fresh state after mutation
       const updatedStore = usePatternStore.getState()
-      expect(updatedStore.selectedPatternId).toBe('test-1')
+      expect(updatedStore.selectedPatternId).toBe('2025-2025-1-1')
       expect(updatedStore.getSelectedPattern()).toEqual(mockPatterns[0])
     })
 
     it('should add target pattern', () => {
       const store = usePatternStore.getState()
       
-      store.addTargetPattern('test-1')
+      store.addTargetPattern('2025-2025-1-1')
       const updatedStore1 = usePatternStore.getState()
-      expect(updatedStore1.targetPatterns).toContain('test-1')
+      expect(updatedStore1.targetPatterns).toContain('2025-2025-1-1')
       
-      store.addTargetPattern('test-2')
+      store.addTargetPattern('2025-2025-2-1')
       const updatedStore2 = usePatternStore.getState()
       expect(updatedStore2.targetPatterns).toHaveLength(2)
     })
@@ -101,25 +147,25 @@ describe('Pattern Store', () => {
     it('should remove target pattern', () => {
       const store = usePatternStore.getState()
       
-      store.addTargetPattern('test-1')
-      store.addTargetPattern('test-2')
+      store.addTargetPattern('2025-2025-1-1')
+      store.addTargetPattern('2025-2025-2-1')
       const updatedStore1 = usePatternStore.getState()
       expect(updatedStore1.targetPatterns).toHaveLength(2)
       
-      store.removeTargetPattern('test-1')
+      store.removeTargetPattern('2025-2025-1-1')
       const updatedStore2 = usePatternStore.getState()
-      expect(updatedStore2.targetPatterns).not.toContain('test-1')
-      expect(updatedStore2.targetPatterns).toContain('test-2')
+      expect(updatedStore2.targetPatterns).not.toContain('2025-2025-1-1')
+      expect(updatedStore2.targetPatterns).toContain('2025-2025-2-1')
     })
 
     it('should clear all selections', () => {
       const store = usePatternStore.getState()
       
-      store.selectPattern('test-1')
-      store.addTargetPattern('test-2')
+      store.selectPattern('2025-2025-1-1')
+      store.addTargetPattern('2025-2025-2-1')
       const updatedStore1 = usePatternStore.getState()
-      expect(updatedStore1.selectedPatternId).toBe('test-1')
-      expect(updatedStore1.targetPatterns).toHaveLength(2) // test-1 auto-added + test-2
+      expect(updatedStore1.selectedPatternId).toBe('2025-2025-1-1')
+      expect(updatedStore1.targetPatterns).toHaveLength(2) // 2025-2025-1-1 auto-added + 2025-2025-2-1
       
       store.clearSelection()
       const updatedStore2 = usePatternStore.getState()
@@ -132,21 +178,21 @@ describe('Pattern Store', () => {
     it('should filter by difficulty', () => {
       const store = usePatternStore.getState()
       
-      store.setDifficultyFilter('easy')
+      store.setDifficultyFilter('medium')
       const filtered = store.getFilteredPatterns()
       
-      expect(filtered).toHaveLength(1)
-      expect(filtered[0].difficulty).toBe('easy')
+      expect(filtered).toHaveLength(2)
+      expect(filtered[0].difficulty).toBe('medium')
     })
 
     it('should filter by points', () => {
       const store = usePatternStore.getState()
       
-      store.setPointsFilter('30')
+      store.setPointsFilter('25')
       const filtered = store.getFilteredPatterns()
       
-      expect(filtered).toHaveLength(1)
-      expect(filtered[0].points).toBe(30)
+      expect(filtered).toHaveLength(2)
+      expect(filtered[0].points).toBe(25)
     })
 
     it('should filter by jokers allowed', () => {
@@ -155,18 +201,18 @@ describe('Pattern Store', () => {
       store.setJokerFilter('allows')
       const filtered = store.getFilteredPatterns()
       
-      expect(filtered).toHaveLength(1)
+      expect(filtered).toHaveLength(2)
       expect(filtered[0].allowsJokers).toBe(true)
     })
 
     it('should search by pattern text', () => {
       const store = usePatternStore.getState()
       
-      store.setSearchQuery('TEST PATTERN ONE')
+      store.setSearchQuery('ANY 3 SUITS')
       const filtered = store.getFilteredPatterns()
       
       expect(filtered).toHaveLength(1)
-      expect(filtered[0].displayName).toContain('TEST PATTERN ONE')
+      expect(filtered[0].displayName).toContain('ANY 3 SUITS')
     })
 
     it('should combine multiple filters', () => {
@@ -176,7 +222,7 @@ describe('Pattern Store', () => {
       store.setJokerFilter('allows')
       const filtered = store.getFilteredPatterns()
       
-      expect(filtered).toHaveLength(1)
+      expect(filtered).toHaveLength(2)
       expect(filtered[0].difficulty).toBe('medium')
       expect(filtered[0].allowsJokers).toBe(true)
     })
@@ -198,8 +244,8 @@ describe('Pattern Store', () => {
     it('should get target patterns array', () => {
       const store = usePatternStore.getState()
       
-      store.addTargetPattern('test-1')
-      store.addTargetPattern('test-2')
+      store.addTargetPattern('2025-2025-1-1')
+      store.addTargetPattern('2025-2025-2-1')
       
       const targets = store.getTargetPatterns()
       expect(targets).toHaveLength(2)
@@ -217,7 +263,7 @@ describe('Pattern Store', () => {
     it('should return selected pattern correctly', () => {
       const store = usePatternStore.getState()
       
-      store.selectPattern('test-2')
+      store.selectPattern('2025-2025-2-1')
       
       const selected = store.getSelectedPattern()
       expect(selected).toEqual(mockPatterns[1]) // test-2 pattern

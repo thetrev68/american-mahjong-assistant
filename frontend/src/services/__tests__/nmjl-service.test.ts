@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { nmjlService } from '../nmjl-service'
 
-// Mock data that matches expected structure
+// Mock data based on real NMJL 2025 patterns
 const mockNMJLData = [
   {
     Year: 2025,
@@ -9,57 +9,112 @@ const mockNMJLData = [
     Line: 1,
     'Pattern ID': 1,
     Hands_Key: '2025-2025-1-1',
-    Hand_Pattern: '1D 2D 3D 1B 2B 3B 1C 2C 3C EE SS',
-    Hand_Description: 'CONSECUTIVE RUN - SAME SUIT',
+    Hand_Pattern: 'FFFF 2025 222 222',
+    Hand_Description: 'Any 3 Suits, Like Pungs 2s or 5s In Opp. Suits',
     Hand_Points: 25,
     Hand_Conceiled: false,
-    Hand_Difficulty: 'easy',
+    Hand_Difficulty: 'medium',
     Hand_Notes: null,
     Groups: [
       {
-        Group: 'G1',
-        Suit_Role: 'dots',
+        Group: 'FFFF',
+        Suit_Role: 'none',
         Suit_Note: null,
-        Constraint_Type: 'sequence',
-        Constraint_Values: '1,2,3',
+        Constraint_Type: 'kong',
+        Constraint_Values: 'flower',
         Constraint_Must_Match: null,
         Constraint_Extra: null,
-        Jokers_Allowed: false,
+        Jokers_Allowed: true,
         display_color: 'blue'
       },
       {
-        Group: 'G2',
-        Suit_Role: 'winds',
+        Group: '2025',
+        Suit_Role: 'any',
         Suit_Note: null,
-        Constraint_Type: 'pung',
-        Constraint_Values: 'east',
+        Constraint_Type: 'sequence',
+        Constraint_Values: '2,0,2,5',
         Constraint_Must_Match: null,
         Constraint_Extra: null,
-        Jokers_Allowed: false,
-        display_color: 'red'
+        Jokers_Allowed: true,
+        display_color: 'green'
+      },
+      {
+        Group: '222_1',
+        Suit_Role: 'second',
+        Suit_Note: null,
+        Constraint_Type: 'pung',
+        Constraint_Values: '2,5',
+        Constraint_Must_Match: '222_2',
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'blue'
+      },
+      {
+        Group: '222_2',
+        Suit_Role: 'third',
+        Suit_Note: null,
+        Constraint_Type: 'pung',
+        Constraint_Values: '2,5',
+        Constraint_Must_Match: '222_1',
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'blue'
       }
     ]
   },
   {
     Year: 2025,
-    Section: 'ANY LIKE NUMBERS',
+    Section: '2025',
     Line: 2,
-    'Pattern ID': 2,
-    Hands_Key: '2025-ANY LIKE NUMBERS-2-2',
-    Hand_Pattern: '1111 2222 3333 WW joker',
-    Hand_Description: 'FOUR OF A KIND - LIKE NUMBERS',
-    Hand_Points: 35,
-    Hand_Conceiled: true,
-    Hand_Difficulty: 'hard',
-    Hand_Notes: 'Use jokers wisely',
+    'Pattern ID': 1,
+    Hands_Key: '2025-2025-2-1',
+    Hand_Pattern: '222 0000 222 5555',
+    Hand_Description: 'Any 2 Suits',
+    Hand_Points: 25,
+    Hand_Conceiled: false,
+    Hand_Difficulty: 'medium',
+    Hand_Notes: null,
     Groups: [
       {
-        Group: 'G1',
+        Group: '222_1',
         Suit_Role: 'any',
         Suit_Note: null,
-        Constraint_Type: 'kong',
-        Constraint_Values: '1',
+        Constraint_Type: 'pung',
+        Constraint_Values: 2,
         Constraint_Must_Match: null,
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'green'
+      },
+      {
+        Group: '0000',
+        Suit_Role: 'none',
+        Suit_Note: null,
+        Constraint_Type: 'kong',
+        Constraint_Values: 'dragon',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'blue'
+      },
+      {
+        Group: '222_2',
+        Suit_Role: 'second',
+        Suit_Note: null,
+        Constraint_Type: 'pung',
+        Constraint_Values: 2,
+        Constraint_Must_Match: '222_1',
+        Constraint_Extra: null,
+        Jokers_Allowed: true,
+        display_color: 'green'
+      },
+      {
+        Group: '5555',
+        Suit_Role: 'second',
+        Suit_Note: null,
+        Constraint_Type: 'kong',
+        Constraint_Values: 5,
+        Constraint_Must_Match: '222_1',
         Constraint_Extra: null,
         Jokers_Allowed: true,
         display_color: 'green'
@@ -99,7 +154,7 @@ describe('NMJL Service', () => {
       expect(pattern1.Section).toBe(2025)
       expect(pattern1['Pattern ID']).toBe(1)
       expect(pattern1.Hand_Points).toBe(25)
-      expect(pattern1.Groups).toHaveLength(2)
+      expect(pattern1.Groups).toHaveLength(4)
     })
 
     it('should handle fetch errors gracefully', async () => {
@@ -144,7 +199,7 @@ describe('NMJL Service', () => {
       
       expect(pattern).toBeDefined()
       expect(pattern?.['Pattern ID']).toBe(1)
-      expect(pattern?.Hand_Description).toBe('CONSECUTIVE RUN - SAME SUIT')
+      expect(pattern?.Hand_Description).toBe('Any 3 Suits, Like Pungs 2s or 5s In Opp. Suits')
     })
 
     it('should return undefined for non-existent pattern ID', async () => {
@@ -153,25 +208,23 @@ describe('NMJL Service', () => {
     })
 
     it('should filter patterns by difficulty', async () => {
-      const easyPatterns = await nmjlService.getPatternsByDifficulty('easy')
+      const mediumPatterns = await nmjlService.getPatternsByDifficulty('medium')
       const hardPatterns = await nmjlService.getPatternsByDifficulty('hard')
       
-      expect(easyPatterns).toHaveLength(1)
-      expect(easyPatterns[0].Hand_Difficulty).toBe('easy')
+      expect(mediumPatterns).toHaveLength(2)
+      expect(mediumPatterns[0].Hand_Difficulty).toBe('medium')
       
-      expect(hardPatterns).toHaveLength(1)
-      expect(hardPatterns[0].Hand_Difficulty).toBe('hard')
+      expect(hardPatterns).toHaveLength(0)
     })
 
     it('should filter patterns by points', async () => {
       const patterns25 = await nmjlService.getPatternsByPoints(25)
-      const patterns35 = await nmjlService.getPatternsByPoints(35)
+      const patterns30 = await nmjlService.getPatternsByPoints(30)
       
-      expect(patterns25).toHaveLength(1)
+      expect(patterns25).toHaveLength(2)
       expect(patterns25[0].Hand_Points).toBe(25)
       
-      expect(patterns35).toHaveLength(1)
-      expect(patterns35[0].Hand_Points).toBe(35)
+      expect(patterns30).toHaveLength(0)
     })
   })
 
@@ -188,25 +241,25 @@ describe('NMJL Service', () => {
       const option1 = options[0]
       expect(option1.id).toBe('2025-2025-1-1')
       expect(option1.patternId).toBe(1)
-      expect(option1.displayName).toBe('2025 #1: CONSECUTIVE RUN - SAME SUIT')
+      expect(option1.displayName).toBe('2025 #1: ANY 3 SUITS, LIKE PUNGS 2S OR 5S IN OPP. SUITS')
       expect(option1.points).toBe(25)
-      expect(option1.difficulty).toBe('easy')
-      expect(option1.allowsJokers).toBe(false)
+      expect(option1.difficulty).toBe('medium')
+      expect(option1.allowsJokers).toBe(true)
       expect(option1.concealed).toBe(false)
       expect(option1.section).toBe(2025)
       expect(option1.line).toBe(1)
       
       const option2 = options[1]
       expect(option2.allowsJokers).toBe(true)
-      expect(option2.concealed).toBe(true)
-      expect(option2.section).toBe('ANY LIKE NUMBERS')
+      expect(option2.concealed).toBe(false)
+      expect(option2.section).toBe('2025')
     })
 
     it('should include groups in selection options', async () => {
       const options = await nmjlService.getSelectionOptions()
       
-      expect(options[0].groups).toHaveLength(2)
-      expect(options[1].groups).toHaveLength(1)
+      expect(options[0].groups).toHaveLength(4)
+      expect(options[1].groups).toHaveLength(4)
     })
   })
 
@@ -219,9 +272,9 @@ describe('NMJL Service', () => {
       const stats = await nmjlService.getStats()
       
       expect(stats.totalPatterns).toBe(2)
-      expect(stats.pointDistribution).toEqual({ '25': 1, '35': 1 })
-      expect(stats.difficultyDistribution).toEqual({ 'easy': 1, 'hard': 1 })
-      expect(stats.jokerPatterns).toBe(1)
+      expect(stats.pointDistribution).toEqual({ '25': 2 })
+      expect(stats.difficultyDistribution).toEqual({ 'medium': 2 })
+      expect(stats.jokerPatterns).toBe(2)
       expect(stats.sectionsUsed).toBe(2)
     })
   })
@@ -280,7 +333,7 @@ describe('NMJL Service', () => {
       const patterns = await nmjlService.getAllPatterns()
       expect(patterns[0].Groups).toHaveLength(3) // Should normalize invalid groups
       expect(patterns[0].Groups[0].Group).toBe('') // Default values
-      expect(patterns[0].Groups[2].Group).toBe('G1') // Valid group preserved
+      expect(patterns[0].Groups[2].Group).toBe('FFFF') // Valid group preserved
     })
   })
 })
