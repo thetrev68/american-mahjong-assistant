@@ -5,8 +5,8 @@
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { Tile } from '../../ui-components/Tile'
-import { useTileStore, useAnimationsEnabled, useIntelligenceStore } from '../../stores'
-import type { PlayerTile } from '../../types/tile-types'
+import { useTileStore, useIntelligenceStore } from '../../stores'
+import type { PlayerTile, TileRecommendation, TileSuit } from '../../types/tile-types'
 
 interface HandDisplayProps {
   showRecommendations?: boolean
@@ -19,23 +19,17 @@ export const HandDisplay = ({
   allowReordering = true,
   compactMode = false 
 }: HandDisplayProps) => {
-  // const [draggedTile, setDraggedTile] = useState<PlayerTile | null>(null)
-  const animationsEnabled = useAnimationsEnabled()
-  
   const {
     playerHand,
     selectedCount,
     validation,
     sortBy,
-    // recommendations,
     dealerHand,
     toggleTileSelection,
     removeTile,
     selectAll,
     deselectAll,
     setSortBy,
-    // sortHand,
-    triggerTileAnimation,
     getTileGroups
   } = useTileStore()
   
@@ -43,60 +37,44 @@ export const HandDisplay = ({
   const { currentAnalysis } = useIntelligenceStore()
   
   // Create lookup maps for highlighting
-  const getTileHighlighting = (tile: PlayerTile) => {
-    if (!currentAnalysis || !showRecommendations) return null
+  const getTileHighlighting = (tile: PlayerTile): TileRecommendation | undefined => {
+    if (!currentAnalysis || !showRecommendations) return undefined
     
-    const recommendations = currentAnalysis.tileRecommendations
-    const matchingRec = recommendations.find(rec => rec.tileId === tile.id)
+    const matchingRec = currentAnalysis.tileRecommendations.find(rec => rec.tileId === tile.id)
     
-    if (!matchingRec) return null
+    if (!matchingRec) return undefined
     
+    // Assign a priority based on the action for the TileRecommendation type
+    let priority = 0
     switch (matchingRec.action) {
-      case 'pass':
-      case 'discard':
-        return { type: 'danger', reason: 'Recommended to pass/discard' }
       case 'keep':
-        return { type: 'success', reason: 'Recommended to keep' }
+        priority = 100
+        break
+      case 'discard':
+        priority = 50
+        break
+      case 'pass':
+        priority = 25
+        break
       default:
-        return null
+        priority = 0
+        break
+    }
+    
+    return {
+      ...matchingRec,
+      priority,
+      confidence: matchingRec.confidence || 85,
+      reasoning: matchingRec.reasoning || ''
     }
   }
   
   const handleTileClick = (tile: PlayerTile) => {
     toggleTileSelection(tile.instanceId)
-    
-    if (animationsEnabled) {
-      triggerTileAnimation(tile.instanceId, {
-        type: tile.isSelected ? 'deselect' : 'select',
-        duration: 300
-      })
-    }
   }
   
   const handleTileDoubleClick = (tile: PlayerTile) => {
-    // Double-click to remove
-    if (animationsEnabled) {
-      triggerTileAnimation(tile.instanceId, {
-        type: 'pass',
-        duration: 400
-      })
-      
-      setTimeout(() => {
-        removeTile(tile.instanceId)
-      }, 200)
-    } else {
-      removeTile(tile.instanceId)
-    }
-  }
-  
-  const handleTileLongPress = (tile: PlayerTile) => {
-    // Long press for special actions - show recommendation animation
-    if (animationsEnabled) {
-      triggerTileAnimation(tile.instanceId, {
-        type: 'joker',
-        duration: 1000
-      })
-    }
+    removeTile(tile.instanceId)
   }
   
   const getHandSummary = () => {
@@ -109,45 +87,36 @@ export const HandDisplay = ({
   
   const renderTileGroups = () => {
     const groups = getTileGroups()
-    const nonEmptyGroups = Object.entries(groups).filter(([, tiles]) => tiles.length > 0)
+    
+    // Use explicit suit order instead of Object.entries() to ensure consistent rendering
+    const suitOrder: TileSuit[] = ['dots', 'bams', 'cracks', 'winds', 'dragons', 'flowers', 'jokers']
     
     return (
       <div className="space-y-4">
-        {nonEmptyGroups.map(([suit, tiles]) => (
-          <div key={suit} className="space-y-2">
-            <h4 className="text-sm font-medium text-gray-700 capitalize flex items-center gap-2">
-              <span>{suit}</span>
-              <span className="text-xs text-gray-500">({tiles.length})</span>
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {tiles.map(tile => {
-                const highlighting = getTileHighlighting(tile)
-                const tileWithRecommendation = {
-                  ...tile,
-                  recommendation: highlighting ? {
-                    action: highlighting.type === 'danger' ? 
-                      (currentAnalysis?.tileRecommendations.find(rec => rec.tileId === tile.id)?.action || 'discard') : 
-                      'keep',
-                    confidence: 85,
-                    reasoning: highlighting.reason
-                  } : undefined
-                }
-                
-                return (
+        {suitOrder.map(suit => {
+          const tiles = groups[suit]
+          if (!tiles || tiles.length === 0) return null
+          
+          return (
+            <div key={suit} className="space-y-2">
+              <h4 className="text-sm font-medium text-gray-700 capitalize flex items-center gap-2">
+                <span>{suit}</span>
+                <span className="text-xs text-gray-500">({tiles.length})</span>
+              </h4>
+              <div className="flex flex-wrap gap-2">
+                {tiles.map(tile => (
                   <Tile
-                    key={tile.instanceId}
-                    tile={tileWithRecommendation}
+                    key={`${suit}-${tile.instanceId}`}
+                    tile={{ ...tile, recommendation: getTileHighlighting(tile) }}
                     size={compactMode ? 'sm' : 'md'}
-                    showRecommendation={false}
                     onClick={handleTileClick}
                     onDoubleClick={handleTileDoubleClick}
-                    onLongPress={handleTileLongPress}
                   />
-                )
-              })}
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     )
   }
@@ -155,31 +124,15 @@ export const HandDisplay = ({
   const renderTileList = () => {
     return (
       <div className="flex flex-wrap gap-2">
-        {playerHand.map(tile => {
-          const highlighting = getTileHighlighting(tile)
-          const tileWithRecommendation = {
-            ...tile,
-            recommendation: highlighting ? {
-              action: highlighting.type === 'danger' ? 
-                (currentAnalysis?.tileRecommendations.find(rec => rec.tileId === tile.id)?.action || 'discard') : 
-                'keep',
-              confidence: 85,
-              reasoning: highlighting.reason
-            } : undefined
-          }
-          
-          return (
-            <Tile
-              key={tile.instanceId}
-              tile={tileWithRecommendation}
-              size={compactMode ? 'sm' : 'md'}
-              showRecommendation={false}
-              onClick={handleTileClick}
-              onDoubleClick={handleTileDoubleClick}
-              onLongPress={handleTileLongPress}
-            />
-          )
-        })}
+        {playerHand.map(tile => (
+          <Tile
+            key={tile.instanceId}
+            tile={{ ...tile, recommendation: getTileHighlighting(tile) }}
+            size={compactMode ? 'sm' : 'md'}
+            onClick={handleTileClick}
+            onDoubleClick={handleTileDoubleClick}
+          />
+        ))}
       </div>
     )
   }
@@ -285,20 +238,6 @@ export const HandDisplay = ({
       <div className="p-4 pt-0">
         {sortBy === 'suit' ? renderTileGroups() : renderTileList()}
       </div>
-      
-      {/* Quick Actions */}
-      {!compactMode && (
-        <div className="px-4 pb-4 pt-2 border-t border-gray-200">
-          <div className="flex flex-wrap gap-2 text-sm">
-            <span className="text-gray-600">💡 Tips:</span>
-            <span className="text-gray-500">Click to select</span>
-            <span className="text-gray-500">•</span>
-            <span className="text-gray-500">Double-click to remove</span>
-            <span className="text-gray-500">•</span>
-            <span className="text-gray-500">Long-press for recommendations</span>
-          </div>
-        </div>
-      )}
     </Card>
   )
 }

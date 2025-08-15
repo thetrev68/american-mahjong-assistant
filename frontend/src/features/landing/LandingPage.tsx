@@ -150,7 +150,7 @@ export const LandingPage = () => {
             <div className="text-left">
               <h4 className="font-semibold text-gray-900">Development Status</h4>
               <p className="text-sm text-gray-600">
-                Charleston Intelligence • Pattern analysis • Layer Cake UI online
+                Charleston Intelligence • Pattern analysis
               </p>
             </div>
             

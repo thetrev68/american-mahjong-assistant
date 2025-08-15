@@ -2,6 +2,7 @@
 // Handles all tile-related operations with proper validation
 
 import type { Tile, PlayerTile, TileCount, HandValidation, TileSuit, TileValue } from '../types/tile-types'
+import tilesData from '../assets/tiles.json'
 
 class TileService {
   private allTiles: Tile[] = []
@@ -13,92 +14,45 @@ class TileService {
   private initializeTiles() {
     const tiles: Tile[] = []
 
-    // Dots (1D-9D) - Red tiles
-    for (let i = 1; i <= 9; i++) {
-      tiles.push({
-        id: `${i}D`,
-        suit: 'dots',
-        value: i.toString() as TileValue,
-        displayName: `${i} Dot${i === 1 ? '' : 's'}`,
-        unicodeSymbol: `🀙${String.fromCharCode(0x1F019 + i - 1)}`
-      })
-    }
+    // Use the frames directly from the JSON in their original order
+    tilesData.frames.forEach(frame => {
+      const tileId = frame.filename.replace('.png', '')
+      const description = frame.description // Use the description from the JSON
 
-    // Bams (1B-9B) - Green tiles  
-    for (let i = 1; i <= 9; i++) {
-      tiles.push({
-        id: `${i}B`,
-        suit: 'bams',
-        value: i.toString() as TileValue,
-        displayName: `${i} Bam${i === 1 ? '' : 's'}`,
-        unicodeSymbol: `🀐${String.fromCharCode(0x1F010 + i - 1)}`
-      })
-    }
+      let suit: TileSuit
+      let value: TileValue
+      if (tileId.endsWith('B')) {
+        suit = 'bams'
+        value = tileId.slice(0, -1) as TileValue
+      } else if (tileId.endsWith('C')) {
+        suit = 'cracks'
+        value = tileId.slice(0, -1) as TileValue
+      } else if (tileId.endsWith('D')) {
+        suit = 'dots'
+        value = tileId.slice(0, -1) as TileValue
+      } else if (['east', 'south', 'west', 'north'].includes(tileId)) {
+        suit = 'winds'
+        value = tileId as TileValue
+      } else if (['red', 'green', 'white'].includes(tileId)) {
+        suit = 'dragons'
+        value = tileId as TileValue
+      } else if (tileId.startsWith('f')) {
+        suit = 'flowers'
+        value = tileId as TileValue
+      } else if (tileId === 'joker') {
+        suit = 'jokers'
+        value = 'joker'
+      } else {
+        return // Skip unknown tiles
+      }
 
-    // Cracks (1C-9C) - Blue tiles
-    for (let i = 1; i <= 9; i++) {
       tiles.push({
-        id: `${i}C`,
-        suit: 'cracks',
-        value: i.toString() as TileValue,
-        displayName: `${i} Crack${i === 1 ? '' : 's'}`,
-        unicodeSymbol: `🀇${String.fromCharCode(0x1F007 + i - 1)}`
+        id: tileId,
+        suit: suit,
+        value: value,
+        displayName: description,
+        unicodeSymbol: '' // Unicode symbols are not in the JSON, they will need to be added manually if desired
       })
-    }
-
-    // Winds
-    const winds = [
-      { id: 'east', value: 'east' as TileValue, name: 'East Wind', symbol: '🀀' },
-      { id: 'south', value: 'south' as TileValue, name: 'South Wind', symbol: '🀁' },
-      { id: 'west', value: 'west' as TileValue, name: 'West Wind', symbol: '🀂' },
-      { id: 'north', value: 'north' as TileValue, name: 'North Wind', symbol: '🀃' }
-    ]
-    
-    winds.forEach(wind => {
-      tiles.push({
-        id: wind.id,
-        suit: 'winds',
-        value: wind.value,
-        displayName: wind.name,
-        unicodeSymbol: wind.symbol
-      })
-    })
-
-    // Dragons
-    const dragons = [
-      { id: 'red', value: 'red' as TileValue, name: 'Red Dragon', symbol: '🀄' },
-      { id: 'green', value: 'green' as TileValue, name: 'Green Dragon', symbol: '🀅' },
-      { id: 'white', value: 'white' as TileValue, name: 'White Dragon', symbol: '🀆' }
-    ]
-    
-    dragons.forEach(dragon => {
-      tiles.push({
-        id: dragon.id,
-        suit: 'dragons',
-        value: dragon.value,
-        displayName: dragon.name,
-        unicodeSymbol: dragon.symbol
-      })
-    })
-
-    // Flowers
-    for (let i = 1; i <= 4; i++) {
-      tiles.push({
-        id: `f${i}`,
-        suit: 'flowers',
-        value: `f${i}` as TileValue,
-        displayName: `Flower ${i}`,
-        unicodeSymbol: `🀢${String.fromCharCode(0x1F022 + i - 1)}`
-      })
-    }
-
-    // Jokers
-    tiles.push({
-      id: 'joker',
-      suit: 'jokers',
-      value: 'joker',
-      displayName: 'Joker',
-      unicodeSymbol: '🃏'
     })
 
     this.allTiles = tiles

@@ -10,13 +10,13 @@ import { HandDisplay } from './HandDisplay'
 import { HandValidation } from './HandValidation'
 import { PrimaryAnalysisCard } from '../intelligence-panel/PrimaryAnalysisCard'
 import { useTileStore, usePatternStore, useIntelligenceStore } from '../../stores'
+import { tileService } from '../../services/tile-service' // Import the tile service
 
 export const TileInputPage = () => {
   const [selectorMode] = useState<'full' | 'compact'>('full')
   const [showValidation, setShowValidation] = useState(true)
   const [showValidationDetails, setShowValidationDetails] = useState(true)
   const [showTileSelector, setShowTileSelector] = useState(true)
-  // const animationsEnabled = useAnimationsEnabled()
   
   const {
     playerHand,
@@ -70,12 +70,18 @@ export const TileInputPage = () => {
   }, [autoAnalyze, playerHand.length, analyzeHand, isAnalyzing, playerHand, targetPatterns]) // Only track hand length, patterns optional
   
   const handleQuickStart = () => {
-    // Add a sample hand for testing
-    const sampleTiles = dealerHand 
-      ? '1D 2D 3D 1B 2B 3B 1C 2C 3C east south west north joker'
-      : '1D 2D 3D 1B 2B 3B 1C 2C 3C east south west north'
+    // Get all tile IDs from the service
+    const tileIds = tileService.getAllTiles().map(tile => tile.id)
+
+    // Simple shuffle function
+    const shuffledPool = tileIds.sort(() => Math.random() - 0.5)
+
+    // Select the first 13 or 14 tiles
+    const handSize = dealerHand ? 14 : 13
+    const randomHand = shuffledPool.slice(0, handSize)
     
-    importTilesFromString(sampleTiles)
+    // Import the new hand
+    importTilesFromString(randomHand.join(' '))
   }
   
   const handleImportExport = () => {

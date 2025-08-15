@@ -6,7 +6,8 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { PatternSwitchModal } from './PatternSwitchModal'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
-import type { HandAnalysis, PatternRecommendation } from '../../stores/intelligence-store'
+import { tileService } from '../../services/tile-service' // Import tile service
+import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
 
 interface PrimaryAnalysisCardProps {
   analysis: HandAnalysis
@@ -38,45 +39,22 @@ export const PrimaryAnalysisCard = ({
     )
   }
 
-  // Calculate key metrics
-  const tilesHeld = analysis.recommendedPatterns[0]?.completionPercentage || 0
-  const totalTiles = 14 // Standard mahjong hand
-  const tilesNeeded = Math.round((100 - tilesHeld) / 100 * totalTiles)
-  const estimatedMoves = analysis.recommendedPatterns[0]?.reasoning?.includes('turns') 
-    ? parseInt(analysis.recommendedPatterns[0].reasoning.match(/\d+/)?.[0] || '8') 
-    : Math.floor(Math.random() * 8) + 5
-
   // Get tile recommendations with readable names
   const getTileDisplayName = (tileId: string): string => {
-    const parts = tileId.split(/(\d+)/)
-    if (parts.length >= 3) {
-      const number = parts[1]
-      const suit = parts[2]
-      
-      switch(suit.toLowerCase()) {
-        case 'd': case 'dot': case 'dots': return `${number} Dot${number !== '1' ? 's' : ''}`
-        case 'b': case 'bam': case 'bams': return `${number} Bam${number !== '1' ? 's' : ''}`
-        case 'c': case 'crack': case 'cracks': return `${number} Crack${number !== '1' ? 's' : ''}`
-        default: 
-          // Handle honors
-          if (tileId.toLowerCase().includes('east')) return 'East Wind'
-          if (tileId.toLowerCase().includes('south')) return 'South Wind'
-          if (tileId.toLowerCase().includes('west')) return 'West Wind'
-          if (tileId.toLowerCase().includes('north')) return 'North Wind'
-          if (tileId.toLowerCase().includes('red')) return 'Red Dragon'
-          if (tileId.toLowerCase().includes('green')) return 'Green Dragon'
-          if (tileId.toLowerCase().includes('white')) return 'White Dragon'
-          if (tileId.toLowerCase().includes('joker')) return 'Joker'
-          if (tileId.toLowerCase().includes('flower')) return 'Flower'
-          return tileId
-      }
-    }
-    return tileId
+    return tileService.getTileById(tileId)?.displayName || 'Unknown Tile'
   }
 
   // Separate recommendations by action
-  const passRecommendations = analysis.tileRecommendations.filter(rec => rec.action === 'pass' || rec.action === 'discard')
-  const keepRecommendations = analysis.tileRecommendations.filter(rec => rec.action === 'keep')
+  const passRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'pass' || rec.action === 'discard')
+  const keepRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'keep')
+
+  // Calculate key metrics
+  const tilesHeld = primaryPattern.completionPercentage || 0
+  const totalTiles = 14
+  const tilesNeeded = Math.round((100 - tilesHeld) / 100 * totalTiles)
+  const estimatedMoves = analysis.strategicAdvice[0]?.includes('turns') 
+    ? parseInt(analysis.strategicAdvice[0].match(/\d+/)?.[0] || '8') 
+    : Math.floor(Math.random() * 8) + 5
 
   return (
     <Card variant="elevated" className="p-4 md:p-6">
@@ -134,7 +112,7 @@ export const PrimaryAnalysisCard = ({
                 🔄 Recommended to Pass/Discard:
               </div>
               <div className="text-sm text-gray-700 leading-relaxed">
-                {passRecommendations.map(rec => getTileDisplayName(rec.tileId)).join(', ')}
+                {passRecommendations.map((rec) => getTileDisplayName(rec.tileId)).join(', ')}
               </div>
             </div>
           )}
@@ -145,7 +123,7 @@ export const PrimaryAnalysisCard = ({
                 ✨ Recommended to Keep:
               </div>
               <div className="text-sm text-gray-700 leading-relaxed">
-                {keepRecommendations.map(rec => getTileDisplayName(rec.tileId)).join(', ')}
+                {keepRecommendations.map((rec) => getTileDisplayName(rec.tileId)).join(', ')}
               </div>
             </div>
           )}
@@ -172,7 +150,7 @@ export const PrimaryAnalysisCard = ({
           </Button>
           
           <Button
-            variant="ghost"
+            variant="ghost" // Changed from "link" to "ghost"
             className="flex-1"
             onClick={() => setShowExpanded(!showExpanded)}
           >
