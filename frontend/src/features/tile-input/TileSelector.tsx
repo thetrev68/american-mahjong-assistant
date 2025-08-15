@@ -12,12 +12,13 @@ import type { TileSuit, PlayerTile } from '../../types/tile-types'
 interface TileSelectorProps {
   onTileSelect?: (tileId: string) => void
   compact?: boolean
+  onCollapse?: () => void
 }
 
-export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProps) => {
+export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: TileSelectorProps) => {
   const [selectedSuit, setSelectedSuit] = useState<TileSuit>('dots')
   const [quickAddMode, setQuickAddMode] = useState(false)
-  const { addTile, playerHand } = useTileStore()
+  const { addTile, playerHand, dealerHand } = useTileStore()
   
   const suits: Array<{ suit: TileSuit; label: string; emoji: string }> = [
     { suit: 'dots', label: 'Dots', emoji: '🔵' },
@@ -154,13 +155,26 @@ export const TileSelector = ({ onTileSelect, compact = false }: TileSelectorProp
             Add Tiles to Hand
           </h3>
           
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setQuickAddMode(!quickAddMode)}
-          >
-            {quickAddMode ? '⚡ Quick' : '🎯 Precise'}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setQuickAddMode(!quickAddMode)}
+            >
+              {quickAddMode ? '⚡ Quick' : '🎯 Precise'}
+            </Button>
+            
+            {onCollapse && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onCollapse}
+                className="text-sm"
+              >
+                ↑ Collapse
+              </Button>
+            )}
+          </div>
         </div>
         
         {/* Suit Tabs */}

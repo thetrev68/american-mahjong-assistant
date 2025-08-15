@@ -8,12 +8,14 @@ import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { HandValidation } from './HandValidation'
-import { LayerCakeUI } from '../intelligence-panel/LayerCakeUI'
+import { PrimaryAnalysisCard } from '../intelligence-panel/PrimaryAnalysisCard'
 import { useTileStore, usePatternStore, useIntelligenceStore } from '../../stores'
 
 export const TileInputPage = () => {
   const [selectorMode, setSelectorMode] = useState<'full' | 'compact'>('full')
   const [showValidation, setShowValidation] = useState(true)
+  const [showValidationDetails, setShowValidationDetails] = useState(true)
+  const [showTileSelector, setShowTileSelector] = useState(true)
   // const animationsEnabled = useAnimationsEnabled()
   
   const {
@@ -179,13 +181,66 @@ export const TileInputPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Tile Selector */}
           <div className={selectorMode === 'full' ? 'lg:col-span-2' : 'lg:col-span-1'}>
-            <TileSelector compact={selectorMode === 'compact'} />
+            {showTileSelector ? (
+              <TileSelector 
+                compact={selectorMode === 'compact'} 
+                onCollapse={() => setShowTileSelector(false)}
+              />
+            ) : (
+              <Card variant="elevated" className="p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Add Tiles to Hand</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTileSelector(!showTileSelector)}
+                    className="text-sm"
+                  >
+                    ↓ Expand
+                  </Button>
+                </div>
+                <div className="text-center text-gray-500 py-4">
+                  <div className="text-sm">Tile selector collapsed</div>
+                  <div className="text-xs mt-1">Click expand to add more tiles</div>
+                </div>
+              </Card>
+            )}
           </div>
           
           {/* Hand Validation */}
           {showValidation && (
             <div className={selectorMode === 'full' ? 'lg:col-span-1' : 'lg:col-span-2'}>
-              <HandValidation />
+              {showValidationDetails ? (
+                <HandValidation onCollapse={() => setShowValidationDetails(false)} />
+              ) : (
+                <Card variant="elevated" className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        validation.isValid ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'
+                      }`}>
+                        {validation.isValid ? '✓' : '✗'}
+                      </div>
+                      <span className="text-sm font-medium text-gray-700">
+                        Hand Validation
+                      </span>
+                      {!validation.isValid && validation.errors.length > 0 && (
+                        <span className="text-xs text-red-600">
+                          {validation.errors.length} issue{validation.errors.length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setShowValidationDetails(true)}
+                      className="text-sm"
+                    >
+                      ↓ Expand
+                    </Button>
+                  </div>
+                </Card>
+              )}
             </div>
           )}
         </div>
@@ -198,47 +253,58 @@ export const TileInputPage = () => {
         
         {/* Intelligence Panel */}
         {showIntelligencePanel && (
-          <Card variant="elevated" className="p-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  🧠 AI Intelligence Panel
-                </h3>
-                
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={autoAnalyze}
-                      onChange={(e) => setAutoAnalyze(e.target.checked)}
-                      className="rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <span>Auto-analyze</span>
-                  </label>
-                  
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.open('/intelligence', '_blank')}
-                  >
-                    🔗 Full Panel
-                  </Button>
-                </div>
-              </div>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between px-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                🧠 AI Intelligence Panel
+              </h3>
               
-              {currentAnalysis ? (
-                <LayerCakeUI />
-              ) : (
-                <div className="text-center p-8 text-gray-500">
+              <div className="flex items-center gap-4">
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={autoAnalyze}
+                    onChange={(e) => setAutoAnalyze(e.target.checked)}
+                    className="rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <span>Auto-analyze</span>
+                </label>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => window.open('/intelligence', '_blank')}
+                >
+                  🔗 Full Panel
+                </Button>
+              </div>
+            </div>
+            
+            {currentAnalysis ? (
+              <PrimaryAnalysisCard
+                analysis={currentAnalysis}
+                currentPattern={currentAnalysis.recommendedPatterns[0] || null}
+                onPatternSwitch={(pattern) => {
+                  // TODO: Update current pattern selection
+                  console.log('Switched to pattern:', pattern.pattern.id)
+                }}
+                onBrowseAllPatterns={() => {
+                  // TODO: Navigate to pattern selection page
+                  window.location.href = '/patterns'
+                }}
+              />
+            ) : (
+              <Card variant="elevated" className="p-8">
+                <div className="text-center text-gray-500">
                   <div className="text-2xl mb-2">🤔</div>
                   <p>Analyzing your hand and patterns...</p>
                   <p className="text-sm mt-1">
                     Select patterns and add tiles to see AI recommendations
                   </p>
                 </div>
-              )}
-            </div>
-          </Card>
+              </Card>
+            )}
+          </div>
         )}
         
         {/* Intelligence Panel Hint */}

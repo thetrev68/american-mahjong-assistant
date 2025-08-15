@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { PatternSelectionOption } from '../types/nmjl-types'
 import type { PlayerTile } from '../types/tile-types'
+import { AnalysisEngine } from '../services/analysis-engine'
 
 export interface TileRecommendation {
   tileId: string
@@ -20,7 +21,11 @@ export interface TileRecommendation {
 }
 
 export interface PatternAnalysis {
-  patternId: number
+  patternId: string
+  section: string | number
+  line: number
+  pattern: string
+  groups: any[]
   completionPercentage: number
   tilesNeeded: number
   missingTiles: string[]
@@ -169,67 +174,9 @@ export const useIntelligenceStore = create<IntelligenceState>()(
             return
           }
           
-          // Simulate AI analysis (in real implementation, this would call the intelligence layer)
-          await new Promise(resolve => setTimeout(resolve, 1500))
-          
-          // Get all available patterns for AI recommendation (mock)
-          const { nmjlService } = await import('../services/nmjl-service')
-          const allPatterns = await nmjlService.getSelectionOptions()
-          
-          // Mock AI pattern selection - pick 3 random patterns as recommendations
-          const shuffledPatterns = [...allPatterns].sort(() => Math.random() - 0.5)
-          const topRecommendations = shuffledPatterns.slice(0, 3)
-          
-          // Mock analysis results
-          const analysis: HandAnalysis = {
-            overallScore: Math.floor(Math.random() * 40) + 60, // 60-100
-            
-            // AI pattern recommendations (primary + 2 alternates)
-            recommendedPatterns: topRecommendations.map((pattern, index) => ({
-              pattern,
-              confidence: Math.floor(Math.random() * 30) + 70 - (index * 10), // Primary has highest confidence
-              completionPercentage: Math.floor(Math.random() * 60) + 20 + (index === 0 ? 20 : 0), // Primary gets bonus
-              reasoning: index === 0 
-                ? `Best match for your current tiles - highest completion probability`
-                : `Strong alternative option with good strategic value`,
-              difficulty: pattern.difficulty,
-              isPrimary: index === 0
-            })),
-            
-            // Detailed analysis of recommended patterns
-            bestPatterns: topRecommendations.map((pattern, index) => ({
-              patternId: parseInt(pattern.id) || index,
-              completionPercentage: Math.floor(Math.random() * 60) + 20, // 20-80
-              tilesNeeded: Math.floor(Math.random() * 8) + 2, // 2-10
-              missingTiles: ['1D', '2B', '3C'].slice(0, Math.floor(Math.random() * 3) + 1),
-              confidenceScore: Math.floor(Math.random() * 30) + 70, // 70-100
-              difficulty: pattern.difficulty,
-              estimatedTurns: Math.floor(Math.random() * 10) + 3, // 3-13
-              riskLevel: ['low', 'medium', 'high'][index % 3] as 'low' | 'medium' | 'high',
-              strategicValue: Math.floor(Math.random() * 4) + 6 // 6-10
-            })),
-            tileRecommendations: tiles.slice(0, 5).map(tile => ({
-              tileId: tile.id,
-              action: ['keep', 'pass', 'discard'][Math.floor(Math.random() * 3)] as 'keep' | 'pass' | 'discard',
-              confidence: Math.floor(Math.random() * 40) + 60, // 60-100
-              reasoning: `Strategic ${tile.displayName} recommendation based on pattern analysis`,
-              priority: Math.floor(Math.random() * 5) + 5 // 5-10
-            })),
-            strategicAdvice: [
-              'Focus on completing the highest probability pattern',
-              'Consider defensive play against potential threats',
-              'Optimize tile efficiency for maximum flexibility'
-            ],
-            threats: [
-              {
-                level: 'medium' as const,
-                description: 'Opponent may be close to mahjong',
-                mitigation: 'Hold defensive tiles and avoid dangerous discards'
-              }
-            ],
-            lastUpdated: Date.now(),
-            analysisVersion: '1.0.0'
-          }
+          // Use real analysis engine
+          console.log('Running real analysis engine...')
+          const analysis = await AnalysisEngine.analyzeHand(tiles, patterns)
           
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)

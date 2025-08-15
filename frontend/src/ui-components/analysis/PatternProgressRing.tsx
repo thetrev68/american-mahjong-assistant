@@ -2,6 +2,7 @@
 // Circular progress indicator for pattern completion with animated fills
 
 import type { PatternAnalysis } from '../../stores/intelligence-store'
+import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface PatternProgressRingProps {
   pattern: PatternAnalysis
@@ -184,9 +185,9 @@ export const PatternProgressRing = ({
       
       {/* Pattern Info */}
       {showLabel && (
-        <div className="text-center max-w-24">
+        <div className="text-center max-w-32">
           <div className={`${sizeConfig.label} text-muted font-medium truncate`}>
-            Pattern #{pattern.patternId}
+            {pattern.section} #{pattern.line}
           </div>
           <div className={`${sizeConfig.label} ${difficultyStyle.textColor} font-semibold capitalize`}>
             {pattern.difficulty}
@@ -197,6 +198,18 @@ export const PatternProgressRing = ({
       {/* Detailed Info */}
       {showDetails && (
         <div className="text-center space-y-1">
+          {/* Colorized Pattern */}
+          <div className="flex flex-wrap justify-center gap-1 mb-2">
+            {getColoredPatternParts(pattern.pattern, pattern.groups).map((part, index) => (
+              <span 
+                key={index}
+                className={`font-mono text-xs ${getColorClasses(part.color, 'text')}`}
+              >
+                {part.text}
+              </span>
+            ))}
+          </div>
+          
           <div className="flex items-center gap-2 text-xs text-gray-600">
             <span>🎯 {pattern.tilesNeeded} tiles needed</span>
           </div>

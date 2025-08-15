@@ -74,7 +74,7 @@ export const ExpandableLayer = ({
               <span className="text-xs text-gray-500">({topPatterns.length} patterns)</span>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
               {topPatterns.map((pattern) => (
                 <PatternProgressRing
                   key={pattern.patternId}
@@ -132,7 +132,7 @@ export const ExpandableLayer = ({
           )}
           
           {/* Performance Metrics */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 pt-4 border-t border-gray-100">
             <div className="text-center">
               <div className="text-lg font-bold text-primary">
                 {Math.round(analysis.overallScore)}%

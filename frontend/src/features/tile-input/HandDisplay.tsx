@@ -5,7 +5,7 @@
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { Tile } from '../../ui-components/Tile'
-import { useTileStore, useAnimationsEnabled } from '../../stores'
+import { useTileStore, useAnimationsEnabled, useIntelligenceStore } from '../../stores'
 import type { PlayerTile } from '../../types/tile-types'
 
 interface HandDisplayProps {
@@ -38,6 +38,29 @@ export const HandDisplay = ({
     triggerTileAnimation,
     getTileGroups
   } = useTileStore()
+  
+  // Get AI recommendations for highlighting
+  const { currentAnalysis } = useIntelligenceStore()
+  
+  // Create lookup maps for highlighting
+  const getTileHighlighting = (tile: PlayerTile) => {
+    if (!currentAnalysis || !showRecommendations) return null
+    
+    const recommendations = currentAnalysis.tileRecommendations
+    const matchingRec = recommendations.find(rec => rec.tileId === tile.id)
+    
+    if (!matchingRec) return null
+    
+    switch (matchingRec.action) {
+      case 'pass':
+      case 'discard':
+        return { type: 'danger', reason: 'Recommended to pass/discard' }
+      case 'keep':
+        return { type: 'success', reason: 'Recommended to keep' }
+      default:
+        return null
+    }
+  }
   
   const handleTileClick = (tile: PlayerTile) => {
     toggleTileSelection(tile.instanceId)
@@ -97,17 +120,31 @@ export const HandDisplay = ({
               <span className="text-xs text-gray-500">({tiles.length})</span>
             </h4>
             <div className="flex flex-wrap gap-2">
-              {tiles.map(tile => (
-                <Tile
-                  key={tile.instanceId}
-                  tile={tile}
-                  size={compactMode ? 'sm' : 'md'}
-                  showRecommendation={showRecommendations}
-                  onClick={handleTileClick}
-                  onDoubleClick={handleTileDoubleClick}
-                  onLongPress={handleTileLongPress}
-                />
-              ))}
+              {tiles.map(tile => {
+                const highlighting = getTileHighlighting(tile)
+                const tileWithRecommendation = {
+                  ...tile,
+                  recommendation: highlighting ? {
+                    action: highlighting.type === 'danger' ? 
+                      (currentAnalysis?.tileRecommendations.find(rec => rec.tileId === tile.id)?.action || 'discard') : 
+                      'keep',
+                    confidence: 85,
+                    reasoning: highlighting.reason
+                  } : undefined
+                }
+                
+                return (
+                  <Tile
+                    key={tile.instanceId}
+                    tile={tileWithRecommendation}
+                    size={compactMode ? 'sm' : 'md'}
+                    showRecommendation={false}
+                    onClick={handleTileClick}
+                    onDoubleClick={handleTileDoubleClick}
+                    onLongPress={handleTileLongPress}
+                  />
+                )
+              })}
             </div>
           </div>
         ))}
@@ -118,17 +155,31 @@ export const HandDisplay = ({
   const renderTileList = () => {
     return (
       <div className="flex flex-wrap gap-2">
-        {playerHand.map(tile => (
-          <Tile
-            key={tile.instanceId}
-            tile={tile}
-            size={compactMode ? 'sm' : 'md'}
-            showRecommendation={showRecommendations}
-            onClick={handleTileClick}
-            onDoubleClick={handleTileDoubleClick}
-            onLongPress={handleTileLongPress}
-          />
-        ))}
+        {playerHand.map(tile => {
+          const highlighting = getTileHighlighting(tile)
+          const tileWithRecommendation = {
+            ...tile,
+            recommendation: highlighting ? {
+              action: highlighting.type === 'danger' ? 
+                (currentAnalysis?.tileRecommendations.find(rec => rec.tileId === tile.id)?.action || 'discard') : 
+                'keep',
+              confidence: 85,
+              reasoning: highlighting.reason
+            } : undefined
+          }
+          
+          return (
+            <Tile
+              key={tile.instanceId}
+              tile={tileWithRecommendation}
+              size={compactMode ? 'sm' : 'md'}
+              showRecommendation={false}
+              onClick={handleTileClick}
+              onDoubleClick={handleTileDoubleClick}
+              onLongPress={handleTileLongPress}
+            />
+          )
+        })}
       </div>
     )
   }

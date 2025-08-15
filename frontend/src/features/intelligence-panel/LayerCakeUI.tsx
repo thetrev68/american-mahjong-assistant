@@ -136,8 +136,8 @@ export const LayerCakeUI = ({ className = '' }: LayerCakeUIProps) => {
       
       {/* Layer 2: Expandable Details */}
       <div className={`
-        transition-all duration-300 ease-out overflow-hidden
-        ${layersExpanded[2] ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}
+        transition-all duration-300 ease-out
+        ${layersExpanded[2] ? 'max-h-[800px] opacity-100 overflow-y-auto' : 'max-h-0 opacity-0 overflow-hidden'}
         ${isTransitioning ? 'pointer-events-none' : ''}
       `}>
         <ExpandableLayer

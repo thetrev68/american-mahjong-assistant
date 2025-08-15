@@ -7,7 +7,11 @@ import { Button } from '../../ui-components/Button'
 import { useTileStore } from '../../stores'
 import { tileService } from '../../services/tile-service'
 
-export const HandValidation = () => {
+interface HandValidationProps {
+  onCollapse?: () => void
+}
+
+export const HandValidation = ({ onCollapse }: HandValidationProps) => {
   const {
     playerHand,
     validation,
@@ -83,9 +87,22 @@ export const HandValidation = () => {
   return (
     <Card variant="elevated" className="space-y-4">
       <div className="p-4 pb-0">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Hand Validation
-        </h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">
+            Hand Validation
+          </h3>
+          
+          {onCollapse && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onCollapse}
+              className="text-sm"
+            >
+              ↑ Collapse
+            </Button>
+          )}
+        </div>
         
         {/* Status Card */}
         <div className={`p-4 rounded-lg border ${getBorderColor()} ${getBackgroundColor()}`}>
