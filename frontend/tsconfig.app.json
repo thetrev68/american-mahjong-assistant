@@ -15,6 +15,15 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path mappings */
+    "baseUrl": "..",
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@frontend/*": ["./frontend/*"],
+      "@backend/*": ["./backend/*"],
+      "@intelligence/*": ["./intelligence/*"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,
@@ -23,5 +32,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "../shared"]
 }

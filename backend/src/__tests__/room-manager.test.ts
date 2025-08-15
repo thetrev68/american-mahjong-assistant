@@ -1,7 +1,7 @@
 // Room Manager Test Suite - Comprehensive TDD for room lifecycle management
 
 import { RoomManager } from '../features/room-lifecycle/room-manager'
-import type { Room, Player, RoomConfig } from '../../../shared/multiplayer-types'
+import type { Room, Player, RoomConfig } from '@shared/multiplayer-types'
 
 describe('RoomManager', () => {
   let roomManager: RoomManager

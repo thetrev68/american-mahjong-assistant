@@ -2,7 +2,7 @@
 
 import { StateSyncManager, StateUpdate } from '../features/state-sync/state-sync-manager'
 import { RoomManager } from '../features/room-lifecycle/room-manager'
-import type { GameState } from '../../../shared/multiplayer-types'
+import type { GameState } from '@shared/multiplayer-types'
 
 describe('StateSyncManager', () => {
   let stateSyncManager: StateSyncManager

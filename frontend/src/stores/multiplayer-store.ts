@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { Room, Player, GameState, PlayerGameState, SharedGameState } from '../../../shared/multiplayer-types'
+import type { Room, Player, GameState, PlayerGameState, SharedGameState } from '@shared/multiplayer-types'
 
 interface MultiplayerState {
   // Connection state

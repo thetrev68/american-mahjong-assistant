@@ -2,7 +2,7 @@ import type {
   GameState, 
   PlayerGameState, 
   SharedGameState 
-} from '../../../../shared/multiplayer-types'
+} from '@shared/multiplayer-types'
 
 export type StateUpdateType = 
   | 'phase-change'

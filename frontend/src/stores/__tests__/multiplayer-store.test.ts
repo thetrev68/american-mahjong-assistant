@@ -1,7 +1,7 @@
 // Multiplayer Store Test Suite - Comprehensive TDD for multiplayer state management
 
 import { useMultiplayerStore } from '../multiplayer-store'
-import type { Room, Player, GameState } from '../../../shared/multiplayer-types'
+import type { Room, Player, GameState } from '@shared/multiplayer-types'
 
 // Mock data
 const mockRoom: Room = {

@@ -4,7 +4,7 @@
     "module": "commonjs",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "..", // <-- Changed to the parent directory
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -12,8 +12,15 @@
     "resolveJsonModule": true,
     "declaration": true,
     "declarationMap": true,
-    "sourceMap": true
+    "sourceMap": true,
+    
+    /* Path Aliases */
+    "baseUrl": "..",
+    "paths": {
+      "@shared/*": ["./shared/*"],
+      "@backend/*": ["./backend/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "../shared/**/*"],
   "exclude": ["node_modules", "dist"]
 }

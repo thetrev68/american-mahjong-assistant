@@ -1,7 +1,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import { RoomManager } from '../room-lifecycle/room-manager'
 import { StateSyncManager } from '../state-sync/state-sync-manager'
-import type { SocketEvents } from '../../../../shared/multiplayer-types'
+import type { SocketEvents } from '@shared/multiplayer-types'
 
 export class SocketHandlers {
   constructor(

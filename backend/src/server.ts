@@ -2,7 +2,9 @@ import express from 'express';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import cors from 'cors';
-import { setupSocketHandlers } from './features/game-coordination/socket-handlers';
+import { SocketHandlers } from './features/socket-communication/socket-handlers';
+import { RoomManager } from './features/room-lifecycle/room-manager';
+import { StateSyncManager } from './features/state-sync/state-sync-manager';
 
 const app = express();
 const server = createServer(app);
@@ -28,8 +30,17 @@ const io = new Server(server, {
   }
 });
 
-// Setup socket event handlers
-setupSocketHandlers(io);
+// Initialize managers and socket handlers
+const roomManager = new RoomManager();
+const stateSyncManager = new StateSyncManager();
+const socketHandlers = new SocketHandlers(io, roomManager, stateSyncManager);
+
+// Setup socket event handlers and start cleanup
+io.on('connection', (socket) => {
+  socketHandlers.registerHandlers(socket);
+});
+
+socketHandlers.startPeriodicCleanup();
 
 // Health check endpoint
 app.get('/health', (req, res) => {

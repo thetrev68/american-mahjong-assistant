@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSocket } from './useSocket'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
-import type { Room, Player, GameState, PlayerGameState, SharedGameState, RoomConfig } from '../../../shared/multiplayer-types'
+import type { Room, Player, GameState, PlayerGameState, SharedGameState, RoomConfig } from '@shared/multiplayer-types'
 
 interface CreateRoomData {
   hostName: string
