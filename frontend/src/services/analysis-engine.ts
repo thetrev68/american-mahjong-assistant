@@ -90,6 +90,12 @@ export class AnalysisEngine {
     // Generate strategic advice
     const strategicAdvice = this.generateStrategicAdvice(sortedResults, recommendedPatterns[0])
 
+    // Generate lastUpdated
+    const lastUpdated = 2025  // TODO: calculate last updated
+
+    // Generate analysisVersion
+    const analysisVersion = "AV1" //TODO: calculate analysis version
+
     // Calculate overall score
     const overallScore = sortedResults.length > 0 
       ? Math.round(sortedResults[0].completionPercentage) 
@@ -101,6 +107,8 @@ export class AnalysisEngine {
       bestPatterns,
       tileRecommendations,
       strategicAdvice,
+      lastUpdated, // TODO: add last updated
+      analysisVersion,  // TODO: add analysis version
       threats: [] // TODO: Implement threat analysis
     }
   }
@@ -122,8 +130,7 @@ export class AnalysisEngine {
   private static countJokers(tiles: PlayerTile[]): number {
     return tiles.filter(tile => 
       tile.id.toLowerCase().includes('joker') || 
-      tile.suit === 'jokers' ||
-      tile.isJoker
+      tile.suit === 'jokers'
     ).length
   }
 
@@ -359,7 +366,7 @@ export class AnalysisEngine {
                      this.isTileUsefulForPattern(tile.id, bestPattern.pattern.pattern)
 
     // Check if tile is a joker
-    const isJoker = tile.id.toLowerCase().includes('joker') || tile.isJoker
+    const isJoker = tile.id.toLowerCase().includes('joker') 
 
     // Generate recommendation
     if (isJoker) {

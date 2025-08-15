@@ -218,6 +218,7 @@ export const useIntelligenceStore = create<IntelligenceState>()(
         // Mock scenario analysis
         const mockAnalysis: HandAnalysis = {
           overallScore: Math.floor(Math.random() * 40) + 60,
+          recommendedPatterns: [],
           bestPatterns: [],
           tileRecommendations: [],
           strategicAdvice: [`What if analysis: ${name}`],

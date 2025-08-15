@@ -7,6 +7,7 @@ import tilesData from '../assets/tiles.json'
 interface TileFrame {
   filename: string
   description: string // Added description field
+  unicodeSymbol: string 
   frame: { x: number; y: number; w: number; h: number }
   rotated: boolean
   trimmed: boolean
@@ -17,6 +18,7 @@ interface TileFrame {
 interface TileSprite {
   id: string
   description: string // Added description field
+  unicodeSymbol: string
   x: number
   y: number
   width: number
@@ -42,6 +44,7 @@ export const useTileSprites = () => {
       map[tileId] = {
         id: tileId,
         description: frame.description, // Store the description
+        unicodeSymbol: frame.unicodeSymbol,
         x: frame.frame.x,
         y: frame.frame.y,
         width: frame.frame.w,
@@ -131,6 +134,12 @@ export const useTileSprites = () => {
     const sprite = getTileSprite(tileId)
     return sprite ? sprite.description : null
   }
+
+  // Get the unicode Symbol for a specific tile
+  const getUnicodeSymbol = (tileId: string): string | null => {
+    const sprite = getTileSprite(tileId)
+    return sprite ? sprite.unicodeSymbol : null
+  }
   
   // Get sprite metadata
   const getMetadata = () => ({
@@ -160,6 +169,7 @@ export const useTileSprites = () => {
     getAllTileIds,
     getMetadata,
     getTileDescription, // Added new function to return description
+    getUnicodeSymbol, // Added new function to return unicode symbol
     
     // Constants
     NATIVE_TILE_WIDTH: 52,

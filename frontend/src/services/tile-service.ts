@@ -18,6 +18,7 @@ class TileService {
     tilesData.frames.forEach(frame => {
       const tileId = frame.filename.replace('.png', '')
       const description = frame.description // Use the description from the JSON
+      const unicodeSymbol = frame.unicodeSymbol
 
       let suit: TileSuit
       let value: TileValue
@@ -51,7 +52,7 @@ class TileService {
         suit: suit,
         value: value,
         displayName: description,
-        unicodeSymbol: '' // Unicode symbols are not in the JSON, they will need to be added manually if desired
+        unicodeSymbol: unicodeSymbol
       })
     })
 

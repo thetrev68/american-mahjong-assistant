@@ -6,7 +6,7 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { Tile } from '../../ui-components/Tile'
 import { useTileStore, useIntelligenceStore } from '../../stores'
-import type { PlayerTile, TileRecommendation, TileSuit } from '../../types/tile-types'
+import type { PlayerTile, TileRecommendation } from '../../types/tile-types'
 
 interface HandDisplayProps {
   showRecommendations?: boolean
@@ -87,36 +87,29 @@ export const HandDisplay = ({
   
   const renderTileGroups = () => {
     const groups = getTileGroups()
-    
-    // Use explicit suit order instead of Object.entries() to ensure consistent rendering
-    const suitOrder: TileSuit[] = ['dots', 'bams', 'cracks', 'winds', 'dragons', 'flowers', 'jokers']
+    const nonEmptyGroups = Object.entries(groups).filter(([, tiles]) => tiles.length > 0)
     
     return (
       <div className="space-y-4">
-        {suitOrder.map(suit => {
-          const tiles = groups[suit]
-          if (!tiles || tiles.length === 0) return null
-          
-          return (
-            <div key={suit} className="space-y-2">
-              <h4 className="text-sm font-medium text-gray-700 capitalize flex items-center gap-2">
-                <span>{suit}</span>
-                <span className="text-xs text-gray-500">({tiles.length})</span>
-              </h4>
-              <div className="flex flex-wrap gap-2">
-                {tiles.map(tile => (
-                  <Tile
-                    key={`${suit}-${tile.instanceId}`}
-                    tile={{ ...tile, recommendation: getTileHighlighting(tile) }}
-                    size={compactMode ? 'sm' : 'md'}
-                    onClick={handleTileClick}
-                    onDoubleClick={handleTileDoubleClick}
-                  />
-                ))}
-              </div>
+        {nonEmptyGroups.map(([suit, tiles]) => (
+          <div key={suit} className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-700 capitalize flex items-center gap-2">
+              <span>{suit}</span>
+              <span className="text-xs text-gray-500">({tiles.length})</span>
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {tiles.map(tile => (
+                <Tile
+                  key={tile.instanceId}
+                  tile={{ ...tile, recommendation: getTileHighlighting(tile) }}
+                  size={compactMode ? 'sm' : 'md'}
+                  onClick={handleTileClick}
+                  onDoubleClick={handleTileDoubleClick}
+                />
+              ))}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
     )
   }
