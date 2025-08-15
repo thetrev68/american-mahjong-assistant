@@ -21,16 +21,19 @@ export interface Tile {
 export interface PlayerTile extends Tile {
   instanceId: string   // Unique instance for multiple same tiles
   isSelected: boolean  // UI selection state
+  // Future enhancement: animation and recommendation features
   animation?: TileAnimation
   recommendation?: TileRecommendation
 }
 
+// Future enhancement: Tile animation system
 export interface TileAnimation {
   type: 'keep' | 'pass' | 'discard' | 'joker' | 'dragon' | 'select' | 'deselect'
   duration: number     // Animation duration in ms
   delay?: number       // Optional delay before animation starts
 }
 
+// Future enhancement: AI recommendation system for tiles
 export interface TileRecommendation {
   action: 'keep' | 'pass' | 'discard' | 'neutral'
   confidence: number   // 0-100

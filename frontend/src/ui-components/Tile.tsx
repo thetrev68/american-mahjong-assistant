@@ -1,20 +1,16 @@
-// Animated Tile Component
-// Interactive tile with animations, selection states, and recommendations
-// Now uses authentic mahjong tile sprites!
+// Simplified Tile Component
+// Interactive tile wrapper for PlayerTile objects with basic functionality
 
 import type { ReactNode } from 'react'
-import type { PlayerTile, TileAnimation, TileRecommendation } from '../types/tile-types'
-import { useAnimationsEnabled } from '../stores'
+import type { PlayerTile } from '../types/tile-types'
 import { TileSprite } from './TileSprite'
 
 interface TileProps {
   tile: PlayerTile
   size?: 'sm' | 'md' | 'lg' | 'xl'
   interactive?: boolean
-  showRecommendation?: boolean
   onClick?: (tile: PlayerTile) => void
   onDoubleClick?: (tile: PlayerTile) => void
-  onLongPress?: (tile: PlayerTile) => void
   className?: string
   children?: ReactNode
 }
@@ -23,15 +19,11 @@ export const Tile = ({
   tile,
   size = 'md',
   interactive = true,
-  showRecommendation = false,
   onClick,
   onDoubleClick,
-  onLongPress,
   className = '',
   children
 }: TileProps) => {
-  const animationsEnabled = useAnimationsEnabled()
-  
   // Map size props to TileSprite size system
   const spriteSizeMap = {
     sm: 'sm' as const,
@@ -40,21 +32,15 @@ export const Tile = ({
     xl: 'xl' as const
   }
   
-  const handleClick = (tileId: string) => {
+  const handleClick = () => {
     if (interactive && onClick) {
       onClick(tile)
     }
   }
   
-  const handleDoubleClick = (tileId: string) => {
+  const handleDoubleClick = () => {
     if (interactive && onDoubleClick) {
       onDoubleClick(tile)
-    }
-  }
-  
-  const handleLongPress = (tileId: string) => {
-    if (interactive && onLongPress) {
-      onLongPress(tile)
     }
   }
   
@@ -65,16 +51,11 @@ export const Tile = ({
         size={spriteSizeMap[size]}
         selected={tile.isSelected}
         interactive={interactive}
-        showRecommendation={showRecommendation}
-        recommendation={tile.recommendation}
-        animation={animationsEnabled ? tile.animation : undefined}
         onClick={handleClick}
         onDoubleClick={handleDoubleClick}
-        onLongPress={handleLongPress}
-        className="authentic-tile"
       />
       
-      {/* Custom Children Overlay */}
+      {/* Custom overlay content */}
       {children && (
         <div className="pointer-events-none">
           {children}

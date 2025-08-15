@@ -1,7 +1,7 @@
 // NMJL 2025 Pattern Service
 // Simplified loader for the co-pilot architecture
 
-import type { NMJL2025Pattern, PatternSelectionOption } from '../../../shared/nmjl-types'
+import type { NMJL2025Pattern, PatternSelectionOption, PatternGroup } from '../../../shared/nmjl-types'
 
 class NMJLService {
   private patterns: NMJL2025Pattern[] = []
@@ -75,8 +75,20 @@ class NMJLService {
     return 'medium'
   }
 
-  private normalizeGroup(raw: unknown): any {
-    if (!raw || typeof raw !== 'object') return {}
+  private normalizeGroup(raw: unknown): PatternGroup {
+    if (!raw || typeof raw !== 'object') {
+      return {
+        Group: '',
+        Suit_Role: 'any',
+        Suit_Note: null,
+        Constraint_Type: 'pung',
+        Constraint_Values: '',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
+        Jokers_Allowed: false,
+        display_color: 'blue'
+      }
+    }
     const group = raw as Record<string, unknown>
     
     return {

@@ -3,7 +3,7 @@
 
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
-import type { PatternSelectionOption } from '../../../shared/nmjl-types'
+import type { PatternSelectionOption, PatternGroup } from '../../../shared/nmjl-types'
 import type { PlayerTile } from '../types/tile-types'
 import { AnalysisEngine } from '../services/analysis-engine'
 
@@ -25,7 +25,7 @@ export interface PatternAnalysis {
   section: string | number
   line: number
   pattern: string
-  groups: any[]
+  groups: PatternGroup[]
   completionPercentage: number
   tilesNeeded: number
   missingTiles: string[]

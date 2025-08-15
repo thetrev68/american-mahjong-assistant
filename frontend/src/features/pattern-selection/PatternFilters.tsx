@@ -51,7 +51,7 @@ export const PatternFilters = () => {
           </label>
           <select
             value={difficultyFilter}
-            onChange={(e) => setDifficultyFilter(e.target.value as any)}
+            onChange={(e) => setDifficultyFilter(e.target.value as 'all' | 'easy' | 'medium' | 'hard')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             <option value="all">All Levels</option>
@@ -68,7 +68,7 @@ export const PatternFilters = () => {
           </label>
           <select
             value={pointsFilter}
-            onChange={(e) => setPointsFilter(e.target.value as any)}
+            onChange={(e) => setPointsFilter(e.target.value as 'all' | '25' | '30' | '35' | '40' | '50')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             <option value="all">All Points</option>
@@ -87,7 +87,7 @@ export const PatternFilters = () => {
           </label>
           <select
             value={jokerFilter}
-            onChange={(e) => setJokerFilter(e.target.value as any)}
+            onChange={(e) => setJokerFilter(e.target.value as 'all' | 'allows' | 'no-jokers')}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
           >
             <option value="all">All Patterns</option>

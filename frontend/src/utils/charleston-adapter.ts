@@ -58,7 +58,7 @@ export class CharlestonAdapter {
     })
     
     // Step 1: Evaluate each tile against target patterns
-    const tileValues = this.evaluateTilesForTargetPatterns(playerTiles, targetPatterns, phase)
+    const tileValues = this.evaluateTilesForTargetPatterns(playerTiles, targetPatterns)
     
     // Step 2: Generate optimal pass combinations
     const passOptions = this.generateOptimalPassCombinations(tileValues)
@@ -109,13 +109,12 @@ export class CharlestonAdapter {
    */
   private static evaluateTilesForTargetPatterns(
     playerTiles: Tile[],
-    targetPatterns: PatternSelectionOption[],
-    phase: CharlestonPhase
+    targetPatterns: PatternSelectionOption[]
   ): TileValue[] {
     
     if (targetPatterns.length === 0) {
       // No target patterns - use basic evaluation
-      return this.evaluateTilesBasic(playerTiles, phase)
+      return this.evaluateTilesBasic(playerTiles)
     }
     
     return playerTiles.map(tile => {
@@ -154,7 +153,7 @@ export class CharlestonAdapter {
       }
       
       // Add tile type modifiers
-      const typeModifiers = this.getTileTypeModifiers(tile, playerTiles, phase)
+      const typeModifiers = this.getTileTypeModifiers(tile)
       keepValue += typeModifiers.keepBonus
       passValue += typeModifiers.passBonus
       reasoning.push(...typeModifiers.reasoning)
@@ -166,7 +165,7 @@ export class CharlestonAdapter {
   /**
    * Basic tile evaluation when no target patterns selected
    */
-  private static evaluateTilesBasic(playerTiles: Tile[], _phase: CharlestonPhase): TileValue[] {
+  private static evaluateTilesBasic(playerTiles: Tile[]): TileValue[] {
     return playerTiles.map(tile => {
       const reasoning: string[] = []
       let keepValue = 0
@@ -251,9 +250,7 @@ export class CharlestonAdapter {
    * Get tile type specific modifiers
    */
   private static getTileTypeModifiers(
-    tile: Tile,
-    _playerTiles: Tile[],
-    _phase: CharlestonPhase
+    tile: Tile
   ): { keepBonus: number; passBonus: number; reasoning: string[] } {
     
     const reasoning: string[] = []

@@ -185,7 +185,7 @@ export const PrimaryAnalysisCard = ({
           <div className="border-t pt-4 space-y-3 text-sm">
             <div>
               <div className="font-medium text-gray-700 mb-2">Alternative Patterns:</div>
-              {analysis.recommendedPatterns.slice(1, 3).map((pattern, index) => (
+              {analysis.recommendedPatterns.slice(1, 3).map((pattern) => (
                 <div key={pattern.pattern.id} className="py-2 text-gray-600 border-l-2 border-gray-200 pl-3">
                   <div className="flex justify-between items-center mb-1">
                     <span className="font-medium">{pattern.pattern.section} #{pattern.pattern.line}</span>

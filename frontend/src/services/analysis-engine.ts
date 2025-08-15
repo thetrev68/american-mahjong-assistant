@@ -4,7 +4,7 @@
 
 import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 import type { PlayerTile } from '../types/tile-types'
-import type { HandAnalysis, PatternRecommendation, TileRecommendation, PatternAnalysis } from '../stores/intelligence-store'
+import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../stores/intelligence-store'
 import { nmjlService } from './nmjl-service'
 
 interface TileCount {

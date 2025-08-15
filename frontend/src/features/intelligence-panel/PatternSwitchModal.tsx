@@ -1,7 +1,7 @@
 // Pattern Switch Modal - Quick pattern switching with top recommendations
 // Shows top 3 viable patterns plus browse more option
 
-import { useState } from 'react'
+import React from 'react'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'

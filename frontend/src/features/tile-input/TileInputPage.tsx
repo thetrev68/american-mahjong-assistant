@@ -12,7 +12,7 @@ import { PrimaryAnalysisCard } from '../intelligence-panel/PrimaryAnalysisCard'
 import { useTileStore, usePatternStore, useIntelligenceStore } from '../../stores'
 
 export const TileInputPage = () => {
-  const [selectorMode, setSelectorMode] = useState<'full' | 'compact'>('full')
+  const [selectorMode] = useState<'full' | 'compact'>('full')
   const [showValidation, setShowValidation] = useState(true)
   const [showValidationDetails, setShowValidationDetails] = useState(true)
   const [showTileSelector, setShowTileSelector] = useState(true)
@@ -49,7 +49,7 @@ export const TileInputPage = () => {
     if (isFromHome && playerHand.length > 0) {
       clearHand()
     }
-  }, []) // Run only on mount
+  }, [clearHand, playerHand.length]) // Run only on mount
   
   useEffect(() => {
     // Validate hand whenever it changes
@@ -67,7 +67,7 @@ export const TileInputPage = () => {
         analysisTriggeredRef.current = false
       })
     }
-  }, [autoAnalyze, playerHand.length]) // Only track hand length, patterns optional
+  }, [autoAnalyze, playerHand.length, analyzeHand, isAnalyzing, playerHand, targetPatterns]) // Only track hand length, patterns optional
   
   const handleQuickStart = () => {
     // Add a sample hand for testing

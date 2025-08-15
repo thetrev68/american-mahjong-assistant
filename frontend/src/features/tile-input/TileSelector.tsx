@@ -7,7 +7,7 @@ import { Button } from '../../ui-components/Button'
 import { Tile } from '../../ui-components/Tile'
 import { useTileStore } from '../../stores'
 import { tileService } from '../../services/tile-service'
-import type { TileSuit, PlayerTile } from '../../types/tile-types'
+import type { TileSuit, PlayerTile, Tile as BaseTile } from '../../types/tile-types'
 
 interface TileSelectorProps {
   onTileSelect?: (tileId: string) => void
@@ -38,7 +38,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
     tileCounts.set(tile.id, (tileCounts.get(tile.id) || 0) + 1)
   })
   
-  const handleTileClick = (tile: any) => {
+  const handleTileClick = (tile: BaseTile) => {
     const currentCount = tileCounts.get(tile.id) || 0
     
     // Check if we're at max hand size
@@ -59,7 +59,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
     }
   }
   
-  const createDummyPlayerTile = (baseTile: any): PlayerTile => ({
+  const createDummyPlayerTile = (baseTile: BaseTile): PlayerTile => ({
     ...baseTile,
     instanceId: `selector_${baseTile.id}`,
     isSelected: false
