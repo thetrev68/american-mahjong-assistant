@@ -1,7 +1,26 @@
 // Haptic Feedback Hook for Mobile Devices
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useReducedMotion } from '../utils/reduced-motion'
+
+// Type declarations for haptic APIs
+interface TapticEngine {
+  impact(options: { style: 'light' | 'medium' | 'heavy' }): Promise<void>
+  notification(options: { type: 'success' | 'warning' | 'error' }): Promise<void>
+  selection(): Promise<void>
+}
+
+interface NavigatorWithVibrate extends Navigator {
+  vibrate?: (pattern: number | number[]) => boolean
+}
+
+interface WindowWithHaptics extends Window {
+  TapticEngine?: TapticEngine
+  DeviceMotionEvent?: typeof DeviceMotionEvent
+}
+
+declare const window: WindowWithHaptics
+declare const navigator: NavigatorWithVibrate
 
 export interface HapticOptions {
   type?: 'light' | 'medium' | 'heavy' | 'selection' | 'notification' | 'impact'
@@ -46,12 +65,12 @@ export function useHapticFeedback(): UseHapticFeedbackReturn {
   const isSupported = typeof navigator !== 'undefined' && (
     'vibrate' in navigator || 
     'hapticFeedback' in navigator ||
-    (window as any).DeviceMotionEvent !== undefined
+    window.DeviceMotionEvent !== undefined
   )
   
   // Check for iOS haptic feedback support
-  const hasIOSHaptics = typeof (window as any).TapticEngine !== 'undefined' ||
-    typeof (navigator as any).vibrate === 'function'
+  const hasIOSHaptics = typeof window.TapticEngine !== 'undefined' ||
+    typeof navigator.vibrate === 'function'
   
   // Check for Android haptic feedback support
   const hasAndroidHaptics = 'vibrate' in navigator
@@ -66,8 +85,8 @@ export function useHapticFeedback(): UseHapticFeedbackReturn {
     
     try {
       // iOS Haptic Feedback (if available)
-      if (hasIOSHaptics && (window as any).TapticEngine) {
-        const engine = (window as any).TapticEngine
+      if (hasIOSHaptics && window.TapticEngine) {
+        const engine = window.TapticEngine
         switch (type) {
           case 'light':
             await engine.impact({ style: 'light' })
@@ -143,7 +162,7 @@ export function useHapticFeedback(): UseHapticFeedbackReturn {
   
   const triggerNotification = useCallback((notificationType: 'success' | 'warning' | 'error' = 'success') => {
     // For iOS haptics, use the notification type directly
-    if ((window as any).TapticEngine) {
+    if (window.TapticEngine) {
       return triggerHaptic({ type: 'notification' })
     }
     

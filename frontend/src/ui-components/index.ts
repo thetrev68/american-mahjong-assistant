@@ -5,6 +5,9 @@ export { LoadingSpinner } from './LoadingSpinner'
 export { Tile } from './Tile'
 export { TileSprite } from './TileSprite'
 
+// Animated Tile Components
+export { AnimatedTile, TileAnimationWrapper } from './tiles'
+
 // Layout Components
 export { AppLayout } from './layout/AppLayout'
 export { Header } from './layout/Header'

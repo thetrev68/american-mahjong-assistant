@@ -13,7 +13,7 @@ interface CreateRoomData {
 
 interface PendingUpdate {
   type: string
-  data: any
+  data: unknown
   timestamp: Date
 }
 
@@ -51,7 +51,7 @@ export function useMultiplayer() {
         try {
           await operation()
           clearError()
-        } catch (retryError) {
+        } catch {
           setRetryAttempts(prev => prev + 1)
         }
       }, delay)
@@ -337,7 +337,8 @@ export function useMultiplayer() {
   // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
-      retryTimeoutsRef.current.forEach(clearTimeout)
+      const timeouts = retryTimeoutsRef.current
+      timeouts.forEach(clearTimeout)
     }
   }, [])
 

@@ -219,7 +219,7 @@ export function validateAnimationConfig(config: Partial<AnimationConfig>): boole
     const isCubicBezier = config.easing.startsWith('cubic-bezier(')
     const isStandardEasing = ['ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear'].includes(config.easing)
     
-    if (!validEasings.includes(config.easing as any) && !isCubicBezier && !isStandardEasing) {
+    if (!validEasings.includes(config.easing as keyof typeof ANIMATION_EASINGS) && !isCubicBezier && !isStandardEasing) {
       return false
     }
   }
@@ -245,8 +245,8 @@ export function validateAnimationConfig(config: Partial<AnimationConfig>): boole
 }
 
 // Performance optimization utilities
-export function createOptimizedKeyframes(config: AnimationConfig): Record<string, any> {
-  const keyframes: Record<string, any> = {}
+export function createOptimizedKeyframes(config: AnimationConfig): Record<string, string | number> {
+  const keyframes: Record<string, string | number> = {}
   
   // Use GPU-accelerated properties
   if (config.transform) {

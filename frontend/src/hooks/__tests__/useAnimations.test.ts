@@ -1,6 +1,6 @@
 // useAnimations Hook Test Suite
 
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { 
   useAnimations, 
@@ -381,7 +381,7 @@ describe('Error Handling', () => {
 
     // This should not throw an error
     await act(async () => {
-      const promise = result.current.playAnimation('invalid' as any)
+      const promise = result.current.playAnimation('invalid' as keyof typeof import('../../utils/animation-config').TILE_ANIMATIONS)
       vi.advanceTimersByTime(300)
       await promise
     })

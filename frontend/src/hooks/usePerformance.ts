@@ -2,6 +2,19 @@
 
 import { useCallback, useRef, useState, useEffect } from 'react'
 
+// Type declarations for Performance API memory extension
+interface PerformanceMemory {
+  usedJSHeapSize: number
+  totalJSHeapSize: number
+  jsHeapSizeLimit: number
+}
+
+interface PerformanceWithMemory extends Performance {
+  memory?: PerformanceMemory
+}
+
+declare const performance: PerformanceWithMemory
+
 export interface PerformanceMetrics {
   fps: number
   frameTime: number
@@ -221,7 +234,7 @@ export function usePerformance(): UsePerformanceReturn {
   // Memory usage monitoring
   const measureMemoryUsage = useCallback((): number | null => {
     if ('memory' in performance) {
-      const memory = (performance as any).memory
+      const memory = performance.memory
       return memory.usedJSHeapSize / 1024 / 1024 // Convert to MB
     }
     return null

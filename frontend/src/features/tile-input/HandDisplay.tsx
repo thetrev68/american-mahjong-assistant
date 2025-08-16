@@ -4,7 +4,7 @@
 // import { useState } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
-import { Tile } from '../../ui-components/Tile'
+import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore, useIntelligenceStore } from '../../stores'
 import type { PlayerTile, TileRecommendation } from '../../types/tile-types'
 
@@ -98,15 +98,33 @@ export const HandDisplay = ({
               <span className="text-xs text-gray-500">({tiles.length})</span>
             </h4>
             <div className="flex flex-wrap gap-2">
-              {tiles.map(tile => (
-                <Tile
-                  key={tile.instanceId}
-                  tile={{ ...tile, recommendation: getTileHighlighting(tile) }}
-                  size={compactMode ? 'sm' : 'md'}
-                  onClick={handleTileClick}
-                  onDoubleClick={handleTileDoubleClick}
-                />
-              ))}
+              {tiles.map(tile => {
+                const recommendation = getTileHighlighting(tile)
+                return (
+                  <div key={tile.instanceId} className="relative group">
+                    <AnimatedTile
+                      tile={{ ...tile, recommendation }}
+                      size={compactMode ? 'sm' : 'md'}
+                      onClick={handleTileClick}
+                      onDoubleClick={handleTileDoubleClick}
+                      animateOnSelect={true}
+                      animateOnRecommendation={true}
+                      context="selection"
+                      recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
+                    />
+                    {/* Remove button that appears on hover/selection */}
+                    {(tile.isSelected || false) && (
+                      <button
+                        onClick={() => removeTile(tile.instanceId)}
+                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-10"
+                        title="Remove tile (or double-click)"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                )
+              })}
             </div>
           </div>
         ))}
@@ -117,15 +135,33 @@ export const HandDisplay = ({
   const renderTileList = () => {
     return (
       <div className="flex flex-wrap gap-2">
-        {playerHand.map(tile => (
-          <Tile
-            key={tile.instanceId}
-            tile={{ ...tile, recommendation: getTileHighlighting(tile) }}
-            size={compactMode ? 'sm' : 'md'}
-            onClick={handleTileClick}
-            onDoubleClick={handleTileDoubleClick}
-          />
-        ))}
+        {playerHand.map(tile => {
+          const recommendation = getTileHighlighting(tile)
+          return (
+            <div key={tile.instanceId} className="relative group">
+              <AnimatedTile
+                tile={{ ...tile, recommendation }}
+                size={compactMode ? 'sm' : 'md'}
+                onClick={handleTileClick}
+                onDoubleClick={handleTileDoubleClick}
+                animateOnSelect={true}
+                animateOnRecommendation={true}
+                context="selection"
+                recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
+              />
+              {/* Remove button that appears on hover/selection */}
+              {(tile.isSelected || false) && (
+                <button
+                  onClick={() => removeTile(tile.instanceId)}
+                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-10"
+                  title="Remove tile (or double-click)"
+                >
+                  ×
+                </button>
+              )}
+            </div>
+          )
+        })}
       </div>
     )
   }
@@ -157,6 +193,11 @@ export const HandDisplay = ({
             <p className="text-sm text-gray-600">
               {getHandSummary()}
             </p>
+            {playerHand.length > 0 && (
+              <p className="text-xs text-gray-500">
+                💡 Click to select, double-click or click ✕ to remove
+              </p>
+            )}
           </div>
           
           <div className="flex gap-2">

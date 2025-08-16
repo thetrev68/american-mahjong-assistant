@@ -3,7 +3,7 @@ import { io, Socket } from 'socket.io-client'
 
 interface QueuedEvent {
   event: string
-  data: any
+  data: unknown
   timestamp: Date
 }
 
@@ -128,7 +128,7 @@ export function useSocket() {
     setEventQueue([])
   }, [])
 
-  const emit = useCallback((event: string, data?: any) => {
+  const emit = useCallback((event: string, data?: unknown) => {
     try {
       if (!socketRef.current?.connected) {
         // Queue event if disconnected
@@ -149,13 +149,13 @@ export function useSocket() {
     }
   }, [])
 
-  const on = useCallback((event: string, handler: (...args: any[]) => void) => {
+  const on = useCallback((event: string, handler: (...args: unknown[]) => void) => {
     if (socketRef.current) {
       socketRef.current.on(event, handler)
     }
   }, [])
 
-  const off = useCallback((event: string, handler: (...args: any[]) => void) => {
+  const off = useCallback((event: string, handler: (...args: unknown[]) => void) => {
     if (socketRef.current) {
       socketRef.current.off(event, handler)
     }

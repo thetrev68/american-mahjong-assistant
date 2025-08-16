@@ -4,7 +4,7 @@
 import { useState } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
-import { Tile } from '../../ui-components/Tile'
+import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore } from '../../stores'
 import { tileService } from '../../services/tile-service'
 import type { TileSuit, PlayerTile, Tile as BaseTile } from '../../types/tile-types'
@@ -108,11 +108,13 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
               
               return (
                 <div key={tile.id} style={{ position: 'relative', display: 'inline-block' }}>
-                  <Tile
+                  <AnimatedTile
                     tile={createDummyPlayerTile(tile)}
                     size="sm"
                     onClick={() => !isMaxed && handleTileClick(tile)}
                     className={isMaxed ? 'opacity-50 cursor-not-allowed' : ''}
+                    animateOnSelect={true}
+                    context="selection"
                   />
                   {currentCount > 0 && (
                     <div style={{
@@ -201,7 +203,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
             
             return (
               <div key={tile.id} style={{ width: '52px', height: '69px', position: 'relative' }}>
-                <Tile
+                <AnimatedTile
                   tile={createDummyPlayerTile(tile)}
                   size="md"
                   onClick={() => !isMaxed && handleTileClick(tile)}
@@ -209,6 +211,8 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
                     ${isMaxed ? 'opacity-50 cursor-not-allowed' : 'hover:scale-110'}
                     transition-transform duration-200
                   `}
+                  animateOnSelect={true}
+                  context="selection"
                 >
                   {/* Count Badge */}
                   {currentCount > 0 && (
@@ -234,7 +238,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
                       {currentCount}
                     </div>
                   )}
-                </Tile>
+                </AnimatedTile>
                 
                 {/* Max Badge */}
                 {isMaxed && (

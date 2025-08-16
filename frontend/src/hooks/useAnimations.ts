@@ -7,8 +7,7 @@ import {
   createAnimationSequence,
   TILE_ANIMATIONS,
   type AnimationConfig,
-  type AnimationSequenceItem,
-  type ProcessedSequenceItem
+  type AnimationSequenceItem
 } from '../utils/animation-config'
 import { useReducedMotion } from '../utils/reduced-motion'
 

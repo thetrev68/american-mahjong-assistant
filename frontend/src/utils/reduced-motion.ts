@@ -50,7 +50,7 @@ export interface AnimationConfig {
   bounce?: boolean
   shake?: boolean
   essential?: boolean
-  [key: string]: any
+  [key: string]: unknown
 }
 
 export function withReducedMotion<T extends AnimationConfig>(
@@ -209,16 +209,6 @@ const ESSENTIAL_ANIMATION_TYPES = [
   'selection'
 ]
 
-const DECORATIVE_ANIMATION_TYPES = [
-  'hover',
-  'flourish',
-  'ambient',
-  'particle',
-  'decoration',
-  'celebration',
-  'transition'
-]
-
 export function shouldEnableAnimation(
   animationType: string,
   allowedTypes: string[] = ESSENTIAL_ANIMATION_TYPES
@@ -257,9 +247,9 @@ export function createMotionQuery(
 
 // CSS-in-JS helper for reduced motion
 export function motionSafeStyles(
-  fullStyles: Record<string, any>,
-  reducedStyles: Record<string, any> = {}
-): Record<string, any> {
+  fullStyles: Record<string, unknown>,
+  reducedStyles: Record<string, unknown> = {}
+): Record<string, unknown> {
   return {
     ...fullStyles,
     '@media (prefers-reduced-motion: reduce)': {

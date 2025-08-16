@@ -134,12 +134,14 @@ describe('NMJL Service', () => {
         ok: true,
         json: () => Promise.resolve(mockNMJLData),
       })
-    ) as any
+    ) as unknown as typeof fetch
     
     // Reset the internal loaded state by creating a fresh instance
     // This is a bit hacky but necessary for testing the singleton
-    ;(nmjlService as any).loaded = false
-    ;(nmjlService as any).patterns = []
+    // @ts-expect-error - accessing private properties for testing
+    nmjlService.loaded = false
+    // @ts-expect-error - accessing private properties for testing
+    nmjlService.patterns = []
   })
 
   describe('Pattern Loading', () => {
@@ -160,7 +162,7 @@ describe('NMJL Service', () => {
     it('should handle fetch errors gracefully', async () => {
       global.fetch = vi.fn(() =>
         Promise.reject(new Error('Network error'))
-      ) as any
+      ) as unknown as typeof fetch
       
       const patterns = await nmjlService.getAllPatterns()
       expect(patterns).toEqual([])
@@ -172,7 +174,7 @@ describe('NMJL Service', () => {
           ok: false,
           statusText: 'Not Found',
         })
-      ) as any
+      ) as unknown as typeof fetch
       
       const patterns = await nmjlService.getAllPatterns()
       expect(patterns).toEqual([])
@@ -294,7 +296,7 @@ describe('NMJL Service', () => {
           ok: true,
           json: () => Promise.resolve(invalidData),
         })
-      ) as any
+      ) as unknown as typeof fetch
       
       const patterns = await nmjlService.getAllPatterns()
       expect(patterns).toHaveLength(2) // Only valid patterns should be included
@@ -311,7 +313,7 @@ describe('NMJL Service', () => {
           ok: true,
           json: () => Promise.resolve(dataWithBadDifficulty),
         })
-      ) as any
+      ) as unknown as typeof fetch
       
       const patterns = await nmjlService.getAllPatterns()
       expect(patterns[0].Hand_Difficulty).toBe('medium') // Should default to medium
@@ -328,7 +330,7 @@ describe('NMJL Service', () => {
           ok: true,
           json: () => Promise.resolve(dataWithBadGroups),
         })
-      ) as any
+      ) as unknown as typeof fetch
       
       const patterns = await nmjlService.getAllPatterns()
       expect(patterns[0].Groups).toHaveLength(3) // Should normalize invalid groups

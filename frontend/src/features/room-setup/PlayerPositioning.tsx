@@ -37,7 +37,7 @@ export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
   disabled = false
 }) => {
   const getPlayerAtPosition = (position: PlayerPosition): Player | null => {
-    const playerId = Object.entries(playerPositions).find(([_, pos]) => pos === position)?.[0]
+    const playerId = Object.entries(playerPositions).find(([, pos]) => pos === position)?.[0]
     return playerId ? players.find(p => p.id === playerId) || null : null
   }
 

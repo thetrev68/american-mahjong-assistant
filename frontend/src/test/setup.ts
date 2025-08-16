@@ -1,5 +1,5 @@
 import '@testing-library/jest-dom'
-import { expect, afterEach } from 'vitest'
+import { afterEach } from 'vitest'
 import { cleanup } from '@testing-library/react'
 
 // Global test setup
@@ -36,7 +36,7 @@ global.fetch = vi.fn(() =>
     json: () => Promise.resolve({}),
     text: () => Promise.resolve(''),
   })
-) as any
+) as unknown as typeof fetch
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -58,11 +58,11 @@ global.IntersectionObserver = vi.fn(() => ({
   observe: vi.fn(),
   disconnect: vi.fn(),
   unobserve: vi.fn(),
-})) as any
+})) as unknown as typeof IntersectionObserver
 
 // Mock ResizeObserver
 global.ResizeObserver = vi.fn(() => ({
   observe: vi.fn(),
   disconnect: vi.fn(),
   unobserve: vi.fn(),
-})) as any
+})) as unknown as typeof ResizeObserver

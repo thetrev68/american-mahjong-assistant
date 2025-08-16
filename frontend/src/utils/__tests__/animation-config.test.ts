@@ -114,7 +114,7 @@ describe('Animation Configuration', () => {
     })
 
     it('should handle invalid animation names', () => {
-      const invalidConfig = getAnimationConfig('invalid' as any)
+      const invalidConfig = getAnimationConfig('invalid' as keyof typeof import('../animation-config').TILE_ANIMATIONS)
       
       expect(invalidConfig).toEqual({})
     })
