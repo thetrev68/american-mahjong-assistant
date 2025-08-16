@@ -5,6 +5,13 @@ export { usePatternStore } from './pattern-store'
 export { useTileStore } from './tile-store'
 export { useIntelligenceStore } from './intelligence-store'
 export { useCharlestonStore, useCharlestonSelectors } from './charleston-store'
+export { 
+  useTutorialStore, 
+  useTutorialProgress, 
+  useTutorialNavigation, 
+  useTutorialPreferences, 
+  useTutorialDemo 
+} from './tutorial-store'
 
 // Store Selectors (commonly used combinations)
 import { useGameStore } from './game-store'

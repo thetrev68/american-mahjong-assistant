@@ -4,6 +4,7 @@ import { PatternSelectionPage } from '../features/pattern-selection'
 import { TileInputPage } from '../features/tile-input'
 import { IntelligencePanelPage } from '../features/intelligence-panel'
 import { CharlestonView } from '../features/charleston'
+import { TutorialView } from '../features/tutorial'
 
 export const router = createBrowserRouter([
   {
@@ -12,7 +13,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/tutorial',
-    element: <div className="p-8 text-center">Tutorial coming in Chunk 9!</div>,
+    element: <TutorialView onComplete={() => console.log('Tutorial completed!')} />,
   },
   {
     path: '/patterns',
