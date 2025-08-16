@@ -44,7 +44,7 @@ This is a **co-pilot system** that enhances human decision-making rather than re
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/YOUR_USERNAME/american-mahjong-assistant.git
+   git clone https://github.com/thetrev68/american-mahjong-assistant.git
    cd american-mahjong-assistant
    ```
 
