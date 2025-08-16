@@ -11,8 +11,8 @@ interface PatternCardProps {
   isSelected: boolean
   isTarget: boolean
   progress?: PatternProgress
-  onSelect: (patternId: number) => void
-  onToggleTarget: (patternId: number) => void
+  onSelect: (patternId: string) => void
+  onToggleTarget: (patternId: string) => void
 }
 
 export const PatternCard = ({

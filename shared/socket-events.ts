@@ -3,10 +3,72 @@
 // This defines the exact event names and data structures for real-time communication
 
 import type { 
-  GameRoom, Player, PlayerAction, Tile, PrivatePlayerState, 
-  HandAnalysis, CharlestonState, DiscardedTile, GameSettings,
-  PlayerPosition, GamePhase, CharlestonPhase, ExposedSet, ActionType
-} from '../types';
+  TileValue, 
+  NMJL2025Pattern 
+} from './nmjl-types';
+
+// Define these types here since they're socket-specific
+export type Player = {
+  id: string;
+  name: string;
+  isHost: boolean;
+};
+
+export type GameRoom = {
+  id: string;
+  code?: string;
+  hostId: string;
+  players: Player[];
+};
+
+export type Tile = {
+  id: string;
+  suit: string;
+  value: TileValue;
+  isJoker?: boolean;
+};
+
+export type PlayerAction = {
+  type: string;
+  data: any;
+};
+
+export type PrivatePlayerState = {
+  tiles: Tile[];
+  hand: Tile[];
+  patterns: NMJL2025Pattern[];
+};
+
+export type HandAnalysis = {
+  recommendations: any[];
+  confidence: number;
+};
+
+export type CharlestonState = {
+  phase: string;
+  round: number;
+  passedTiles: Tile[];
+};
+
+export type DiscardedTile = {
+  tile: Tile;
+  playerId: string;
+  timestamp: number;
+};
+
+export type GameSettings = {
+  gameMode: string;
+  maxPlayers: number;
+};
+
+export type PlayerPosition = 'east' | 'south' | 'west' | 'north';
+export type GamePhase = 'setup' | 'charleston' | 'gameplay' | 'finished';
+export type CharlestonPhase = 'right' | 'across' | 'left' | 'optional';
+export type ExposedSet = {
+  tiles: Tile[];
+  type: string;
+};
+export type ActionType = 'draw' | 'discard' | 'kong' | 'pung' | 'chow' | 'mahjong';
 
 /*
 ========================================

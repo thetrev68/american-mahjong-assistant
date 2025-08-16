@@ -17,7 +17,8 @@ export const IntelligencePanelPage = () => {
     autoAnalyze
   } = useIntelligenceStore()
   
-  const { selectedPatterns = [] } = usePatternStore()
+  const { getTargetPatterns } = usePatternStore()
+  const selectedPatterns = getTargetPatterns()
   const { playerHand = [], selectedTiles = [], handSize = 0 } = useTileStore()
   
   // Auto-analyze when tiles or patterns change
@@ -181,7 +182,20 @@ export const IntelligencePanelPage = () => {
             )}
             
             {/* Primary Analysis */}
-            <PrimaryAnalysisCard />
+            {currentAnalysis && (
+              <PrimaryAnalysisCard 
+                analysis={currentAnalysis}
+                currentPattern={currentAnalysis.recommendedPatterns[0] || null}
+                onPatternSwitch={(pattern) => {
+                  // Handle pattern switch logic
+                  console.log('Pattern switch requested:', pattern)
+                }}
+                onBrowseAllPatterns={() => {
+                  // Navigate to pattern selection
+                  window.location.href = '/patterns'
+                }}
+              />
+            )}
           </div>
         )}
         

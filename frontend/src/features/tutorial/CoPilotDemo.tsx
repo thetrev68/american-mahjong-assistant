@@ -1,45 +1,60 @@
 // Co-Pilot Demo Component
 // Interactive demonstration of AI assistant features
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
+import { tileService } from '../../services/tile-service'
 import type { CoPilotDemoProps } from './types'
 import type { PlayerTile } from '../../types/tile-types'
 
-// Mock tile data for demo with proper tile IDs
-const createMockTile = (id: string, isSelected = false): PlayerTile => ({
-  id,
-  suit: id.includes('dot') ? 'dots' : id.includes('bam') ? 'bams' : id.includes('crack') ? 'cracks' : 'winds',
-  value: id.includes('1') ? 1 : id.includes('2') ? 2 : id.includes('3') ? 3 : 0,
-  instanceId: `demo_${id}`,
-  isSelected,
-})
+// Simple helper to create mock tiles for the demo
+const createMockTile = (id: string): PlayerTile => {
+  const tileData = tileService.getTileById(id)
+  return {
+    id,
+    suit: tileData?.suit || 'dots',
+    value: tileData?.value || '1',
+    instanceId: `demo_${id}`,
+    isSelected: false,
+  }
+}
 
-const mockHand: PlayerTile[] = [
-  createMockTile('1dot'),
-  createMockTile('2dot'),
-  createMockTile('3dot'),
-  createMockTile('1bam'),
-  createMockTile('2bam'),
-  createMockTile('3bam'),
-  createMockTile('1crak'),
-  createMockTile('2crak'),
-  createMockTile('red'),
-  createMockTile('green'),
-  createMockTile('east'),
-  createMockTile('south'),
-  createMockTile('joker'),
-]
+// Generate a sample hand using the same logic as TileInputPage
+const generateSampleHand = (): PlayerTile[] => {
+  // Get all tile IDs from the service
+  const tileIds = tileService.getAllTiles().map(tile => tile.id)
+  
+  // Simple shuffle function  
+  const shuffledPool = tileIds.sort(() => Math.random() - 0.5)
+  
+  // Select the first 13 tiles for demo
+  const randomTileIds = shuffledPool.slice(0, 13)
+  
+  // Convert to PlayerTile objects
+  return randomTileIds.map((tileId, index) => {
+    const tileData = tileService.getTileById(tileId)
+    return {
+      id: tileId,
+      suit: tileData?.suit || 'dots',
+      value: tileData?.value || '1',
+      instanceId: `demo_${tileId}_${index}`,
+      isSelected: false,
+    }
+  })
+}
+
 
 export const CoPilotDemo: React.FC<CoPilotDemoProps> = ({
   feature,
   onComplete,
 }) => {
   const [selectedTile, setSelectedTile] = useState<string | null>(null)
-  const [demoStep, setDemoStep] = useState(0)
   const [showRecommendations, setShowRecommendations] = useState(false)
+  
+  // Generate a sample hand for the demo using the same logic as TileInputPage
+  const sampleHand = useMemo(() => generateSampleHand(), [])
 
   const handleTileClick = (tile: PlayerTile) => {
     setSelectedTile(tile.id)
@@ -90,7 +105,7 @@ export const CoPilotDemo: React.FC<CoPilotDemoProps> = ({
               <div className="text-center">
                 <p className="text-gray-600 mb-4">Click on any tile below to see AI analysis:</p>
                 <div className="flex flex-wrap justify-center gap-3 p-6 bg-gray-50 rounded-lg">
-                  {mockHand.slice(0, 8).map(tile => (
+                  {sampleHand.slice(0, 8).map(tile => (
                     <div key={tile.instanceId} className="transform hover:scale-110 transition-transform">
                       <AnimatedTile
                         tile={tile}
@@ -155,7 +170,7 @@ export const CoPilotDemo: React.FC<CoPilotDemoProps> = ({
                       <div className="text-green-600 font-medium text-lg">Keep ✓</div>
                       <div className="flex justify-center py-2">
                         <AnimatedTile
-                          tile={createMockTile('2dot')}
+                          tile={createMockTile('2D')}
                           size="md"
                           interactive={false}
                         />

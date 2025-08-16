@@ -83,7 +83,8 @@ export function useMultiplayer() {
         config
       })
 
-      const handleResponse = (response: { success: boolean; room?: Room; error?: string }) => {
+      const handleResponse = (...args: unknown[]) => {
+        const response = args[0] as { success: boolean; room?: Room; error?: string }
         setIsCreatingRoom(false)
         
         if (response.success && response.room) {
@@ -119,7 +120,8 @@ export function useMultiplayer() {
         playerName
       })
 
-      const handleResponse = (response: { success: boolean; room?: Room; error?: string }) => {
+      const handleResponse = (...args: unknown[]) => {
+        const response = args[0] as { success: boolean; room?: Room; error?: string }
         setIsJoiningRoom(false)
         
         if (response.success && response.room) {
@@ -151,7 +153,8 @@ export function useMultiplayer() {
     return new Promise((resolve, reject) => {
       socket.emit('leave-room', { roomId })
 
-      const handleResponse = (response: { success: boolean; roomId: string }) => {
+      const handleResponse = (...args: unknown[]) => {
+        const response = args[0] as { success: boolean; roomId: string }
         if (response.success) {
           store.clearCurrentRoom()
           resolve()
@@ -258,7 +261,8 @@ export function useMultiplayer() {
         roomId: store.currentRoom!.id
       })
 
-      const handleResponse = (response: { success: boolean; gameState?: GameState }) => {
+      const handleResponse = (...args: unknown[]) => {
+        const response = args[0] as { success: boolean; gameState?: GameState }
         if (response.success && response.gameState) {
           store.setGameState(response.gameState)
           resolve(response.gameState)
@@ -282,25 +286,30 @@ export function useMultiplayer() {
   useEffect(() => {
     if (!socket.isConnected) return
 
-    const handlePlayerJoined = (data: { player: Player; room: Room }) => {
+    const handlePlayerJoined = (...args: unknown[]) => {
+      const data = args[0] as { player: Player; room: Room }
       store.addPlayerToRoom(data.player)
     }
 
-    const handlePlayerLeft = (data: { playerId: string; roomId: string }) => {
+    const handlePlayerLeft = (...args: unknown[]) => {
+      const data = args[0] as { playerId: string; roomId: string }
       store.removePlayerFromRoom(data.playerId)
     }
 
-    const handleGameStateChanged = (data: { gameState: GameState }) => {
+    const handleGameStateChanged = (...args: unknown[]) => {
+      const data = args[0] as { gameState: GameState }
       store.setGameState(data.gameState)
     }
 
-    const handleRoomDeleted = (data: { roomId: string }) => {
+    const handleRoomDeleted = (...args: unknown[]) => {
+      const data = args[0] as { roomId: string }
       if (store.currentRoom?.id === data.roomId) {
         store.clearCurrentRoom()
       }
     }
 
-    const handleRoomListUpdated = (data: { rooms: Room[] }) => {
+    const handleRoomListUpdated = (...args: unknown[]) => {
+      const data = args[0] as { rooms: Room[] }
       store.updateAvailableRooms(data.rooms)
     }
 

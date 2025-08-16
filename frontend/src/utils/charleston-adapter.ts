@@ -416,7 +416,7 @@ export class CharlestonAdapter {
    */
   private static generateDetailedReasoning(
     tilesToPass: Tile[],
-    tilesToKeep: Tile[],
+    _tilesToKeep: Tile[],
     targetPatterns: PatternSelectionOption[],
     phase: CharlestonPhase
   ): string[] {

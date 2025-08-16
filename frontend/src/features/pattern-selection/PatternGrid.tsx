@@ -71,7 +71,7 @@ export const PatternGrid = () => {
     )
   }
   
-  const handleToggleTarget = (patternId: number) => {
+  const handleToggleTarget = (patternId: string) => {
     if (targetPatterns.includes(patternId)) {
       removeTargetPattern(patternId)
     } else {

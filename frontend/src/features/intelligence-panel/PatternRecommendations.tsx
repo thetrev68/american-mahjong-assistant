@@ -14,12 +14,13 @@ interface PatternRecommendationsProps {
 }
 
 export function PatternRecommendations({ recommendations, className = '' }: PatternRecommendationsProps) {
-  const { selectedPatterns, addPattern, removePattern, clearPatterns } = usePatternStore()
+  const { getTargetPatterns, addTargetPattern, removeTargetPattern, clearSelection } = usePatternStore()
+  const selectedPatterns = getTargetPatterns()
   const [showOverride, setShowOverride] = useState(false)
   
   const acceptRecommendations = () => {
-    clearPatterns()
-    recommendations.forEach(rec => addPattern(rec.pattern))
+    clearSelection()
+    recommendations.forEach(rec => addTargetPattern(rec.pattern.id))
   }
   
   const isPatternSelected = (patternId: string) => {
@@ -28,9 +29,9 @@ export function PatternRecommendations({ recommendations, className = '' }: Patt
   
   const togglePattern = (pattern: PatternRecommendation['pattern']) => {
     if (isPatternSelected(pattern.id)) {
-      removePattern(pattern.id)
+      removeTargetPattern(pattern.id)
     } else {
-      addPattern(pattern)
+      addTargetPattern(pattern.id)
     }
   }
   

@@ -17,14 +17,14 @@ export function CharlestonView() {
   
   // Sync target patterns from pattern selection (if any are selected)
   useEffect(() => {
-    const selectedPatterns = patternStore.selectedPatterns
-    if (selectedPatterns.length > 0) {
-      if (selectedPatterns.length !== charlestonStore.targetPatterns.length ||
-          !selectedPatterns.every(p => charlestonStore.targetPatterns.some(cp => cp.id === p.id))) {
-        charlestonStore.setTargetPatterns(selectedPatterns)
+    const targetPatterns = patternStore.getTargetPatterns()
+    if (targetPatterns.length > 0) {
+      if (targetPatterns.length !== charlestonStore.targetPatterns.length ||
+          !targetPatterns.every(p => charlestonStore.targetPatterns.some(cp => cp.id === p.id))) {
+        charlestonStore.setTargetPatterns(targetPatterns)
       }
     }
-  }, [patternStore.selectedPatterns, charlestonStore.targetPatterns, charlestonStore])
+  }, [patternStore.targetPatterns, charlestonStore.targetPatterns, charlestonStore])
   
   // Mock tiles for development - replace with actual tile input integration
   const mockTiles: Tile[] = useMemo(() => [
@@ -81,9 +81,9 @@ export function CharlestonView() {
             <p className="text-indigo-800 mb-3">
               Enter your tiles and AI will analyze your hand to recommend optimal Charleston passes.
             </p>
-            {patternStore.selectedPatterns.length > 0 ? (
+            {patternStore.targetPatterns.length > 0 ? (
               <p className="text-sm text-indigo-600">
-                ✓ Using your {patternStore.selectedPatterns.length} selected pattern{patternStore.selectedPatterns.length > 1 ? 's' : ''} for focused strategy
+                ✓ Using your {patternStore.targetPatterns.length} selected pattern{patternStore.targetPatterns.length > 1 ? 's' : ''} for focused strategy
               </p>
             ) : (
               <p className="text-sm text-indigo-600">

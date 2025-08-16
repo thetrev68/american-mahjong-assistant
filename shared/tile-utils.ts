@@ -1,6 +1,21 @@
 // frontend/src/utils/tile-utils.ts
-import type { Tile, TileSuit, TileValue, PlayerPosition } from '../types';
-import { getTargetTileCount, validatePositionTileCount } from './dealer-logic';
+import type { TileValue } from './nmjl-types';
+
+// Define tile-related types here
+export type TileSuit = 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers';
+
+export type Tile = {
+  id: string;
+  suit: TileSuit;
+  value: TileValue;
+  isJoker?: boolean;
+};
+
+export type PlayerPosition = 'east' | 'south' | 'west' | 'north';
+
+// Mock these functions for now since dealer-logic doesn't exist
+export const getTargetTileCount = (_position: PlayerPosition): number => 14;
+export const validatePositionTileCount = (_position: PlayerPosition, count: number): boolean => count === 14;
 
 // Create all available tiles for selection
 export const createAllTiles = (): Tile[] => {
@@ -81,7 +96,7 @@ export const groupTilesBySuit = (tiles: Tile[]): Record<TileSuit, Tile[]> => {
   // Sort numerical tiles within each suit
   ['dots', 'bams', 'cracks'].forEach(suit => {
     grouped[suit as TileSuit].sort((a, b) => 
-      parseInt(a.value) - parseInt(b.value)
+      parseInt(String(a.value)) - parseInt(String(b.value))
     );
   });
 
@@ -155,9 +170,10 @@ export const validateTileCollection = (
 
   // Position-aware tile count validation
   if (playerPosition) {
-    const positionValidation = validatePositionTileCount(tiles, playerPosition);
-    errors.push(...positionValidation.errors);
-    warnings.push(...positionValidation.warnings);
+    const isValid = validatePositionTileCount(playerPosition, tiles.length);
+    if (!isValid) {
+      errors.push(`Invalid tile count for position ${playerPosition}: ${tiles.length}`);
+    }
   } else {
     // Original logic for backward compatibility (assumes 13 tiles)
     if (tiles.length > 14) {
@@ -194,10 +210,10 @@ export const sortTiles = (tiles: Tile[]): Tile[] => {
 
     // Then sort by value within suit
     if (['dots', 'bams', 'cracks'].includes(a.suit)) {
-      return parseInt(a.value) - parseInt(b.value);
+      return parseInt(String(a.value)) - parseInt(String(b.value));
     }
 
     // For non-numerical tiles, sort alphabetically
-    return a.value.localeCompare(b.value);
+    return String(a.value).localeCompare(String(b.value));
   });
 };

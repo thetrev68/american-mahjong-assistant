@@ -25,7 +25,7 @@ interface PatternState {
   sectionFilter: 'all' | string
   
   // Progress Tracking
-  patternProgress: Record<number, PatternProgress>
+  patternProgress: Record<string, PatternProgress>
   
   // Actions
   loadPatterns: () => Promise<void>
@@ -43,7 +43,7 @@ interface PatternState {
   clearAllFilters: () => void
   
   // Progress Actions
-  updatePatternProgress: (patternId: number, progress: PatternProgress) => void
+  updatePatternProgress: (patternId: string, progress: PatternProgress) => void
   
   // Computed
   getFilteredPatterns: () => PatternSelectionOption[]
@@ -163,7 +163,7 @@ export const usePatternStore = create<PatternState>()(
       },
       
       // Progress
-      updatePatternProgress: (patternId: number, progress: PatternProgress) => {
+      updatePatternProgress: (patternId: string, progress: PatternProgress) => {
         set({
           patternProgress: {
             ...get().patternProgress,
