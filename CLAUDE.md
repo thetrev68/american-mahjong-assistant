@@ -43,6 +43,8 @@ This is a **local network multiplayer web application** for assisting in-person 
 
 **Key Principle**: Players use phones as intelligent co-pilots while playing with physical tiles and boards. The architecture has been transformed from auto-pilot to co-pilot, giving players control while providing intelligent assistance.
 
+**🏆 MVP ACHIEVED**: Complete Game Mode co-pilot interface providing real-time strategic assistance during actual gameplay, including draw/discard recommendations, call notifications, exposed tile tracking, and dynamic pattern switching.
+
 ### Core Components
 
 #### Frontend (`/frontend`)
@@ -76,29 +78,48 @@ The application follows a **co-pilot pattern** where AI provides intelligent ass
 #### Feature-Based Organization
 ```
 frontend/src/
-├── features/              # User-facing features
+├── features/              # Complete user-facing features
 │   ├── landing/          # Hello Co-Pilot landing page
 │   ├── pattern-selection/ # NMJL pattern browsing & selection
-│   └── [future chunks]   # Tile input, charleston, game, etc.
-├── ui-components/        # Reusable UI building blocks
+│   ├── tile-input/       # Hand tile input and management
+│   ├── charleston/       # Charleston intelligence and strategy
+│   ├── gameplay/         # 🏆 Complete Game Mode co-pilot interface
+│   ├── tutorial/         # Complete onboarding system
+│   └── post-game/        # Post-game analysis (Chunk 10)
+├── ui-components/        # Complete design system
 │   ├── Button.tsx        # Modern button with variants
 │   ├── Card.tsx          # Glassmorphism cards
+│   ├── Tile.tsx          # Core tile component
+│   ├── tiles/            # Advanced tile components
+│   │   ├── AnimatedTile.tsx # Animated tile with contextual effects
+│   │   └── TileSprite.tsx   # Base tile rendering
 │   ├── LoadingSpinner.tsx
 │   └── layout/           # Layout components
-├── stores/               # Zustand state management
-├── services/             # Data services (NMJL, API)
-├── types/                # TypeScript definitions
+├── stores/               # Complete Zustand state management
+│   ├── game-store.ts     # Core game state
+│   ├── pattern-store.ts  # Pattern selection & filtering
+│   ├── intelligence-store.ts # AI analysis & recommendations
+│   ├── tile-store.ts     # Hand management
+│   └── charleston-store.ts # Charleston strategy
+├── services/             # Data services and AI engines
+├── types/                # Complete TypeScript definitions
 └── utils/                # Utilities and routing
 ```
 
 ### Key Technical Files
 
-#### Current Architecture (Co-Pilot)
+#### Current Architecture (Co-Pilot MVP)
 - `frontend/src/stores/game-store.ts` - Core game state with Zustand
 - `frontend/src/stores/pattern-store.ts` - Pattern selection and filtering
+- `frontend/src/stores/intelligence-store.ts` - AI analysis and recommendations
+- `frontend/src/stores/tile-store.ts` - Hand management and tile input
 - `frontend/src/services/nmjl-service.ts` - NMJL 2025 data loading
 - `frontend/src/features/pattern-selection/` - Complete pattern selection UI
-- `frontend/src/ui-components/` - Modern design system components
+- `frontend/src/features/charleston/` - Charleston intelligence and strategy
+- `frontend/src/features/gameplay/GameModeView.tsx` - **Complete Game Mode co-pilot interface**
+- `frontend/src/features/tile-input/` - Tile input and hand management
+- `frontend/src/features/tutorial/` - Complete onboarding system
+- `frontend/src/ui-components/` - Modern design system with tile components
 - `frontend/public/intelligence/nmjl-patterns/nmjl-card-2025.json` - Real NMJL data
 
 #### Legacy Architecture (Preserved)
@@ -151,17 +172,29 @@ Development follows a **context-window-sized chunk approach** documented in `doc
 - Persistent user preferences and tutorial progress tracking
 - Integration with existing animation system and tile sprites
 
-#### 🔄 Current Status: Tutorial Polish & Bug Fixes
-- Known Issues: Tutorial restart functionality, navigation button responsiveness, step differentiation
-- Ready for detailed user testing and iterative improvements
-- ESLint cleanup and final testing needed
+#### 🏆 CHUNK MVP: Complete Game Mode Co-Pilot Interface (COMPLETE)
+- **Core Game Mode Interface** - Real-time co-pilot assistance during actual gameplay
+- **AI-Powered Draw/Discard** - Smart recommendations with visual feedback and reasoning
+- **Silent Call Notifications** - 5-second timeout system with strategic pung/kong evaluation
+- **Exposed Tiles Management** - Complete tracking and display of called sets (pung/kong)
+- **Real-time Hand Analysis** - Pattern progress with viability scoring and exposed tile integration
+- **Primary Hand Switching** - Mid-game strategic pattern pivoting with alternative recommendations
+- **4-Player Turn Management** - Realistic turn order simulation with player indicators
+- **Tile Confirmation System** - Error prevention for strategic decisions with smart validation
 
-#### 🔄 Future Chunks (10+)
-- Tutorial system polish and bug fixes
-- Charleston coordination and multiplayer
-- Live game interface and real-time analysis
-- Post-game analysis and learning features
-- Statistics, history, and performance tracking
+#### 🎯 MILESTONE ACHIEVED: Complete American Mahjong Co-Pilot MVP
+- **Complete User Flow**: Pattern Selection → Tile Input → Charleston → **Game Mode** → Post-Game
+- **Real-time Intelligence**: AI provides strategic recommendations while maintaining player agency
+- **Professional Gameplay**: Authentic mahjong flow with call opportunities and exposed tile tracking
+- **Strategic Flexibility**: Dynamic pattern switching and intelligent alternative suggestions
+- **Ready for Testing**: Full Charleston → Game Mode integration with comprehensive co-pilot features
+
+#### 🔄 Future Enhancements (Post-MVP)
+- Multiplayer synchronization and network gameplay
+- Advanced pattern completion algorithms
+- Performance analytics and learning insights
+- Charleston optimization and advanced strategies
+- Enhanced tutorial integration with game mode
 
 ### Important Development Patterns
 
