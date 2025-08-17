@@ -5,6 +5,7 @@ import { TileInputPage } from '../features/tile-input'
 import { IntelligencePanelPage } from '../features/intelligence-panel'
 import { CharlestonView } from '../features/charleston'
 import { TutorialView } from '../features/tutorial'
+import { GameModeView } from '../features/gameplay'
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +42,6 @@ export const router = createBrowserRouter([
   },
   {
     path: '/game',
-    element: <div className="p-8 text-center">Game Interface coming in Chunk 6!</div>,
+    element: <GameModeView />,
   },
 ])
