@@ -3,7 +3,7 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { RoomSetupView } from '../RoomSetupView'
-import { useRoomSetup, type UseRoomSetupReturn } from '../../../hooks/useRoomSetup'
+import { useRoomSetup } from '../../../hooks/useRoomSetup'
 import { useRoomStore } from '../../../stores/room-store'
 import { useMultiplayerStore } from '../../../stores/multiplayer-store'
 
@@ -12,13 +12,13 @@ vi.mock('../../../hooks/useRoomSetup')
 vi.mock('../../../stores/room-store')
 vi.mock('../../../stores/multiplayer-store')
 
-const mockRoomSetup: UseRoomSetupReturn = {
+let mockRoomSetup: any = {
   coPilotMode: 'everyone',
-  roomCode: null as string | null,
+  roomCode: null,
   isHost: false,
   isCreatingRoom: false,
   isJoiningRoom: false,
-  error: null as string | null,
+  error: null,
   setupProgress: {
     currentStep: 'mode-selection',
     completedSteps: 0,
@@ -37,7 +37,7 @@ const mockRoomStore = {
   isHost: vi.fn(() => false)
 }
 
-const mockMultiplayerStore = {
+let mockMultiplayerStore: any = {
   currentRoom: null,
   currentPlayerId: 'player-1'
 }
@@ -76,7 +76,7 @@ describe('RoomSetupView Component', () => {
 
   describe('Step 2: Room Creation/Joining', () => {
     beforeEach(() => {
-      (mockRoomSetup as any).setupProgress = {
+      mockRoomSetup.setupProgress = {
         currentStep: 'room-creation',
         completedSteps: 1,
         totalSteps: 3
@@ -148,13 +148,13 @@ describe('RoomSetupView Component', () => {
 
   describe('Step 3: Player Positioning', () => {
     beforeEach(() => {
-      (mockRoomSetup as any).setupProgress = {
+      mockRoomSetup.setupProgress = {
         currentStep: 'player-positioning',
         completedSteps: 2,
         totalSteps: 3
       }
-      (mockRoomSetup as any).roomCode = 'ABCD'
-      (mockMultiplayerStore as any).currentRoom = {
+      mockRoomSetup.roomCode = 'ABCD'
+      mockMultiplayerStore.currentRoom = {
         id: 'room-123',
         code: 'ABCD',
         players: [
@@ -195,13 +195,13 @@ describe('RoomSetupView Component', () => {
 
   describe('Ready State', () => {
     beforeEach(() => {
-      (mockRoomSetup as any).setupProgress = {
+      mockRoomSetup.setupProgress = {
         currentStep: 'ready',
         completedSteps: 3,
         totalSteps: 3
       }
-      (mockRoomSetup as any).roomCode = 'ABCD'
-      (mockRoomSetup as any).isHost = true
+      mockRoomSetup.roomCode = 'ABCD'
+      mockRoomSetup.isHost = true
       mockRoomStore.playerPositions = {
         'player-1': 'north',
         'player-2': 'east'
@@ -221,7 +221,7 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should show waiting message for non-host', () => {
-      (mockRoomSetup as any).isHost = false
+      mockRoomSetup.isHost = false
       render(<RoomSetupView />)
       
       expect(screen.getByText(/waiting for host to start/i)).toBeInTheDocument()
@@ -230,14 +230,14 @@ describe('RoomSetupView Component', () => {
 
   describe('Error Handling', () => {
     it('should display error messages', () => {
-      (mockRoomSetup as any).error = 'Failed to create room'
+      mockRoomSetup.error = 'Failed to create room'
       render(<RoomSetupView />)
       
       expect(screen.getByText('Failed to create room')).toBeInTheDocument()
     })
 
     it('should show error dismiss button', () => {
-      (mockRoomSetup as any).error = 'Test error'
+      mockRoomSetup.error = 'Test error'
       render(<RoomSetupView />)
       
       const dismissButton = screen.getByRole('button', { name: /dismiss/i })
@@ -249,21 +249,21 @@ describe('RoomSetupView Component', () => {
 
   describe('Loading States', () => {
     it('should show loading state when creating room', () => {
-      (mockRoomSetup as any).isCreatingRoom = true
+      mockRoomSetup.isCreatingRoom = true
       render(<RoomSetupView />)
       
       expect(screen.getByText(/creating/i)).toBeInTheDocument()
     })
 
     it('should show loading state when joining room', () => {
-      (mockRoomSetup as any).isJoiningRoom = true
+      mockRoomSetup.isJoiningRoom = true
       render(<RoomSetupView />)
       
       expect(screen.getByText(/joining/i)).toBeInTheDocument()
     })
 
     it('should disable forms during loading', () => {
-      (mockRoomSetup as any).isCreatingRoom = true
+      mockRoomSetup.isCreatingRoom = true
       render(<RoomSetupView />)
       
       const nameInput = screen.getByLabelText(/your name/i)
@@ -292,7 +292,7 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should show completed steps', () => {
-      (mockRoomSetup as any).setupProgress = {
+      mockRoomSetup.setupProgress = {
         currentStep: 'room-creation',
         completedSteps: 1,
         totalSteps: 3
@@ -306,7 +306,7 @@ describe('RoomSetupView Component', () => {
 
   describe('Navigation', () => {
     it('should show back button on later steps', () => {
-      (mockRoomSetup as any).setupProgress = {
+      mockRoomSetup.setupProgress = {
         currentStep: 'room-creation',
         completedSteps: 1,
         totalSteps: 3
@@ -323,7 +323,7 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should handle back navigation', () => {
-      (mockRoomSetup as any).setupProgress = {
+      mockRoomSetup.setupProgress = {
         currentStep: 'room-creation',
         completedSteps: 1,
         totalSteps: 3
