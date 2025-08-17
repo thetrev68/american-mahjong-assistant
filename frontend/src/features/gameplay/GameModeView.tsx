@@ -66,10 +66,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }>>([])
   const [playerExposedCount, setPlayerExposedCount] = useState<Record<string, number>>({
     'player-1': 0,
-    'other-player': 0,
+    'player-2': 0,
     'player-3': 0,
     'player-4': 0
   })
+  const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0) // 0=you, 1=right, 2=across, 3=left
+  const [playerNames] = useState(['You', 'Right', 'Across', 'Left'])
+  const [gameRound, setGameRound] = useState(1)
+  const [windRound, setWindRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
 
   // Current hand with drawn tile
   const currentHand = useTileStore((state) => state.playerHand)
@@ -119,12 +123,17 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [])
 
-  // Analyze hand whenever it changes
+  // Analyze hand whenever it changes (with debouncing)
   useEffect(() => {
     if (fullHand.length > 0) {
-      analyzeCurrentHand()
+      // Debounce analysis to avoid excessive calls
+      const timeoutId = setTimeout(() => {
+        analyzeCurrentHand()
+      }, 300)
+      
+      return () => clearTimeout(timeoutId)
     }
-  }, [fullHand, selectedPatterns])
+  }, [fullHand, selectedPatterns, exposedTiles])
 
   // Real-time hand analysis
   const analyzeCurrentHand = useCallback(async () => {
@@ -145,14 +154,30 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           isSelected: false
         } as any
       })
-      // Trigger intelligence analysis
+      
+      // Include exposed tiles in analysis context
+      const analysisContext = {
+        concealed: handForAnalysis,
+        exposed: exposedTiles,
+        targetPatterns: selectedPatterns,
+        gamePhase: 'playing' as const,
+        lastAction: gameHistory[0]?.action || 'draw'
+      }
+      
+      console.log('🧠 Analyzing hand:', {
+        concealedTiles: handForAnalysis.length,
+        exposedSets: exposedTiles.length,
+        targetPatterns: selectedPatterns.length
+      })
+      
+      // Trigger intelligence analysis with enhanced context
       await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns)
     } catch (error) {
       console.error('Failed to analyze hand:', error)
     } finally {
       setIsAnalyzing(false)
     }
-  }, [fullHand, selectedPatterns, intelligenceStore])
+  }, [fullHand, selectedPatterns, exposedTiles, gameHistory, intelligenceStore])
 
   // Draw tile action
   const handleDrawTile = useCallback(() => {
@@ -352,35 +377,76 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [currentHand, tileStore, gameStore.currentPlayerId])
 
+  // Advance to next player
+  const advanceToNextPlayer = useCallback(() => {
+    setCurrentPlayerIndex(prev => (prev + 1) % 4)
+    setIsMyTurn(currentPlayerIndex === 3) // It will be our turn next if we're advancing from player 3
+  }, [currentPlayerIndex])
+
   // Simulate other players' turns
   const simulateOtherPlayerTurn = useCallback(() => {
+    const nextPlayerIndex = (currentPlayerIndex + 1) % 4
+    const nextPlayerName = playerNames[nextPlayerIndex]
+    const nextPlayerId = `player-${nextPlayerIndex + 1}`
+    
     // Simulate other player drawing and discarding
-    const value = (Math.floor(Math.random() * 9) + 1).toString() as any
+    const suits = ['dots', 'bams', 'cracks', 'winds', 'dragons'] as const
+    const randomSuit = suits[Math.floor(Math.random() * suits.length)]
+    let value: string
+    let displayName: string
+    
+    if (randomSuit === 'winds') {
+      const winds = ['east', 'south', 'west', 'north']
+      value = winds[Math.floor(Math.random() * winds.length)]
+      displayName = `${value.charAt(0).toUpperCase() + value.slice(1)} Wind`
+    } else if (randomSuit === 'dragons') {
+      const dragons = ['red', 'green', 'white']
+      value = dragons[Math.floor(Math.random() * dragons.length)]
+      displayName = `${value.charAt(0).toUpperCase() + value.slice(1)} Dragon`
+    } else {
+      value = (Math.floor(Math.random() * 9) + 1).toString()
+      displayName = `${value} ${randomSuit.charAt(0).toUpperCase() + randomSuit.slice(1)}`
+    }
+
     const otherPlayerTile: TileType = {
-      id: `other-discard-${Date.now()}`,
-      suit: 'cracks',
-      value,
-      displayName: `${value} Cracks`
+      id: `discard-${nextPlayerId}-${Date.now()}`,
+      suit: randomSuit,
+      value: value as any,
+      displayName
     }
 
     const turn: GameTurn = {
-      playerId: 'other-player',
+      playerId: nextPlayerId,
       action: 'discard',
       tile: otherPlayerTile,
       timestamp: new Date()
     }
     setGameHistory(prev => [turn, ...prev])
+    
+    console.log(`🎮 ${nextPlayerName} discards ${otherPlayerTile.displayName}`)
 
-    // Check if we can call this tile
-    evaluateCallOpportunity(otherPlayerTile)
+    // Advance turn counter
+    setCurrentPlayerIndex(nextPlayerIndex)
 
-    // If no call, it becomes our turn
+    // Check if we can call this tile (only if it's not our turn yet)
+    if (nextPlayerIndex !== 0) {
+      evaluateCallOpportunity(otherPlayerTile)
+    }
+
+    // Continue simulating other players or give turn to user
     setTimeout(() => {
       if (!showCallDialog) {
-        setIsMyTurn(true)
+        if (nextPlayerIndex === 3) {
+          // Last other player played, now it's our turn
+          setIsMyTurn(true)
+          setCurrentPlayerIndex(0)
+        } else {
+          // Continue with next player
+          simulateOtherPlayerTurn()
+        }
       }
-    }, 1000)
-  }, [evaluateCallOpportunity, showCallDialog])
+    }, 1500)
+  }, [currentPlayerIndex, playerNames, evaluateCallOpportunity, showCallDialog])
 
   // Check win condition
   const checkWinCondition = useCallback((hand: TileType[]): boolean => {
@@ -441,10 +507,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">Game Mode</h1>
-          <p className="text-gray-600">
-            {isMyTurn ? 'Your turn' : 'Waiting for other players'} • 
-            Playing {selectedPatterns.length} pattern{selectedPatterns.length !== 1 ? 's' : ''}
-          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-gray-600">
+              {isMyTurn ? '🟢 Your turn' : `🔄 ${playerNames[currentPlayerIndex]}'s turn`} • 
+              Playing {selectedPatterns.length} pattern{selectedPatterns.length !== 1 ? 's' : ''}
+            </p>
+            <div className="text-sm text-gray-500">
+              {windRound.charAt(0).toUpperCase() + windRound.slice(1)} Round #{gameRound}
+            </div>
+          </div>
         </div>
         <div className="flex space-x-3">
           <Button variant="outline" onClick={onNavigateToCharleston}>
@@ -455,6 +526,31 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Player Order Display */}
+      <Card className="p-4 mb-6 bg-gradient-to-r from-purple-50 to-blue-50">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-medium text-gray-700">Player Order</h3>
+          <div className="text-xs text-gray-500">Turn {gameHistory.length + 1}</div>
+        </div>
+        <div className="flex items-center justify-center gap-4 mt-3">
+          {playerNames.map((name, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${
+                currentPlayerIndex === index ? 'bg-green-500 animate-pulse' : 
+                index === 0 ? 'bg-blue-500' : 'bg-gray-300'
+              }`} />
+              <span className={`text-sm font-medium ${
+                currentPlayerIndex === index ? 'text-green-700' :
+                index === 0 ? 'text-blue-700' : 'text-gray-600'
+              }`}>
+                {name}
+              </span>
+              {index < 3 && <span className="text-gray-400 text-sm">→</span>}
+            </div>
+          ))}
+        </div>
+      </Card>
 
       {/* Current Analysis Card */}
       {(currentAnalysis || isAnalyzing) && (
@@ -550,24 +646,82 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         {/* Pattern Progress */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Pattern Progress</h3>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {selectedPatterns.map((pattern) => {
-              const progress = currentAnalysis?.bestPatterns?.find(p => p.patternId === pattern.id)?.completionPercentage || 0
+              const analysisPattern = currentAnalysis?.bestPatterns?.find(p => p.patternId === pattern.id)
+              const progress = analysisPattern?.completionPercentage || 0
+              const difficulty = analysisPattern?.difficulty || pattern.difficulty
+              const isViable = progress > 20 // Show as viable if >20% complete
+              
               return (
-                <div key={pattern.id}>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-gray-600 truncate">{pattern.displayName}</span>
-                    <span className="font-medium">{progress.toFixed(0)}%</span>
+                <div key={pattern.id} className={`p-3 rounded-lg border ${
+                  isViable ? 'bg-blue-50 border-blue-200' : 'bg-gray-50 border-gray-200'
+                }`}>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-sm font-medium ${isViable ? 'text-blue-800' : 'text-gray-600'} truncate`}>
+                        {pattern.displayName}
+                      </span>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                        difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {difficulty}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className={`font-bold ${isViable ? 'text-blue-600' : 'text-gray-500'}`}>
+                        {progress.toFixed(0)}%
+                      </span>
+                      {isViable && <span className="text-green-500">🎯</span>}
+                    </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
                     <div 
-                      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${progress}%` }}
+                      className={`h-3 rounded-full transition-all duration-500 ${
+                        progress > 70 ? 'bg-green-500' :
+                        progress > 40 ? 'bg-blue-500' :
+                        progress > 20 ? 'bg-yellow-500' :
+                        'bg-gray-400'
+                      }`}
+                      style={{ width: `${Math.max(progress, 5)}%` }}
                     />
                   </div>
+                  
+                  {analysisPattern && (
+                    <div className="text-xs space-y-1">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Tiles needed:</span>
+                        <span className="font-medium">{analysisPattern.tilesNeeded || '?'}</span>
+                      </div>
+                      {exposedTiles.length > 0 && (
+                        <div className="flex justify-between">
+                          <span className="text-gray-500">Uses exposed:</span>
+                          <span className="font-medium text-green-600">
+                            {exposedTiles.some(group => 
+                              group.tiles.some(tile => 
+                                pattern.groups?.some((pg: any) => 
+                                  pg.tiles?.some((pt: any) => pt.suit === tile.suit && pt.value === tile.value)
+                                )
+                              )
+                            ) ? 'Yes' : 'No'}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )
             })}
+            
+            {selectedPatterns.length === 0 && (
+              <div className="text-center py-6 text-gray-500">
+                <p className="mb-2">No target patterns selected</p>
+                <p className="text-sm">Go to Pattern Selection to choose your strategy</p>
+              </div>
+            )}
           </div>
         </Card>
 
