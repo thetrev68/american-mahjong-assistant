@@ -60,13 +60,16 @@ export function useSocket() {
           reconnectAttempts: 0
         }))
 
-        // Flush queued events on reconnection
-        if (eventQueue.length > 0) {
-          eventQueue.forEach(({ event, data }) => {
-            socket.emit(event, data)
-          })
-          setEventQueue([])
-        }
+        // Flush queued events on reconnection - use functional update to avoid dependency
+        setEventQueue(currentQueue => {
+          if (currentQueue.length > 0) {
+            currentQueue.forEach(({ event, data }) => {
+              socket.emit(event, data)
+            })
+            return []
+          }
+          return currentQueue
+        })
       })
 
       socket.on('disconnect', (reason) => {
@@ -109,7 +112,7 @@ export function useSocket() {
       setIsConnected(false)
       setSocketId(null)
     }
-  }, [eventQueue])
+  }, [])
 
   const disconnect = useCallback(() => {
     if (pingIntervalRef.current) {
@@ -185,14 +188,15 @@ export function useSocket() {
     }
   }, [isConnected])
 
-  // Auto-connect on mount
+  // Auto-connect on mount - run only once
   useEffect(() => {
     connect()
 
     return () => {
       disconnect()
     }
-  }, [connect, disconnect])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
     isConnected,
