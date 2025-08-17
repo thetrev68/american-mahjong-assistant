@@ -4,7 +4,8 @@
       "Bash(npm test)",
       "Bash(npm test:*)",
       "Bash(npm run build:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": [],
     "ask": []

@@ -33,7 +33,7 @@ export const TileInputPage = () => {
   const targetPatterns = getTargetPatterns() // Array of selected pattern objects
   
   // Intelligence Panel Integration
-  const { currentAnalysis, autoAnalyze, setAutoAnalyze, analyzeHand, isAnalyzing } = useIntelligenceStore()
+  const { currentAnalysis, autoAnalyze, analyzeHand, isAnalyzing } = useIntelligenceStore() // setAutoAnalyze removed
   
   // Check if we should show intelligence panel
   const showIntelligencePanel = playerHand.length >= 10
@@ -83,23 +83,23 @@ export const TileInputPage = () => {
     importTilesFromString(randomHand.join(' '))
   }
   
-  const handleImportExport = () => {
-    if (playerHand.length > 0) {
-      // Export current hand
-      const tileString = exportTilesToString()
-      navigator.clipboard.writeText(tileString).then(() => {
-        alert('Hand copied to clipboard!')
-      }).catch(() => {
-        prompt('Copy this tile string:', tileString)
-      })
-    } else {
-      // Import from clipboard or prompt
-      const tileString = prompt('Paste tile string (e.g., "1D 2D 3B east joker"):')
-      if (tileString) {
-        importTilesFromString(tileString)
-      }
-    }
-  }
+  // const handleImportExport = () => {
+  //   if (playerHand.length > 0) {
+  //     // Export current hand
+  //     const tileString = exportTilesToString()
+  //     navigator.clipboard.writeText(tileString).then(() => {
+  //       alert('Hand copied to clipboard!')
+  //     }).catch(() => {
+  //       prompt('Copy this tile string:', tileString)
+  //     })
+  //   } else {
+  //     // Import from clipboard or prompt
+  //     const tileString = prompt('Paste tile string (e.g., "1D 2D 3B east joker"):')
+  //     if (tileString) {
+  //       importTilesFromString(tileString)
+  //     }
+  //   }
+  // }
   
   return (
     <Container size="full" padding="lg">

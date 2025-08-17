@@ -186,7 +186,7 @@ export function useGameHistory() {
     multiplayerGames: () => setFilter({ coPilotMode: 'everyone' }),
     strugglingPatterns: () => {
       // Show games with patterns that have low success rates
-      const strugglingPatterns = Object.entries(performanceStats.patternStats)
+      const _strugglingPatterns = Object.entries(performanceStats.patternStats)
         .filter(([_, stats]) => stats.successRate < 30)
         .map(([patternId]) => patternId)
       

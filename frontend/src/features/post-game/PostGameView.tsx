@@ -373,7 +373,7 @@ const DetailedAnalysisTab: React.FC<{ game: CompletedGame }> = ({ game }) => {
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Decision Timeline</h3>
         <div className="space-y-3">
-          {game.decisions.map((decision, index) => (
+          {game.decisions.map((decision) => (
             <div key={decision.id} className="border-l-4 border-gray-200 pl-4">
               <div className="flex justify-between items-start">
                 <div>
@@ -444,7 +444,7 @@ const LearningInsightsTab: React.FC<{
   }>
 }> = ({ game, recommendations }) => {
   const gameRecommendations = recommendations.filter(rec => 
-    rec.relatedGames?.includes(game.id)
+    (rec as any).relatedGames?.includes(game.id)
   )
 
   return (

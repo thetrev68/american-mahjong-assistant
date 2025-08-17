@@ -236,7 +236,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
         error: null,
 
         // Game management actions
-        startGame: (gameId: string, difficulty: GameDifficulty) => {
+        startGame: (gameId: string, _difficulty: GameDifficulty) => {
           set({ currentGameId: gameId })
         },
 
@@ -266,8 +266,8 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
         },
 
         // Decision tracking
-        recordDecision: (decision: Omit<GameDecision, 'id'>) => {
-          const decisionId = `decision-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        recordDecision: (_decision: Omit<GameDecision, 'id'>) => {
+          const _decisionId = `decision-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
           // This would be implemented to track decisions during active gameplay
           // For now, decisions are added when the game is completed
         },
@@ -465,12 +465,12 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
           return false
         },
 
-        voteOnGame: async (gameId: string, vote: 'up' | 'down') => {
+        voteOnGame: async (_gameId: string, _vote: 'up' | 'down') => {
           // Implementation would integrate with backend voting system
           return true
         },
 
-        addComment: async (gameId: string, comment: string) => {
+        addComment: async (_gameId: string, _comment: string) => {
           // Implementation would integrate with backend comment system
           return true
         },
