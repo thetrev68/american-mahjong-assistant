@@ -10,7 +10,8 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
-import type { Tile as TileType } from '../../../shared/tile-utils'
+import type { Tile as TileType } from '../../types/tile-types'
+import { Tile } from '../../ui-components/Tile'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -44,9 +45,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 }) => {
   // Store state
   const gameStore = useGameStore()
-  const patternStore = usePatternStore()
   const intelligenceStore = useIntelligenceStore()
   const tileStore = useTileStore()
+  const selectedPatterns = usePatternStore((state) => state.getTargetPatterns())
 
   // Local state
   const [isMyTurn, setIsMyTurn] = useState(false)
@@ -59,9 +60,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [gameEnded, setGameEnded] = useState(false)
 
   // Current hand with drawn tile
-  const currentHand = useTileStore((state) => state.tiles)
+  const currentHand = useTileStore((state) => state.playerHand)
   const fullHand = lastDrawnTile ? [...currentHand, lastDrawnTile] : currentHand
-  const selectedPatterns = usePatternStore((state) => state.getTargetPatterns())
 
   // Real-time analysis
   const currentAnalysis = useIntelligenceStore((state) => state.currentAnalysis)
@@ -86,8 +86,21 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
     setIsAnalyzing(true)
     try {
+      // Convert TileType to PlayerTile for analysis
+      const handForAnalysis = fullHand.map((tile, index) => {
+        if ('instanceId' in tile) {
+          // Already a PlayerTile
+          return tile as any
+        }
+        // Convert TileType to PlayerTile
+        return {
+          ...tile,
+          instanceId: `${tile.id}-${index}`,
+          isSelected: false
+        } as any
+      })
       // Trigger intelligence analysis
-      await intelligenceStore.analyzeHand(fullHand, selectedPatterns)
+      await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns)
     } catch (error) {
       console.error('Failed to analyze hand:', error)
     } finally {
@@ -100,14 +113,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (!isMyTurn || lastDrawnTile) return
 
     // Simulate drawing a tile (in real app, this would come from game server)
+    const value = (Math.floor(Math.random() * 9) + 1).toString() as any
     const newTile: TileType = {
       id: `drawn-${Date.now()}`,
       suit: 'dots',
-      value: Math.floor(Math.random() * 9) + 1,
-      displayName: `${Math.floor(Math.random() * 9) + 1} Dots`,
-      isJoker: false,
-      isSelected: false,
-      isRecommended: false
+      value,
+      displayName: `${value} Dots`
     }
 
     setLastDrawnTile(newTile)
@@ -126,16 +137,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const handleDiscardTile = useCallback((tile: TileType) => {
     if (!isMyTurn) return
 
-    let finalHand = [...currentHand]
-    
     // Remove discarded tile from hand
     if (tile.id === lastDrawnTile?.id) {
       // Discarding the drawn tile
       setLastDrawnTile(null)
     } else {
-      // Discarding from existing hand
-      finalHand = finalHand.filter(t => t.id !== tile.id)
-      tileStore.setTiles(finalHand)
+      // Discarding from existing hand - find matching PlayerTile and remove it
+      const playerTileToRemove = currentHand.find(h => h.id === tile.id)
+      if (playerTileToRemove && 'instanceId' in playerTileToRemove) {
+        tileStore.removeTile(playerTileToRemove.instanceId)
+      }
     }
 
     // Add to game history
@@ -148,8 +159,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setGameHistory(prev => [turn, ...prev])
 
     // Check for win condition
-    if (checkWinCondition(finalHand)) {
-      handleGameWin(finalHand)
+    const updatedHand = currentHand.filter(h => h.id !== tile.id)
+    if (checkWinCondition(updatedHand)) {
+      handleGameWin(updatedHand)
       return
     }
 
@@ -173,7 +185,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const opportunities: CallOpportunity[] = []
 
     // Check for pung opportunities
-    const matchingTiles = fullHand.filter(tile => 
+    const matchingTiles = fullHand.filter((tile: TileType) => 
       tile.suit === discardedTile.suit && tile.value === discardedTile.value
     )
 
@@ -202,10 +214,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
     if (accept && opportunity) {
       // Add called tiles to exposed tiles
-      const newHand = currentHand.filter(tile => 
-        !opportunity.exposedTiles.some(exposed => exposed.id === tile.id)
-      )
-      tileStore.setTiles(newHand)
+      opportunity.exposedTiles.forEach(exposedTile => {
+        const playerTileToRemove = currentHand.find(h => h.id === exposedTile.id)
+        if (playerTileToRemove && 'instanceId' in playerTileToRemove) {
+          tileStore.removeTile(playerTileToRemove.instanceId)
+        }
+      })
       
       // Add to exposed tiles (this would need exposed tiles state)
       const turn: GameTurn = {
@@ -226,14 +240,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Simulate other players' turns
   const simulateOtherPlayerTurn = useCallback(() => {
     // Simulate other player drawing and discarding
+    const value = (Math.floor(Math.random() * 9) + 1).toString() as any
     const otherPlayerTile: TileType = {
       id: `other-discard-${Date.now()}`,
-      suit: 'characters',
-      value: Math.floor(Math.random() * 9) + 1,
-      displayName: `${Math.floor(Math.random() * 9) + 1} Characters`,
-      isJoker: false,
-      isSelected: false,
-      isRecommended: false
+      suit: 'cracks',
+      value,
+      displayName: `${value} Cracks`
     }
 
     const turn: GameTurn = {
@@ -262,7 +274,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [])
 
   // Handle game win
-  const handleGameWin = useCallback((winningHand: TileType[]) => {
+  const handleGameWin = useCallback((_winningHand: any[]) => {
     setGameEnded(true)
     setIsMyTurn(false)
     
@@ -279,11 +291,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (!currentAnalysis?.tileRecommendations) return null
     
     const discardRec = currentAnalysis.tileRecommendations.find((rec: any) => rec.action === 'discard')
-    if (!discardRec?.tiles?.[0]) return null
+    if (!discardRec?.tileId) return null
 
-    return fullHand.find((tile: any) => 
-      tile.suit === discardRec.tiles[0].suit && 
-      tile.value === discardRec.tiles[0].value
+    return fullHand.find((tile: TileType) => 
+      tile.id === discardRec.tileId
     ) || null
   }, [currentAnalysis, fullHand])
 
@@ -368,10 +379,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
                   <p className="text-sm text-gray-600 mb-3">Drawn tile:</p>
                   <div className="flex justify-center mb-4">
                     <AnimatedTile
-                      tile={lastDrawnTile}
+                      tile={{
+                        ...lastDrawnTile!,
+                        instanceId: `drawn-${lastDrawnTile!.id}`,
+                        isSelected: false
+                      }}
                       size="lg"
                       animateOnMount
-                      onClick={() => handleDiscardTile(lastDrawnTile)}
+                      onClick={() => lastDrawnTile && handleDiscardTile(lastDrawnTile)}
                       className="cursor-pointer hover:ring-2 hover:ring-red-400"
                     />
                   </div>
@@ -397,8 +412,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Pattern Progress</h3>
           <div className="space-y-3">
-            {selectedPatterns.map((pattern, index) => {
-              const progress = currentAnalysis?.patternAnalysis?.find(p => p.pattern.id === pattern.id)?.completion || 0
+            {selectedPatterns.map((pattern) => {
+              const progress = currentAnalysis?.bestPatterns?.find(p => p.patternId === pattern.id)?.completionPercentage || 0
               return (
                 <div key={pattern.id}>
                   <div className="flex justify-between text-sm mb-1">
@@ -441,7 +456,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       <Card className="p-6 mb-6">
         <h3 className="text-lg font-semibold mb-4">Your Hand</h3>
         <div className="flex flex-wrap gap-2 justify-center">
-          {currentHand.map((tile, index) => (
+          {currentHand.map((tile: any) => (
             <AnimatedTile
               key={tile.id}
               tile={{
@@ -462,7 +477,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
                   ? 'hover:scale-105 hover:shadow-lg' 
                   : 'cursor-not-allowed opacity-75'
               }`}
-              context="game"
+              context="gameplay"
             />
           ))}
         </div>
@@ -482,7 +497,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
             .slice(0, 8)
             .map((turn, index) => (
               <div key={index} className="text-center">
-                <Tile tile={turn.tile!} size="sm" />
+                <Tile 
+                  tile={{
+                    ...turn.tile!,
+                    instanceId: `discard-${turn.tile!.id}`,
+                    isSelected: false
+                  }} 
+                  size="sm" 
+                />
                 <div className="text-xs text-gray-500 mt-1">
                   {turn.playerId === (gameStore.currentPlayerId || 'player-1') ? 'You' : 'Other'}
                 </div>
@@ -504,7 +526,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
                 <p className="text-gray-600 mb-2">{opportunity.reasoning}</p>
                 <div className="flex gap-2 justify-center mb-3">
                   {opportunity.exposedTiles.map((tile, tileIndex) => (
-                    <Tile key={tileIndex} tile={tile} size="sm" />
+                    <Tile 
+                      key={tileIndex} 
+                      tile={{
+                        ...tile,
+                        instanceId: `call-${tile.id}-${tileIndex}`,
+                        isSelected: false
+                      }} 
+                      size="sm" 
+                    />
                   ))}
                 </div>
                 <p className="text-sm text-blue-600 mb-4">
