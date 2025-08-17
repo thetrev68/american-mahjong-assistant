@@ -58,6 +58,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [showCallDialog, setShowCallDialog] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [gameEnded, setGameEnded] = useState(false)
+  const [callTimeoutId, setCallTimeoutId] = useState<NodeJS.Timeout | null>(null)
 
   // Current hand with drawn tile
   const currentHand = useTileStore((state) => state.playerHand)
@@ -66,11 +67,45 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Real-time analysis
   const currentAnalysis = useIntelligenceStore((state) => state.currentAnalysis)
 
+  // Initialize demo hand for testing
+  const initializeDemoHand = useCallback(() => {
+    // Create sample tiles for a realistic starting hand
+    const demoTiles = [
+      { id: '1D', suit: 'dots' as const, value: '1' as const, displayName: '1 Dots' },
+      { id: '2D', suit: 'dots' as const, value: '2' as const, displayName: '2 Dots' },
+      { id: '3D', suit: 'dots' as const, value: '3' as const, displayName: '3 Dots' },
+      { id: '1B', suit: 'bams' as const, value: '1' as const, displayName: '1 Bams' },
+      { id: '2B', suit: 'bams' as const, value: '2' as const, displayName: '2 Bams' },
+      { id: '3B', suit: 'bams' as const, value: '3' as const, displayName: '3 Bams' },
+      { id: '1C', suit: 'cracks' as const, value: '1' as const, displayName: '1 Cracks' },
+      { id: '2C', suit: 'cracks' as const, value: '2' as const, displayName: '2 Cracks' },
+      { id: 'east', suit: 'winds' as const, value: 'east' as const, displayName: 'East Wind' },
+      { id: 'south', suit: 'winds' as const, value: 'south' as const, displayName: 'South Wind' },
+      { id: 'red', suit: 'dragons' as const, value: 'red' as const, displayName: 'Red Dragon' },
+      { id: 'green', suit: 'dragons' as const, value: 'green' as const, displayName: 'Green Dragon' },
+      { id: 'f1', suit: 'flowers' as const, value: 'f1' as const, displayName: 'Flower 1' }
+    ]
+    
+    // Add tiles to the tile store one by one
+    demoTiles.forEach(tile => {
+      tileStore.addTile(tile.id)
+    })
+    
+    // Trigger initial analysis
+    setTimeout(() => analyzeCurrentHand(), 500)
+  }, [tileStore])
+
   // Initialize game mode
   useEffect(() => {
     gameStore.setGamePhase('playing')
     setIsMyTurn(true) // Start with current player's turn
-    analyzeCurrentHand()
+    
+    // Initialize with sample tiles if hand is empty (for demo/testing)
+    if (currentHand.length === 0) {
+      initializeDemoHand()
+    } else {
+      analyzeCurrentHand()
+    }
   }, [])
 
   // Analyze hand whenever it changes
@@ -180,35 +215,83 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Evaluate if discarded tile can be called
   const evaluateCallOpportunity = useCallback((discardedTile: TileType) => {
-    if (!selectedPatterns.length) return
+    if (!selectedPatterns.length || !isMyTurn) return
 
     const opportunities: CallOpportunity[] = []
 
-    // Check for pung opportunities
-    const matchingTiles = fullHand.filter((tile: TileType) => 
+    // Check for pung opportunities (need 2+ matching tiles)
+    const matchingTiles = currentHand.filter((tile: any) => 
       tile.suit === discardedTile.suit && tile.value === discardedTile.value
     )
 
     if (matchingTiles.length >= 2) {
       const exposedTiles = [discardedTile, ...matchingTiles.slice(0, 2)]
+      
+      // Calculate pattern benefit
+      let patternBenefit = 0
+      let reasoning = 'Forms a pung'
+      
+      // Check if this helps any target patterns
+      selectedPatterns.forEach(pattern => {
+        if (pattern.groups?.some((group: any) => 
+          group.tiles?.some((groupTile: any) => 
+            groupTile.suit === discardedTile.suit && groupTile.value === discardedTile.value
+          )
+        )) {
+          patternBenefit += 25
+          reasoning = `Completes pung needed for ${pattern.displayName}`
+        }
+      })
+
+      const priority = patternBenefit > 0 ? 'high' : matchingTiles.length >= 3 ? 'medium' : 'low'
+
       opportunities.push({
         tile: discardedTile,
-        callType: 'pung',
+        callType: matchingTiles.length >= 3 ? 'kong' : 'pung',
         exposedTiles,
-        priority: 'medium',
-        reasoning: 'Completes a pung for your target patterns',
-        patternProgress: 75 // Mock calculation
+        priority,
+        reasoning,
+        patternProgress: Math.min(85, 45 + patternBenefit)
+      })
+    }
+
+    // Check for kong opportunities (need 3+ matching tiles)
+    if (matchingTiles.length >= 3) {
+      const exposedTiles = [discardedTile, ...matchingTiles.slice(0, 3)]
+      opportunities.push({
+        tile: discardedTile,
+        callType: 'kong',
+        exposedTiles,
+        priority: 'high',
+        reasoning: 'Forms a kong - very strong for scoring',
+        patternProgress: 90
       })
     }
 
     if (opportunities.length > 0) {
       setCallOpportunities(opportunities)
       setShowCallDialog(true)
+      
+      // Auto-close after 5 seconds if no decision is made
+      const timeoutId = setTimeout(() => {
+        console.log('⏰ Call opportunity timed out - automatically passing')
+        handleCallDecision(false)
+      }, 5000)
+      setCallTimeoutId(timeoutId)
+      
+      // Add subtle notification sound/vibration (mock for now)
+      console.log('🔔 Call opportunity detected:', opportunities[0].callType, discardedTile.displayName)
     }
-  }, [fullHand, selectedPatterns])
+  }, [currentHand, selectedPatterns, isMyTurn])
 
   // Handle call decision
   const handleCallDecision = useCallback((accept: boolean, opportunity?: CallOpportunity) => {
+    // Clear the timeout
+    if (callTimeoutId) {
+      clearTimeout(callTimeoutId)
+      setCallTimeoutId(null)
+    }
+    
     setShowCallDialog(false)
     setCallOpportunities([])
 
@@ -342,17 +425,41 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       </div>
 
       {/* Current Analysis Card */}
-      {currentAnalysis && (
-        <Card className="p-6 mb-6 bg-blue-50 border-blue-200">
+      {(currentAnalysis || isAnalyzing) && (
+        <Card className="p-6 mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
           <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold text-blue-800">Co-Pilot Recommendation</h3>
-              <p className="text-blue-600">
-                {isMyTurn && lastDrawnTile 
-                  ? `Recommended discard: ${recommendedDiscard?.displayName || 'Analyzing...'}`
-                  : 'Analyzing hand for optimal strategy...'
-                }
-              </p>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">🤖 Co-Pilot Recommendation</h3>
+              {isAnalyzing ? (
+                <p className="text-blue-600">Analyzing your hand and target patterns...</p>
+              ) : currentAnalysis ? (
+                <div className="space-y-2">
+                  {isMyTurn && lastDrawnTile && recommendedDiscard ? (
+                    <div className="bg-white/70 rounded-lg p-3 border border-blue-200">
+                      <p className="text-blue-800 font-medium">💡 Recommended Discard</p>
+                      <p className="text-blue-600">
+                        <span className="font-semibold">{recommendedDiscard.displayName}</span>
+                        {currentAnalysis.tileRecommendations?.find(r => r.tileId === recommendedDiscard.id)?.reasoning && (
+                          <span className="text-sm block mt-1">
+                            {currentAnalysis.tileRecommendations.find(r => r.tileId === recommendedDiscard.id)?.reasoning}
+                          </span>
+                        )}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-blue-600">
+                      Hand analyzed • {currentAnalysis.bestPatterns?.length || 0} viable patterns found
+                    </p>
+                  )}
+                  {currentAnalysis.strategicAdvice && currentAnalysis.strategicAdvice.length > 0 && (
+                    <p className="text-sm text-blue-500 italic">
+                      "{currentAnalysis.strategicAdvice[0]}"
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <p className="text-blue-600">Ready to analyze your next move...</p>
+              )}
             </div>
             {isAnalyzing && <LoadingSpinner size="sm" />}
           </div>
@@ -476,6 +583,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
                 isMyTurn && lastDrawnTile 
                   ? 'hover:scale-105 hover:shadow-lg' 
                   : 'cursor-not-allowed opacity-75'
+              } ${
+                recommendedDiscard?.id === tile.id 
+                  ? 'ring-2 ring-blue-400 ring-opacity-60 bg-blue-50' 
+                  : ''
               }`}
               context="gameplay"
             />
@@ -518,45 +629,78 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
       {/* Call Opportunity Dialog */}
       {showCallDialog && callOpportunities.length > 0 && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">Call Opportunity!</h3>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 animate-fadeIn">
+          <Card className="p-6 max-w-lg w-full mx-4 animate-slideUp">
+            <div className="flex items-center mb-4">
+              <div className="w-3 h-3 bg-blue-500 rounded-full animate-pulse mr-3"></div>
+              <h3 className="text-xl font-bold text-gray-900">🔔 Call Opportunity</h3>
+            </div>
+            
             {callOpportunities.map((opportunity, index) => (
-              <div key={index} className="mb-4">
-                <p className="text-gray-600 mb-2">{opportunity.reasoning}</p>
-                <div className="flex gap-2 justify-center mb-3">
-                  {opportunity.exposedTiles.map((tile, tileIndex) => (
-                    <Tile 
-                      key={tileIndex} 
-                      tile={{
-                        ...tile,
-                        instanceId: `call-${tile.id}-${tileIndex}`,
-                        isSelected: false
-                      }} 
-                      size="sm" 
-                    />
-                  ))}
+              <div key={index} className="mb-6">
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                      opportunity.priority === 'high' ? 'bg-green-100 text-green-800' :
+                      opportunity.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-gray-100 text-gray-800'
+                    }`}>
+                      {opportunity.priority.toUpperCase()} PRIORITY
+                    </span>
+                    <span className="text-lg font-bold text-blue-600">
+                      {opportunity.callType.toUpperCase()}
+                    </span>
+                  </div>
+                  
+                  <p className="text-gray-700 mb-3 font-medium">{opportunity.reasoning}</p>
+                  
+                  <div className="flex gap-2 justify-center mb-3 bg-white rounded-lg p-3">
+                    {opportunity.exposedTiles.map((tile, tileIndex) => (
+                      <Tile 
+                        key={tileIndex} 
+                        tile={{
+                          ...tile,
+                          instanceId: `call-${tile.id}-${tileIndex}`,
+                          isSelected: false
+                        }} 
+                        size="md" 
+                      />
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-blue-600 font-medium">
+                      Pattern Progress: {opportunity.patternProgress}%
+                    </span>
+                    <span className="text-gray-500">
+                      Will expose these tiles
+                    </span>
+                  </div>
                 </div>
-                <p className="text-sm text-blue-600 mb-4">
-                  {opportunity.callType.toUpperCase()} - {opportunity.patternProgress}% pattern completion
-                </p>
               </div>
             ))}
+            
             <div className="flex space-x-3">
               <Button 
                 onClick={() => handleCallDecision(true, callOpportunities[0])}
-                className="flex-1"
+                className="flex-1 bg-green-600 hover:bg-green-700"
+                size="lg"
               >
-                Call It!
+                ✅ Call It!
               </Button>
               <Button 
                 variant="outline" 
                 onClick={() => handleCallDecision(false)}
-                className="flex-1"
+                className="flex-1 border-gray-300 hover:bg-gray-50"
+                size="lg"
               >
-                Pass
+                ❌ Pass
               </Button>
             </div>
+            
+            <p className="text-xs text-gray-500 text-center mt-3">
+              You have 5 seconds to decide...
+            </p>
           </Card>
         </div>
       )}
