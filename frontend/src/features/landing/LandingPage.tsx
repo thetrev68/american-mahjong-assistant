@@ -70,27 +70,37 @@ export const LandingPage = () => {
           <Button 
             variant="primary" 
             size="lg"
-            onClick={() => navigate('/tiles')}
+            onClick={() => navigate('/room-setup')}
             icon="🚀"
           >
-            Start Playing
+            Start Game
           </Button>
           
           <Button 
             variant="secondary" 
             size="lg"
-            onClick={() => navigate('/tiles')}
+            onClick={() => navigate('/tile-input')}
             icon="🧠"
           >
-            AI Intelligence
+            AI Co-Pilot
           </Button>
           
           <Button 
             variant="outline" 
             size="lg"
-            onClick={() => setSelectedFeature('demo')}
+            onClick={() => navigate('/tutorial')}
+            icon="🎓"
           >
             View Demo
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="lg"
+            onClick={() => navigate('/post-game')}
+            icon="📊"
+          >
+            Game History
           </Button>
         </div>
         
@@ -129,8 +139,8 @@ export const LandingPage = () => {
                           onClick={(e) => {
                             e.stopPropagation()
                             if (feature.id === 'pattern-selection') navigate('/pattern-selection')
-                            if (feature.id === 'tile-intelligence') navigate('/intelligence')
-                            if (feature.id === 'charleston-ai') navigate('/charleston')
+                            if (feature.id === 'tile-intelligence') navigate('/tile-input')
+                            if (feature.id === 'charleston-ai') navigate('/tile-input')
                           }}
                         >
                           Try It Now
@@ -144,24 +154,6 @@ export const LandingPage = () => {
           ))}
         </div>
         
-        {/* Status Display */}
-        <div className="mt-16 p-6 bg-surface rounded-2xl border border-gray-200">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-left">
-              <h4 className="font-semibold text-gray-900">Development Status</h4>
-              <p className="text-sm text-gray-600">
-                Charleston Intelligence • Pattern analysis
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-accent rounded-full animate-pulse" />
-              <span className="text-sm font-medium text-accent">
-                CHUNK 5 Complete
-              </span>
-            </div>
-          </div>
-        </div>
         
         {/* Quick Stats */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 text-center">

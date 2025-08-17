@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Header } from './Header'
+import { NavigationSidebar } from './NavigationSidebar'
 import { useTheme } from '../../stores'
 
 interface AppLayoutProps {
@@ -12,9 +13,12 @@ export const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className={`min-h-screen bg-white ${theme === 'dark' ? 'dark' : ''}`}>
       <Header />
-      <main className="flex-1">
-        {children}
-      </main>
+      <div className="relative flex">
+        <main className="flex-1">
+          {children}
+        </main>
+        <NavigationSidebar />
+      </div>
     </div>
   )
 }

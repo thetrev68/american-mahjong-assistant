@@ -73,9 +73,6 @@ export const HandDisplay = ({
     toggleTileSelection(tile.instanceId)
   }
   
-  const handleTileDoubleClick = (tile: PlayerTile) => {
-    removeTile(tile.instanceId)
-  }
   
   const getHandSummary = () => {
     const expected = dealerHand ? 14 : 13
@@ -106,7 +103,6 @@ export const HandDisplay = ({
                       tile={{ ...tile, recommendation }}
                       size={compactMode ? 'sm' : 'md'}
                       onClick={handleTileClick}
-                      onDoubleClick={handleTileDoubleClick}
                       animateOnSelect={true}
                       animateOnRecommendation={true}
                       context="selection"
@@ -117,7 +113,7 @@ export const HandDisplay = ({
                       <button
                         onClick={() => removeTile(tile.instanceId)}
                         className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-10"
-                        title="Remove tile (or double-click)"
+                        title="Remove tile"
                       >
                         ×
                       </button>
@@ -143,7 +139,6 @@ export const HandDisplay = ({
                 tile={{ ...tile, recommendation }}
                 size={compactMode ? 'sm' : 'md'}
                 onClick={handleTileClick}
-                onDoubleClick={handleTileDoubleClick}
                 animateOnSelect={true}
                 animateOnRecommendation={true}
                 context="selection"
@@ -195,33 +190,55 @@ export const HandDisplay = ({
             </p>
             {playerHand.length > 0 && (
               <p className="text-xs text-gray-500">
-                💡 Click to select, double-click or click ✕ to remove
+                💡 Click to select, click ✕ to remove
               </p>
             )}
           </div>
           
           <div className="flex gap-2">
             {/* Selection Controls */}
-            {selectedCount > 0 && (
-              <Button variant="ghost" size="sm" onClick={deselectAll}>
-                Clear ({selectedCount})
-              </Button>
-            )}
-            
             <Button
               variant="outline"
               size="sm"
-              onClick={selectedCount === playerHand.length ? deselectAll : selectAll}
+              onClick={selectAll}
             >
-              {selectedCount === playerHand.length ? 'None' : 'All'}
+              Select All
             </Button>
+            
+            {selectedCount > 0 && (
+              <Button
+                variant="outline" 
+                size="sm" 
+                onClick={deselectAll}
+              >
+                Clear Selection
+              </Button>
+            )}
+            
+            {selectedCount > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  // Remove all selected tiles
+                  playerHand.forEach(tile => {
+                    if (tile.isSelected) {
+                      removeTile(tile.instanceId)
+                    }
+                  })
+                }}
+                className="text-red-600 hover:bg-red-50 border-red-200"
+              >
+                Delete Selection
+              </Button>
+            )}
           </div>
         </div>
         
         {/* Sort Controls */}
         {allowReordering && (
           <div className="flex items-center gap-2 mb-4 flex-wrap">
-            <span className="text-sm text-gray-600 whitespace-nowrap">Sort:</span>
+            <span className="text-sm text-gray-600 whitespace-nowrap">Sort By:</span>
             <div className="flex gap-2 flex-wrap">
               {(['suit', 'recommendation'] as const).map(sort => (
                 <Button

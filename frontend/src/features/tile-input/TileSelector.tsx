@@ -16,18 +16,17 @@ interface TileSelectorProps {
 }
 
 export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: TileSelectorProps) => {
-  const [selectedSuit, setSelectedSuit] = useState<TileSuit>('dots')
-  const [quickAddMode, setQuickAddMode] = useState(false)
+  const [selectedSuit, setSelectedSuit] = useState<TileSuit>('jokers')
   const { addTile, playerHand, dealerHand } = useTileStore()
   
   const suits: Array<{ suit: TileSuit; label: string; emoji: string }> = [
-    { suit: 'dots', label: 'Dots', emoji: '🔵' },
+    { suit: 'jokers', label: 'Jokers', emoji: '🃏' },
+    { suit: 'flowers', label: 'Flowers', emoji: '🌸' },
     { suit: 'bams', label: 'Bams', emoji: '🟢' },
     { suit: 'cracks', label: 'Cracks', emoji: '🔴' },
-    { suit: 'winds', label: 'Winds', emoji: '💨' },
+    { suit: 'dots', label: 'Dots', emoji: '🔵' },
     { suit: 'dragons', label: 'Dragons', emoji: '🐉' },
-    { suit: 'flowers', label: 'Flowers', emoji: '🌸' },
-    { suit: 'jokers', label: 'Jokers', emoji: '🃏' }
+    { suit: 'winds', label: 'Winds', emoji: '💨' }
   ]
   
   const availableTiles = tileService.getTilesBySuit(selectedSuit)
@@ -158,14 +157,6 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
           </h3>
           
           <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setQuickAddMode(!quickAddMode)}
-            >
-              {quickAddMode ? '⚡ Quick' : '🎯 Precise'}
-            </Button>
-            
             {onCollapse && (
               <Button
                 variant="ghost"
@@ -247,17 +238,6 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
                   </div>
                 )}
                 
-                {/* Quick Add Button */}
-                {quickAddMode && !isMaxed && (
-                  <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleTileClick(tile)}
-                    className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs px-2 py-1"
-                  >
-                    +
-                  </Button>
-                )}
               </div>
             )
           })}

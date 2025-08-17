@@ -6,7 +6,7 @@ import { useGameHistory } from '../../hooks/useGameHistory'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
-import { Tile } from '../../ui-components/tiles/Tile'
+import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { CompletedGame } from '../../stores/history-store'
 
 interface PostGameViewProps {
@@ -198,11 +198,12 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
         <h3 className="text-lg font-semibold mb-4">Final Hand</h3>
         <div className="flex flex-wrap gap-2 justify-center">
           {selectedGame.finalHand.map((tile, index) => (
-            <Tile
+            <AnimatedTile
               key={index}
               tile={tile}
               size="lg"
               className={tile.isWinning ? 'ring-2 ring-yellow-400' : ''}
+              context="display"
             />
           ))}
         </div>

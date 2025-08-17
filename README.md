@@ -20,18 +20,43 @@ This is a **co-pilot system** that enhances human decision-making rather than re
 - Multiple target pattern tracking with strategic insights
 - Real tournament-quality pattern data integration
 
-### 🧠 AI-Powered Intelligence (Coming Soon)
-- Real-time hand analysis against selected patterns
-- Strategic tile recommendations with clear reasoning
-- Charleston passing suggestions based on pattern requirements
-- Completion probability calculations
-- Defensive play recommendations
+### 🏆 Complete Game Mode Co-Pilot (MVP ACHIEVED!)
+- **Real-time hand analysis** against selected patterns with instant feedback
+- **AI-powered draw/discard recommendations** with strategic reasoning and visual guidance
+- **Silent call notifications** with 5-second decision windows for pung/kong opportunities
+- **Exposed tiles tracking** showing called sets with pattern integration
+- **Dynamic pattern switching** for mid-game strategic pivoting
+- **4-player turn management** with realistic gameplay simulation
+- **Pattern progress visualization** with completion percentages and viability scoring
+
+### 🎯 Charleston Intelligence System
+- **AI-powered Charleston strategy** with pattern-aware tile passing recommendations
+- **Phase-by-phase guidance** through right, across, left, and optional passes
+- **Strategic explanations** for each recommendation with clear reasoning
+- **Target pattern integration** for focused Charleston decisions
 
 ### 🌐 Social Gaming Features (Legacy System Preserved)
 - Local network multiplayer for in-person groups
 - Private tile input with shared game coordination
 - Charleston passing coordination
 - Shared discard tracking and game state management
+
+## 🎮 Experience the Complete Co-Pilot MVP
+
+### Try the Full Workflow:
+1. **Pattern Selection** - Choose your target patterns from the NMJL 2025 collection
+2. **Tile Input** - Enter your dealt tiles for intelligent analysis 
+3. **Charleston Intelligence** - Get AI recommendations for strategic tile passing
+4. **🏆 Game Mode** - Experience real-time co-pilot assistance during gameplay!
+   - Draw tiles and receive smart discard recommendations
+   - Get silent notifications for call opportunities (pung/kong)
+   - Track exposed tiles and monitor pattern progress
+   - Switch strategies mid-game with alternative pattern suggestions
+
+### Test the Complete Flow:
+- Start the app and navigate to `http://localhost:5175`
+- Follow the flow: Pattern Selection → Tile Input → Charleston → **Game Mode**
+- Experience comprehensive co-pilot assistance during simulated gameplay
 
 ## 🚀 Quick Start
 

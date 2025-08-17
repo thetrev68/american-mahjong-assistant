@@ -1,4 +1,5 @@
 import { createBrowserRouter } from 'react-router-dom'
+import { AppLayout } from '../ui-components/layout/AppLayout'
 import { LandingPage } from '../features/landing/LandingPage'
 import { PatternSelectionPage } from '../features/pattern-selection'
 import { TileInputPage } from '../features/tile-input'
@@ -6,42 +7,52 @@ import { IntelligencePanelPage } from '../features/intelligence-panel'
 import { CharlestonView } from '../features/charleston'
 import { TutorialView } from '../features/tutorial'
 import { GameModeView } from '../features/gameplay'
+import { RoomSetupView } from '../features/room-setup/RoomSetupView'
+import { PostGameView } from '../features/post-game/PostGameView'
 
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <LandingPage />,
+    element: <AppLayout><LandingPage /></AppLayout>,
   },
   {
     path: '/tutorial',
-    element: <TutorialView onComplete={() => console.log('Tutorial completed!')} />,
+    element: <AppLayout><TutorialView onComplete={() => console.log('Tutorial completed!')} /></AppLayout>,
   },
   {
     path: '/patterns',
-    element: <PatternSelectionPage />,
+    element: <AppLayout><PatternSelectionPage /></AppLayout>,
   },
   {
     path: '/pattern-selection',
-    element: <PatternSelectionPage />,
+    element: <AppLayout><PatternSelectionPage /></AppLayout>,
   },
   {
     path: '/tiles',
-    element: <TileInputPage />,
+    element: <AppLayout><TileInputPage /></AppLayout>,
   },
   {
     path: '/tile-input',
-    element: <TileInputPage />,
+    element: <AppLayout><TileInputPage /></AppLayout>,
   },
   {
     path: '/intelligence',
-    element: <IntelligencePanelPage />,
+    element: <AppLayout><IntelligencePanelPage /></AppLayout>,
   },
   {
     path: '/charleston',
-    element: <CharlestonView />,
+    element: <AppLayout><CharlestonView /></AppLayout>,
   },
   {
     path: '/game',
-    element: <GameModeView />,
+    element: <AppLayout><GameModeView /></AppLayout>,
+  },
+  {
+    path: '/room-setup',
+    element: <AppLayout><RoomSetupView /></AppLayout>,
+  },
+  {
+    path: '/post-game',
+    element: <AppLayout><PostGameView /></AppLayout>,
   },
 ])
