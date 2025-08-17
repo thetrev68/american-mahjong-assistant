@@ -120,7 +120,7 @@ export function useMultiplayer() {
 
       socket.on('room-created', handleResponse)
     })
-  }, [socket, store, clearError, handleError])
+  }, [socket, clearError, handleError])
 
   // Room joining
   const joinRoom = useCallback(async (roomId: string, playerName: string): Promise<Room> => {
@@ -157,7 +157,7 @@ export function useMultiplayer() {
 
       socket.on('room-joined', handleResponse)
     })
-  }, [socket, store, clearError, handleError])
+  }, [socket, clearError, handleError])
 
   // Room leaving
   const leaveRoom = useCallback(async (): Promise<void> => {
@@ -184,7 +184,7 @@ export function useMultiplayer() {
 
       socket.on('room-left', handleResponse)
     })
-  }, [socket, store])
+  }, [socket])
 
   // Game state updates
   const updateGamePhase = useCallback(async (phase: GameState['phase']): Promise<void> => {
@@ -212,7 +212,7 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket, store])
+  }, [socket])
 
   const updatePlayerState = useCallback(async (playerState: Partial<PlayerGameState>): Promise<void> => {
     if (!socket.isConnected) {
@@ -239,7 +239,7 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket, store])
+  }, [socket])
 
   const updateSharedState = useCallback(async (sharedState: Partial<SharedGameState>): Promise<void> => {
     if (!socket.isConnected) {
@@ -266,7 +266,7 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket, store])
+  }, [socket])
 
   const requestGameState = useCallback(async (): Promise<GameState | null> => {
     if (!currentRoom) {
@@ -292,7 +292,7 @@ export function useMultiplayer() {
 
       socket.on('game-state', handleResponse)
     })
-  }, [socket, store])
+  }, [socket])
 
   // Error setter for testing
   const setError = useCallback((error: string) => {
