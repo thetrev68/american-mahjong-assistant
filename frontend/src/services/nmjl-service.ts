@@ -53,7 +53,7 @@ class NMJLService {
     
     return {
       Year: Number(pattern.Year) || 2025,
-      Section: pattern.Section || 2025, // Keep as original type (string or number)
+      Section: (pattern.Section && pattern.Section !== '{}') ? pattern.Section : 2025, // Keep as original type (string or number)
       Line: Number(pattern.Line) || 1,
       'Pattern ID': Number(pattern['Pattern ID']),
       Hands_Key: String(pattern.Hands_Key) || `2025-${pattern.Section}-${pattern.Line}-${pattern['Pattern ID']}`,
@@ -93,9 +93,9 @@ class NMJLService {
     
     return {
       Group: String(group.Group || ''),
-      Suit_Role: String(group.Suit_Role || 'any'),
+      Suit_Role: (String(group.Suit_Role || 'any')) as SuitRole,
       Suit_Note: group.Suit_Note ? String(group.Suit_Note) : null,
-      Constraint_Type: String(group.Constraint_Type || 'pung'),
+      Constraint_Type: (String(group.Constraint_Type || 'pung')) as ConstraintType,
       Constraint_Values: String(group.Constraint_Values || ''),
       Constraint_Must_Match: group.Constraint_Must_Match ? String(group.Constraint_Must_Match) : null,
       Constraint_Extra: group.Constraint_Extra ? String(group.Constraint_Extra) : null,

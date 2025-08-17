@@ -130,8 +130,8 @@ export const AnimatedTile = ({
     }
   }, [tileAnimations, haptics, enableHaptics, performance.shouldReduceAnimations])
   
-  // Handle recommendation animations
-  const playRecommendationAnimation = useCallback(async () => {
+  // Handle recommendation animations - Currently unused
+  // const playRecommendationAnimation = useCallback(async () => {
     if (!animateOnRecommendation || performance.shouldReduceAnimations) return
     
     setIsAnimating(true)

@@ -49,7 +49,7 @@ export function useSocket() {
 
       socket.on('connect', () => {
         setIsConnected(true)
-        setSocketId(socket.id)
+        setSocketId(socket.id || null)
         setConnectionError(null)
         setLastError(null)
         reconnectAttemptsRef.current = 0

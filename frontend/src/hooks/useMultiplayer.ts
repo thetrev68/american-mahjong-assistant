@@ -94,7 +94,7 @@ export function useMultiplayer() {
           clearError()
         } else {
           const error = response.error || 'Failed to create room'
-          handleError(error, () => createRoom(roomData))
+          handleError(error, async () => { await createRoom(roomData) })
           reject(new Error(error))
         }
         
