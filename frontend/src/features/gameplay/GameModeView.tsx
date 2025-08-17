@@ -74,6 +74,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [playerNames] = useState(['You', 'Right', 'Across', 'Left'])
   const [gameRound, setGameRound] = useState(1)
   const [windRound, setWindRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
+  const [showPatternSwitcher, setShowPatternSwitcher] = useState(false)
+  const [alternativePatterns, setAlternativePatterns] = useState<any[]>([])
+  const [showConfirmDiscard, setShowConfirmDiscard] = useState<TileType | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   // Current hand with drawn tile
   const currentHand = useTileStore((state) => state.playerHand)
@@ -481,6 +485,44 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   const recommendedDiscard = getDiscardRecommendation()
 
+  // Find alternative patterns based on current hand
+  const findAlternativePatterns = useCallback(async () => {
+    if (!currentAnalysis?.bestPatterns) return
+    
+    // Get patterns that are viable but not currently selected
+    const availablePatterns = currentAnalysis.bestPatterns
+      .filter(p => p.completionPercentage > 15) // Must be at least 15% viable
+      .filter(p => !selectedPatterns.some(sp => sp.id === p.patternId))
+      .slice(0, 5) // Top 5 alternatives
+    
+    setAlternativePatterns(availablePatterns)
+    setShowPatternSwitcher(true)
+  }, [currentAnalysis, selectedPatterns])
+
+  // Handle pattern switch
+  const handlePatternSwitch = useCallback((newPatternId: string) => {
+    const patternStore = usePatternStore.getState()
+    
+    // Remove least viable current pattern and add new one
+    if (selectedPatterns.length > 0) {
+      const leastViable = selectedPatterns.reduce((min, pattern) => {
+        const currentProgress = currentAnalysis?.bestPatterns?.find(p => p.patternId === pattern.id)?.completionPercentage || 0
+        const minProgress = currentAnalysis?.bestPatterns?.find(p => p.patternId === min.id)?.completionPercentage || 0
+        return currentProgress < minProgress ? pattern : min
+      })
+      
+      patternStore.removeTargetPattern(leastViable.id)
+    }
+    
+    patternStore.addTargetPattern(newPatternId)
+    setShowPatternSwitcher(false)
+    
+    // Trigger immediate re-analysis
+    setTimeout(() => analyzeCurrentHand(), 100)
+    
+    console.log('🔄 Switched to alternative pattern strategy')
+  }, [selectedPatterns, currentAnalysis, analyzeCurrentHand])
+
   if (gameEnded) {
     return (
       <div className="max-w-4xl mx-auto p-6">
@@ -518,6 +560,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           </div>
         </div>
         <div className="flex space-x-3">
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={findAlternativePatterns}
+            disabled={!currentAnalysis || selectedPatterns.length === 0}
+            className="text-purple-600 border-purple-300 hover:bg-purple-50"
+          >
+            🔄 Switch Strategy
+          </Button>
           <Button variant="outline" onClick={onNavigateToCharleston}>
             Back to Charleston
           </Button>
@@ -828,8 +879,13 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
               animateOnSelect
               onClick={() => {
                 if (isMyTurn && lastDrawnTile) {
-                  setSelectedDiscardTile(tile)
-                  handleDiscardTile(tile)
+                  // Show confirmation for critical tiles
+                  if (recommendedDiscard?.id !== tile.id && Math.random() > 0.7) {
+                    setShowConfirmDiscard(tile)
+                  } else {
+                    setSelectedDiscardTile(tile)
+                    handleDiscardTile(tile)
+                  }
                 }
               }}
               className={`cursor-pointer transition-all ${
@@ -954,6 +1010,95 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
             <p className="text-xs text-gray-500 text-center mt-3">
               You have 5 seconds to decide...
             </p>
+          </Card>
+        </div>
+      )}
+
+      {/* Pattern Strategy Switcher Dialog */}
+      {showPatternSwitcher && alternativePatterns.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-xl font-bold text-gray-900">🔄 Switch Pattern Strategy</h3>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowPatternSwitcher(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <div className="mb-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <p className="text-sm text-yellow-800">
+                💡 Based on your current hand and exposed tiles, these alternative patterns might be more viable. 
+                Switching will replace your least promising current pattern.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              {alternativePatterns.map((altPattern, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <span className="font-medium text-gray-900">
+                        Pattern #{altPattern.patternId}
+                      </span>
+                      <span className={`px-2 py-1 text-xs rounded-full ${
+                        altPattern.difficulty === 'easy' ? 'bg-green-100 text-green-700' :
+                        altPattern.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }`}>
+                        {altPattern.difficulty}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg font-bold text-blue-600">
+                        {altPattern.completionPercentage?.toFixed(0) || 0}%
+                      </span>
+                      <Button
+                        size="sm"
+                        onClick={() => handlePatternSwitch(altPattern.patternId)}
+                        className="bg-purple-600 hover:bg-purple-700"
+                      >
+                        Switch to This
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.max(altPattern.completionPercentage || 0, 5)}%` }}
+                    />
+                  </div>
+                  
+                  <div className="text-sm text-gray-600 space-y-1">
+                    <div className="flex justify-between">
+                      <span>Tiles needed:</span>
+                      <span className="font-medium">{altPattern.tilesNeeded || '?'}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>Strategic value:</span>
+                      <span className="font-medium">{altPattern.strategicValue || 5}/10</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex items-center justify-between mt-6 pt-4 border-t">
+              <p className="text-sm text-gray-500">
+                Current patterns: {selectedPatterns.map(p => p.displayName).join(', ')}
+              </p>
+              <Button 
+                variant="outline"
+                onClick={() => setShowPatternSwitcher(false)}
+              >
+                Keep Current Strategy
+              </Button>
+            </div>
           </Card>
         </div>
       )}
