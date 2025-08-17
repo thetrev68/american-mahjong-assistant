@@ -1,7 +1,7 @@
 // NMJL 2025 Pattern Service
 // Simplified loader for the co-pilot architecture
 
-import type { NMJL2025Pattern, PatternSelectionOption, PatternGroup } from '../../../shared/nmjl-types'
+import type { NMJL2025Pattern, PatternSelectionOption, PatternGroup, SuitRole, ConstraintType } from '../../../shared/nmjl-types'
 
 class NMJLService {
   private patterns: NMJL2025Pattern[] = []
@@ -53,7 +53,7 @@ class NMJLService {
     
     return {
       Year: Number(pattern.Year) || 2025,
-      Section: (pattern.Section && pattern.Section !== '{}') ? pattern.Section : 2025, // Keep as original type (string or number)
+      Section: (pattern.Section && typeof pattern.Section !== 'object') ? pattern.Section as string | number : 2025, // Keep as original type (string or number)
       Line: Number(pattern.Line) || 1,
       'Pattern ID': Number(pattern['Pattern ID']),
       Hands_Key: String(pattern.Hands_Key) || `2025-${pattern.Section}-${pattern.Line}-${pattern['Pattern ID']}`,

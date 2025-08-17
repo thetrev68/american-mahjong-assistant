@@ -79,7 +79,7 @@ const tutorialSteps: TutorialStep[] = [
     content: 'See which tiles to keep, pass, or discard based on your selected patterns.',
     canGoBack: true,
     interactive: true,
-    demoComponent: 'TileAnalysisDemo',
+    // demoComponent: TileAnalysisDemo, // Would need to import component
     timeEstimate: 3,
   },
   {
@@ -90,7 +90,7 @@ const tutorialSteps: TutorialStep[] = [
     content: 'Learn optimal charleston decisions to set up your hand for success.',
     canGoBack: true,
     interactive: true,
-    demoComponent: 'CharlestonDemo',
+    // demoComponent: CharlestonDemo, // Would need to import component
     timeEstimate: 3,
   },
 

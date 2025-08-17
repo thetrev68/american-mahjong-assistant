@@ -9,8 +9,7 @@ import type {
   TutorialProgress, 
   UserPreferences, 
   SkillLevel, 
-  TutorialSection,
-  TutorialStep 
+  TutorialSection 
 } from '../features/tutorial/types'
 
 // Default user preferences
