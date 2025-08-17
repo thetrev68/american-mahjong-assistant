@@ -126,7 +126,7 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
       case 'skill-assessment':
         return (
           <SkillAssessment
-            onComplete={(_skillLevel) => {
+            onComplete={() => {
               // Skill level is automatically saved by the hook
               nextStep()
             }}
@@ -138,7 +138,7 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
         return (
           <PreferenceSetup
             currentPreferences={progress.selectedPreferences}
-            onSave={(_preferences) => {
+            onSave={() => {
               // Preferences are automatically saved by the hook
               nextStep()
             }}

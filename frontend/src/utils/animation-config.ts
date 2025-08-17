@@ -26,7 +26,7 @@ export const ANIMATION_EASINGS = {
 
 export interface AnimationConfig {
   duration: number
-  easing: string
+  easing: 'ease' | 'linear' | 'cubic-bezier(0.55, 0.055, 0.675, 0.19)' | 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' | 'cubic-bezier(0.645, 0.045, 0.355, 1)' | 'cubic-bezier(0.68, -0.55, 0.265, 1.55)' | 'cubic-bezier(0.175, 0.885, 0.32, 1.275)' | 'cubic-bezier(0.4, 0, 0.6, 1)'
   transform?: string
   opacity?: number
   rotateY?: number

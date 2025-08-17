@@ -211,7 +211,7 @@ describe('Animation Configuration', () => {
     it('should validate valid animation config', () => {
       const validConfig = {
         duration: 300,
-        easing: 'ease-out',
+        easing: 'ease' as const,
         transform: 'scale(1.1)'
       }
 
@@ -221,7 +221,7 @@ describe('Animation Configuration', () => {
     it('should reject config with invalid duration', () => {
       const invalidConfig = {
         duration: -100,
-        easing: 'ease-out'
+        easing: 'ease' as const
       }
 
       expect(validateAnimationConfig(invalidConfig)).toBe(false)
@@ -230,7 +230,7 @@ describe('Animation Configuration', () => {
     it('should reject config with invalid easing', () => {
       const invalidConfig = {
         duration: 300,
-        easing: 'invalid-easing'
+        easing: 'invalid-easing' as any
       }
 
       expect(validateAnimationConfig(invalidConfig)).toBe(false)

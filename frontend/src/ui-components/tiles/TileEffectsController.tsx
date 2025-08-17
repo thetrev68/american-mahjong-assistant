@@ -85,11 +85,7 @@ export const TileEffectsController = React.memo(({
     }
   }, [config.adaptiveQuality, performance.adaptiveSettings])
   
-  // Queue effect for processing
-  const queueEffect = useCallback((trigger: TileEffectTrigger) => {
-    effectQueueRef.current.push(trigger)
-    // Process queue will be called by the effect below
-  }, [])
+  // Effects are automatically handled by the processing system
   
   // Process queued effects with concurrency control
   const processEffectQueue = useCallback(async () => {
@@ -235,36 +231,8 @@ export const TileEffectsController = React.memo(({
     onPerformanceChange?.(performance.adaptiveSettings.animationQuality)
   }, [performance.adaptiveSettings.animationQuality, onPerformanceChange])
   
-  // Public API
-  const triggerEffect = useCallback((tile: PlayerTile, action: string, options: {
-    intensity?: 'light' | 'medium' | 'heavy'
-    priority?: 'low' | 'normal' | 'high'
-  } = {}) => {
-    queueEffect({
-      tile,
-      action,
-      intensity: options.intensity,
-      priority: options.priority
-    })
-  }, [queueEffect])
-  
-  const clearQueue = useCallback(() => {
-    effectQueueRef.current = []
-  }, [])
-  
-  const getQueueLength = useCallback(() => {
-    return effectQueueRef.current.length
-  }, [])
-  
-  const getPerformanceMetrics = useCallback(() => {
-    return {
-      quality: performance.adaptiveSettings.animationQuality,
-      fps: performance.metrics.fps,
-      renderTime: performance.metrics.renderTime,
-      queueLength: effectQueueRef.current.length,
-      effectQuality
-    }
-  }, [performance, effectQuality])
+  // Effects are handled internally by the queue processor
+  // The controller component manages effects automatically
   
   // Controller component provides effects through context or props
   
@@ -283,7 +251,7 @@ export const useTileEffects = () => {
     clearQueue: () => void
     getQueueLength: () => number
     getPerformanceMetrics: () => unknown
-  }>()
+  } | null>(null)
   
   const triggerTileEffect = useCallback((
     tile: PlayerTile, 

@@ -11,10 +11,39 @@ vi.mock('../useMultiplayer')
 vi.mock('../../stores/room-store')
 
 const mockMultiplayer = {
+  // Connection state
+  isConnected: true,
+  connectionError: null,
+  
+  // Room operations
   createRoom: vi.fn(),
   joinRoom: vi.fn(),
-  isConnected: true,
-  connectionError: null
+  leaveRoom: vi.fn(),
+  isCreatingRoom: false,
+  isJoiningRoom: false,
+  
+  // Game state operations
+  updateGamePhase: vi.fn(),
+  updatePlayerState: vi.fn(),
+  updateSharedState: vi.fn(),
+  requestGameState: vi.fn(),
+  
+  // State from store
+  currentRoom: null,
+  gameState: null,
+  isHost: false,
+  availableRooms: [],
+  
+  // Error handling
+  lastError: null,
+  retryAttempts: 0,
+  pendingUpdates: [],
+  setError: vi.fn(),
+  
+  // Utility
+  getCurrentPlayer: vi.fn(),
+  getRoomStats: vi.fn(),
+  areAllPlayersReady: vi.fn()
 }
 
 const mockRoomStore = {
