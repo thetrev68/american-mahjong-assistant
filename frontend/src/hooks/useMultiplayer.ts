@@ -19,7 +19,24 @@ interface PendingUpdate {
 
 export function useMultiplayer() {
   const socket = useSocket()
-  const store = useMultiplayerStore()
+  
+  // Use proper Zustand selectors instead of the whole store
+  const currentRoom = useMultiplayerStore(state => state.currentRoom)
+  const gameState = useMultiplayerStore(state => state.gameState)
+  const isHost = useMultiplayerStore(state => state.isHost)
+  const availableRooms = useMultiplayerStore(state => state.availableRooms)
+  const getCurrentPlayer = useMultiplayerStore(state => state.getCurrentPlayer)
+  const getRoomStats = useMultiplayerStore(state => state.getRoomStats)
+  const areAllPlayersReady = useMultiplayerStore(state => state.areAllPlayersReady)
+  const setConnectionState = useMultiplayerStore(state => state.setConnectionState)
+  const setConnectionError = useMultiplayerStore(state => state.setConnectionError)
+  const setCurrentRoom = useMultiplayerStore(state => state.setCurrentRoom)
+  const setCurrentPlayerId = useMultiplayerStore(state => state.setCurrentPlayerId)
+  const clearCurrentRoom = useMultiplayerStore(state => state.clearCurrentRoom)
+  const setGameState = useMultiplayerStore(state => state.setGameState)
+  const addPlayerToRoom = useMultiplayerStore(state => state.addPlayerToRoom)
+  const removePlayerFromRoom = useMultiplayerStore(state => state.removePlayerFromRoom)
+  const updateAvailableRooms = useMultiplayerStore(state => state.updateAvailableRooms)
   
   const [isCreatingRoom, setIsCreatingRoom] = useState(false)
   const [isJoiningRoom, setIsJoiningRoom] = useState(false)
@@ -31,9 +48,9 @@ export function useMultiplayer() {
 
   // Sync connection state with store
   useEffect(() => {
-    store.setConnectionState(socket.isConnected, socket.socketId || undefined)
-    store.setConnectionError(socket.connectionError)
-  }, [socket.isConnected, socket.socketId, socket.connectionError, store])
+    setConnectionState(socket.isConnected, socket.socketId || undefined)
+    setConnectionError(socket.connectionError)
+  }, [socket.isConnected, socket.socketId, socket.connectionError, setConnectionState, setConnectionError])
 
   // Clear error on successful operations
   const clearError = useCallback(() => {
@@ -88,8 +105,8 @@ export function useMultiplayer() {
         setIsCreatingRoom(false)
         
         if (response.success && response.room) {
-          store.setCurrentRoom(response.room)
-          store.setCurrentPlayerId(socket.socketId!)
+          setCurrentRoom(response.room)
+          setCurrentPlayerId(socket.socketId!)
           resolve(response.room)
           clearError()
         } else {
@@ -125,8 +142,8 @@ export function useMultiplayer() {
         setIsJoiningRoom(false)
         
         if (response.success && response.room) {
-          store.setCurrentRoom(response.room)
-          store.setCurrentPlayerId(socket.socketId!)
+          setCurrentRoom(response.room)
+          setCurrentPlayerId(socket.socketId!)
           resolve(response.room)
           clearError()
         } else {
@@ -144,11 +161,11 @@ export function useMultiplayer() {
 
   // Room leaving
   const leaveRoom = useCallback(async (): Promise<void> => {
-    if (!store.currentRoom) {
+    if (!currentRoom) {
       return
     }
 
-    const roomId = store.currentRoom.id
+    const roomId = currentRoom.id
 
     return new Promise((resolve, reject) => {
       socket.emit('leave-room', { roomId })
@@ -156,7 +173,7 @@ export function useMultiplayer() {
       const handleResponse = (...args: unknown[]) => {
         const response = args[0] as { success: boolean; roomId: string }
         if (response.success) {
-          store.clearCurrentRoom()
+          clearCurrentRoom()
           resolve()
         } else {
           reject(new Error('Failed to leave room'))
@@ -175,7 +192,7 @@ export function useMultiplayer() {
       throw new Error('Not connected to server')
     }
 
-    if (!store.currentRoom) {
+    if (!currentRoom) {
       throw new Error('Not in a room')
     }
 
@@ -192,7 +209,7 @@ export function useMultiplayer() {
     }
 
     socket.emit('state-update', {
-      roomId: store.currentRoom.id,
+      roomId: currentRoom.id,
       update
     })
   }, [socket, store])
@@ -202,7 +219,7 @@ export function useMultiplayer() {
       throw new Error('Not connected to server')
     }
 
-    if (!store.currentRoom) {
+    if (!currentRoom) {
       throw new Error('Not in a room')
     }
 
@@ -219,7 +236,7 @@ export function useMultiplayer() {
     }
 
     socket.emit('state-update', {
-      roomId: store.currentRoom.id,
+      roomId: currentRoom.id,
       update
     })
   }, [socket, store])
@@ -229,7 +246,7 @@ export function useMultiplayer() {
       throw new Error('Not connected to server')
     }
 
-    if (!store.currentRoom) {
+    if (!currentRoom) {
       throw new Error('Not in a room')
     }
 
@@ -246,25 +263,25 @@ export function useMultiplayer() {
     }
 
     socket.emit('state-update', {
-      roomId: store.currentRoom.id,
+      roomId: currentRoom.id,
       update
     })
   }, [socket, store])
 
   const requestGameState = useCallback(async (): Promise<GameState | null> => {
-    if (!store.currentRoom) {
+    if (!currentRoom) {
       return null
     }
 
     return new Promise((resolve) => {
       socket.emit('request-game-state', {
-        roomId: store.currentRoom!.id
+        roomId: currentRoom!.id
       })
 
       const handleResponse = (...args: unknown[]) => {
         const response = args[0] as { success: boolean; gameState?: GameState }
         if (response.success && response.gameState) {
-          store.setGameState(response.gameState)
+          setGameState(response.gameState)
           resolve(response.gameState)
         } else {
           resolve(null)
@@ -288,29 +305,29 @@ export function useMultiplayer() {
 
     const handlePlayerJoined = (...args: unknown[]) => {
       const data = args[0] as { player: Player; room: Room }
-      store.addPlayerToRoom(data.player)
+      addPlayerToRoom(data.player)
     }
 
     const handlePlayerLeft = (...args: unknown[]) => {
       const data = args[0] as { playerId: string; roomId: string }
-      store.removePlayerFromRoom(data.playerId)
+      removePlayerFromRoom(data.playerId)
     }
 
     const handleGameStateChanged = (...args: unknown[]) => {
       const data = args[0] as { gameState: GameState }
-      store.setGameState(data.gameState)
+      setGameState(data.gameState)
     }
 
     const handleRoomDeleted = (...args: unknown[]) => {
       const data = args[0] as { roomId: string }
-      if (store.currentRoom?.id === data.roomId) {
-        store.clearCurrentRoom()
+      if (currentRoom?.id === data.roomId) {
+        clearCurrentRoom()
       }
     }
 
     const handleRoomListUpdated = (...args: unknown[]) => {
       const data = args[0] as { rooms: Room[] }
-      store.updateAvailableRooms(data.rooms)
+      updateAvailableRooms(data.rooms)
     }
 
     socket.on('player-joined', handlePlayerJoined)
@@ -326,22 +343,22 @@ export function useMultiplayer() {
       socket.off('room-deleted', handleRoomDeleted)
       socket.off('room-list-updated', handleRoomListUpdated)
     }
-  }, [socket, store])
+  }, [socket])
 
   // Process pending updates when reconnected
   useEffect(() => {
     if (socket.isConnected && pendingUpdates.length > 0) {
       pendingUpdates.forEach(update => {
-        if (store.currentRoom) {
+        if (currentRoom) {
           socket.emit('state-update', {
-            roomId: store.currentRoom.id,
+            roomId: currentRoom.id,
             update
           })
         }
       })
       setPendingUpdates([])
     }
-  }, [socket.isConnected, pendingUpdates, store.currentRoom, socket])
+  }, [socket.isConnected, pendingUpdates, socket])
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -370,10 +387,10 @@ export function useMultiplayer() {
     requestGameState,
     
     // State from store
-    currentRoom: store.currentRoom,
-    gameState: store.gameState,
-    isHost: store.isHost,
-    availableRooms: store.availableRooms,
+    currentRoom,
+    gameState,
+    isHost,
+    availableRooms,
     
     // Error handling
     lastError,
@@ -382,8 +399,8 @@ export function useMultiplayer() {
     setError, // For testing
     
     // Utility
-    getCurrentPlayer: store.getCurrentPlayer,
-    getRoomStats: store.getRoomStats,
-    areAllPlayersReady: store.areAllPlayersReady
+    getCurrentPlayer,
+    getRoomStats,
+    areAllPlayersReady
   }
 }
