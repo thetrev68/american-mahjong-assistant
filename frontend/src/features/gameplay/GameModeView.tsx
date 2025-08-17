@@ -59,6 +59,17 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [gameEnded, setGameEnded] = useState(false)
   const [callTimeoutId, setCallTimeoutId] = useState<NodeJS.Timeout | null>(null)
+  const [exposedTiles, setExposedTiles] = useState<Array<{
+    type: 'pung' | 'kong' | 'quint' | 'sextet'
+    tiles: TileType[]
+    timestamp: Date
+  }>>([])
+  const [playerExposedCount, setPlayerExposedCount] = useState<Record<string, number>>({
+    'player-1': 0,
+    'other-player': 0,
+    'player-3': 0,
+    'player-4': 0
+  })
 
   // Current hand with drawn tile
   const currentHand = useTileStore((state) => state.playerHand)
@@ -296,17 +307,34 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setCallOpportunities([])
 
     if (accept && opportunity) {
-      // Add called tiles to exposed tiles
+      // Remove called tiles from hand
       opportunity.exposedTiles.forEach(exposedTile => {
-        const playerTileToRemove = currentHand.find(h => h.id === exposedTile.id)
-        if (playerTileToRemove && 'instanceId' in playerTileToRemove) {
-          tileStore.removeTile(playerTileToRemove.instanceId)
+        if (exposedTile.id !== opportunity.tile.id) { // Don't remove the discarded tile from our hand
+          const playerTileToRemove = currentHand.find(h => h.id === exposedTile.id)
+          if (playerTileToRemove && 'instanceId' in playerTileToRemove) {
+            tileStore.removeTile(playerTileToRemove.instanceId)
+          }
         }
       })
       
-      // Add to exposed tiles (this would need exposed tiles state)
+      // Add to exposed tiles display
+      const newExposedGroup = {
+        type: opportunity.callType,
+        tiles: opportunity.exposedTiles,
+        timestamp: new Date()
+      }
+      setExposedTiles(prev => [...prev, newExposedGroup])
+      
+      // Track exposure count for current player
+      const currentPlayerId = gameStore.currentPlayerId || 'player-1'
+      setPlayerExposedCount(prev => ({
+        ...prev,
+        [currentPlayerId]: prev[currentPlayerId] + opportunity.exposedTiles.length
+      }))
+      
+      // Add to game history
       const turn: GameTurn = {
-        playerId: gameStore.currentPlayerId || 'player-1',
+        playerId: currentPlayerId,
         action: 'call',
         tile: opportunity.tile,
         callType: opportunity.callType,
@@ -315,8 +343,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       }
       setGameHistory(prev => [turn, ...prev])
 
-      // It's now our turn to discard
+      // It's now our turn to discard (after calling)
       setIsMyTurn(true)
+      
+      console.log(`✅ Called ${opportunity.callType}:`, opportunity.exposedTiles.map(t => t.displayName).join(', '))
+    } else {
+      console.log(`❌ Passed on ${callOpportunities[0]?.callType} opportunity`)
     }
   }, [currentHand, tileStore, gameStore.currentPlayerId])
 
@@ -542,7 +574,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         {/* Game Status */}
         <Card className="p-6">
           <h3 className="text-lg font-semibold mb-4">Game Status</h3>
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Tiles in wall:</span>
               <span className="font-medium">52</span>
@@ -555,13 +587,80 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
               <span className="text-gray-600">Your tiles:</span>
               <span className="font-medium">{fullHand.length}</span>
             </div>
+            
+            {/* Player Exposure Status */}
+            <div className="border-t pt-3 mt-3">
+              <h4 className="text-sm font-medium text-gray-700 mb-2">Exposed Tiles</h4>
+              <div className="space-y-1">
+                <div className="flex justify-between text-sm">
+                  <span className="text-green-600">You:</span>
+                  <span className="font-medium">{playerExposedCount['player-1'] || 0} tiles</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Other players:</span>
+                  <span className="font-medium">
+                    {Object.entries(playerExposedCount).filter(([id]) => id !== 'player-1').reduce((sum, [, count]) => sum + count, 0)} tiles
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            {exposedTiles.length > 0 && (
+              <div className="bg-green-50 rounded-lg p-2">
+                <div className="text-xs text-green-700 font-medium">
+                  {exposedTiles.length} set{exposedTiles.length !== 1 ? 's' : ''} exposed
+                </div>
+                <div className="text-xs text-green-600">
+                  {exposedTiles.map(group => group.type).join(', ')}
+                </div>
+              </div>
+            )}
           </div>
         </Card>
       </div>
 
+      {/* Exposed Tiles */}
+      {exposedTiles.length > 0 && (
+        <Card className="p-6 mb-6 bg-green-50 border-green-200">
+          <h3 className="text-lg font-semibold mb-4 text-green-800">🏆 Your Exposed Tiles</h3>
+          <div className="space-y-4">
+            {exposedTiles.map((exposedGroup, groupIndex) => (
+              <div key={groupIndex} className="bg-white rounded-lg p-4 border border-green-200">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-medium text-green-700 capitalize">
+                    {exposedGroup.type} • {exposedGroup.tiles.length} tiles
+                  </span>
+                  <span className="text-sm text-green-600">
+                    Called {new Date(exposedGroup.timestamp).toLocaleTimeString()}
+                  </span>
+                </div>
+                <div className="flex gap-2 justify-center">
+                  {exposedGroup.tiles.map((tile, tileIndex) => (
+                    <Tile
+                      key={tileIndex}
+                      tile={{
+                        ...tile,
+                        instanceId: `exposed-${groupIndex}-${tileIndex}`,
+                        isSelected: false
+                      }}
+                      size="sm"
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
+
       {/* Current Hand */}
       <Card className="p-6 mb-6">
-        <h3 className="text-lg font-semibold mb-4">Your Hand</h3>
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold">Your Hand</h3>
+          <div className="text-sm text-gray-500">
+            {currentHand.length} tiles • {exposedTiles.reduce((acc, group) => acc + group.tiles.length, 0)} exposed
+          </div>
+        </div>
         <div className="flex flex-wrap gap-2 justify-center">
           {currentHand.map((tile: any) => (
             <AnimatedTile
