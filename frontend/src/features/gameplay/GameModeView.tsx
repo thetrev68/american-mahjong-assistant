@@ -77,14 +77,19 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
   const [showPatternSwitcher, setShowPatternSwitcher] = useState(false)
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ patternId: string; completionPercentage: number; difficulty: string; tilesNeeded?: number; strategicValue?: number }>>([])
-  // Removed unused state variables
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [showConfirmDiscard, setShowConfirmDiscard] = useState<TileType | null>(null)
 
   // Current hand with drawn tile - simplified
   const currentHand = useMemo(() => [] as TileType[], [])
   const fullHand = useMemo(() => lastDrawnTile ? [...currentHand, lastDrawnTile] : currentHand, [currentHand, lastDrawnTile])
 
   // Real-time analysis - simplified
-  const currentAnalysis = null
+  const currentAnalysis = null as {
+    tileRecommendations?: Array<{ action: string; tileId?: string; reasoning?: string }>;
+    bestPatterns?: Array<{ patternId: string; completionPercentage: number; difficulty: string; tilesNeeded?: number }>;
+    strategicAdvice?: string[];
+  } | null
 
   // Initialize random demo hand for testing (currently unused)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -176,7 +181,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       })
       
       // Trigger intelligence analysis with enhanced context
-      await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns || [])
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await intelligenceStore.analyzeHand(handForAnalysis, [] as any[])
     } catch (error) {
       console.error('Failed to analyze hand:', error)
     } finally {
@@ -189,7 +195,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (!isMyTurn || lastDrawnTile) return
 
     // Simulate drawing a tile (in real app, this would come from game server)
-    const value = (Math.floor(Math.random() * 9) + 1).toString()
+    const value = (Math.floor(Math.random() * 9) + 1).toString() as TileType['value']
     const newTile: TileType = {
       id: `drawn-${Date.now()}`,
       suit: 'dots',
@@ -220,8 +226,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     } else {
       // Discarding from existing hand - find matching PlayerTile and remove it
       const playerTileToRemove = currentHand.find(h => h.id === tile.id)
-      if (playerTileToRemove && 'instanceId' in playerTileToRemove) {
-        tileStore.removeTile(playerTileToRemove.instanceId)
+      if (playerTileToRemove) {
+        tileStore.removeTile(`hand-${playerTileToRemove.id}`)
       }
     }
 
@@ -252,7 +258,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setTimeout(() => {
       simulateOtherPlayerTurn()
     }, 2000)
-  }, [isMyTurn, currentHand, lastDrawnTile, tileStore, gameStore.currentPlayerId, checkWinCondition, evaluateCallOpportunity, handleGameWin, simulateOtherPlayerTurn])
+  }, [isMyTurn, currentHand, lastDrawnTile, tileStore, gameStore.currentPlayerId])
 
   // Evaluate if discarded tile can be called
   const evaluateCallOpportunity = useCallback((discardedTile: TileType) => {
@@ -323,7 +329,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Add subtle notification sound/vibration (mock for now)
       console.log('🔔 Call opportunity detected:', opportunities[0].callType, discardedTile.displayName)
     }
-  }, [currentHand, selectedPatterns, isMyTurn, handleCallDecision])
+  }, [currentHand, selectedPatterns, isMyTurn])
 
   // Handle call decision
   const handleCallDecision = useCallback((accept: boolean, opportunity?: CallOpportunity) => {
@@ -341,8 +347,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       opportunity.exposedTiles.forEach(exposedTile => {
         if (exposedTile.id !== opportunity.tile.id) { // Don't remove the discarded tile from our hand
           const playerTileToRemove = currentHand.find(h => h.id === exposedTile.id)
-          if (playerTileToRemove && 'instanceId' in playerTileToRemove) {
-            tileStore.removeTile(playerTileToRemove.instanceId)
+          if (playerTileToRemove) {
+            tileStore.removeTile(`hand-${playerTileToRemove.id}`)
           }
         }
       })
@@ -477,9 +483,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Get discard recommendation
   const getDiscardRecommendation = useCallback((): TileType | null => {
-    if (!currentAnalysis?.tileRecommendations) return null
+    if (!currentAnalysis || !currentAnalysis.tileRecommendations) return null
     
-    const discardRec = currentAnalysis.tileRecommendations.find((rec: { action: string; tileId?: string }) => rec.action === 'discard')
+    const discardRec = currentAnalysis.tileRecommendations.find(rec => rec.action === 'discard')
     if (!discardRec?.tileId) return null
 
     return fullHand.find((tile: TileType) => 
@@ -491,7 +497,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Find alternative patterns based on current hand
   const findAlternativePatterns = useCallback(async () => {
-    if (!currentAnalysis?.bestPatterns) return
+    if (!currentAnalysis || !currentAnalysis.bestPatterns) return
     
     // Get patterns that are viable but not currently selected
     const availablePatterns = currentAnalysis.bestPatterns
@@ -508,10 +514,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const patternStore = usePatternStore.getState()
     
     // Remove least viable current pattern and add new one
-    if (selectedPatterns.length > 0) {
+    if (selectedPatterns.length > 0 && currentAnalysis && currentAnalysis.bestPatterns) {
       const leastViable = selectedPatterns.reduce((min, pattern) => {
-        const currentProgress = currentAnalysis?.bestPatterns?.find(p => p.patternId === pattern.id)?.completionPercentage || 0
-        const minProgress = currentAnalysis?.bestPatterns?.find(p => p.patternId === min.id)?.completionPercentage || 0
+        const currentProgress = currentAnalysis.bestPatterns?.find(p => p.patternId === pattern.id)?.completionPercentage || 0
+        const minProgress = currentAnalysis.bestPatterns?.find(p => p.patternId === min.id)?.completionPercentage || 0
         return currentProgress < minProgress ? pattern : min
       })
       
@@ -624,7 +630,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
                       <p className="text-blue-800 font-medium">💡 Recommended Discard</p>
                       <p className="text-blue-600">
                         <span className="font-semibold">{recommendedDiscard.displayName}</span>
-                        {currentAnalysis.tileRecommendations?.find(r => r.tileId === recommendedDiscard.id)?.reasoning && (
+                        {currentAnalysis?.tileRecommendations?.find(r => r.tileId === recommendedDiscard.id)?.reasoning && (
                           <span className="text-sm block mt-1">
                             {currentAnalysis.tileRecommendations.find(r => r.tileId === recommendedDiscard.id)?.reasoning}
                           </span>
@@ -633,10 +639,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
                     </div>
                   ) : (
                     <p className="text-blue-600">
-                      Hand analyzed • {currentAnalysis.bestPatterns?.length || 0} viable patterns found
+                      Hand analyzed • {currentAnalysis?.bestPatterns?.length || 0} viable patterns found
                     </p>
                   )}
-                  {currentAnalysis.strategicAdvice && currentAnalysis.strategicAdvice.length > 0 && (
+                  {currentAnalysis?.strategicAdvice && currentAnalysis.strategicAdvice.length > 0 && (
                     <p className="text-sm text-blue-500 italic">
                       "{currentAnalysis.strategicAdvice[0]}"
                     </p>
@@ -878,7 +884,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
               key={tile.id}
               tile={{
                 ...tile,
-                isRecommended: recommendedDiscard?.id === tile.id,
+                instanceId: `hand-${tile.id}`,
                 isSelected: selectedDiscardTile?.id === tile.id
               }}
               size="md"
