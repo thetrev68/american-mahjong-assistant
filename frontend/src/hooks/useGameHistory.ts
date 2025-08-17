@@ -94,10 +94,11 @@ export function useGameHistory() {
         case 'duration':
           comparison = a.duration - b.duration
           break
-        case 'difficulty':
+        case 'difficulty': {
           const difficultyOrder = { beginner: 1, intermediate: 2, expert: 3 }
           comparison = difficultyOrder[a.difficulty] - difficultyOrder[b.difficulty]
           break
+        }
         default:
           comparison = 0
       }
@@ -186,9 +187,11 @@ export function useGameHistory() {
     multiplayerGames: () => setFilter({ coPilotMode: 'everyone' }),
     strugglingPatterns: () => {
       // Show games with patterns that have low success rates
-      const _strugglingPatterns = Object.entries(performanceStats.patternStats)
-        .filter(([_, stats]) => stats.successRate < 30)
+      const strugglingPatterns = Object.entries(performanceStats.patternStats)
+        .filter(([, stats]) => stats.successRate < 30)
         .map(([patternId]) => patternId)
+      
+      console.log('Struggling patterns:', strugglingPatterns)
       
       // This would need custom filtering logic for pattern-based filtering
       // For now, we'll clear filters as a placeholder
@@ -270,7 +273,7 @@ export function useGameHistory() {
       case 'json':
         return exportHistory()
       
-      case 'csv':
+      case 'csv': {
         const csvHeader = 'Date,Outcome,Score,Duration,Difficulty,Patterns,Win Rate\n'
         const csvRows = completedGames.map(game => [
           game.timestamp.toISOString().split('T')[0],
@@ -282,8 +285,9 @@ export function useGameHistory() {
           game.outcome === 'won' ? '100%' : '0%'
         ].join(',')).join('\n')
         return csvHeader + csvRows
+      }
       
-      case 'summary':
+      case 'summary': {
         return JSON.stringify({
           summary: gameSummary,
           stats: performanceStats,
@@ -292,6 +296,7 @@ export function useGameHistory() {
             .slice(0, 5),
           recommendations: learningRecommendations
         }, null, 2)
+      }
       
       default:
         return exportHistory()
@@ -354,7 +359,7 @@ export function useGameHistory() {
 }
 
 // Helper function to analyze game performance
-async function analyzeGamePerformance(gameData: any) {
+async function analyzeGamePerformance(gameData: Partial<CompletedGame>) {
   // This is a placeholder implementation
   // In a real implementation, this would integrate with the analysis engine
   // to evaluate decisions, pattern choices, and overall performance
@@ -372,11 +377,11 @@ async function analyzeGamePerformance(gameData: any) {
     }
   ]
 
-  const mockPatternAnalyses = gameData.selectedPatterns.map((pattern: NMJL2025Pattern) => ({
+  const mockPatternAnalyses = (gameData.selectedPatterns || []).map((pattern: NMJL2025Pattern) => ({
     patternId: pattern.Hands_Key,
     pattern,
     completionPercentage: Math.random() * 100,
-    timeToCompletion: gameData.outcome === 'won' ? gameData.duration * 60 : undefined,
+    timeToCompletion: gameData.outcome === 'won' ? (gameData.duration || 0) * 60 : undefined,
     missedOpportunities: [],
     optimalMoves: []
   }))

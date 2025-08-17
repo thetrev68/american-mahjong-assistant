@@ -266,8 +266,9 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
         },
 
         // Decision tracking
-        recordDecision: (_decision: Omit<GameDecision, 'id'>) => {
-          const _decisionId = `decision-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        recordDecision: (decision: Omit<GameDecision, 'id'>) => {
+          const decisionId = `decision-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+          console.log('Recording decision:', decisionId, decision)
           // This would be implemented to track decisions during active gameplay
           // For now, decisions are added when the game is completed
         },

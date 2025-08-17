@@ -200,10 +200,17 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
           {selectedGame.finalHand.map((tile, index) => (
             <AnimatedTile
               key={index}
-              tile={tile}
+              tile={{
+                id: tile.id,
+                suit: tile.suit as 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers',
+                value: tile.value as '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'east' | 'south' | 'west' | 'north' | 'red' | 'green' | 'white' | 'f1' | 'f2' | 'f3' | 'f4' | 'joker',
+                displayName: `${tile.value} ${tile.suit}`,
+                instanceId: `final-${tile.id}-${index}`,
+                isSelected: false
+              }}
               size="lg"
-              className={tile.isWinning ? 'ring-2 ring-yellow-400' : ''}
-              context="display"
+              className={''}
+              context="analysis"
             />
           ))}
         </div>
@@ -223,7 +230,7 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as 'overview' | 'detailed' | 'learning' | 'social')}
               className={`flex items-center space-x-2 py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-primary text-primary'
@@ -444,7 +451,8 @@ const LearningInsightsTab: React.FC<{
   }>
 }> = ({ game, recommendations }) => {
   const gameRecommendations = recommendations.filter(rec => 
-    (rec as any).relatedGames?.includes(game.id)
+    ('relatedGames' in rec) && Array.isArray((rec as { relatedGames?: string[] }).relatedGames) && 
+    (rec as { relatedGames: string[] }).relatedGames.includes(game.id)
   )
 
   return (

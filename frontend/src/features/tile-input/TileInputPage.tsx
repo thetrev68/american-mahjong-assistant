@@ -7,24 +7,20 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
-import { HandValidation } from './HandValidation'
 import { PrimaryAnalysisCard } from '../intelligence-panel/PrimaryAnalysisCard'
 import { useTileStore, usePatternStore, useIntelligenceStore } from '../../stores'
 import { tileService } from '../../services/tile-service' // Import the tile service
 
 export const TileInputPage = () => {
   const [selectorMode] = useState<'full' | 'compact'>('full')
-  const [showValidationDetails] = useState(false)
   const [showTileSelector, setShowTileSelector] = useState(true)
   
   const {
     playerHand,
     dealerHand,
-    validation,
     clearHand,
     setDealerHand,
     validateHand,
-    exportTilesToString,
     importTilesFromString
   } = useTileStore()
   
