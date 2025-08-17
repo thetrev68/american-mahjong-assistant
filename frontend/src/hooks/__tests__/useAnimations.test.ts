@@ -11,7 +11,7 @@ import {
 
 // Mock the animation config and reduced motion utilities
 vi.mock('../../utils/animation-config', () => ({
-  getAnimationConfig: vi.fn((name, overrides = {}) => ({
+  getAnimationConfig: vi.fn((_name, overrides = {}) => ({
     duration: 300,
     easing: 'ease-out',
     transform: 'scale(1.05)',
@@ -19,7 +19,7 @@ vi.mock('../../utils/animation-config', () => ({
   })),
   getOptimizedDuration: vi.fn((duration) => duration),
   createAnimationSequence: vi.fn((sequence) => 
-    sequence.map(item => ({
+    sequence.map((item: any) => ({
       ...item,
       config: { duration: 300, easing: 'ease-out' }
     }))

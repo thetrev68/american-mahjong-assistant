@@ -88,8 +88,8 @@ export const TileEffectsController = React.memo(({
   // Queue effect for processing
   const queueEffect = useCallback((trigger: TileEffectTrigger) => {
     effectQueueRef.current.push(trigger)
-    processEffectQueue()
-  }, [processEffectQueue])
+    // Process queue will be called by the effect below
+  }, [])
   
   // Process queued effects with concurrency control
   const processEffectQueue = useCallback(async () => {
@@ -123,7 +123,7 @@ export const TileEffectsController = React.memo(({
         setTimeout(processEffectQueue, 16) // Next frame
       }
     }
-  }, [effectQuality.concurrentLimit, processEffect])
+  }, [effectQuality.concurrentLimit])
   
   // Process individual effect
   const processEffect = useCallback(async (trigger: TileEffectTrigger) => {
@@ -150,7 +150,7 @@ export const TileEffectsController = React.memo(({
       console.warn('Tile effect processing failed:', error)
       onEffectComplete?.(trigger) // Still call completion callback
     }
-  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete, executeAnimation, executeHaptic])
+  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete])
   
   // Execute animation based on tile and action
   const executeAnimation = useCallback(async (tile: PlayerTile, action: string) => {
@@ -188,7 +188,7 @@ export const TileEffectsController = React.memo(({
         return tileAnimations.showRecommendation()
         
       case 'keep':
-        return tileAnimations.playKeepAnimation?.() || tileAnimations.highlightTile()
+        return tileAnimations.highlightTile()
         
       case 'special':
         if (isJoker) return specialAnimations.playJokerAnimation()
@@ -266,13 +266,7 @@ export const TileEffectsController = React.memo(({
     }
   }, [performance, effectQuality])
   
-  // Expose imperative API via ref
-  React.useImperativeHandle(React.createRef(), () => ({
-    triggerEffect,
-    clearQueue,
-    getQueueLength,
-    getPerformanceMetrics
-  }), [triggerEffect, clearQueue, getQueueLength, getPerformanceMetrics])
+  // Controller component provides effects through context or props
   
   return null // This is a controller component, no UI
 })

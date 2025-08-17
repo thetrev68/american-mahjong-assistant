@@ -10,7 +10,7 @@ interface TapticEngine {
   selection(): Promise<void>
 }
 
-interface NavigatorWithVibrate extends Navigator {
+interface NavigatorWithVibrate {
   vibrate?: (pattern: number | number[]) => boolean
 }
 

@@ -2,20 +2,21 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import { RoomCreation } from '../RoomCreation'
 
 describe('RoomCreation Component', () => {
   const defaultProps = {
     hostName: '',
-    onHostNameChange: jest.fn(),
-    onCreateRoom: jest.fn(),
+    onHostNameChange: vi.fn(),
+    onCreateRoom: vi.fn(),
     isCreating: false,
     error: null,
     disabled: false
   }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('Rendering', () => {
@@ -58,7 +59,7 @@ describe('RoomCreation Component', () => {
   describe('Form Interaction', () => {
     it('should call onHostNameChange when typing in input', async () => {
       const user = userEvent.setup()
-      const onHostNameChange = jest.fn()
+      const onHostNameChange = vi.fn()
       render(<RoomCreation {...defaultProps} onHostNameChange={onHostNameChange} />)
       
       const input = screen.getByLabelText(/your name/i)
@@ -69,7 +70,7 @@ describe('RoomCreation Component', () => {
     })
 
     it('should call onCreateRoom when form is submitted', async () => {
-      const onCreateRoom = jest.fn()
+      const onCreateRoom = vi.fn()
       render(<RoomCreation {...defaultProps} hostName="Test Player" onCreateRoom={onCreateRoom} />)
       
       const button = screen.getByRole('button', { name: /create room/i })
@@ -79,7 +80,7 @@ describe('RoomCreation Component', () => {
     })
 
     it('should call onCreateRoom when pressing Enter in input', async () => {
-      const onCreateRoom = jest.fn()
+      const onCreateRoom = vi.fn()
       render(<RoomCreation {...defaultProps} hostName="Test Player" onCreateRoom={onCreateRoom} />)
       
       const input = screen.getByLabelText(/your name/i)
@@ -89,7 +90,7 @@ describe('RoomCreation Component', () => {
     })
 
     it('should not submit with empty name', () => {
-      const onCreateRoom = jest.fn()
+      const onCreateRoom = vi.fn()
       render(<RoomCreation {...defaultProps} hostName="" onCreateRoom={onCreateRoom} />)
       
       const button = screen.getByRole('button', { name: /create room/i })
@@ -99,7 +100,7 @@ describe('RoomCreation Component', () => {
     })
 
     it('should trim whitespace from host name', () => {
-      const onCreateRoom = jest.fn()
+      const onCreateRoom = vi.fn()
       render(<RoomCreation {...defaultProps} hostName="  Test Player  " onCreateRoom={onCreateRoom} />)
       
       const button = screen.getByRole('button', { name: /create room/i })
@@ -133,7 +134,7 @@ describe('RoomCreation Component', () => {
     })
 
     it('should not call onCreateRoom when creating', () => {
-      const onCreateRoom = jest.fn()
+      const onCreateRoom = vi.fn()
       render(<RoomCreation {...defaultProps} isCreating={true} onCreateRoom={onCreateRoom} />)
       
       const button = screen.getByRole('button')

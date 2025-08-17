@@ -2,22 +2,23 @@
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
 import { RoomJoining } from '../RoomJoining'
 
 describe('RoomJoining Component', () => {
   const defaultProps = {
     roomCode: '',
     playerName: '',
-    onRoomCodeChange: jest.fn(),
-    onPlayerNameChange: jest.fn(),
-    onJoinRoom: jest.fn(),
+    onRoomCodeChange: vi.fn(),
+    onPlayerNameChange: vi.fn(),
+    onJoinRoom: vi.fn(),
     isJoining: false,
     error: null,
     disabled: false
   }
 
   beforeEach(() => {
-    jest.clearAllMocks()
+    vi.clearAllMocks()
   })
 
   describe('Rendering', () => {
@@ -60,7 +61,7 @@ describe('RoomJoining Component', () => {
   describe('Form Interaction', () => {
     it('should call onRoomCodeChange when typing in room code input', async () => {
       const user = userEvent.setup()
-      const onRoomCodeChange = jest.fn()
+      const onRoomCodeChange = vi.fn()
       render(<RoomJoining {...defaultProps} onRoomCodeChange={onRoomCodeChange} />)
       
       const input = screen.getByLabelText(/room code/i)
@@ -72,7 +73,7 @@ describe('RoomJoining Component', () => {
 
     it('should call onPlayerNameChange when typing in name input', async () => {
       const user = userEvent.setup()
-      const onPlayerNameChange = jest.fn()
+      const onPlayerNameChange = vi.fn()
       render(<RoomJoining {...defaultProps} onPlayerNameChange={onPlayerNameChange} />)
       
       const input = screen.getByLabelText(/your name/i)
@@ -84,7 +85,7 @@ describe('RoomJoining Component', () => {
 
     it('should uppercase room code input', async () => {
       const user = userEvent.setup()
-      const onRoomCodeChange = jest.fn()
+      const onRoomCodeChange = vi.fn()
       render(<RoomJoining {...defaultProps} onRoomCodeChange={onRoomCodeChange} />)
       
       const input = screen.getByLabelText(/room code/i)
@@ -95,7 +96,7 @@ describe('RoomJoining Component', () => {
 
     it('should limit room code to 4 characters', async () => {
       const user = userEvent.setup()
-      const onRoomCodeChange = jest.fn()
+      const onRoomCodeChange = vi.fn()
       render(<RoomJoining {...defaultProps} onRoomCodeChange={onRoomCodeChange} />)
       
       const input = screen.getByLabelText(/room code/i)
@@ -107,7 +108,7 @@ describe('RoomJoining Component', () => {
     })
 
     it('should call onJoinRoom when form is submitted', () => {
-      const onJoinRoom = jest.fn()
+      const onJoinRoom = vi.fn()
       render(<RoomJoining {...defaultProps} roomCode="ABCD" playerName="Test" onJoinRoom={onJoinRoom} />)
       
       const button = screen.getByRole('button', { name: /join room/i })
@@ -117,7 +118,7 @@ describe('RoomJoining Component', () => {
     })
 
     it('should not submit with empty fields', () => {
-      const onJoinRoom = jest.fn()
+      const onJoinRoom = vi.fn()
       render(<RoomJoining {...defaultProps} onJoinRoom={onJoinRoom} />)
       
       const button = screen.getByRole('button', { name: /join room/i })

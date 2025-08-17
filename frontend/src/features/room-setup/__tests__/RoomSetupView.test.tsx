@@ -1,51 +1,52 @@
 // RoomSetupView Component Test Suite
 
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { vi } from 'vitest'
 import { RoomSetupView } from '../RoomSetupView'
 import { useRoomSetup } from '../../../hooks/useRoomSetup'
 import { useRoomStore } from '../../../stores/room-store'
 import { useMultiplayerStore } from '../../../stores/multiplayer-store'
 
 // Mock dependencies
-jest.mock('../../../hooks/useRoomSetup')
-jest.mock('../../../stores/room-store')
-jest.mock('../../../stores/multiplayer-store')
+vi.mock('../../../hooks/useRoomSetup')
+vi.mock('../../../stores/room-store')
+vi.mock('../../../stores/multiplayer-store')
 
 const mockRoomSetup = {
   coPilotMode: 'everyone',
-  roomCode: null,
+  roomCode: null as string | null,
   isHost: false,
   isCreatingRoom: false,
   isJoiningRoom: false,
-  error: null,
+  error: null as string | null,
   setupProgress: {
     currentStep: 'mode-selection',
     completedSteps: 0,
     totalSteps: 3
   },
-  setCoPilotMode: jest.fn(),
-  createRoom: jest.fn(),
-  joinRoom: jest.fn(),
-  clearError: jest.fn()
+  setCoPilotMode: vi.fn(),
+  createRoom: vi.fn(),
+  joinRoom: vi.fn(),
+  clearError: vi.fn()
 }
 
 const mockRoomStore = {
   playerPositions: {},
-  setPlayerPosition: jest.fn(),
-  isHost: jest.fn(() => false)
+  setPlayerPosition: vi.fn(),
+  isHost: vi.fn(() => false)
 }
 
 const mockMultiplayerStore = {
-  currentRoom: null,
+  currentRoom: null as any,
   currentPlayerId: 'player-1'
 }
 
 describe('RoomSetupView Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-    ;(useRoomSetup as jest.Mock).mockReturnValue(mockRoomSetup)
-    ;(useRoomStore as jest.Mock).mockReturnValue(mockRoomStore)
-    ;(useMultiplayerStore as jest.Mock).mockReturnValue(mockMultiplayerStore)
+    vi.clearAllMocks()
+    vi.mocked(useRoomSetup).mockReturnValue(mockRoomSetup)
+    vi.mocked(useRoomStore).mockReturnValue(mockRoomStore)
+    vi.mocked(useMultiplayerStore).mockReturnValue(mockMultiplayerStore)
   })
 
   describe('Step 1: Co-Pilot Mode Selection', () => {

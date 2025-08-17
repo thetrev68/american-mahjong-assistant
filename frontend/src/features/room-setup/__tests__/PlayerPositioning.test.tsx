@@ -99,7 +99,7 @@ describe('PlayerPositioning Component', () => {
     })
 
     it('should not allow selecting occupied positions', () => {
-      const onPositionChange = jest.fn()
+      const onPositionChange = vi.fn()
       render(<PlayerPositioning {...defaultProps} onPositionChange={onPositionChange} />)
       
       const northPosition = screen.getByRole('button', { name: /north.*host player/i })
@@ -109,7 +109,7 @@ describe('PlayerPositioning Component', () => {
     })
 
     it('should allow changing own position', () => {
-      const onPositionChange = jest.fn()
+      const onPositionChange = vi.fn()
       render(<PlayerPositioning {...defaultProps} onPositionChange={onPositionChange} />)
       
       const southPosition = screen.getByRole('button', { name: /south.*available/i })
@@ -163,7 +163,7 @@ describe('PlayerPositioning Component', () => {
     })
 
     it('should not call onPositionChange when disabled', () => {
-      const onPositionChange = jest.fn()
+      const onPositionChange = vi.fn()
       render(<PlayerPositioning {...defaultProps} disabled={true} onPositionChange={onPositionChange} />)
       
       const southPosition = screen.getByRole('button', { name: /south.*available/i })
@@ -191,7 +191,7 @@ describe('PlayerPositioning Component', () => {
     })
 
     it('should allow unpositioned players to select seats', () => {
-      const onPositionChange = jest.fn()
+      const onPositionChange = vi.fn()
       const props = {
         ...defaultProps,
         currentPlayerId: 'player-3', // Unpositioned player
@@ -225,7 +225,7 @@ describe('PlayerPositioning Component', () => {
     })
 
     it('should support keyboard navigation', () => {
-      const onPositionChange = jest.fn()
+      const onPositionChange = vi.fn()
       render(<PlayerPositioning {...defaultProps} onPositionChange={onPositionChange} />)
       
       const southPosition = screen.getByRole('button', { name: /south.*available/i })

@@ -47,15 +47,13 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
       
       const roomData = await multiplayer.createRoom({
         hostName: hostName.trim(),
-        config: {
-          maxPlayers: 4,
-          coPilotMode: roomStore.coPilotMode,
-          isPrivate: false
-        }
+        maxPlayers: 4,
+        gameMode: roomStore.coPilotMode,
+        isPrivate: false
       })
 
-      // Generate a user-friendly room code from the room ID
-      const roomCode = roomData.code || generateRoomCodeFromId(roomData.id)
+      // Generate a user-friendly room code from the room ID  
+      const roomCode = generateRoomCodeFromId(roomData.id)
       const hostPlayerId = multiplayerStore.currentPlayerId || generatePlayerId()
 
       roomStore.handleRoomCreated(roomCode, hostPlayerId)

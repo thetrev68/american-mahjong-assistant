@@ -219,7 +219,7 @@ export function validateAnimationConfig(config: Partial<AnimationConfig>): boole
     const isCubicBezier = config.easing.startsWith('cubic-bezier(')
     const isStandardEasing = ['ease', 'ease-in', 'ease-out', 'ease-in-out', 'linear'].includes(config.easing)
     
-    if (!validEasings.includes(config.easing as keyof typeof ANIMATION_EASINGS) && !isCubicBezier && !isStandardEasing) {
+    if (!validEasings.includes(config.easing) && !isCubicBezier && !isStandardEasing) {
       return false
     }
   }

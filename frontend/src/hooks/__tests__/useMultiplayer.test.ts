@@ -16,12 +16,12 @@ const mockSocketHook = {
   on: vi.fn(),
   off: vi.fn(),
   socketId: 'test-socket-id',
-  connectionError: null
+  connectionError: null as string | null
 }
 
 const mockStore = {
-  currentRoom: null,
-  gameState: null,
+  currentRoom: null as any,
+  gameState: null as any,
   isHost: false,
   availableRooms: [],
   setCurrentRoom: vi.fn(),
@@ -235,7 +235,7 @@ describe('useMultiplayer Hook', () => {
 
   describe('Real-time Event Handling', () => {
     it('should handle player-joined events', () => {
-      const { result } = renderHook(() => useMultiplayer())
+      renderHook(() => useMultiplayer())
 
       const newPlayer = {
         id: 'new-player-id',
@@ -254,7 +254,7 @@ describe('useMultiplayer Hook', () => {
     })
 
     it('should handle player-left events', () => {
-      const { result } = renderHook(() => useMultiplayer())
+      renderHook(() => useMultiplayer())
 
       act(() => {
         const leaveHandler = mockSocketHook.on.mock.calls.find(
@@ -267,7 +267,7 @@ describe('useMultiplayer Hook', () => {
     })
 
     it('should handle game-state-changed events', () => {
-      const { result } = renderHook(() => useMultiplayer())
+      renderHook(() => useMultiplayer())
 
       const updatedGameState = {
         phase: 'playing',
@@ -287,7 +287,7 @@ describe('useMultiplayer Hook', () => {
 
     it('should handle room-deleted events', () => {
       mockStore.currentRoom = { id: 'room-123' }
-      const { result } = renderHook(() => useMultiplayer())
+      renderHook(() => useMultiplayer())
 
       act(() => {
         const deleteHandler = mockSocketHook.on.mock.calls.find(

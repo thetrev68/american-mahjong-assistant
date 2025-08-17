@@ -8,7 +8,6 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { Container } from '../../ui-components/layout/Container'
-import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { TutorialViewProps, TutorialSection } from './types'
 
 // Import tutorial section components
@@ -127,7 +126,7 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
       case 'skill-assessment':
         return (
           <SkillAssessment
-            onComplete={(skillLevel) => {
+            onComplete={(_skillLevel) => {
               // Skill level is automatically saved by the hook
               nextStep()
             }}
@@ -139,7 +138,7 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
         return (
           <PreferenceSetup
             currentPreferences={progress.selectedPreferences}
-            onSave={(preferences) => {
+            onSave={(_preferences) => {
               // Preferences are automatically saved by the hook
               nextStep()
             }}

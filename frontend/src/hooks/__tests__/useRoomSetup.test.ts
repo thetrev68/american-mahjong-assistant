@@ -1,38 +1,39 @@
 // useRoomSetup Hook Test Suite - Comprehensive TDD for room setup logic
 
 import { renderHook, act } from '@testing-library/react'
+import { vi } from 'vitest'
 import { useRoomSetup } from '../useRoomSetup'
 import { useRoomStore } from '../../stores/room-store'
 import { useMultiplayer } from '../useMultiplayer'
 
 // Mock dependencies
-jest.mock('../useMultiplayer')
-jest.mock('../../stores/room-store')
+vi.mock('../useMultiplayer')
+vi.mock('../../stores/room-store')
 
 const mockMultiplayer = {
-  createRoom: jest.fn(),
-  joinRoom: jest.fn(),
+  createRoom: vi.fn(),
+  joinRoom: vi.fn(),
   isConnected: true,
   connectionError: null
 }
 
 const mockRoomStore = {
   coPilotMode: 'everyone',
-  currentRoomCode: null,
-  hostPlayerId: null,
+  currentRoomCode: null as string | null,
+  hostPlayerId: null as string | null,
   roomCreationStatus: 'idle',
   joinRoomStatus: 'idle',
   error: null,
-  setCoPilotMode: jest.fn(),
-  setRoomCreationStatus: jest.fn(),
-  handleRoomCreated: jest.fn(),
-  handleRoomCreationError: jest.fn(),
-  setJoinRoomStatus: jest.fn(),
-  handleRoomJoined: jest.fn(),
-  handleRoomJoinError: jest.fn(),
-  isValidRoomCode: jest.fn(),
-  clearError: jest.fn(),
-  getRoomSetupProgress: jest.fn(() => ({
+  setCoPilotMode: vi.fn(),
+  setRoomCreationStatus: vi.fn(),
+  handleRoomCreated: vi.fn(),
+  handleRoomCreationError: vi.fn(),
+  setJoinRoomStatus: vi.fn(),
+  handleRoomJoined: vi.fn(),
+  handleRoomJoinError: vi.fn(),
+  isValidRoomCode: vi.fn(),
+  clearError: vi.fn(),
+  getRoomSetupProgress: vi.fn(() => ({
     currentStep: 'mode-selection',
     completedSteps: 0,
     totalSteps: 3
@@ -41,9 +42,9 @@ const mockRoomStore = {
 
 describe('useRoomSetup Hook', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-    ;(useMultiplayer as jest.Mock).mockReturnValue(mockMultiplayer)
-    ;(useRoomStore as jest.Mock).mockReturnValue(mockRoomStore)
+    vi.clearAllMocks()
+    vi.mocked(useMultiplayer).mockReturnValue(mockMultiplayer)
+    vi.mocked(useRoomStore).mockReturnValue(mockRoomStore)
   })
 
   describe('Hook Initialization', () => {

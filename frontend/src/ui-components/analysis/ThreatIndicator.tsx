@@ -26,7 +26,7 @@ export const ThreatIndicator = ({
   const getHighestThreatLevel = () => {
     if (threats.length === 0) return 'low'
     
-    const levelPriority = { high: 3, medium: 2, low: 1 }
+    const levelPriority: Record<string, number> = { high: 3, medium: 2, low: 1 }
     return threats.reduce((highest, threat) => 
       levelPriority[threat.level] > levelPriority[highest] ? threat.level : highest
     , 'low')

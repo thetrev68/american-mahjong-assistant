@@ -37,7 +37,7 @@ export const AnimatedTile = ({
   onDoubleClick,
   className = '',
   children,
-  animateOnMount = false,
+  animateOnMount: _animateOnMount = false,
   animateOnSelect = true,
   animateOnRecommendation = true,
   enableHaptics = true,
@@ -143,7 +143,7 @@ export const AnimatedTile = ({
       
       switch (recommendationType) {
         case 'keep':
-          await (tileAnimations.playKeepAnimation?.() || tileAnimations.highlightTile())
+          await tileAnimations.highlightTile()
           break
         case 'pass':
           await tileAnimations.passTile()
@@ -215,8 +215,8 @@ export const AnimatedTile = ({
       const keyframes = createOptimizedKeyframes(config)
       
       return {
-        transform: keyframes.transform || 'none',
-        opacity: keyframes.opacity !== undefined ? keyframes.opacity : 1,
+        transform: String(keyframes.transform || 'none'),
+        opacity: Number(keyframes.opacity !== undefined ? keyframes.opacity : 1),
         transition: `all ${config.duration}ms ${config.easing}`,
         willChange: 'transform, opacity'
       }
@@ -292,14 +292,7 @@ export const AnimatedTile = ({
     return classes.join(' ')
   }, [isAnimating, context, recommendationType, tile.isSelected, isSpecialTile, isJoker, isDragon, isFlower, performance.shouldReduceAnimations])
   
-  // Expose animation methods for external control
-  React.useImperativeHandle(tileRef, () => ({
-    playRecommendationAnimation,
-    playSpecialAnimation: playSpecialTileAnimation,
-    selectAnimation: handleSelectAnimation,
-    deselectAnimation: handleDeselectAnimation,
-    isAnimating: isAnimating
-  }), [playRecommendationAnimation, playSpecialTileAnimation, handleSelectAnimation, handleDeselectAnimation, isAnimating])
+  // Animation methods are available through the tileAnimations hook
   
   return (
     <div 

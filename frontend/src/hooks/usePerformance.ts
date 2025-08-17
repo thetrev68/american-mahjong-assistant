@@ -235,7 +235,7 @@ export function usePerformance(): UsePerformanceReturn {
   const measureMemoryUsage = useCallback((): number | null => {
     if ('memory' in performance) {
       const memory = performance.memory
-      return memory.usedJSHeapSize / 1024 / 1024 // Convert to MB
+      return memory ? memory.usedJSHeapSize / 1024 / 1024 : null // Convert to MB
     }
     return null
   }, [])
