@@ -39,7 +39,7 @@ export const AnimatedTile = ({
   children,
   animateOnMount: _animateOnMount = false,
   animateOnSelect = true,
-  animateOnRecommendation = true,
+  animateOnRecommendation: _animateOnRecommendation = true,
   enableHaptics = true,
   context = 'selection',
   recommendationType
@@ -130,37 +130,7 @@ export const AnimatedTile = ({
     }
   }, [tileAnimations, haptics, enableHaptics, performance.shouldReduceAnimations])
   
-  // Handle recommendation animations - Currently unused
-  // const playRecommendationAnimation = useCallback(async () => {
-    if (!animateOnRecommendation || performance.shouldReduceAnimations) return
-    
-    setIsAnimating(true)
-    
-    try {
-      if (enableHaptics) {
-        await haptics.triggerLight()
-      }
-      
-      switch (recommendationType) {
-        case 'keep':
-          await tileAnimations.highlightTile()
-          break
-        case 'pass':
-          await tileAnimations.passTile()
-          break
-        case 'discard':
-          await tileAnimations.highlightTile()
-          break
-        case 'joker':
-          await specialAnimations.playJokerAnimation()
-          break
-        default:
-          await tileAnimations.showRecommendation()
-      }
-    } finally {
-      setIsAnimating(false)
-    }
-  }, [recommendationType, tileAnimations, specialAnimations, haptics, enableHaptics, animateOnRecommendation, performance.shouldReduceAnimations])
+  // Recommendation animations handled by parent components
   
   // Handle click with animations
   const handleClick = useCallback(async (clickedTile: PlayerTile) => {
