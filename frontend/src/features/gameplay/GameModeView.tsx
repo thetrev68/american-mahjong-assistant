@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useGameStore } from '../../stores/game-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
+import { useTileStore } from '../../stores/tile-store'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
@@ -41,18 +42,36 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   onNavigateToCharleston,
   onNavigateToPostGame
 }) => {
-  // Store state - simplified to avoid infinite loops
+  // Store state
   const gameStore = useGameStore()
   const intelligenceStore = useIntelligenceStore()
-  // const tileStore = useTileStore()
+  const patternStore = usePatternStore()
+  const tileStore = useTileStore()
   
-  // Temporarily hardcode empty array to avoid store selector issues
-  const selectedPatterns = useMemo(() => [] as Array<{ 
-    id: string; 
-    displayName: string; 
-    difficulty: string; 
-    groups?: Array<{ tiles?: TileType[] }> 
-  }>, [])
+  // Get selected patterns properly
+  const selectedPatterns = useMemo(() => {
+    return patternStore.getTargetPatterns()
+  }, [patternStore])
+
+  // Helper function to check if a tile matches a pattern group
+  const checkTileMatchesPatternGroup = useCallback((tileId: string, group: { Constraint_Values?: string; Constraint_Type?: string }) => {
+    const constraintValues = group.Constraint_Values || ''
+
+    // Basic matching logic based on constraint values
+    if (constraintValues === 'flower' && tileId.startsWith('f')) return true
+    if (constraintValues === 'joker' && tileId === 'joker') return true
+    
+    // For numeric constraints, check if tile matches
+    const values = constraintValues.split(',').map((v: string) => v.trim())
+    for (const value of values) {
+      if (value === '0') continue // Skip neutral positions
+      if (tileId.startsWith(value)) return true
+      if (['east', 'south', 'west', 'north', 'red', 'green', 'white'].includes(value.toLowerCase()) && 
+          tileId === value.toLowerCase()) return true
+    }
+    
+    return false
+  }, [])
 
   // Local state
   const [isMyTurn, setIsMyTurn] = useState(false)
@@ -88,25 +107,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     strategicValue?: number 
   }>>([])
 
-  // Current hand with drawn tile - simplified
-  const currentHand = useMemo(() => [] as TileType[], [])
+  // Current hand with drawn tile - get real player hand from tile store
+  const currentHand = useMemo(() => tileStore.playerHand || [], [tileStore.playerHand])
   const fullHand = useMemo(() => 
     lastDrawnTile ? [...currentHand, lastDrawnTile] : currentHand, 
     [currentHand, lastDrawnTile]
   )
 
-  // Real-time analysis - simplified
-  const currentAnalysis = null as {
-    tileRecommendations?: Array<{ action: string; tileId?: string; reasoning?: string }>;
-    bestPatterns?: Array<{ patternId: string; completionPercentage: number; difficulty: string; tilesNeeded?: number }>;
-    strategicAdvice?: string[];
-  } | null
-
-  // Initialize game mode
-  useEffect(() => {
-    console.log('🎮 GameModeView initialized - basic demo mode')
-    setIsMyTurn(true)
-  }, [])
+  // Real-time analysis - get actual analysis from intelligence store
+  const currentAnalysis = intelligenceStore.currentAnalysis
 
   // Real-time hand analysis
   const analyzeCurrentHand = useCallback(async () => {
@@ -132,14 +141,27 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       })
       
       // Trigger intelligence analysis with enhanced context
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await intelligenceStore.analyzeHand(handForAnalysis, [] as any[])
+      await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns)
     } catch (error) {
       console.error('Failed to analyze hand:', error)
     } finally {
       setIsAnalyzing(false)
     }
   }, [fullHand, selectedPatterns, exposedTiles, intelligenceStore])
+
+  // Initialize game mode
+  useEffect(() => {
+    console.log('🎮 GameModeView initialized - basic demo mode')
+    setIsMyTurn(true)
+  }, [])
+
+  // Auto-analyze hand when it changes
+  useEffect(() => {
+    if (fullHand.length > 0 && selectedPatterns.length > 0) {
+      console.log('🔄 Hand changed, triggering auto-analysis')
+      analyzeCurrentHand()
+    }
+  }, [fullHand, selectedPatterns, analyzeCurrentHand])
 
   // Draw tile action
   const handleDrawTile = useCallback(() => {
@@ -173,18 +195,21 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     selectedPatterns.forEach(pattern => {
       if (pattern.groups) {
         pattern.groups.forEach(group => {
-          if (group.tiles && group.tiles.some(t => t.id === discardedTile.id)) {
-            const tilesInHand = group.tiles.filter(t => 
-              currentHand.some(h => h.id === t.id)
+          // Check if discarded tile matches this group's constraints
+          const tileMatchesGroup = checkTileMatchesPatternGroup(discardedTile.id, group)
+          if (tileMatchesGroup) {
+            // Count how many tiles we have that match this group
+            const matchingTilesInHand = currentHand.filter(tile => 
+              checkTileMatchesPatternGroup(tile.id, group)
             )
             
-            if (tilesInHand.length >= 2) {
+            if (matchingTilesInHand.length >= 2) {
               opportunities.push({
                 tile: discardedTile,
-                callType: tilesInHand.length === 2 ? 'pung' : 'kong',
-                exposedTiles: [...tilesInHand, discardedTile],
-                priority: tilesInHand.length === 3 ? 'high' : 'medium',
-                reasoning: `Complete ${group.tiles.length}-tile group for ${pattern.displayName}`,
+                callType: matchingTilesInHand.length === 2 ? 'pung' : 'kong',
+                exposedTiles: [...matchingTilesInHand, discardedTile],
+                priority: matchingTilesInHand.length === 3 ? 'high' : 'medium',
+                reasoning: `Complete ${group.Constraint_Type} group for ${pattern.displayName}`,
                 patternProgress: 75
               })
             }
@@ -347,7 +372,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const recommendedDiscard = useCallback(() => {
     if (!currentAnalysis || !fullHand || fullHand.length === 0) return null
     
-    return currentAnalysis.tileRecommendations?.find(rec => rec.action === 'discard')
+    // Find tiles to pass/discard (analysis engine uses 'pass' and 'discard')
+    return currentAnalysis.tileRecommendations?.find(rec => 
+      rec.action === 'discard' || rec.action === 'pass'
+    )
   }, [currentAnalysis, fullHand])
 
   const findAlternativePatterns = useCallback(() => {
@@ -579,17 +607,23 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
                 {/* Pattern Progress */}
                 <div className="space-y-2">
                   <div className="text-sm font-medium text-gray-700">🎯 Pattern Progress</div>
-                  {selectedPatterns.slice(0, 2).map((pattern, index) => (
-                    <div key={index} className="p-2 bg-gray-50 rounded">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-medium">{pattern.displayName}</span>
-                        <span className="text-xs text-gray-500">75%</span>
+                  {currentAnalysis.recommendedPatterns?.slice(0, 2).map((patternRec, index) => {
+                    const completionPercentage = patternRec.completionPercentage || 0
+                    return (
+                      <div key={index} className="p-2 bg-gray-50 rounded">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-medium">{patternRec.pattern.displayName}</span>
+                          <span className="text-xs text-gray-500">{Math.round(completionPercentage)}%</span>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+                            style={{ width: `${Math.max(5, completionPercentage)}%` }} 
+                          />
+                        </div>
                       </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div className="bg-blue-600 h-2 rounded-full" style={{ width: '75%' }} />
-                      </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
 
                 {/* Quick Actions */}
