@@ -52,6 +52,18 @@ export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
     const positionedPlayerIds = Object.keys(playerPositions)
     return players.filter(player => !positionedPlayerIds.includes(player.id))
   }
+  
+  // Solo mode helper functions
+  const getSoloModePlayerName = (position: PlayerPosition): string => {
+    if (!isSoloMode) return ''
+    const positionIndex = ['east', 'south', 'west', 'north'].indexOf(position)
+    if (position === 'east') return hostName || 'Host'
+    return otherPlayerNames[positionIndex - 1] || `Player ${positionIndex + 1}`
+  }
+  
+  const isSoloModePosition = (position: PlayerPosition): boolean => {
+    return isSoloMode && position !== 'east' // In solo mode, only East (host) is real
+  }
 
   const handlePositionClick = (position: PlayerPosition) => {
     if (disabled || !currentPlayerId) return

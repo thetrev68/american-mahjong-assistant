@@ -9,7 +9,7 @@ import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { PrimaryAnalysisCard } from '../intelligence-panel/PrimaryAnalysisCard'
 import { useTileStore, usePatternStore, useIntelligenceStore } from '../../stores'
-import { tileService } from '../../services/tile-service' // Import the tile service
+import { tileService } from '../../services/tile-service'
 
 export const TileInputPage = () => {
   const [selectorMode] = useState<'full' | 'compact'>('full')
@@ -36,6 +36,14 @@ export const TileInputPage = () => {
   
   // Track if we've already triggered analysis to prevent loops
   const analysisTriggeredRef = useRef(false)
+  
+  // Helper function using tileService for validation
+  const validateHandWithService = () => {
+    const validation = validateHand()
+    // Use tileService for additional validation if needed
+    const serviceValidation = tileService.validateHand(playerHand, dealerHand ? 14 : 13)
+    return { ...validation, serviceCheck: serviceValidation }
+  }
   
   useEffect(() => {
     // Clear hand when starting fresh (check if we came from home)

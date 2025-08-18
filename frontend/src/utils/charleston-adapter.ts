@@ -50,8 +50,8 @@ export class CharlestonAdapter {
       id: playerTile.id,
       suit: playerTile.suit,
       value: playerTile.value.toString(),
-      isJoker: playerTile.isJoker,
-      display: playerTile.display,
+      isJoker: playerTile.value === 'joker' || playerTile.suit === 'jokers',
+      display: playerTile.displayName,
       instanceId: playerTile.instanceId
     }
   }
@@ -64,8 +64,7 @@ export class CharlestonAdapter {
       id: charlestonTile.id,
       suit: charlestonTile.suit as any, // Charleston uses string, PlayerTile uses specific union
       value: parseInt(charlestonTile.value) || charlestonTile.value as any,
-      isJoker: charlestonTile.isJoker || false,
-      display: charlestonTile.display || charlestonTile.id,
+      displayName: charlestonTile.display || charlestonTile.id,
       instanceId: `charleston-${charlestonTile.id}-${Date.now()}`,
       isSelected: false
     }

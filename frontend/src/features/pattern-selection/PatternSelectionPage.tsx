@@ -8,7 +8,7 @@ import { Button } from '../../ui-components/Button'
 import { PatternFilters } from './PatternFilters'
 import { PatternGrid } from './PatternGrid'
 import { SelectedPatternsPanel } from './SelectedPatternsPanel'
-import { usePatternStore } from '../../stores'
+import { usePatternStore, useTileStore } from '../../stores'
 
 export const PatternSelectionPage = () => {
   const {
@@ -17,8 +17,10 @@ export const PatternSelectionPage = () => {
     getSelectedPattern
   } = usePatternStore()
   
+  const { playerHand } = useTileStore()
   const selectedPattern = getSelectedPattern()
   const navigate = useNavigate()
+  const hasHand = playerHand.length > 0
   
   useEffect(() => {
     loadPatterns()
@@ -44,6 +46,11 @@ export const PatternSelectionPage = () => {
           
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Browse all 71 authentic NMJL 2025 patterns. Select your primary target and star additional patterns to consider.
+            {hasHand && (
+              <span className="block mt-2 text-base text-primary font-medium">
+                🎯 Intelligent completion scores shown based on your current hand
+              </span>
+            )}
           </p>
         </div>
         
@@ -77,13 +84,25 @@ export const PatternSelectionPage = () => {
                   Continue with {selectedPattern ? `${selectedPattern.section} #${selectedPattern.line}` : 'Selection'}
                 </Button>
                 
-                <Button
-                  variant="outline"
-                  size="lg"
-                  className="w-full"
-                >
-                  Save Pattern List
-                </Button>
+                {hasHand ? (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => navigate('/tile-input')}
+                  >
+                    Modify Hand
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => navigate('/tile-input')}
+                  >
+                    Add Hand for AI Analysis
+                  </Button>
+                )}
               </div>
               
               {/* Stats */}
@@ -102,6 +121,18 @@ export const PatternSelectionPage = () => {
                     <div className="text-xs text-gray-600">Targets</div>
                   </div>
                 </div>
+                
+                {hasHand && (
+                  <div className="mt-4 pt-3 border-t border-primary/20">
+                    <div className="flex items-center justify-center gap-2 text-sm text-primary">
+                      <span>🧠</span>
+                      <span className="font-medium">AI Analysis Active</span>
+                    </div>
+                    <p className="text-xs text-gray-600 mt-1 text-center">
+                      Scores calculated from {playerHand.length} tiles in hand
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
