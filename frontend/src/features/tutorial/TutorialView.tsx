@@ -86,16 +86,16 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
       case 'welcome':
       case 'getting-started':
         return (
-          <div className="text-center space-y-4 sm:space-y-6 px-4 sm:px-0">
-            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">
+          <div className="text-center space-y-4 sm:space-y-6 px-2 sm:px-4 lg:px-0">
+            <div className="text-3xl sm:text-4xl lg:text-6xl mb-3 sm:mb-4">
               {section === 'welcome' ? '👋' : '🚀'}
             </div>
             <div className="space-y-3 sm:space-y-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{currentStep.title}</h2>
-              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">{currentStep.title}</h2>
+              <p className="text-sm sm:text-base lg:text-lg text-gray-600 w-full max-w-xs sm:max-w-md lg:max-w-2xl mx-auto leading-relaxed">
                 {currentStep.description}
               </p>
-              <div className="text-sm sm:text-base text-gray-700 leading-relaxed max-w-xl mx-auto">
+              <div className="text-xs sm:text-sm lg:text-base text-gray-700 leading-relaxed w-full max-w-xs sm:max-w-sm lg:max-w-xl mx-auto">
                 {currentStep.content}
               </div>
             </div>
@@ -231,12 +231,12 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <Container className="py-4 sm:py-8 px-4 sm:px-6">
+      <Container className="py-4 sm:py-8 px-2 sm:px-4 lg:px-6">
         {/* Header with progress */}
         <div className="mb-6 sm:mb-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2 sm:gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mahjong Co-Pilot Tutorial</h1>
+              <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">Mahjong Co-Pilot Tutorial</h1>
               <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
                 <span>⏱️ {progressMetrics.estimatedTimeRemaining} min remaining</span>
               </div>
@@ -285,13 +285,13 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
         {renderSectionNavigation()}
 
         {/* Main Content */}
-        <Card variant="elevated" className="max-w-4xl mx-auto">
-          <div className="p-4 sm:p-6 lg:p-8">
+        <Card variant="elevated" className="w-full max-w-4xl mx-auto">
+          <div className="p-3 sm:p-6 lg:p-8">
             {renderStepContent()}
           </div>
 
           {/* Navigation Footer */}
-          <div className="border-t border-gray-200 px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+          <div className="border-t border-gray-200 px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
               <div className="flex items-center space-x-2 sm:space-x-4">
                 {canNavigateBack && (

@@ -55,7 +55,7 @@ export const TileInputPage = () => {
   }
   
   // Run debug on first render
-  if (typeof window !== 'undefined' && !window.tileDebugRun) {
+  if (typeof window !== 'undefined' && !((window as any).tileDebugRun)) {
     debugTileService()
     
     // Debug localStorage to see what's persisted
@@ -68,7 +68,7 @@ export const TileInputPage = () => {
     localStorage.removeItem('tile-store')
     console.log('=== End LocalStorage Debug ===')
     
-    window.tileDebugRun = true
+    ;(window as any).tileDebugRun = true
   }
   
   useEffect(() => {

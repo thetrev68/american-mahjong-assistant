@@ -5,7 +5,9 @@
       "Bash(npm test:*)",
       "Bash(npm run build:*)",
       "Bash(git add:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(grep:*)",
+      "Bash(node:*)"
     ],
     "deny": [],
     "ask": []

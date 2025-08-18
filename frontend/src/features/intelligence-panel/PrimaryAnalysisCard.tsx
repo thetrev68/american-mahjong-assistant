@@ -48,13 +48,23 @@ export const PrimaryAnalysisCard = ({
   const passRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'pass' || rec.action === 'discard')
   const keepRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'keep')
 
-  // Calculate key metrics
-  const tilesHeld = primaryPattern.completionPercentage || 0
-  const totalTiles = 14
-  const tilesNeeded = Math.round((100 - tilesHeld) / 100 * totalTiles)
-  const estimatedMoves = analysis.strategicAdvice[0]?.includes('turns') 
-    ? parseInt(analysis.strategicAdvice[0].match(/\d+/)?.[0] || '8') 
-    : Math.floor(Math.random() * 8) + 5
+  // Use the new mathematical analysis data
+  const completionPercentage = primaryPattern.completionPercentage || 0
+  const analysisData = primaryPattern.analysis
+  const scoreBreakdown = primaryPattern.scoreBreakdown
+  
+  // Get detailed metrics from the new analysis
+  const currentTiles = analysisData?.currentTiles?.count || 0
+  const totalRequiredTiles = 14
+  // const tilesNeeded = totalRequiredTiles - currentTiles
+  // const estimatedTurns = analysisData?.gameState?.turnsEstimated || Math.ceil(tilesNeeded / 2)
+  
+  // Get score components
+  const currentTileScore = scoreBreakdown?.currentTileScore || 0
+  const availabilityScore = scoreBreakdown?.availabilityScore || 0
+  const jokerScore = scoreBreakdown?.jokerScore || 0
+  const priorityScore = scoreBreakdown?.priorityScore || 0
+  const totalScore = currentTileScore + availabilityScore + jokerScore + priorityScore
 
   return (
     <Card variant="elevated" className="p-4 md:p-6">
@@ -78,30 +88,55 @@ export const PrimaryAnalysisCard = ({
           </div>
         </div>
 
-        {/* Key Metrics */}
+        {/* Enhanced Mathematical Analysis */}
         <div className="bg-gradient-to-r from-primary/5 to-secondary/5 rounded-lg p-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <div className="text-xl md:text-2xl font-bold text-primary">
-                {Math.round(primaryPattern.completionPercentage)}%
+                {Math.round(completionPercentage)}%
               </div>
               <div className="text-xs md:text-sm text-gray-600">Completion</div>
             </div>
             
             <div>
               <div className="text-xl md:text-2xl font-bold text-accent">
-                {tilesNeeded}
+                {currentTiles}/{totalRequiredTiles}
               </div>
-              <div className="text-xs md:text-sm text-gray-600">Tiles Needed</div>
+              <div className="text-xs md:text-sm text-gray-600">Pattern Tiles</div>
             </div>
-            
-            <div className="col-span-2 md:col-span-1">
-              <div className="text-xl md:text-2xl font-bold text-warning">
-                ~{estimatedMoves}
+
+            <div>
+              <div className="text-xl md:text-2xl font-bold text-purple-600">
+                {Math.round(totalScore)}
               </div>
-              <div className="text-xs md:text-sm text-gray-600">Moves Left</div>
+              <div className="text-xs md:text-sm text-gray-600">AI Score</div>
             </div>
           </div>
+
+          {/* Score Breakdown */}
+          {scoreBreakdown && (
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <div className="text-xs text-gray-600 mb-2">Score Components:</div>
+              <div className="grid grid-cols-4 gap-2 text-xs">
+                <div className="text-center">
+                  <div className="font-semibold">{Math.round(currentTileScore)}</div>
+                  <div className="text-gray-500">Current</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold">{Math.round(availabilityScore)}</div>
+                  <div className="text-gray-500">Available</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold">{Math.round(jokerScore)}</div>
+                  <div className="text-gray-500">Jokers</div>
+                </div>
+                <div className="text-center">
+                  <div className="font-semibold">{Math.round(priorityScore)}</div>
+                  <div className="text-gray-500">Priority</div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Tile Recommendations */}

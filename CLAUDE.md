@@ -426,4 +426,44 @@ Development follows a **context-window-sized chunk approach** documented in `doc
 - **Consistent naming** following existing patterns
 - **Mobile-first** responsive design principles
 
+## 🎯 PRIORITY FEATURE: Real-Time Pattern Analysis System
+
+### **CRITICAL TODO: Complete All-Pattern Analysis Engine**
+
+**Location**: `frontend/public/intelligence/nmjl-patterns/pattern-analysis-script.js` (initial draft)
+
+**Requirement**: On every tile transaction (Charleston, gameplay, any player), run comprehensive analysis of all 71 NMJL patterns and display top 3 recommendations for each player.
+
+### **Current Issues to Fix:**
+1. **Joker Rule Enforcement**: 
+   - Jokers CANNOT be used for Singles & Pairs patterns (only pungs/kongs)
+   - Current script incorrectly counts jokers for all pattern types
+   - Example: SINGLES AND PAIRS-4 should show 5/14 tiles (6B×2, 6C×2, F1), not 13/14
+
+2. **Pattern Analysis Accuracy**:
+   - Implement proper constraint handling for all 71 patterns
+   - Add specialized logic for consecutive, must_match, and joker restrictions
+   - Ensure tile counting matches expert manual calculations
+
+3. **Real-Time Integration**:
+   - Hook into tile store changes (add/remove/charleston)
+   - Run analysis for current player's hand every transaction
+   - Display top 3 viable patterns with completion %, tile count, AI score
+   - Update recommendations immediately when hand changes
+
+### **Target Output Format** (for each player):
+```
+🥇 1. SINGLES AND PAIRS-4: 36% (5/14 tiles) - AI Score: 45
+🥈 2. ANY LIKE NUMBERS-3: 29% (4/14 tiles) - AI Score: 38  
+🥉 3. CONSECUTIVE RUN-5: 21% (3/14 tiles) - AI Score: 32
+```
+
+### **Integration Points**:
+- Charleston tile passing
+- Gameplay draw/discard actions
+- Any player's visible actions affecting wall/availability
+- Pattern recommendation updates in Intelligence Panel
+
+**Priority**: HIGH - This is core to the intelligent co-pilot experience
+
 This co-pilot architecture provides a solid foundation for building an intelligent American Mahjong assistant that enhances rather than replaces the social in-person gaming experience.

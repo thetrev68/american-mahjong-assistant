@@ -33,6 +33,13 @@ export const HandDisplay = ({
     getTileGroups
   } = useTileStore()
   
+  // Debug logging for hand display
+  console.log('=== HandDisplay Debug ===')
+  console.log('PlayerHand from store:', playerHand)
+  console.log('PlayerHand length:', playerHand.length)
+  console.log('HandDisplay props:', { showRecommendations, allowReordering, compactMode })
+  console.log('=== End HandDisplay Debug ===')
+  
   // Get AI recommendations for highlighting
   const { currentAnalysis } = useIntelligenceStore()
   

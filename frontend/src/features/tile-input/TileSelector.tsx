@@ -38,24 +38,36 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
   })
   
   const handleTileClick = (tile: BaseTile) => {
+    console.log('=== Tile Click Debug ===')
+    console.log('Clicked tile:', tile)
+    console.log('Player hand before:', playerHand)
+    console.log('Dealer hand mode:', dealerHand)
+    
     const currentCount = tileCounts.get(tile.id) || 0
+    console.log('Current count of this tile:', currentCount)
     
     // Check if we're at max hand size
     const maxHandSize = dealerHand ? 14 : 13
+    console.log('Max hand size:', maxHandSize, 'Current hand size:', playerHand.length)
+    
     if (playerHand.length >= maxHandSize) {
-      // Visual feedback - could add toast/alert here
+      console.log('BLOCKED: Hand is at max size')
       return
     }
     
     if (currentCount >= 4) {
-      // Visual feedback for max tiles of this type
+      console.log('BLOCKED: Already have 4 of this tile type')
       return
     }
     
+    console.log('Calling addTile with:', tile.id)
     addTile(tile.id)
+    
     if (onTileSelect) {
+      console.log('Calling onTileSelect callback')
       onTileSelect(tile.id)
     }
+    console.log('=== End Tile Click Debug ===')
   }
   
   const createDummyPlayerTile = (baseTile: BaseTile): PlayerTile => ({
