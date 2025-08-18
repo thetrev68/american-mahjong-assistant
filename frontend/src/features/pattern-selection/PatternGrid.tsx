@@ -1,13 +1,14 @@
 // Pattern Grid Layout Component
 // Responsive grid displaying filtered pattern cards
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { PatternCard } from './PatternCard'
 import { PatternAnalysisModal } from './PatternAnalysisModal'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { Button } from '../../ui-components/Button'
 import { usePatternStore, useTileStore } from '../../stores'
-import { PatternIntelligenceService } from '../../services/pattern-intelligence-service'
+import { AnalysisEngine } from '../../services/analysis-engine'
+import type { HandAnalysis, PatternRecommendation } from '../../stores/intelligence-store'
 import type { PatternIntelligenceScore } from '../../services/pattern-intelligence-service'
 
 export const PatternGrid = () => {
@@ -30,46 +31,40 @@ export const PatternGrid = () => {
   const { playerHand } = useTileStore()
   const filteredPatterns = getFilteredPatterns()
   
-  // Calculate intelligence scores for all patterns
-  const intelligenceScores = useMemo(() => {
-    if (!playerHand.length || !filteredPatterns.length) {
-      return new Map<string, PatternIntelligenceScore>()
+  // Calculate pattern analysis using existing analysis engine
+  const [patternAnalysis, setPatternAnalysis] = useState<HandAnalysis | null>(null)
+  
+  useEffect(() => {
+    if (!playerHand.length || !filteredPatterns.length || playerHand.length < 3) {
+      setPatternAnalysis(null)
+      return
     }
     
-    try {
-      const gameState = {
-        playerHand: playerHand.map(tile => tile.id),
-        exposedTiles: {}, // Empty for pattern selection phase
-        discardPile: [],
-        jokersInHand: playerHand.filter(tile => tile.value === 'joker' || tile.suit === 'jokers').length,
-        currentTurn: 1,
-        totalPlayers: 4
+    const analyzePatterns = async () => {
+      try {
+        const analysis = await AnalysisEngine.analyzeHand(playerHand, filteredPatterns)
+        setPatternAnalysis(analysis)
+      } catch (error) {
+        console.warn('Failed to calculate pattern analysis:', error)
+        setPatternAnalysis(null)
       }
-      
-      // Only analyze if we have a meaningful hand size
-      if (gameState.playerHand.length < 3) {
-        return new Map<string, PatternIntelligenceScore>()
-      }
-      
-      const scores = PatternIntelligenceService.calculateAllPatternScores(
-        filteredPatterns,
-        gameState
-      )
-      
-      const scoreMap = new Map<string, PatternIntelligenceScore>()
-      scores.forEach(score => {
-        // Only include scores that seem reasonable
-        if (score.completionScore >= 0 && score.completionScore <= 100) {
-          scoreMap.set(score.patternId, score)
-        }
-      })
-      
-      return scoreMap
-    } catch (error) {
-      console.warn('Failed to calculate intelligence scores:', error)
-      return new Map<string, PatternIntelligenceScore>()
     }
+    
+    analyzePatterns()
   }, [playerHand, filteredPatterns])
+  
+  // Convert analysis to map for easy lookup
+  const intelligenceScores = useMemo(() => {
+    const scoreMap = new Map<string, PatternRecommendation>()
+    
+    if (patternAnalysis && patternAnalysis.recommendedPatterns) {
+      patternAnalysis.recommendedPatterns.forEach(pattern => {
+        scoreMap.set(pattern.pattern.id, pattern)
+      })
+    }
+    
+    return scoreMap
+  }, [patternAnalysis])
   
   if (isLoading) {
     return (
@@ -128,8 +123,33 @@ export const PatternGrid = () => {
   
   const handleAnalyze = (patternId: string) => {
     const analysis = intelligenceScores.get(patternId)
-    if (analysis) {
-      setSelectedAnalysis(analysis)
+    if (analysis && analysis.analysis) {
+      // Convert PatternRecommendation to PatternIntelligenceScore
+      const modalAnalysis: PatternIntelligenceScore = {
+        patternId: analysis.pattern.id,
+        patternName: analysis.pattern.displayName || analysis.pattern.pattern,
+        pattern: analysis.pattern,
+        completionScore: analysis.completionPercentage,
+        recommendation: analysis.completionPercentage >= 80 ? 'excellent' :
+                       analysis.completionPercentage >= 65 ? 'good' :
+                       analysis.completionPercentage >= 45 ? 'fair' :
+                       analysis.completionPercentage >= 25 ? 'poor' : 'impossible',
+        confidence: analysis.confidence / 100,
+        analysis: analysis.analysis,
+        scoreBreakdown: analysis.scoreBreakdown || {
+          currentTileScore: 0,
+          availabilityScore: 0,
+          jokerScore: 0,
+          priorityScore: 0
+        },
+        recommendations: analysis.recommendations || {
+          shouldPursue: false,
+          alternativePatterns: [],
+          strategicNotes: [],
+          riskFactors: []
+        }
+      }
+      setSelectedAnalysis(modalAnalysis)
       setAnalysisModalOpen(true)
     }
   }

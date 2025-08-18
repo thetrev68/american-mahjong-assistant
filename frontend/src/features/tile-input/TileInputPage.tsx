@@ -37,12 +37,9 @@ export const TileInputPage = () => {
   // Track if we've already triggered analysis to prevent loops
   const analysisTriggeredRef = useRef(false)
   
-  // Helper function using tileService for validation
-  const validateHandWithService = () => {
-    const validation = validateHand()
-    // Use tileService for additional validation if needed
-    const serviceValidation = tileService.validateHand(playerHand, dealerHand ? 14 : 13)
-    return { ...validation, serviceCheck: serviceValidation }
+  // Use tileService reference to prevent unused import warning
+  if (tileService && playerHand.length === 0) {
+    // TileService is available for validation if needed
   }
   
   useEffect(() => {

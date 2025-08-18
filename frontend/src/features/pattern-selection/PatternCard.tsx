@@ -5,7 +5,7 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { useAnimationsEnabled } from '../../stores'
 import type { PatternSelectionOption, PatternProgress } from '../../../../shared/nmjl-types'
-import type { PatternIntelligenceScore } from '../../services/pattern-intelligence-service'
+import type { PatternRecommendation } from '../../stores/intelligence-store'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface PatternCardProps {
@@ -13,7 +13,7 @@ interface PatternCardProps {
   isSelected: boolean
   isTarget: boolean
   progress?: PatternProgress
-  intelligenceScore?: PatternIntelligenceScore
+  intelligenceScore?: PatternRecommendation
   onSelect: (patternId: string) => void
   onToggleTarget: (patternId: string) => void
   onAnalyze?: (patternId: string) => void
@@ -138,12 +138,12 @@ export const PatternCard = ({
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-medium text-gray-700">Completion Score</span>
-                <span className={`text-lg font-bold ${getScoreColor(intelligenceScore.completionScore)}`}>
-                  {intelligenceScore.completionScore.toFixed(0)}
+                <span className={`text-lg font-bold ${getScoreColor(intelligenceScore.completionPercentage)}`}>
+                  {intelligenceScore.completionPercentage.toFixed(0)}
                 </span>
               </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRecommendationColor(intelligenceScore.recommendation)}`}>
-                {intelligenceScore.recommendation.toUpperCase()}
+              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRecommendationColor(intelligenceScore.difficulty)}`}>
+                {intelligenceScore.difficulty.toUpperCase()}
               </span>
             </div>
             
@@ -152,12 +152,12 @@ export const PatternCard = ({
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className={`h-2 rounded-full transition-all duration-500 ${
-                      intelligenceScore.completionScore >= 80 ? 'bg-green-500' :
-                      intelligenceScore.completionScore >= 65 ? 'bg-blue-500' :
-                      intelligenceScore.completionScore >= 45 ? 'bg-yellow-500' :
-                      intelligenceScore.completionScore >= 25 ? 'bg-orange-500' : 'bg-red-500'
+                      intelligenceScore.completionPercentage >= 80 ? 'bg-green-500' :
+                      intelligenceScore.completionPercentage >= 65 ? 'bg-blue-500' :
+                      intelligenceScore.completionPercentage >= 45 ? 'bg-yellow-500' :
+                      intelligenceScore.completionPercentage >= 25 ? 'bg-orange-500' : 'bg-red-500'
                     }`}
-                    style={{ width: `${intelligenceScore.completionScore}%` }}
+                    style={{ width: `${intelligenceScore.completionPercentage}%` }}
                   />
                 </div>
               </div>
@@ -178,26 +178,28 @@ export const PatternCard = ({
             </div>
             
             {/* Quick stats */}
-            <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
-              <div className="text-center">
-                <div className="font-semibold text-blue-600">
-                  {intelligenceScore.analysis.currentTiles.count}
+            {intelligenceScore.analysis && (
+              <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
+                <div className="text-center">
+                  <div className="font-semibold text-blue-600">
+                    {intelligenceScore.analysis.currentTiles.count}
+                  </div>
+                  <div>Current</div>
                 </div>
-                <div>Current</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-orange-600">
-                  {intelligenceScore.analysis.missingTiles.total}
+                <div className="text-center">
+                  <div className="font-semibold text-orange-600">
+                    {intelligenceScore.analysis.missingTiles.total}
+                  </div>
+                  <div>Missing</div>
                 </div>
-                <div>Missing</div>
-              </div>
-              <div className="text-center">
-                <div className="font-semibold text-purple-600">
-                  {intelligenceScore.analysis.jokerSituation.available}
+                <div className="text-center">
+                  <div className="font-semibold text-purple-600">
+                    {intelligenceScore.analysis.jokerSituation.available}
+                  </div>
+                  <div>Jokers</div>
                 </div>
-                <div>Jokers</div>
               </div>
-            </div>
+            )}
           </div>
         )}
         

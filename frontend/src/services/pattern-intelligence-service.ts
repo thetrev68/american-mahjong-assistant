@@ -219,9 +219,10 @@ export class PatternIntelligenceService {
     const allMissingTiles: string[] = []
     const availabilities: Array<{ remainingInWall: number, canUseJoker: boolean }> = []
     
-    // This would need the full pattern expansion logic
-    // For now, simplified example
-    const exampleMissingTiles = this.getExampleMissingTiles(pattern, gameState.playerHand)
+    // Extract missing tiles from the best variation of the pattern
+    // Use pattern metadata for enhanced analysis
+    const patternDifficulty = pattern.difficulty || 'medium'
+    const exampleMissingTiles = this.getVariationMissingTiles(bestVariation, gameState.playerHand)
     
     const categorizedMissing = {
       easy: [] as string[],
@@ -244,10 +245,13 @@ export class PatternIntelligenceService {
         canUseJoker: true // Simplified
       })
       
-      // Categorize by difficulty
-      if (availability.remainingInWall >= 3) {
+      // Categorize by difficulty (adjusted based on pattern difficulty)
+      const easyThreshold = patternDifficulty === 'hard' ? 4 : 3
+      const moderateThreshold = patternDifficulty === 'easy' ? 0 : 1
+      
+      if (availability.remainingInWall >= easyThreshold) {
         categorizedMissing.easy.push(tileId)
-      } else if (availability.remainingInWall >= 1) {
+      } else if (availability.remainingInWall >= moderateThreshold) {
         categorizedMissing.moderate.push(tileId)
       } else if (true) { // Can use joker
         categorizedMissing.difficult.push(tileId)
@@ -299,6 +303,16 @@ export class PatternIntelligenceService {
     
     if (missingTileAnalysis.categorizedMissing.impossible.length > 0) {
       riskFactors.push('Some required tiles are no longer available')
+    }
+    
+    // Game state specific analysis
+    const wallRemaining = this.estimateWallTilesRemaining(gameState)
+    if (wallRemaining < 30) {
+      riskFactors.push('Late in game - limited drawing opportunities')
+    }
+    
+    if (gameState.currentTurn > 8) {
+      strategicNotes.push('Mid-game: evaluate switching patterns if needed')
     }
     
     return {
@@ -380,11 +394,73 @@ export class PatternIntelligenceService {
   }
   
   // Helper methods
-  private static getExampleMissingTiles(pattern: PatternSelectionOption, hand: string[]): string[] {
-    // Simplified - would use full pattern expansion
-    return ['flower1', '2dots', '5bams'] // Example
+  
+  private static getVariationMissingTiles(bestVariation: any, hand: string[]): string[] {
+    // Get missing tiles for this specific pattern variation
+    const handCounts = this.countTiles(hand)
+    const missing: string[] = []
+    
+    // Analyze each group in the variation
+    for (const group of bestVariation.groups || []) {
+      const groupTiles = this.getGroupTiles(group)
+      for (const [tileId, needed] of Object.entries(groupTiles)) {
+        const have = handCounts[tileId] || 0
+        if (have < needed) {
+          for (let i = have; i < needed; i++) {
+            missing.push(tileId)
+          }
+        }
+      }
+    }
+    
+    return missing
   }
   
+  static getPatternRequiredTiles(pattern: PatternSelectionOption): {[tileId: string]: number} {
+    // Extract required tiles from pattern groups
+    const required: {[tileId: string]: number} = {}
+    
+    for (const group of pattern.groups || []) {
+      const groupTiles = this.getGroupTiles(group)
+      for (const [tileId, count] of Object.entries(groupTiles)) {
+        required[tileId] = (required[tileId] || 0) + count
+      }
+    }
+    
+    return required
+  }
+  
+  private static getGroupTiles(group: any): {[tileId: string]: number} {
+    // Parse group constraints to get required tiles
+    const tiles: {[tileId: string]: number} = {}
+    const constraintType = group.Constraint_Type || 'sequence'
+    const constraintValues = group.Constraint_Values || ''
+    
+    if (constraintType === 'sequence') {
+      // Parse sequence like "123" 
+      for (const char of constraintValues) {
+        if (char >= '1' && char <= '9') {
+          tiles[`${char}dots`] = 1 // Simplified - would need suit detection
+        }
+      }
+    } else if (constraintType === 'pung') {
+      // Pung needs 3 of the same tile
+      if (constraintValues) {
+        tiles[`${constraintValues}dots`] = 3
+      }
+    }
+    
+    return tiles
+  }
+  
+  private static countTiles(tiles: string[]): {[tileId: string]: number} {
+    const counts: {[tileId: string]: number} = {}
+    for (const tile of tiles) {
+      counts[tile] = (counts[tile] || 0) + 1
+    }
+    return counts
+  }
+
   private static estimateWallTilesRemaining(gameState: GameStateContext): number {
     const totalTiles = 144 // Standard mahjong set
     const handTiles = gameState.playerHand.length * gameState.totalPlayers

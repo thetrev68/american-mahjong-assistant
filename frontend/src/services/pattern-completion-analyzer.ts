@@ -3,6 +3,7 @@
 
 interface TileAvailability {
   tileId: string
+  stillNeeded: number           // How many more of this tile we need
   originalCount: number          // Total tiles of this type in complete set (usually 4)
   inPlayerHand: number          // Count in current player's hand
   exposedByOthers: number       // Count in other players' exposed sets (pungs/kongs)
@@ -229,6 +230,7 @@ export class PatternCompletionAnalyzer {
         
         tilesNeeded.push({
           tileId,
+          stillNeeded,
           originalCount,
           inPlayerHand,
           exposedByOthers,
@@ -450,29 +452,101 @@ export class PatternCompletionAnalyzer {
   
   private static calculateVariationMatch(variation: any, handCounts: {[tile: string]: number}): number {
     // Calculate how well this variation matches current hand
-    return 0 // Placeholder
+    let totalMatches = 0
+    
+    for (const group of variation.groups || []) {
+      // Count how many tiles we have for this group
+      const requiredTiles = this.getGroupRequiredTiles(group)
+      for (const tileId of requiredTiles) {
+        const haveCount = handCounts[tileId] || 0
+        const needCount = 1 // Simplified - each tile needed once
+        totalMatches += Math.min(haveCount, needCount)
+      }
+    }
+    
+    return totalMatches
   }
   
   private static countCurrentPatternTiles(playerHand: string[], variation: any): number {
     // Count tiles in hand that match this pattern variation
-    return 0 // Placeholder  
+    const handCounts = this.countTiles(playerHand)
+    return this.calculateVariationMatch(variation, handCounts)
   }
   
   private static getRequiredTilesForGroup(group: any): {[tile: string]: number} {
     // Extract required tiles for this group
-    return {} // Placeholder
+    const requiredTiles: {[tile: string]: number} = {}
+    
+    // Parse group constraints to determine required tiles
+    const constraintType = group.Constraint_Type || 'sequence'
+    const constraintValues = group.Constraint_Values || ''
+    
+    if (constraintType === 'sequence') {
+      // Example: parse "123" into tiles like "1dots", "2dots", "3dots" 
+      for (const char of constraintValues) {
+        if (char >= '1' && char <= '9') {
+          requiredTiles[`${char}dots`] = 1 // Simplified - would need suit parsing
+        }
+      }
+    }
+    
+    return requiredTiles
   }
   
+  private static getGroupRequiredTiles(group: any): string[] {
+    // Get array of required tiles for this group (used by calculateVariationMatch)
+    const requiredTilesMap = this.getRequiredTilesForGroup(group)
+    return Object.keys(requiredTilesMap)
+  }
+
   private static calculateJokerRequirements(
     missingGroups: MissingTileGroup[], 
     jokersInHand: number
   ): { jokersNeeded: number, jokersAvailable: number } {
     // Calculate minimum jokers needed vs available
-    return { jokersNeeded: 0, jokersAvailable: jokersInHand }
+    let totalJokersNeeded = 0
+    
+    for (const group of missingGroups) {
+      // Count tiles that can only be completed with jokers
+      for (const tileInfo of group.tilesNeeded) {
+        if (tileInfo.remainingInWall === 0 && tileInfo.canUseJoker) {
+          totalJokersNeeded += Math.min(tileInfo.stillNeeded || 1, 1)
+        }
+      }
+    }
+    
+    return { 
+      jokersNeeded: totalJokersNeeded, 
+      jokersAvailable: jokersInHand 
+    }
   }
   
   private static calculateGroupPriority(group: any): number {
     // Calculate strategic priority for this group
-    return 5 // Placeholder
+    let priority = 5 // Base priority
+    
+    const constraintType = group.Constraint_Type || 'sequence'
+    const constraintValues = group.Constraint_Values || ''
+    
+    // Higher priority for terminal sequences (1-2-3, 7-8-9)
+    if (constraintType === 'sequence') {
+      if (constraintValues.includes('1') || constraintValues.includes('9')) {
+        priority += 2
+      }
+    }
+    
+    // Higher priority for honor tiles
+    if (constraintValues.includes('dragon') || constraintValues.includes('wind')) {
+      priority += 1
+    }
+    
+    // Kong and pung get priority bonuses
+    if (constraintType === 'kong') {
+      priority += 3
+    } else if (constraintType === 'pung') {
+      priority += 2
+    }
+    
+    return priority
   }
 }

@@ -201,7 +201,7 @@ export class TileFrequencyAnalyzer {
    * Calculate how "flexible" a tile is (appears in many different contexts)
    */
   private static calculateTileFlexibility(
-    tileId: string, 
+    _tileId: string, 
     data: any, 
     totalHands: number
   ): number {

@@ -339,7 +339,7 @@ export class IntelligenceCalculations {
    */
   private static prioritizeJokerUsage(
     jokerSubstitutableTiles: string[],
-    pattern: any
+    _pattern: any
   ): string[] {
     // Sort by priority: harder to get tiles should use jokers first
     return jokerSubstitutableTiles.sort((a, b) => {
@@ -364,7 +364,7 @@ export class IntelligenceCalculations {
     return 4 // Standard tiles
   }
   
-  private static canJokerSubstituteForTile(tileId: string, pattern: any): boolean {
+  private static canJokerSubstituteForTile(tileId: string, _pattern: any): boolean {
     // Jokers can't substitute for other jokers
     if (tileId.includes('joker')) return false
     
@@ -378,7 +378,7 @@ export class IntelligenceCalculations {
     return [pattern] // Simplified
   }
   
-  private static countGroupMatches(group: any, handCounts: { [tile: string]: number }): number {
+  private static countGroupMatches(_group: any, _handCounts: { [tile: string]: number }): number {
     // Count how many tiles in hand match this group's requirements
     return 0 // Placeholder - would implement group matching logic
   }

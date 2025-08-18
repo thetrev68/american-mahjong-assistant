@@ -43,6 +43,57 @@ export interface PatternRecommendation {
   reasoning: string
   difficulty: 'easy' | 'medium' | 'hard'
   isPrimary: boolean
+  
+  // Enhanced analysis breakdown
+  analysis?: {
+    currentTiles: {
+      count: number
+      percentage: number
+      matchingGroups: string[]
+    }
+    missingTiles: {
+      total: number
+      byAvailability: {
+        easy: string[]
+        moderate: string[]
+        difficult: string[]
+        impossible: string[]
+      }
+    }
+    jokerSituation: {
+      available: number
+      needed: number
+      canComplete: boolean
+      substitutionPlan: { [tileId: string]: boolean }
+    }
+    strategicValue: {
+      tilePriorities: { [tileId: string]: number }
+      groupPriorities: { [groupName: string]: number }
+      overallPriority: number
+      reasoning: string[]
+    }
+    gameState: {
+      wallTilesRemaining: number
+      turnsEstimated: number
+      drawProbability: number
+    }
+  }
+  
+  // Score components for transparency
+  scoreBreakdown?: {
+    currentTileScore: number    // 0-40 points
+    availabilityScore: number   // 0-30 points
+    jokerScore: number         // 0-20 points
+    priorityScore: number      // 0-10 points
+  }
+  
+  // Strategic recommendations
+  recommendations?: {
+    shouldPursue: boolean
+    alternativePatterns: string[]
+    strategicNotes: string[]
+    riskFactors: string[]
+  }
 }
 
 export interface HandAnalysis {

@@ -12,7 +12,8 @@ describe('RoomCreation Component', () => {
     onCreateRoom: vi.fn(),
     isCreating: false,
     error: null,
-    disabled: false
+    disabled: false,
+    coPilotMode: 'everyone' as const
   }
 
   beforeEach(() => {
