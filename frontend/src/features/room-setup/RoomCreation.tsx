@@ -1,14 +1,16 @@
 import React, { useState } from 'react'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
+import { type CoPilotMode } from '../../stores/room-store'
 
 interface RoomCreationProps {
   hostName: string
   onHostNameChange: (name: string) => void
-  onCreateRoom: (hostName: string) => void
+  onCreateRoom: (hostName: string, otherPlayerNames?: string[]) => void
   isCreating: boolean
   error: string | null
   disabled?: boolean
+  coPilotMode: CoPilotMode
 }
 
 export const RoomCreation: React.FC<RoomCreationProps> = ({
@@ -17,9 +19,13 @@ export const RoomCreation: React.FC<RoomCreationProps> = ({
   onCreateRoom,
   isCreating,
   error,
-  disabled = false
+  disabled = false,
+  coPilotMode
 }) => {
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [otherPlayerNames, setOtherPlayerNames] = useState<string[]>(['', '', ''])
+  
+  const isSoloMode = coPilotMode === 'solo'
 
   const validateHostName = (name: string): string | null => {
     const trimmedName = name.trim()
@@ -48,8 +54,17 @@ export const RoomCreation: React.FC<RoomCreationProps> = ({
       return
     }
     
+    // In solo mode, validate other player names
+    if (isSoloMode) {
+      const trimmedNames = otherPlayerNames.map(name => name.trim()).filter(name => name.length > 0)
+      if (trimmedNames.length === 0) {
+        setValidationError('Please enter at least one other player name')
+        return
+      }
+    }
+    
     setValidationError(null)
-    onCreateRoom(hostName.trim())
+    onCreateRoom(hostName.trim(), isSoloMode ? otherPlayerNames.map(name => name.trim()).filter(name => name.length > 0) : undefined)
   }
 
   const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -68,16 +83,25 @@ export const RoomCreation: React.FC<RoomCreationProps> = ({
     }
   }
 
+  const handleOtherPlayerNameChange = (index: number, name: string) => {
+    const newNames = [...otherPlayerNames]
+    newNames[index] = name
+    setOtherPlayerNames(newNames)
+  }
+
   const isFormDisabled = disabled || isCreating
 
   return (
     <div className="space-y-6">
       <div className="text-center">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          Create New Room
+          {isSoloMode ? 'Setup Solo Game' : 'Create New Room'}
         </h2>
         <p className="text-gray-600">
-          Creating a room will generate a 4-character code that others can use to join your game
+          {isSoloMode 
+            ? 'Enter the names of other players at your table. Only you will receive AI assistance.'
+            : 'Creating a room will generate a 4-character code that others can use to join your game'
+          }
         </p>
       </div>
 
@@ -114,6 +138,30 @@ export const RoomCreation: React.FC<RoomCreationProps> = ({
           )}
         </div>
 
+        {/* Other Player Names for Solo Mode */}
+        {isSoloMode && (
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-gray-700">
+              Other Players at Your Table
+            </label>
+            {otherPlayerNames.map((name, index) => (
+              <input
+                key={index}
+                type="text"
+                value={name}
+                onChange={(e) => handleOtherPlayerNameChange(index, e.target.value)}
+                placeholder={`Player ${index + 2} name (optional)`}
+                disabled={isFormDisabled}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+                maxLength={50}
+              />
+            ))}
+            <p className="text-xs text-gray-500">
+              Enter names of other players at your physical table. They won't get AI assistance.
+            </p>
+          </div>
+        )}
+
         <Button
           type="submit"
           variant="primary"
@@ -125,10 +173,10 @@ export const RoomCreation: React.FC<RoomCreationProps> = ({
           {isCreating ? (
             <div className="flex items-center justify-center space-x-2">
               <LoadingSpinner size="sm" />
-              <span>Creating Room...</span>
+              <span>{isSoloMode ? 'Setting up Game...' : 'Creating Room...'}</span>
             </div>
           ) : (
-            'Create Room'
+            isSoloMode ? 'Setup Solo Game' : 'Create Room'
           )}
         </Button>
       </form>
@@ -144,36 +192,42 @@ export const RoomCreation: React.FC<RoomCreationProps> = ({
 
       {/* Room features info */}
       <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-        <h3 className="font-medium text-gray-900 mb-3">Your room will include:</h3>
+        <h3 className="font-medium text-gray-900 mb-3">
+          {isSoloMode ? 'Your solo game will include:' : 'Your room will include:'}
+        </h3>
         <ul className="space-y-2 text-sm text-gray-600">
+          {!isSoloMode && (
+            <li className="flex items-center space-x-2">
+              <span className="text-green-500">✓</span>
+              <span>Shareable room code for easy joining</span>
+            </li>
+          )}
           <li className="flex items-center space-x-2">
             <span className="text-green-500">✓</span>
-            <span>Shareable room code for easy joining</span>
+            <span>{isSoloMode ? 'You and up to 3 other players' : 'Support for up to 4 players'}</span>
           </li>
           <li className="flex items-center space-x-2">
             <span className="text-green-500">✓</span>
-            <span>Support for up to 4 players</span>
+            <span>{isSoloMode ? 'AI co-pilot assistance for you only' : 'AI co-pilot assistance (based on your selected mode)'}</span>
           </li>
           <li className="flex items-center space-x-2">
             <span className="text-green-500">✓</span>
-            <span>AI co-pilot assistance (based on your selected mode)</span>
-          </li>
-          <li className="flex items-center space-x-2">
-            <span className="text-green-500">✓</span>
-            <span>Real-time game synchronization</span>
+            <span>{isSoloMode ? 'Track other players\' progress' : 'Real-time game synchronization'}</span>
           </li>
         </ul>
       </div>
 
-      {/* Hosting tips */}
+      {/* Tips */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
         <div className="flex items-start space-x-3">
           <span className="text-blue-500 mt-0.5" role="img" aria-label="Info">💡</span>
           <div className="text-sm text-blue-700">
-            <p className="font-medium mb-1">Hosting Tips:</p>
+            <p className="font-medium mb-1">{isSoloMode ? 'Solo Mode Tips:' : 'Hosting Tips:'}</p>
             <p>
-              As the host, you'll be able to start the game once all players have joined and chosen their positions.
-              Share your room code with other players to get started!
+              {isSoloMode 
+                ? 'You\'ll play with physical tiles and other players at your table. Only you will receive AI assistance. You can start the game once you\'ve chosen seating positions.'
+                : 'As the host, you\'ll be able to start the game once all players have joined and chosen their positions. Share your room code with other players to get started!'
+              }
             </p>
           </div>
         </div>

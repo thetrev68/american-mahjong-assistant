@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRoomSetup } from '../../hooks/useRoomSetup'
 import { useRoomStore } from '../../stores/room-store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
@@ -44,6 +44,11 @@ export const RoomSetupView: React.FC = () => {
   const handleBackStep = () => {
     switch (currentStep) {
       case 'room-creation':
+        // Reset the co-pilot mode selection so user can change it
+        roomStore.resetCoPilotModeSelection()
+        // Also reset room creation status and clear errors
+        roomStore.setRoomCreationStatus('idle')
+        roomStore.clearError()
         setForceStep('mode-selection')
         break
       case 'player-positioning':
@@ -51,6 +56,17 @@ export const RoomSetupView: React.FC = () => {
         break
     }
   }
+
+  const handleContinueFromModeSelection = () => {
+    setForceStep('room-creation')
+  }
+
+  // Effect to clear forceStep when room is successfully created so natural progression works
+  useEffect(() => {
+    if (forceStep === 'room-creation' && roomStore.currentRoomCode && roomStore.roomCreationStatus === 'success') {
+      setForceStep(null) // Clear forced step to allow natural progression to player-positioning
+    }
+  }, [forceStep, roomStore.currentRoomCode, roomStore.roomCreationStatus])
 
   const renderProgressIndicator = () => (
     <div className="mb-8">
@@ -109,6 +125,7 @@ export const RoomSetupView: React.FC = () => {
           <CoPilotModeSelector
             selectedMode={roomSetup.coPilotMode}
             onModeChange={roomSetup.setCoPilotMode}
+            onContinue={handleContinueFromModeSelection}
             disabled={roomSetup.isCreatingRoom || roomSetup.isJoiningRoom}
           />
         )
@@ -155,6 +172,7 @@ export const RoomSetupView: React.FC = () => {
                 isCreating={roomSetup.isCreatingRoom}
                 error={roomSetup.error}
                 disabled={roomSetup.isJoiningRoom}
+                coPilotMode={roomSetup.coPilotMode}
               />
             ) : (
               <RoomJoining
@@ -175,14 +193,25 @@ export const RoomSetupView: React.FC = () => {
         return (
           <div className="space-y-6">
             {/* Room info */}
-            <div className="text-center bg-primary-50 border border-primary-200 rounded-lg p-4">
-              <div className="text-primary-900 font-medium">
-                Room Code: <span className="font-mono text-lg">{roomSetup.roomCode}</span>
+            {roomSetup.coPilotMode === 'solo' ? (
+              <div className="text-center bg-green-50 border border-green-200 rounded-lg p-4">
+                <div className="text-green-900 font-medium">
+                  Solo Game Setup
+                </div>
+                <div className="text-sm text-green-600 mt-1">
+                  Choose where you want to sit at the table
+                </div>
               </div>
-              <div className="text-sm text-primary-600 mt-1">
-                Share this code with other players to join
+            ) : (
+              <div className="text-center bg-primary-50 border border-primary-200 rounded-lg p-4">
+                <div className="text-primary-900 font-medium">
+                  Room Code: <span className="font-mono text-lg">{roomSetup.roomCode}</span>
+                </div>
+                <div className="text-sm text-primary-600 mt-1">
+                  Share this code with other players to join
+                </div>
               </div>
-            </div>
+            )}
 
             <PlayerPositioning
               players={multiplayerStore.currentRoom?.players || []}
@@ -190,6 +219,9 @@ export const RoomSetupView: React.FC = () => {
               currentPlayerId={multiplayerStore.currentPlayerId}
               onPositionChange={roomStore.setPlayerPosition}
               disabled={false}
+              coPilotMode={roomSetup.coPilotMode}
+              otherPlayerNames={roomStore.otherPlayerNames}
+              hostName={hostName}
             />
           </div>
         )
@@ -234,6 +266,22 @@ export const RoomSetupView: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
+        {/* Header with Start Over */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Room Setup</h1>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              roomStore.resetToStart()
+              window.location.reload() // Force refresh to reset all state
+            }}
+            className="text-red-600 hover:bg-red-50"
+          >
+            🔄 Start Over
+          </Button>
+        </div>
+
         {renderProgressIndicator()}
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">

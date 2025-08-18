@@ -9,6 +9,7 @@ import { TutorialView } from '../features/tutorial'
 import { GameModeView } from '../features/gameplay'
 import { RoomSetupView } from '../features/room-setup/RoomSetupView'
 import { PostGameView } from '../features/post-game/PostGameView'
+import { RouteGuard } from './RouteGuard'
 
 export const router = createBrowserRouter([
   {
@@ -41,11 +42,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/charleston',
-    element: <AppLayout><CharlestonView /></AppLayout>,
+    element: <AppLayout><RouteGuard requiresRoomSetup><CharlestonView /></RouteGuard></AppLayout>,
   },
   {
     path: '/game',
-    element: <AppLayout><GameModeView /></AppLayout>,
+    element: <AppLayout><RouteGuard requiresGameStart><GameModeView /></RouteGuard></AppLayout>,
   },
   {
     path: '/room-setup',

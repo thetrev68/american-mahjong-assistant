@@ -65,11 +65,30 @@ export const TileInputPage = () => {
   }, [autoAnalyze, playerHand.length, analyzeHand, isAnalyzing, playerHand, targetPatterns]) // Only track hand length, patterns optional
   
   const handleQuickStart = () => {
-    // Get all tile IDs from the service
-    const tileIds = tileService.getAllTiles().map(tile => tile.id)
+    // Create a realistic mahjong tile pool (4 of each suit tile, 4 of each honor tile, etc.)
+    const tilePool: string[] = []
+    
+    // Add suit tiles (4 of each: 1-9 in bams, cracks, dots)
+    for (let value = 1; value <= 9; value++) {
+      for (let count = 0; count < 4; count++) {
+        tilePool.push(`${value}B`, `${value}C`, `${value}D`)
+      }
+    }
+    
+    // Add honor tiles (4 of each)
+    const honors = ['east', 'south', 'west', 'north', 'red', 'green', 'white']
+    honors.forEach(honor => {
+      for (let count = 0; count < 4; count++) {
+        tilePool.push(honor)
+      }
+    })
+    
+    // Add some flowers and jokers
+    tilePool.push('f1', 'f2', 'f3', 'f4')
+    tilePool.push('joker', 'joker', 'joker', 'joker', 'joker', 'joker', 'joker', 'joker')
 
-    // Simple shuffle function
-    const shuffledPool = tileIds.sort(() => Math.random() - 0.5)
+    // Shuffle the pool
+    const shuffledPool = tilePool.sort(() => Math.random() - 0.5)
 
     // Select the first 13 or 14 tiles
     const handSize = dealerHand ? 14 : 13
@@ -282,7 +301,7 @@ export const TileInputPage = () => {
             disabled={playerHand.length < 13}
             onClick={() => window.location.href = '/game'}
           >
-            🎮 Start Game Mode
+            Continue...
           </Button>
         </div>
       </div>

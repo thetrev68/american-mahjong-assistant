@@ -1,5 +1,5 @@
 import React from 'react'
-import { type PlayerPosition } from '../../stores/room-store'
+import { type PlayerPosition, type CoPilotMode } from '../../stores/room-store'
 
 interface Player {
   id: string
@@ -13,6 +13,9 @@ interface PlayerPositioningProps {
   currentPlayerId: string | null
   onPositionChange: (playerId: string, position: PlayerPosition) => void
   disabled?: boolean
+  coPilotMode?: CoPilotMode
+  otherPlayerNames?: string[]
+  hostName?: string
 }
 
 interface PositionInfo {
@@ -34,8 +37,12 @@ export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
   playerPositions,
   currentPlayerId,
   onPositionChange,
-  disabled = false
+  disabled = false,
+  coPilotMode,
+  otherPlayerNames = [],
+  hostName = ''
 }) => {
+  const isSoloMode = coPilotMode === 'solo'
   const getPlayerAtPosition = (position: PlayerPosition): Player | null => {
     const playerId = Object.entries(playerPositions).find(([, pos]) => pos === position)?.[0]
     return playerId ? players.find(p => p.id === playerId) || null : null

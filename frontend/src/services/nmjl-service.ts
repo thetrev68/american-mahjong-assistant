@@ -145,7 +145,7 @@ class NMJLService {
       points: pattern.Hand_Points,
       difficulty: pattern.Hand_Difficulty,
       description: pattern.Hand_Description,
-      section: pattern.Section,
+      section: String(pattern.Section),
       line: pattern.Line, // Add line number from section
       allowsJokers: pattern.Groups.some(group => group.Jokers_Allowed),
       concealed: pattern.Hand_Conceiled, // Add concealed field

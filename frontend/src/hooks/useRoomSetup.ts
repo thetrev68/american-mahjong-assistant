@@ -19,7 +19,7 @@ export interface UseRoomSetupReturn {
 
   // Actions
   setCoPilotMode: (mode: CoPilotMode) => void
-  createRoom: (hostName: string) => Promise<void>
+  createRoom: (hostName: string, otherPlayerNames?: string[]) => Promise<void>
   joinRoom: (roomCode: string, playerName: string) => Promise<void>
   generateRoomCode: () => string
   clearError: () => void
@@ -30,7 +30,7 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   const multiplayerStore = useMultiplayerStore()
   const multiplayer = useMultiplayer()
 
-  const createRoom = useCallback(async (hostName: string) => {
+  const createRoom = useCallback(async (hostName: string, otherPlayerNames?: string[]) => {
     // Validation
     if (!hostName.trim()) {
       roomStore.handleRoomCreationError('Please enter your name')
@@ -45,18 +45,44 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
     try {
       roomStore.setRoomCreationStatus('creating')
       
-      const roomData = await multiplayer.createRoom({
-        hostName: hostName.trim(),
-        maxPlayers: 4,
-        gameMode: roomStore.coPilotMode,
-        isPrivate: false
-      })
+      // In solo mode, create a local game instead of a multiplayer room
+      if (roomStore.coPilotMode === 'solo') {
+        // Generate a local room code for solo mode
+        const roomCode = generateRoomCode()
+        let hostPlayerId = multiplayerStore.currentPlayerId
+        
+        // Ensure we have a consistent player ID
+        if (!hostPlayerId) {
+          hostPlayerId = generatePlayerId()
+          // Update the multiplayer store with the generated player ID
+          multiplayerStore.setCurrentPlayerId(hostPlayerId)
+        }
+        
+        // Store other player names for solo mode (we'll handle this later in player positioning)
+        roomStore.handleRoomCreated(roomCode, hostPlayerId, otherPlayerNames)
+        
+      } else {
+        // Everyone mode - create actual multiplayer room
+        const roomData = await multiplayer.createRoom({
+          hostName: hostName.trim(),
+          maxPlayers: 4,
+          gameMode: 'nmjl-2025',
+          isPrivate: false
+        })
 
-      // Generate a user-friendly room code from the room ID  
-      const roomCode = generateRoomCodeFromId(roomData.id)
-      const hostPlayerId = multiplayerStore.currentPlayerId || generatePlayerId()
+        // Generate a user-friendly room code from the room ID  
+        const roomCode = generateRoomCodeFromId(roomData.id)
+        let hostPlayerId = multiplayerStore.currentPlayerId
+        
+        // Ensure we have a consistent player ID
+        if (!hostPlayerId) {
+          hostPlayerId = generatePlayerId()
+          // Update the multiplayer store with the generated player ID
+          multiplayerStore.setCurrentPlayerId(hostPlayerId)
+        }
 
-      roomStore.handleRoomCreated(roomCode, hostPlayerId)
+        roomStore.handleRoomCreated(roomCode, hostPlayerId)
+      }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create room'

@@ -128,7 +128,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
       {/* Color Scheme */}
       <div className="space-y-3">
         <h4 className="font-medium text-gray-900">Color Scheme</h4>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { value: 'light', label: 'Light', icon: '☀️' },
             { value: 'dark', label: 'Dark', icon: '🌙' },
@@ -155,7 +155,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
       {/* Tile Size */}
       <div className="space-y-3">
         <h4 className="font-medium text-gray-900">Tile Size</h4>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           {[
             { value: 'small', label: 'Small', description: 'Compact view' },
             { value: 'medium', label: 'Medium', description: 'Balanced size' },
@@ -291,31 +291,32 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="text-center space-y-4">
-        <div className="text-4xl">⚙️</div>
-        <h2 className="text-2xl font-bold text-gray-900">Customize Your Experience</h2>
-        <p className="text-lg text-gray-600">
+      <div className="text-center space-y-3 sm:space-y-4 px-4 sm:px-0">
+        <div className="text-3xl sm:text-4xl">⚙️</div>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Customize Your Experience</h2>
+        <p className="text-base sm:text-lg text-gray-600 max-w-lg mx-auto">
           Set up your co-pilot preferences - you can change these anytime
         </p>
       </div>
 
       {/* Section Tabs */}
-      <div className="flex justify-center">
-        <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+      <div className="flex justify-center px-4 sm:px-0">
+        <div className="flex flex-wrap sm:flex-nowrap gap-1 sm:space-x-1 bg-gray-100 rounded-lg p-1 w-full max-w-md sm:max-w-none sm:w-auto">
           {preferenceSections.map(section => (
             <button
               key={section.id}
               onClick={() => setActiveSection(section.id)}
               className={`
-                px-4 py-2 rounded-md text-sm font-medium transition-all
+                flex-1 sm:flex-none px-2 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap
                 ${activeSection === section.id
                   ? 'bg-white text-gray-900 shadow-sm'
                   : 'text-gray-600 hover:text-gray-900'
                 }
               `}
             >
-              <span className="mr-2">{section.icon}</span>
-              {section.title}
+              <span className="mr-1 sm:mr-2">{section.icon}</span>
+              <span className="hidden sm:inline">{section.title}</span>
+              <span className="sm:hidden">{section.title.split(' ')[0]}</span>
             </button>
           ))}
         </div>
@@ -323,7 +324,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
 
       {/* Current Section */}
       <Card variant="elevated" className="max-w-2xl mx-auto">
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           <div className="text-center mb-6">
             <h3 className="text-lg font-semibold text-gray-900">
               {preferenceSections.find(s => s.id === activeSection)?.title}
@@ -338,8 +339,8 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
       </Card>
 
       {/* Action Buttons */}
-      <div className="flex justify-center space-x-4">
-        <Button variant="outline" onClick={onSkip}>
+      <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4 sm:px-0">
+        <Button variant="outline" onClick={onSkip} className="sm:min-w-[120px]">
           Use Defaults
         </Button>
         <Button variant="primary" onClick={handleSave} className="min-w-[150px]">
@@ -348,7 +349,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
       </div>
 
       {/* Preview */}
-      <Card variant="default" className="max-w-md mx-auto p-4 bg-blue-50 border-blue-200">
+      <Card variant="default" className="max-w-md mx-auto mx-4 sm:mx-auto p-3 sm:p-4 bg-blue-50 border-blue-200">
         <div className="text-center space-y-2">
           <h4 className="font-medium text-blue-900">✨ Your Settings Preview</h4>
           <div className="text-sm text-blue-800 space-y-1">

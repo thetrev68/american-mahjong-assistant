@@ -73,7 +73,7 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
   const handleComplete = () => {
     completeTutorial()
     onComplete?.()
-    navigate('/patterns') // Navigate to pattern selection
+    navigate('/room-setup') // Navigate to Start Game (room setup)
   }
 
   // Render step content based on section
@@ -86,16 +86,16 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
       case 'welcome':
       case 'getting-started':
         return (
-          <div className="text-center space-y-6">
-            <div className="text-6xl mb-4">
+          <div className="text-center space-y-4 sm:space-y-6 px-4 sm:px-0">
+            <div className="text-4xl sm:text-6xl mb-3 sm:mb-4">
               {section === 'welcome' ? '👋' : '🚀'}
             </div>
-            <div className="space-y-4">
-              <h2 className="text-2xl font-bold text-gray-900">{currentStep.title}</h2>
-              <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <div className="space-y-3 sm:space-y-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{currentStep.title}</h2>
+              <p className="text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
                 {currentStep.description}
               </p>
-              <div className="text-gray-700 leading-relaxed max-w-xl mx-auto">
+              <div className="text-sm sm:text-base text-gray-700 leading-relaxed max-w-xl mx-auto">
                 {currentStep.content}
               </div>
             </div>
@@ -169,8 +169,8 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
     ]
 
     return (
-      <div className="flex justify-center mb-8">
-        <div className="flex items-center space-x-2 bg-white rounded-full px-6 py-3 shadow-sm border">
+      <div className="flex justify-center mb-6 sm:mb-8 overflow-x-auto">
+        <div className="flex items-center space-x-1 sm:space-x-2 bg-white rounded-full px-3 sm:px-6 py-2 sm:py-3 shadow-sm border min-w-max">
           {sections.map((section, index) => {
             const isCompleted = progress.completedSections.includes(section.id)
             const isCurrent = progress.currentSection === section.id
@@ -181,7 +181,7 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
                 <button
                   onClick={() => isAccessible ? jumpToSection(section.id) : undefined}
                   className={`
-                    flex items-center space-x-2 px-3 py-2 rounded-full text-sm font-medium transition-all
+                    flex items-center space-x-1 sm:space-x-2 px-2 sm:px-3 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all whitespace-nowrap
                     ${isCompleted ? 'bg-green-100 text-green-800' : ''}
                     ${isCurrent ? 'bg-blue-100 text-blue-800' : ''}
                     ${!isCompleted && !isCurrent && isAccessible ? 'hover:bg-gray-100 text-gray-600' : ''}
@@ -189,9 +189,9 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
                   `}
                   disabled={!isAccessible}
                 >
-                  <span className="text-lg">{section.icon}</span>
+                  <span className="text-base sm:text-lg">{section.icon}</span>
                   <span className="hidden sm:inline">{section.label}</span>
-                  {isCompleted && <span className="text-green-600">✓</span>}
+                  {isCompleted && <span className="text-green-600 text-xs sm:text-sm">✓</span>}
                 </button>
                 {index < sections.length - 1 && (
                   <div className="w-2 h-0.5 bg-gray-300"></div>
@@ -231,13 +231,13 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50">
-      <Container className="py-8">
+      <Container className="py-4 sm:py-8 px-4 sm:px-6">
         {/* Header with progress */}
-        <div className="mb-8">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900">Mahjong Co-Pilot Tutorial</h1>
-              <div className="flex items-center space-x-2 text-sm text-gray-600">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-2 sm:gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Mahjong Co-Pilot Tutorial</h1>
+              <div className="flex items-center space-x-2 text-xs sm:text-sm text-gray-600">
                 <span>⏱️ {progressMetrics.estimatedTimeRemaining} min remaining</span>
               </div>
             </div>
@@ -286,31 +286,35 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
 
         {/* Main Content */}
         <Card variant="elevated" className="max-w-4xl mx-auto">
-          <div className="p-8">
+          <div className="p-4 sm:p-6 lg:p-8">
             {renderStepContent()}
           </div>
 
           {/* Navigation Footer */}
-          <div className="border-t border-gray-200 px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+          <div className="border-t border-gray-200 px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-0">
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 {canNavigateBack && (
                   <Button
                     variant="outline"
                     onClick={previousStep}
                     disabled={isTransitioning}
+                    size="sm"
+                    className="sm:text-base"
                   >
                     ← {currentStep?.prevButtonText || 'Previous'}
                   </Button>
                 )}
               </div>
 
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 {currentStep?.canSkip && (
                   <Button
                     variant="ghost"
                     onClick={nextStep}
                     disabled={isTransitioning}
+                    size="sm"
+                    className="sm:text-base"
                   >
                     Skip this step
                   </Button>
@@ -321,7 +325,8 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
                     variant="primary"
                     onClick={currentStep?.section === 'getting-started' ? handleComplete : nextStep}
                     disabled={isTransitioning}
-                    className="min-w-[120px]"
+                    size="sm"
+                    className="min-w-[120px] sm:text-base font-medium"
                   >
                     {isTransitioning ? (
                       <LoadingSpinner size="sm" />

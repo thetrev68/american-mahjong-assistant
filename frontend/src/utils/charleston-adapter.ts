@@ -2,6 +2,7 @@
 // Adapts the legacy Charleston recommendation engine for the modern co-pilot architecture
 
 import type { PatternSelectionOption } from '../../../shared/nmjl-types'
+import type { PlayerTile } from '../types/tile-types'
 
 // Modern simplified types for Charleston in co-pilot architecture
 export type CharlestonPhase = 'right' | 'across' | 'left' | 'optional' | 'complete'
@@ -12,6 +13,7 @@ export interface Tile {
   value: string
   isJoker?: boolean
   display?: string
+  instanceId?: string // Unique identifier for this tile instance
 }
 
 export interface CharlestonRecommendation {
@@ -39,6 +41,49 @@ export interface TileValue {
  * Provides Charleston recommendations focused on selected target patterns
  */
 export class CharlestonAdapter {
+
+  /**
+   * Convert PlayerTile from tile store to Charleston Tile format
+   */
+  static convertPlayerTileToCharlestonTile(playerTile: PlayerTile): Tile {
+    return {
+      id: playerTile.id,
+      suit: playerTile.suit,
+      value: playerTile.value.toString(),
+      isJoker: playerTile.isJoker,
+      display: playerTile.display,
+      instanceId: playerTile.instanceId
+    }
+  }
+
+  /**
+   * Convert Charleston Tile back to PlayerTile format
+   */
+  static convertCharlestonTileToPlayerTile(charlestonTile: Tile): PlayerTile {
+    return {
+      id: charlestonTile.id,
+      suit: charlestonTile.suit as any, // Charleston uses string, PlayerTile uses specific union
+      value: parseInt(charlestonTile.value) || charlestonTile.value as any,
+      isJoker: charlestonTile.isJoker || false,
+      display: charlestonTile.display || charlestonTile.id,
+      instanceId: `charleston-${charlestonTile.id}-${Date.now()}`,
+      isSelected: false
+    }
+  }
+
+  /**
+   * Convert array of PlayerTiles to Charleston format
+   */
+  static convertPlayerTilesToCharlestonTiles(playerTiles: PlayerTile[]): Tile[] {
+    return playerTiles.map(tile => this.convertPlayerTileToCharlestonTile(tile))
+  }
+
+  /**
+   * Convert array of Charleston tiles back to PlayerTile format
+   */
+  static convertCharlestonTilesToPlayerTiles(charlestonTiles: Tile[]): PlayerTile[] {
+    return charlestonTiles.map(tile => this.convertCharlestonTileToPlayerTile(tile))
+  }
   
   /**
    * Generate Charleston recommendations based on target patterns

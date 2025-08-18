@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '../../stores'
+import { useRoomStore } from '../../stores/room-store'
 import { Button } from '../Button'
 
 interface NavItem {
@@ -57,8 +58,33 @@ const navItems: NavItem[] = [
 export const NavigationSidebar = () => {
   const navigate = useNavigate()
   const { sidebarOpen, setSidebarOpen } = useUIStore()
+  const roomStore = useRoomStore()
+
+  const getItemAccessibility = (path: string) => {
+    const progress = roomStore.getRoomSetupProgress()
+    
+    switch (path) {
+      case '/charleston':
+        return {
+          accessible: progress.currentStep === 'ready',
+          reason: progress.currentStep !== 'ready' ? 'Complete room setup first' : undefined
+        }
+      case '/game':
+        return {
+          accessible: progress.currentStep === 'ready' && roomStore.isRoomReadyForGame(),
+          reason: progress.currentStep !== 'ready' || !roomStore.isRoomReadyForGame() 
+            ? 'Complete room setup and player positioning first' 
+            : undefined
+        }
+      default:
+        return { accessible: true }
+    }
+  }
 
   const handleNavigation = (path: string) => {
+    const { accessible } = getItemAccessibility(path)
+    if (!accessible) return // Don't navigate if not accessible
+    
     navigate(path)
     setSidebarOpen(false)
   }
@@ -99,29 +125,46 @@ export const NavigationSidebar = () => {
           {/* Navigation Items */}
           <div className="flex-1 overflow-y-auto p-4">
             <nav className="space-y-2">
-              {navItems.map((item) => (
-                <button
-                  key={item.path}
-                  onClick={() => handleNavigation(item.path)}
-                  className="w-full text-left p-3 rounded-lg hover:bg-gray-50 transition-colors duration-200 group"
-                >
-                  <div className="flex items-start space-x-3">
-                    <span className="text-xl group-hover:scale-110 transition-transform duration-200">
-                      {item.icon}
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900 group-hover:text-primary">
-                        {item.label}
-                      </div>
-                      {item.description && (
-                        <div className="text-sm text-gray-500 mt-1">
-                          {item.description}
+              {navItems.map((item) => {
+                const { accessible, reason } = getItemAccessibility(item.path)
+                
+                return (
+                  <button
+                    key={item.path}
+                    onClick={() => handleNavigation(item.path)}
+                    disabled={!accessible}
+                    title={reason}
+                    className={`w-full text-left p-3 rounded-lg transition-colors duration-200 group ${
+                      accessible 
+                        ? 'hover:bg-gray-50 cursor-pointer' 
+                        : 'opacity-50 cursor-not-allowed'
+                    }`}
+                  >
+                    <div className="flex items-start space-x-3">
+                      <span className={`text-xl transition-transform duration-200 ${
+                        accessible ? 'group-hover:scale-110' : ''
+                      }`}>
+                        {item.icon}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div className={`font-medium ${
+                          accessible 
+                            ? 'text-gray-900 group-hover:text-primary' 
+                            : 'text-gray-400'
+                        }`}>
+                          {item.label}
+                          {!accessible && ' 🔒'}
                         </div>
-                      )}
+                        <div className={`text-sm mt-1 ${
+                          accessible ? 'text-gray-500' : 'text-gray-400'
+                        }`}>
+                          {accessible ? item.description : reason}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                )
+              })}
             </nav>
           </div>
 

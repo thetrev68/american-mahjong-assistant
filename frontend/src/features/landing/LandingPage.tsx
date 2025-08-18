@@ -3,12 +3,23 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { Container } from '../../ui-components/layout/Container'
+import { useRoomStore } from '../../stores/room-store'
 // import { useUIStore } from '../../stores'
 
 export const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
   // const { setTutorialCompleted } = useUIStore()
   const navigate = useNavigate()
+  const roomStore = useRoomStore()
+  
+  const handleStartGame = () => {
+    navigate('/room-setup')
+  }
+  
+  const handleStartOver = () => {
+    roomStore.resetToStart()
+    navigate('/room-setup')
+  }
   
   const features = [
     {
@@ -70,10 +81,19 @@ export const LandingPage = () => {
           <Button 
             variant="primary" 
             size="lg"
-            onClick={() => navigate('/room-setup')}
+            onClick={handleStartGame}
             icon="🚀"
           >
             Start Game
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            size="lg"
+            onClick={handleStartOver}
+            icon="🔄"
+          >
+            Start Over
           </Button>
           
           <Button 

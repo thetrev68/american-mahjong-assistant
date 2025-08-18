@@ -2,18 +2,22 @@
 // Main Charleston intelligence interface with pattern integration
 
 import { useEffect, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { TargetPatternDisplay } from './TargetPatternDisplay'
 import { PassingRecommendations } from './PassingRecommendations'
 import { TilePassingArea } from './TilePassingArea'
 import { StrategyExplanation } from './StrategyExplanation'
 import { useCharlestonStore, useCharlestonSelectors } from '../../stores/charleston-store'
 import { usePatternStore } from '../../stores/pattern-store'
-import type { Tile } from '../../utils/charleston-adapter'
+import { useTileStore } from '../../stores/tile-store'
+import { CharlestonAdapter, type Tile } from '../../utils/charleston-adapter'
 
 export function CharlestonView() {
+  const navigate = useNavigate()
   const charlestonStore = useCharlestonStore()
   const charlestonSelectors = useCharlestonSelectors()
   const patternStore = usePatternStore()
+  const tileStore = useTileStore()
   
   // Sync target patterns from pattern selection (if any are selected)
   useEffect(() => {
@@ -26,36 +30,45 @@ export function CharlestonView() {
     }
   }, [patternStore.targetPatterns, charlestonStore.targetPatterns, charlestonStore])
   
-  // Mock tiles for development - replace with actual tile input integration
-  const mockTiles: Tile[] = useMemo(() => [
-    { id: '1dot', suit: 'dots', value: '1' },
-    { id: '2dot', suit: 'dots', value: '2' },
-    { id: '3dot', suit: 'dots', value: '3' },
-    { id: '1bam', suit: 'bams', value: '1' },
-    { id: '2bam', suit: 'bams', value: '2' },
-    { id: '5bam', suit: 'bams', value: '5' },
-    { id: '1crak', suit: 'cracks', value: '1' },
-    { id: '9crak', suit: 'cracks', value: '9' },
-    { id: 'eastwind', suit: 'winds', value: 'east' },
-    { id: 'reddragon', suit: 'dragons', value: 'red' },
-    { id: 'flower1', suit: 'flowers', value: '1' },
-    { id: 'flower2', suit: 'flowers', value: '2' },
-    { id: 'joker', suit: 'jokers', value: 'joker', isJoker: true }
-  ], [])
+  // Convert real tiles from tile store to Charleston format
+  const charlestonTiles: Tile[] = useMemo(() => {
+    return CharlestonAdapter.convertPlayerTilesToCharlestonTiles(tileStore.playerHand)
+  }, [tileStore.playerHand])
   
-  // Initialize tiles if Charleston is active but no tiles are set
+  // Check if we have tiles available for Charleston
+  const hasTiles = tileStore.playerHand.length > 0
+  const hasValidHand = tileStore.validation.isValid || tileStore.playerHand.length >= 10 // Allow Charleston with partial hands
+  
+  // Initialize tiles from tile store when Charleston starts
   useEffect(() => {
-    if (charlestonSelectors.isActive && charlestonStore.playerTiles.length === 0) {
-      charlestonStore.setPlayerTiles(mockTiles)
+    if (charlestonSelectors.isActive && charlestonStore.playerTiles.length === 0 && hasTiles) {
+      charlestonStore.setPlayerTiles(charlestonTiles)
     }
-  }, [charlestonSelectors.isActive, charlestonStore.playerTiles.length, mockTiles, charlestonStore])
+  }, [charlestonSelectors.isActive, charlestonStore.playerTiles.length, hasTiles, charlestonTiles, charlestonStore])
+
+  // Auto-navigate to game when Charleston completes naturally
+  useEffect(() => {
+    if (charlestonStore.currentPhase === 'complete' && !charlestonSelectors.isActive) {
+      // Small delay to ensure store updates are complete
+      const timer = setTimeout(() => {
+        navigate('/game')
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [charlestonStore.currentPhase, charlestonSelectors.isActive, navigate])
   
   const recommendedTiles = charlestonStore.recommendations?.tilesToPass || []
   const jokerCount = charlestonSelectors.jokerCount
   
   const handleStartCharleston = () => {
-    charlestonStore.setPlayerTiles(mockTiles)
-    charlestonStore.startCharleston()
+    if (hasTiles) {
+      charlestonStore.setPlayerTiles(charlestonTiles)
+      charlestonStore.startCharleston()
+    } else {
+      // Redirect to tile input if no tiles are available
+      console.warn('No tiles available for Charleston. Redirecting to tile input.')
+      window.location.href = '/tile-input'
+    }
   }
   
   const handleCompletePhase = () => {
@@ -67,6 +80,12 @@ export function CharlestonView() {
     ]
     charlestonStore.completePhase(mockReceivedTiles)
   }
+
+  const handleEndCharleston = () => {
+    charlestonStore.endCharleston()
+    // Navigate to game mode after Charleston completion
+    navigate('/game')
+  }
   
   if (!charlestonSelectors.isActive) {
     return (
@@ -75,11 +94,55 @@ export function CharlestonView() {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Charleston Intelligence</h1>
           <p className="text-gray-600 mb-8">Get AI-powered recommendations for strategic tile passing</p>
           
+          {/* Tile Status Check */}
+          {!hasTiles ? (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
+              <h3 className="font-semibold text-yellow-900 mb-2">📝 Input Your Tiles First</h3>
+              <p className="text-yellow-800 mb-3">
+                Before starting Charleston analysis, you need to input your hand tiles.
+              </p>
+              <a 
+                href="/tile-input"
+                className="inline-block bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-700 transition-colors"
+              >
+                Go to Tile Input
+              </a>
+            </div>
+          ) : !hasValidHand ? (
+            <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
+              <h3 className="font-semibold text-orange-900 mb-2">⚠️ Incomplete Hand</h3>
+              <p className="text-orange-800 mb-3">
+                You have {tileStore.playerHand.length} tiles. Charleston works best with 13+ tiles.
+              </p>
+              <div className="space-x-2">
+                <button
+                  onClick={handleStartCharleston}
+                  className="bg-orange-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-700 transition-colors"
+                >
+                  Continue with {tileStore.playerHand.length} tiles
+                </button>
+                <a 
+                  href="/tile-input"
+                  className="inline-block bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors"
+                >
+                  Add More Tiles
+                </a>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+              <h3 className="font-semibold text-green-900 mb-2">✅ Ready for Charleston</h3>
+              <p className="text-green-800 mb-3">
+                You have {tileStore.playerHand.length} tiles ready for Charleston analysis.
+              </p>
+            </div>
+          )}
+          
           {/* AI-Powered Flow Notice */}
           <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6 mb-6">
             <h3 className="font-semibold text-indigo-900 mb-2">🤖 AI-Powered Charleston Strategy</h3>
             <p className="text-indigo-800 mb-3">
-              Enter your tiles and AI will analyze your hand to recommend optimal Charleston passes.
+              AI analyzes your hand to recommend optimal Charleston passes based on pattern potential.
             </p>
             {patternStore.targetPatterns.length > 0 ? (
               <p className="text-sm text-indigo-600">
@@ -93,12 +156,14 @@ export function CharlestonView() {
           </div>
           
           <div className="space-y-4">
-            <button
-              onClick={handleStartCharleston}
-              className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
-            >
-              Start Charleston Analysis
-            </button>
+            {hasTiles && (
+              <button
+                onClick={handleStartCharleston}
+                className="bg-indigo-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-indigo-700 transition-colors"
+              >
+                Start Charleston Analysis
+              </button>
+            )}
             
             <div className="grid md:grid-cols-2 gap-6 mt-8">
               <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -153,7 +218,7 @@ export function CharlestonView() {
             )}
             
             <button
-              onClick={charlestonStore.endCharleston}
+              onClick={handleEndCharleston}
               className="text-gray-500 hover:text-gray-700 text-sm"
             >
               End Charleston

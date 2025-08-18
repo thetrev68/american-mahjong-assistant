@@ -18,6 +18,7 @@ interface RoomState {
   coPilotMode: CoPilotMode
   coPilotModeSelected: boolean // Track if mode was explicitly selected
   playerPositions: Record<string, PlayerPosition>
+  otherPlayerNames: string[] // For solo mode - names of other players at the table
   
   // Status tracking
   roomCreationStatus: RoomStatus
@@ -26,11 +27,12 @@ interface RoomState {
 
   // Actions - Co-pilot mode
   setCoPilotMode: (mode: CoPilotMode) => void
+  resetCoPilotModeSelection: () => void
   getCoPilotModeDescription: (mode: CoPilotMode) => string
 
   // Actions - Room creation
   setRoomCreationStatus: (status: RoomStatus) => void
-  handleRoomCreated: (roomCode: string, hostPlayerId: string) => void
+  handleRoomCreated: (roomCode: string, hostPlayerId: string, otherPlayerNames?: string[]) => void
   handleRoomCreationError: (error: string) => void
 
   // Actions - Room joining
@@ -50,6 +52,7 @@ interface RoomState {
   // Actions - State management
   clearError: () => void
   clearAll: () => void
+  resetToStart: () => void
 
   // Computed properties
   isHost: (playerId: string) => boolean
@@ -69,6 +72,7 @@ export const useRoomStore = create<RoomState>()(
         coPilotMode: 'everyone',
         coPilotModeSelected: false,
         playerPositions: {},
+        otherPlayerNames: [],
         roomCreationStatus: 'idle',
         joinRoomStatus: 'idle',
         error: null,
@@ -76,6 +80,10 @@ export const useRoomStore = create<RoomState>()(
         // Co-pilot mode actions
         setCoPilotMode: (mode) => {
           set({ coPilotMode: mode, coPilotModeSelected: true }, false, 'setCoPilotMode')
+        },
+
+        resetCoPilotModeSelection: () => {
+          set({ coPilotModeSelected: false }, false, 'resetCoPilotModeSelection')
         },
 
         getCoPilotModeDescription: (mode) => {
@@ -91,12 +99,13 @@ export const useRoomStore = create<RoomState>()(
           set({ roomCreationStatus: status }, false, 'setRoomCreationStatus')
         },
 
-        handleRoomCreated: (roomCode, hostPlayerId) => {
+        handleRoomCreated: (roomCode, hostPlayerId, otherPlayerNames) => {
           set({
             currentRoomCode: roomCode,
             hostPlayerId: hostPlayerId,
             roomCreationStatus: 'success',
-            error: null
+            error: null,
+            otherPlayerNames: otherPlayerNames || []
           }, false, 'handleRoomCreated')
         },
 
@@ -177,10 +186,25 @@ export const useRoomStore = create<RoomState>()(
             coPilotMode: 'everyone',
             coPilotModeSelected: false,
             playerPositions: {},
+            otherPlayerNames: [],
             roomCreationStatus: 'idle',
             joinRoomStatus: 'idle',
             error: null
           }, false, 'clearAll')
+        },
+
+        resetToStart: () => {
+          set({
+            currentRoomCode: null,
+            hostPlayerId: null,
+            coPilotMode: 'everyone',
+            coPilotModeSelected: false,
+            playerPositions: {},
+            otherPlayerNames: [],
+            roomCreationStatus: 'idle',
+            joinRoomStatus: 'idle',
+            error: null
+          }, false, 'resetToStart')
         },
 
         // Computed properties
@@ -194,7 +218,9 @@ export const useRoomStore = create<RoomState>()(
           if (!state.currentRoomCode) return false
           
           const positionedPlayers = Object.keys(state.playerPositions).length
-          return positionedPlayers >= 2 // Minimum players for game
+          return state.coPilotMode === 'solo' 
+            ? positionedPlayers >= 1 // Solo mode: just need host positioned
+            : positionedPlayers >= 2 // Everyone mode: minimum players for game
         },
 
         getRoomSetupProgress: () => {
@@ -215,7 +241,12 @@ export const useRoomStore = create<RoomState>()(
           }
 
           // Step 3: Players positioned
-          if (state.currentRoomCode && Object.keys(state.playerPositions).length >= 2) {
+          const positionedPlayersCount = Object.keys(state.playerPositions).length
+          const isReadyForGame = state.coPilotMode === 'solo' 
+            ? positionedPlayersCount >= 1 // Solo mode: just need host positioned
+            : positionedPlayersCount >= 2 // Everyone mode: need at least 2 players
+          
+          if (state.currentRoomCode && isReadyForGame) {
             completedSteps = 3
             currentStep = 'ready'
           }
@@ -234,7 +265,8 @@ export const useRoomStore = create<RoomState>()(
           hostPlayerId: state.hostPlayerId,
           coPilotMode: state.coPilotMode,
           coPilotModeSelected: state.coPilotModeSelected,
-          playerPositions: state.playerPositions
+          playerPositions: state.playerPositions,
+          otherPlayerNames: state.otherPlayerNames
         })
       }
     ),

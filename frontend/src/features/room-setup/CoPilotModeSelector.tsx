@@ -1,9 +1,11 @@
 import React from 'react'
 import { type CoPilotMode } from '../../stores/room-store'
+import { Button } from '../../ui-components/Button'
 
 interface CoPilotModeSelectorProps {
   selectedMode: CoPilotMode
   onModeChange: (mode: CoPilotMode) => void
+  onContinue?: () => void
   disabled?: boolean
 }
 
@@ -43,6 +45,7 @@ const modeOptions: ModeOption[] = [
 export const CoPilotModeSelector: React.FC<CoPilotModeSelectorProps> = ({
   selectedMode,
   onModeChange,
+  onContinue,
   disabled = false
 }) => {
   const handleModeSelect = (mode: CoPilotMode) => {
@@ -144,6 +147,21 @@ export const CoPilotModeSelector: React.FC<CoPilotModeSelectorProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Continue button - only show if mode is selected and onContinue is provided */}
+      {selectedMode && onContinue && (
+        <div className="flex justify-center pt-6">
+          <Button
+            onClick={onContinue}
+            variant="primary"
+            size="lg"
+            disabled={disabled}
+            className="min-w-48"
+          >
+            Continue to Room Setup
+          </Button>
+        </div>
+      )}
     </div>
   )
 }

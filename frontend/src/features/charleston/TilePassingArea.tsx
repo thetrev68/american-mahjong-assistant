@@ -31,14 +31,14 @@ export function TilePassingArea({
   // Organize tiles by categories
   const organizedTiles = useMemo(() => {
     const tiles = [...availableTiles]
-    const recommendedIds = new Set(recommendedTiles.map(t => t.id))
-    const selectedIds = new Set(selectedTiles.map(t => t.id))
+    const recommendedInstanceIds = new Set(recommendedTiles.map(t => t.instanceId || t.id))
+    const selectedInstanceIds = new Set(selectedTiles.map(t => t.instanceId || t.id))
     
     // Sort tiles based on selected method
     const sortedTiles = tiles.sort((a, b) => {
       if (sortBy === 'recommendation') {
-        const aRec = recommendedIds.has(a.id) ? 1 : 0
-        const bRec = recommendedIds.has(b.id) ? 1 : 0
+        const aRec = recommendedInstanceIds.has(a.instanceId || a.id) ? 1 : 0
+        const bRec = recommendedInstanceIds.has(b.instanceId || b.id) ? 1 : 0
         if (aRec !== bRec) return bRec - aRec // Recommended first
       }
       
@@ -51,9 +51,9 @@ export function TilePassingArea({
     })
     
     return {
-      recommended: sortedTiles.filter(t => recommendedIds.has(t.id) && !selectedIds.has(t.id)),
-      selected: sortedTiles.filter(t => selectedIds.has(t.id)),
-      other: sortedTiles.filter(t => !recommendedIds.has(t.id) && !selectedIds.has(t.id))
+      recommended: sortedTiles.filter(t => recommendedInstanceIds.has(t.instanceId || t.id) && !selectedInstanceIds.has(t.instanceId || t.id)),
+      selected: sortedTiles.filter(t => selectedInstanceIds.has(t.instanceId || t.id)),
+      other: sortedTiles.filter(t => !recommendedInstanceIds.has(t.instanceId || t.id) && !selectedInstanceIds.has(t.instanceId || t.id))
     }
   }, [availableTiles, recommendedTiles, selectedTiles, sortBy])
   
@@ -63,7 +63,7 @@ export function TilePassingArea({
   const handleTileClick = (tile: Tile) => {
     if (disabled) return
     
-    const isSelected = selectedTiles.some(t => t.id === tile.id)
+    const isSelected = selectedTiles.some(t => (t.instanceId || t.id) === (tile.instanceId || tile.id))
     
     if (isSelected) {
       onTileDeselect(tile)
@@ -119,7 +119,7 @@ export function TilePassingArea({
             <div className="flex flex-wrap gap-2">
               {organizedTiles.selected.map(tile => (
                 <TileButton
-                  key={tile.id}
+                  key={tile.instanceId || tile.id}
                   tile={tile}
                   onClick={() => handleTileClick(tile)}
                   variant="selected"
@@ -140,7 +140,7 @@ export function TilePassingArea({
             <div className="flex flex-wrap gap-2">
               {organizedTiles.recommended.map(tile => (
                 <TileButton
-                  key={tile.id}
+                  key={tile.instanceId || tile.id}
                   tile={tile}
                   onClick={() => handleTileClick(tile)}
                   variant="recommended"
@@ -161,7 +161,7 @@ export function TilePassingArea({
             <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
               {organizedTiles.other.map(tile => (
                 <TileButton
-                  key={tile.id}
+                  key={tile.instanceId || tile.id}
                   tile={tile}
                   onClick={() => handleTileClick(tile)}
                   variant="available"
