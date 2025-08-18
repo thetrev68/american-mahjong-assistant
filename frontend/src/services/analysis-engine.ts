@@ -1063,27 +1063,6 @@ export class AnalysisEngine {
     return tiles
   }
 
-  /**
-   * Parse sequence constraints like "2,0,2,5"
-   */
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private static parseSequenceConstraint(constraintValues: string): string[] {
-    if (!constraintValues) return []
-    
-    const tiles: string[] = []
-    const values = constraintValues.split(',').map(v => v.trim())
-    
-    // For sequences, we need to handle each position
-    for (let i = 0; i < values.length; i++) {
-      const value = values[i]
-      if (value !== '0') { // 0 often represents neutral/joker positions
-        // Add all suits for this number
-        tiles.push(`${value}B`, `${value}C`, `${value}D`)
-      }
-    }
-    
-    return tiles
-  }
 
   // Helper Methods
 

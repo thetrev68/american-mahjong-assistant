@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useRoomSetup } from '../../hooks/useRoomSetup'
 import { useRoomStore } from '../../stores/room-store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
+import { useGameStore } from '../../stores/game-store'
 import { CoPilotModeSelector } from './CoPilotModeSelector'
 import { RoomCreation } from './RoomCreation'
 import { RoomJoining } from './RoomJoining'
@@ -23,9 +25,11 @@ const steps: ProgressStep[] = [
 ]
 
 export const RoomSetupView: React.FC = () => {
+  const navigate = useNavigate()
   const roomSetup = useRoomSetup()
   const roomStore = useRoomStore()
   const multiplayerStore = useMultiplayerStore()
+  const gameStore = useGameStore()
   
   const [roomMode, setRoomMode] = useState<RoomMode>('create')
   const [hostName, setHostName] = useState('')
@@ -37,8 +41,21 @@ export const RoomSetupView: React.FC = () => {
   const currentStepNumber = steps.findIndex(s => s.title.toLowerCase().includes(currentStep.split('-')[0])) + 1
   
   const handleStartGame = () => {
-    // This would navigate to the game view
     console.log('Starting game...')
+    
+    // Mark the game as started in game store for route guards
+    gameStore.setGamePhase('charleston') // Set to charleston first (or skip if needed)
+    
+    // Navigate to charleston or directly to game
+    // Check if charleston should be skipped based on co-pilot mode or settings
+    if (roomSetup.coPilotMode === 'solo') {
+      // For solo mode, might skip charleston and go directly to game
+      gameStore.setGamePhase('playing')
+      navigate('/game')
+    } else {
+      // For multiplayer, start with charleston
+      navigate('/charleston')
+    }
   }
 
   const handleBackStep = () => {
