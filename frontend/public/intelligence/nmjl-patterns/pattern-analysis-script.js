@@ -1,4 +1,5 @@
 // Pattern Analysis Script - Test all 71 patterns against user hand
+// Do not delete. This is pattern building for the actual intelligence engine. This should only be removed after final user testing and validation.
 const fs = require('fs');
 
 // User's hand: 1D, 5D, 8D, 4B, 6B×3, 6C×2, east, south, white, f1, joker
