@@ -9,12 +9,12 @@ import { Button } from '../../ui-components/Button'
 import { usePatternStore, useTileStore } from '../../stores'
 import { AnalysisEngine } from '../../services/analysis-engine'
 import type { HandAnalysis, PatternRecommendation } from '../../stores/intelligence-store'
-import type { PatternIntelligenceScore } from '../../services/pattern-intelligence-service'
+// Removed dependency on deleted pattern-intelligence-service
 
 export const PatternGrid = () => {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [analysisModalOpen, setAnalysisModalOpen] = useState(false)
-  const [selectedAnalysis, setSelectedAnalysis] = useState<PatternIntelligenceScore | null>(null)
+  const [selectedAnalysis, setSelectedAnalysis] = useState<PatternRecommendation | null>(null)
   
   const {
     isLoading,
@@ -123,33 +123,9 @@ export const PatternGrid = () => {
   
   const handleAnalyze = (patternId: string) => {
     const analysis = intelligenceScores.get(patternId)
-    if (analysis && analysis.analysis) {
-      // Convert PatternRecommendation to PatternIntelligenceScore
-      const modalAnalysis: PatternIntelligenceScore = {
-        patternId: analysis.pattern.id,
-        patternName: analysis.pattern.displayName || analysis.pattern.pattern,
-        pattern: analysis.pattern,
-        completionScore: analysis.completionPercentage,
-        recommendation: analysis.completionPercentage >= 80 ? 'excellent' :
-                       analysis.completionPercentage >= 65 ? 'good' :
-                       analysis.completionPercentage >= 45 ? 'fair' :
-                       analysis.completionPercentage >= 25 ? 'poor' : 'impossible',
-        confidence: analysis.confidence / 100,
-        analysis: analysis.analysis,
-        scoreBreakdown: analysis.scoreBreakdown || {
-          currentTileScore: 0,
-          availabilityScore: 0,
-          jokerScore: 0,
-          priorityScore: 0
-        },
-        recommendations: analysis.recommendations || {
-          shouldPursue: false,
-          alternativePatterns: [],
-          strategicNotes: [],
-          riskFactors: []
-        }
-      }
-      setSelectedAnalysis(modalAnalysis)
+    if (analysis) {
+      // Use PatternRecommendation directly - no conversion needed
+      setSelectedAnalysis(analysis)
       setAnalysisModalOpen(true)
     }
   }

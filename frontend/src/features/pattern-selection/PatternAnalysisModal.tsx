@@ -3,12 +3,12 @@
 
 import React from 'react'
 import { Button } from '../../ui-components/Button'
-import type { PatternIntelligenceScore } from '../../services/pattern-intelligence-service'
+import type { PatternRecommendation } from '../../stores/intelligence-store'
 
 interface PatternAnalysisModalProps {
   isOpen: boolean
   onClose: () => void
-  analysis: PatternIntelligenceScore | null
+  analysis: PatternRecommendation | null
 }
 
 export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
@@ -17,6 +17,16 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
   analysis
 }) => {
   if (!isOpen || !analysis) return null
+
+  // Derive recommendation level from completion percentage
+  const recommendationLevel = analysis.completionPercentage >= 80 ? 'excellent' :
+                              analysis.completionPercentage >= 65 ? 'good' :
+                              analysis.completionPercentage >= 45 ? 'fair' :
+                              analysis.completionPercentage >= 25 ? 'poor' : 'impossible'
+
+  // Check if we have detailed analysis data
+  const hasDetailedAnalysis = !!analysis.analysis!
+  const hasScoreBreakdown = !!analysis.scoreBreakdown
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return 'text-green-600'
@@ -46,12 +56,12 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
         <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-2xl font-bold">{analysis.patternName}</h2>
+              <h2 className="text-2xl font-bold">{analysis.pattern.displayName || analysis.pattern.pattern}</h2>
               <p className="text-indigo-100 mt-1">{analysis.pattern.pattern}</p>
             </div>
             <div className="text-right">
-              <div className={`text-3xl font-bold ${getScoreColor(analysis.completionScore)}`}>
-                {analysis.completionScore.toFixed(1)}
+              <div className={`text-3xl font-bold ${getScoreColor(analysis.completionPercentage)}`}>
+                {analysis.completionPercentage.toFixed(1)}
               </div>
               <div className="text-sm text-indigo-200">Completion Score</div>
             </div>
@@ -66,33 +76,33 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
             <div className="bg-gray-50 rounded-lg p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-gray-900">Analysis Summary</h3>
-                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRecommendationBadge(analysis.recommendation)}`}>
-                  {analysis.recommendation.toUpperCase()}
+                <span className={`px-3 py-1 rounded-full text-sm font-medium border ${getRecommendationBadge(recommendationLevel)}`}>
+                  {recommendationLevel.toUpperCase()}
                 </span>
               </div>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div>
                   <div className="text-2xl font-bold text-blue-600">
-                    {analysis.analysis.currentTiles.count}
+                    {hasDetailedAnalysis ? (analysis.analysis!!.currentTiles?.count ?? 0) : '—'}
                   </div>
                   <div className="text-sm text-gray-600">Current Tiles</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-orange-600">
-                    {analysis.analysis.missingTiles.total}
+                    {hasDetailedAnalysis ? (analysis.analysis!!.missingTiles?.total ?? 0) : '—'}
                   </div>
                   <div className="text-sm text-gray-600">Missing Tiles</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-purple-600">
-                    {analysis.analysis.jokerSituation.available}
+                    {hasDetailedAnalysis ? (analysis.analysis!!.jokerSituation?.available ?? 0) : '—'}
                   </div>
                   <div className="text-sm text-gray-600">Jokers Available</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-green-600">
-                    {(analysis.confidence * 100).toFixed(0)}%
+                    {analysis.confidence.toFixed(0)}%
                   </div>
                   <div className="text-sm text-gray-600">Confidence</div>
                 </div>
@@ -106,25 +116,25 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
               <div className="space-y-3">
                 <ScoreBar 
                   label="Current Tiles" 
-                  score={analysis.scoreBreakdown.currentTileScore} 
+                  score={hasScoreBreakdown ? analysis.scoreBreakdown!.currentTileScore : 0} 
                   maxScore={40}
                   color="blue"
                 />
                 <ScoreBar 
                   label="Tile Availability" 
-                  score={analysis.scoreBreakdown.availabilityScore} 
+                  score={hasScoreBreakdown ? analysis.scoreBreakdown!.availabilityScore : 0} 
                   maxScore={30}
                   color="green"
                 />
                 <ScoreBar 
                   label="Joker Situation" 
-                  score={analysis.scoreBreakdown.jokerScore} 
+                  score={hasScoreBreakdown ? analysis.scoreBreakdown!.jokerScore : 0} 
                   maxScore={20}
                   color="purple"
                 />
                 <ScoreBar 
                   label="Strategic Priority" 
-                  score={analysis.scoreBreakdown.priorityScore} 
+                  score={hasScoreBreakdown ? analysis.scoreBreakdown!.priorityScore : 0} 
                   maxScore={10}
                   color="indigo"
                 />
@@ -132,6 +142,7 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
             </div>
 
             {/* Current Hand Analysis */}
+            {hasDetailedAnalysis && (
             <div className="bg-white border rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-4">Current Hand Analysis</h3>
               
@@ -139,22 +150,22 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">Pattern Completion</span>
                   <span className="text-sm font-bold text-blue-600">
-                    {analysis.analysis.currentTiles.percentage.toFixed(1)}%
+                    {analysis.analysis!!.currentTiles.percentage.toFixed(1)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${analysis.analysis.currentTiles.percentage}%` }}
+                    style={{ width: `${analysis.analysis!!.currentTiles.percentage}%` }}
                   />
                 </div>
               </div>
 
-              {analysis.analysis.currentTiles.matchingGroups.length > 0 && (
+              {analysis.analysis!!.currentTiles.matchingGroups.length > 0 && (
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Groups with matches:</p>
                   <div className="flex flex-wrap gap-2">
-                    {analysis.analysis.currentTiles.matchingGroups.map(group => (
+                    {analysis.analysis!!.currentTiles.matchingGroups.map(group => (
                       <span key={group} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                         {group}
                       </span>
@@ -163,69 +174,73 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
                 </div>
               )}
             </div>
+            )}
 
             {/* Missing Tiles Analysis */}
+            {hasDetailedAnalysis && (
             <div className="bg-white border rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-4">Missing Tiles Analysis</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <TileAvailabilityCard
                   title="Easy to Get"
-                  tiles={analysis.analysis.missingTiles.byAvailability.easy}
+                  tiles={analysis.analysis!.missingTiles.byAvailability.easy}
                   color="green"
                   description="3+ tiles remaining"
                 />
                 <TileAvailabilityCard
                   title="Moderate Risk"
-                  tiles={analysis.analysis.missingTiles.byAvailability.moderate}
+                  tiles={analysis.analysis!.missingTiles.byAvailability.moderate}
                   color="yellow"
                   description="1-2 tiles remaining"
                 />
                 <TileAvailabilityCard
                   title="Need Jokers"
-                  tiles={analysis.analysis.missingTiles.byAvailability.difficult}
+                  tiles={analysis.analysis!.missingTiles.byAvailability.difficult}
                   color="orange"
                   description="Must use jokers"
                 />
                 <TileAvailabilityCard
                   title="Impossible"
-                  tiles={analysis.analysis.missingTiles.byAvailability.impossible}
+                  tiles={analysis.analysis!.missingTiles.byAvailability.impossible}
                   color="red"
                   description="No tiles available"
                 />
               </div>
             </div>
+            )}
 
             {/* Joker Strategy */}
+            {hasDetailedAnalysis && (
             <div className="bg-white border rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-4">Joker Strategy</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="text-center p-3 bg-purple-50 rounded-lg">
                   <div className="text-2xl font-bold text-purple-600">
-                    {analysis.analysis.jokerSituation.available}
+                    {analysis.analysis!.jokerSituation.available}
                   </div>
                   <div className="text-sm text-purple-700">Available</div>
                 </div>
                 <div className="text-center p-3 bg-orange-50 rounded-lg">
                   <div className="text-2xl font-bold text-orange-600">
-                    {analysis.analysis.jokerSituation.needed}
+                    {analysis.analysis!.jokerSituation.needed}
                   </div>
                   <div className="text-sm text-orange-700">Needed</div>
                 </div>
                 <div className="text-center p-3 bg-green-50 rounded-lg">
                   <div className="text-2xl font-bold text-green-600">
-                    {analysis.analysis.jokerSituation.canComplete ? '✓' : '✗'}
+                    {analysis.analysis!.jokerSituation.canComplete ? '✓' : '✗'}
                   </div>
                   <div className="text-sm text-green-700">Can Complete</div>
                 </div>
               </div>
 
-              {Object.keys(analysis.analysis.jokerSituation.substitutionPlan).length > 0 && (
+              {Object.keys(analysis.analysis!.jokerSituation.substitutionPlan).length > 0 && (
                 <div>
                   <p className="text-sm font-medium text-gray-700 mb-2">Joker Substitution Plan:</p>
                   <div className="space-y-1">
-                    {Object.entries(analysis.analysis.jokerSituation.substitutionPlan).map(([tile, canUse]) => (
+                    {Object.entries(analysis.analysis!.jokerSituation.substitutionPlan).map(([tile, canUse]) => (
                       <div key={tile} className="flex items-center justify-between text-sm">
                         <span className="text-gray-600">{tile}</span>
                         <span className={`px-2 py-1 rounded text-xs ${
@@ -241,16 +256,17 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
                 </div>
               )}
             </div>
+            )}
 
             {/* Strategic Recommendations */}
             <div className="bg-white border rounded-lg p-4">
               <h3 className="font-semibold text-gray-900 mb-4">Strategic Recommendations</h3>
               
-              {analysis.recommendations.strategicNotes.length > 0 && (
+              {(analysis.recommendations?.strategicNotes?.length ?? 0) > 0 && (
                 <div className="mb-4">
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Strategy Notes:</h4>
                   <ul className="space-y-1">
-                    {analysis.recommendations.strategicNotes.map((note, index) => (
+                    {(analysis.recommendations?.strategicNotes ?? []).map((note, index) => (
                       <li key={index} className="text-sm text-gray-600 flex items-start">
                         <span className="text-blue-500 mr-2">•</span>
                         {note}
@@ -260,11 +276,11 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
                 </div>
               )}
 
-              {analysis.recommendations.riskFactors.length > 0 && (
+              {(analysis.recommendations?.riskFactors?.length ?? 0) > 0 && (
                 <div>
                   <h4 className="text-sm font-medium text-gray-700 mb-2">Risk Factors:</h4>
                   <ul className="space-y-1">
-                    {analysis.recommendations.riskFactors.map((risk, index) => (
+                    {(analysis.recommendations?.riskFactors ?? []).map((risk, index) => (
                       <li key={index} className="text-sm text-red-600 flex items-start">
                         <span className="text-red-500 mr-2">⚠</span>
                         {risk}
@@ -282,19 +298,19 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
                   <div className="text-xl font-bold text-gray-700">
-                    {analysis.analysis.gameState.wallTilesRemaining}
+                    {analysis.analysis!.gameState.wallTilesRemaining}
                   </div>
                   <div className="text-sm text-gray-600">Tiles in Wall</div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
                   <div className="text-xl font-bold text-gray-700">
-                    {analysis.analysis.gameState.turnsEstimated}
+                    {analysis.analysis!.gameState.turnsEstimated}
                   </div>
                   <div className="text-sm text-gray-600">Turns Remaining</div>
                 </div>
                 <div className="text-center p-3 bg-gray-50 rounded-lg">
                   <div className="text-xl font-bold text-gray-700">
-                    {(analysis.analysis.gameState.drawProbability * 100).toFixed(0)}%
+                    {(analysis.analysis!.gameState.drawProbability * 100).toFixed(0)}%
                   </div>
                   <div className="text-sm text-gray-600">Draw Probability</div>
                 </div>

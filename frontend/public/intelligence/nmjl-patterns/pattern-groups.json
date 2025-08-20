@@ -1,0 +1,3987 @@
+[
+  {
+    "handKey": "2025-2025-1-1",
+    "groups": [
+      {
+        "group": "FFFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2025",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,0,2,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "zero_is_neutral",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222_1",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2,5",
+        "constraintMustMatch": "222_2",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "222_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2,5",
+        "constraintMustMatch": "222_1",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2025-2-1",
+    "groups": [
+      {
+        "group": "222_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "0000",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "222_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "5555",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2025-3-1",
+    "groups": [
+      {
+        "group": "2025",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,0,2,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "zero_is_neutral",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "555",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDDD",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2025-4-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "000",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "0",
+        "constraintMustMatch": "",
+        "constraintExtra": "zero_is_neutral",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "555",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-1-1",
+    "groups": [
+      {
+        "group": "222",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "4444",
+        "displayColor": "blue",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "666",
+        "displayColor": "blue",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "8888",
+        "displayColor": "blue",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-1-2",
+    "groups": [
+      {
+        "group": "222",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "4444",
+        "displayColor": "green",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "666",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "8888",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-2-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2222",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "4444",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "6666",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-2-2",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2222",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "6666",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "8888",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-3-1",
+    "groups": [
+      {
+        "group": "22",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "444",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "66",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "888",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDDD",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-4-1",
+    "groups": [
+      {
+        "group": "FFFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2468",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222_1",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "222_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-5-1",
+    "groups": [
+      {
+        "group": "FFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "22",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "44",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "666",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "8888",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-6-1",
+    "groups": [
+      {
+        "group": "222",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "4444",
+        "displayColor": "green",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "666",
+        "displayColor": "green",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "88_1",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "88_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-7-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2222_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "2222_2",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDDD",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2222_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "2222_1",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-2468-8-1",
+    "groups": [
+      {
+        "group": "22",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "44",
+        "displayColor": "green",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "66",
+        "displayColor": "green",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "88",
+        "displayColor": "green",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222_1",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "222_2",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "222_1",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-ANY_LIKE_NUMBERS-1-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "1111_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "11,1111_2",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "D_1",
+        "displayColor": "green",
+        "suitRole": "same_as:1111_1",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "1111_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "1111_1,11",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "D_2",
+        "displayColor": "red",
+        "suitRole": "same_as:1111_2",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "1111_1, 1111_2",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-ANY_LIKE_NUMBERS-2-1",
+    "groups": [
+      {
+        "group": "FFFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "11_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "111_1, 111_2, 11_2",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "111_1",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "11_1, 111_2, 11_2",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "111_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "11_1, 111_1, 11_2",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "11_2",
+        "displayColor": "green",
+        "suitRole": "same_as:11_1",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "11_1, 111_1, 111_2",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-ANY_LIKE_NUMBERS-3-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "111_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "111_2, 111_3",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "111_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "111_1, 111_3",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "111_3",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "111_1, 111_2",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DDD",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-QUINTS-1-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "111",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,33333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2222",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "2,3,4,5,6,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,33333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "33333",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "quint",
+        "constraintValues": "3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,33333",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-QUINTS-2-1",
+    "groups": [
+      {
+        "group": "11111",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "quint",
+        "constraintValues": "1,2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11111,22222",
+        "jokersAllowed": true
+      },
+      {
+        "group": "NNNN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "n,e,w,s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "22222",
+        "displayColor": "blue",
+        "suitRole": "same_as:11111",
+        "suiteNote": "",
+        "constraintType": "quint",
+        "constraintValues": "2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11111,22222",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-QUINTS-3-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11111_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "quint",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "11,11111_2",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "11",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "11111_1, 11111_2",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11111_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "quint",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "11111_1",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-1-1",
+    "groups": [
+      {
+        "group": "11",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222",
+        "displayColor": "blue",
+        "suitRole": "same_as:11",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "3333",
+        "displayColor": "blue",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "444",
+        "displayColor": "blue",
+        "suitRole": "same_as:3333",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "4",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "55",
+        "displayColor": "blue",
+        "suitRole": "same_as:444",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-1-2",
+    "groups": [
+      {
+        "group": "55",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "666",
+        "displayColor": "blue",
+        "suitRole": "same_as:55",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "7777",
+        "displayColor": "blue",
+        "suitRole": "same_as:666",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "888",
+        "displayColor": "blue",
+        "suitRole": "same_as:7777",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "99",
+        "displayColor": "blue",
+        "suitRole": "same_as:888",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-2-1",
+    "groups": [
+      {
+        "group": "111",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2222",
+        "displayColor": "blue",
+        "suitRole": "same_as:111",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      },
+      {
+        "group": "333",
+        "displayColor": "blue",
+        "suitRole": "same_as:2222",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      },
+      {
+        "group": "4444",
+        "displayColor": "blue",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-2-2",
+    "groups": [
+      {
+        "group": "111",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2222",
+        "displayColor": "green",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      },
+      {
+        "group": "333",
+        "displayColor": "red",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      },
+      {
+        "group": "4444",
+        "displayColor": "red",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,2222,333,4444",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-3-1",
+    "groups": [
+      {
+        "group": "FFFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "1111",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "22",
+        "displayColor": "blue",
+        "suitRole": "same_as:1111",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "3333",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-3-2",
+    "groups": [
+      {
+        "group": "FFFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "1111",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1111,22,3333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "22",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1111,22,3333",
+        "jokersAllowed": false
+      },
+      {
+        "group": "3333",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1111,22,3333",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-4-1",
+    "groups": [
+      {
+        "group": "FFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "123",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:123,4444,5555",
+        "jokersAllowed": false
+      },
+      {
+        "group": "4444",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:123,4444,5555",
+        "jokersAllowed": true
+      },
+      {
+        "group": "5555",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:123,4444,5555",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-5-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11,222,333",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222",
+        "displayColor": "blue",
+        "suitRole": "same_as:11",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11,222,333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "333",
+        "displayColor": "blue",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11,222,333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDD",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-6-1",
+    "groups": [
+      {
+        "group": "111",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,222,3333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "222",
+        "displayColor": "green",
+        "suitRole": "same_as:111",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,222,3333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "3333",
+        "displayColor": "green",
+        "suitRole": "same_as:222",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:111,222,3333",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DD_1",
+        "displayColor": "red",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DD_2",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-7-1",
+    "groups": [
+      {
+        "group": "112345",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "pair_in_sequence:1,2,3,4,5, consecutive_after_pair",
+        "jokersAllowed": false
+      },
+      {
+        "group": "1111_1",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "match_pair:112345",
+        "jokersAllowed": true
+      },
+      {
+        "group": "1111_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1,2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "match_pair:112345",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-CONSECUTIVE_RUN-8-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "1_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1_1,22_1,333_1",
+        "jokersAllowed": false
+      },
+      {
+        "group": "22_1",
+        "displayColor": "green",
+        "suitRole": "same_as:1_1",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1_1,22_1,333_1",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333_1",
+        "displayColor": "green",
+        "suitRole": "same_as:22_1",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1_1,22_1,333_1",
+        "jokersAllowed": false
+      },
+      {
+        "group": "1_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "1,2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1_2,22_2,333_2",
+        "jokersAllowed": false
+      },
+      {
+        "group": "22_2",
+        "displayColor": "red",
+        "suitRole": "same_as:1_2",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1_2,22_2,333_2",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333_2",
+        "displayColor": "red",
+        "suitRole": "same_as:22_2",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:1_2,22_2,333_2",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-1-1",
+    "groups": [
+      {
+        "group": "11",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333",
+        "displayColor": "blue",
+        "suitRole": "same_as:11",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "5555",
+        "displayColor": "blue",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "777",
+        "displayColor": "blue",
+        "suitRole": "same_as:5555",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "99",
+        "displayColor": "blue",
+        "suitRole": "same_as:777",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-1-2",
+    "groups": [
+      {
+        "group": "11",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333",
+        "displayColor": "green",
+        "suitRole": "same_as:11",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "5555",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "777",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "99",
+        "displayColor": "blue",
+        "suitRole": "same_as:777",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-2-1",
+    "groups": [
+      {
+        "group": "111",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "3333",
+        "displayColor": "green",
+        "suitRole": "same_as:111",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "333",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "5555",
+        "displayColor": "red",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-2-2",
+    "groups": [
+      {
+        "group": "555",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "7777",
+        "displayColor": "green",
+        "suitRole": "same_as:555",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "777",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "red",
+        "suitRole": "same_as:777",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-3-1",
+    "groups": [
+      {
+        "group": "1111",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "333",
+        "displayColor": "blue",
+        "suitRole": "same_as:1111",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "5555",
+        "displayColor": "blue",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDD",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-3-2",
+    "groups": [
+      {
+        "group": "5555",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "777",
+        "displayColor": "blue",
+        "suitRole": "same_as:5555",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "blue",
+        "suitRole": "same_as:777",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDD",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-4-1",
+    "groups": [
+      {
+        "group": "FFFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "1111",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "green",
+        "suitRole": "same_as:1111",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "10",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "1,0",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-5-1",
+    "groups": [
+      {
+        "group": "FFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "135",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "1,3,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "7777",
+        "displayColor": "blue",
+        "suitRole": "same_as:135",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "blue",
+        "suitRole": "same_as:7777",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-5-2",
+    "groups": [
+      {
+        "group": "FFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "135",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "1,3,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "7777",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-6-1",
+    "groups": [
+      {
+        "group": "111",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "333",
+        "displayColor": "green",
+        "suitRole": "same_as:111",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "5555",
+        "displayColor": "green",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DD_1",
+        "displayColor": "red",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DD_2",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-6-2",
+    "groups": [
+      {
+        "group": "555",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "777",
+        "displayColor": "green",
+        "suitRole": "same_as:555",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "green",
+        "suitRole": "same_as:777",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DD_1",
+        "displayColor": "red",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DD_2",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-7-1",
+    "groups": [
+      {
+        "group": "11",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333_1",
+        "displayColor": "green",
+        "suitRole": "same_as:11",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "NEWS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "n,e,w,s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "55",
+        "displayColor": "red",
+        "suitRole": "same_as:333_2",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-7-2",
+    "groups": [
+      {
+        "group": "55",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "777_1",
+        "displayColor": "green",
+        "suitRole": "same_as:55",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "NEWS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "n,e,w,s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "777_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "99",
+        "displayColor": "red",
+        "suitRole": "same_as:777_2",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-8-1",
+    "groups": [
+      {
+        "group": "1111",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "33",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "55",
+        "displayColor": "red",
+        "suitRole": "same_as:33",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "77",
+        "displayColor": "red",
+        "suitRole": "same_as:55",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "9999",
+        "displayColor": "green",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-9-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "33",
+        "displayColor": "green",
+        "suitRole": "same_as:11",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "111",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333",
+        "displayColor": "red",
+        "suitRole": "same_as:111",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "55",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-13579-9-2",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "55",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "77",
+        "displayColor": "green",
+        "suitRole": "same_as:55",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "555",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "777",
+        "displayColor": "red",
+        "suitRole": "same_as:555",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "99",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-1-1",
+    "groups": [
+      {
+        "group": "NNNN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "EEE",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "e",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "WWW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "SSSS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-1-2",
+    "groups": [
+      {
+        "group": "NNN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "EEEE",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "e",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "WWWW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "SSS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-2-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "123",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "1,2,3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DD",
+        "displayColor": "green",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DDD",
+        "displayColor": "red",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDDD",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "kong",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-3-1",
+    "groups": [
+      {
+        "group": "FFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "NN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "EE",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "e",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "WWW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "SSSS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-4-1",
+    "groups": [
+      {
+        "group": "FFFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDD_1",
+        "displayColor": "green",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "NEWS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "n,e,w,s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DDD_2",
+        "displayColor": "red",
+        "suitRole": "none",
+        "suiteNote": "v. Opp Dragons",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-5-1",
+    "groups": [
+      {
+        "group": "NNNN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "1,3,5,7,9",
+        "constraintMustMatch": "11, 111",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,3,5,7,9",
+        "constraintMustMatch": "1,111",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "111",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "1,3,5,7,9",
+        "constraintMustMatch": "1,11",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "SSSS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-6-1",
+    "groups": [
+      {
+        "group": "EEEE",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "e",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "22,222",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "22",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "2,222",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "222",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "2,22",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "WWWW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-7-1",
+    "groups": [
+      {
+        "group": "NN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "EEE",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "e",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "WWW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "SS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2025",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,0,2,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-7-2",
+    "groups": [
+      {
+        "group": "NNN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "EE",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "e",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "WW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "SSS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "2025",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,0,2,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-WINDS_-_DRAGONS-8-1",
+    "groups": [
+      {
+        "group": "NN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "EE",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "e",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "WWW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "SSS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DDDD",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-1-1",
+    "groups": [
+      {
+        "group": "333",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "6666",
+        "displayColor": "green",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "666",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "red",
+        "suitRole": "same_as:666",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-1-2",
+    "groups": [
+      {
+        "group": "333",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "6666",
+        "displayColor": "green",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "666",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-2-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "3333",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "6666",
+        "displayColor": "blue",
+        "suitRole": "same_as:3333",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "blue",
+        "suitRole": "same_as:6666",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-2-2",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "3333",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "6666",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "9999",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-3-1",
+    "groups": [
+      {
+        "group": "3333_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDD_1",
+        "displayColor": "green",
+        "suitRole": "same_as:3333_1",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "3333_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "DDD_2",
+        "displayColor": "red",
+        "suitRole": "same_as:3333_2",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-4-1",
+    "groups": [
+      {
+        "group": "FFF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "3333",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "369",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "3,6,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "9999",
+        "displayColor": "green",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-5-1",
+    "groups": [
+      {
+        "group": "33",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "66",
+        "displayColor": "green",
+        "suitRole": "same_as:33",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "99",
+        "displayColor": "green",
+        "suitRole": "same_as:66",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "3333_1",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3,6,9",
+        "constraintMustMatch": "3333_2",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      },
+      {
+        "group": "3333_2",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "kong",
+        "constraintValues": "3,6,9",
+        "constraintMustMatch": "3333_1",
+        "constraintExtra": "",
+        "jokersAllowed": true
+      }
+    ]
+  },
+  {
+    "handKey": "2025-369-6-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "333",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "D_1",
+        "displayColor": "green",
+        "suitRole": "same_as:333",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "666",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "D_2",
+        "displayColor": "red",
+        "suitRole": "same_as:666",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "999",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pung",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "D_3",
+        "displayColor": "blue",
+        "suitRole": "same_as:999",
+        "suiteNote": "",
+        "constraintType": "single",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-SINGLES_AND_PAIRS-1-1",
+    "groups": [
+      {
+        "group": "NN",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "n",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "EW",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "e,w",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "SS",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "s",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "22",
+        "displayColor": "blue",
+        "suitRole": "same_as:11",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11",
+        "jokersAllowed": false
+      },
+      {
+        "group": "33",
+        "displayColor": "blue",
+        "suitRole": "same_as:22",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:22",
+        "jokersAllowed": false
+      },
+      {
+        "group": "44",
+        "displayColor": "blue",
+        "suitRole": "same_as:33",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:33",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-SINGLES_AND_PAIRS-2-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2468_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DD_1",
+        "displayColor": "green",
+        "suitRole": "same_as:2468_1",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2468_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,4,6,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "DD_2",
+        "displayColor": "red",
+        "suitRole": "same_as:2468_2",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "dragon",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-SINGLES_AND_PAIRS-3-1",
+    "groups": [
+      {
+        "group": "336699_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "3,3,6,6,9,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "336699_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "3,3,6,6,9,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "33",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-SINGLES_AND_PAIRS-4-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "22_1",
+        "displayColor": "green",
+        "suitRole": "same_as:11_1",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11_1",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11_2",
+        "displayColor": "red",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "22_2",
+        "displayColor": "red",
+        "suitRole": "same_as:11_2",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11_2",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11_3",
+        "displayColor": "blue",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,2,3,4,5,6,7,8",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "22_3",
+        "displayColor": "blue",
+        "suitRole": "same_as:11_3",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "2,3,4,5,6,7,8,9",
+        "constraintMustMatch": "",
+        "constraintExtra": "consecutive:11_3",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-SINGLES_AND_PAIRS-5-1",
+    "groups": [
+      {
+        "group": "11_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "33",
+        "displayColor": "green",
+        "suitRole": "same_as:11_1",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "3",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "55",
+        "displayColor": "green",
+        "suitRole": "same_as:33",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "77",
+        "displayColor": "green",
+        "suitRole": "same_as:55",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "7",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "99",
+        "displayColor": "green",
+        "suitRole": "same_as:77",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "9",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,3,5,7,9",
+        "constraintMustMatch": "11_1",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "11_3",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "1,3,5,7,9",
+        "constraintMustMatch": "11_2",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  },
+  {
+    "handKey": "2025-SINGLES_AND_PAIRS-6-1",
+    "groups": [
+      {
+        "group": "FF",
+        "displayColor": "blue",
+        "suitRole": "none",
+        "suiteNote": "",
+        "constraintType": "pair",
+        "constraintValues": "flower",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2025_1",
+        "displayColor": "green",
+        "suitRole": "any",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,0,2,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2025_2",
+        "displayColor": "red",
+        "suitRole": "second",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,0,2,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      },
+      {
+        "group": "2025_3",
+        "displayColor": "blue",
+        "suitRole": "third",
+        "suiteNote": "",
+        "constraintType": "sequence",
+        "constraintValues": "2,0,2,5",
+        "constraintMustMatch": "",
+        "constraintExtra": "",
+        "jokersAllowed": false
+      }
+    ]
+  }
+]
