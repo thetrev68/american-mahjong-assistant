@@ -104,7 +104,8 @@ export class AnalysisEngine {
       const result = this.convertToHandAnalysis(
         patternRankings,
         tileRecommendations,
-        patternsToAnalyze
+        patternsToAnalyze,
+        analysisFacts
       )
       
       const totalTime = performance.now() - startTime
@@ -128,11 +129,19 @@ export class AnalysisEngine {
   private static convertToHandAnalysis(
     patternRankings: any,
     tileRecommendations: any,
-    patterns: PatternSelectionOption[]
+    patterns: PatternSelectionOption[],
+    analysisFacts: any[]
   ): HandAnalysis {
     
+    // Sort recommendations by actual completion percentage instead of AI scores
+    const sortedRecommendations = patternRankings.topRecommendations.sort((a: any, b: any) => {
+      const aCompletion = (a.components.currentTileScore / 40) * 100
+      const bCompletion = (b.components.currentTileScore / 40) * 100
+      return bCompletion - aCompletion // Highest completion first
+    })
+    
     // Convert pattern rankings to PatternRecommendation format
-    const recommendedPatterns: PatternRecommendation[] = patternRankings.topRecommendations.map((ranking: any, index: number) => {
+    const recommendedPatterns: PatternRecommendation[] = sortedRecommendations.map((ranking: any, index: number) => {
       const pattern = patterns.find(p => p.id === ranking.patternId)
       
       // Get actual completion percentage from pattern analysis facts (not AI score)
@@ -229,7 +238,8 @@ export class AnalysisEngine {
       strategicAdvice: tileRecommendations.strategicAdvice,
       threats: [],
       lastUpdated: Date.now(),
-      analysisVersion: 'AV3-ThreeEngine'
+      analysisVersion: 'AV3-ThreeEngine',
+      engine1Facts: analysisFacts // Include Engine 1 facts for UI access
     }
   }
 

@@ -271,14 +271,15 @@ export class TileRecommendationEngine {
       }
     }
     
-    console.warn(`✅ USING ENGINE 1 FACTS for ${tileId}`)
+    // Using Engine 1 facts for tile analysis
     
-    // Debug logging for tile contributions
-    console.log(`=== TILE CONTRIBUTION ANALYSIS: ${tileId} ===`)
-    console.log('Available analysis facts:', analysisFacts.length)
+    // Check ALL viable patterns that have meaningful progress (not just top 3)
+    const viablePatterns = analysisFacts
+      .filter(fact => fact.tileMatching.bestVariation.completionRatio > 0.15) // At least 15% complete (2+ tiles)
+      .sort((a, b) => b.tileMatching.bestVariation.completionRatio - a.tileMatching.bestVariation.completionRatio)
     
-    // Check each pattern's analysis facts for tile contributions
-    for (const patternFact of analysisFacts) {
+    // Check each viable pattern's analysis facts for tile contributions
+    for (const patternFact of viablePatterns) {
       console.log(`Checking pattern: ${patternFact.patternId}`)
       const bestVariation = patternFact.tileMatching.bestVariation
       console.log(`Best variation tiles matched: ${bestVariation.tilesMatched}/14`)
@@ -286,7 +287,15 @@ export class TileRecommendationEngine {
       
       // Check if this tile has contributions in the best variation
       const tileContribution = bestVariation.tileContributions.find((contrib: any) => contrib.tileId === tileId)
-      console.log(`Tile ${tileId} contribution:`, tileContribution)
+      
+      if (tileId === '1D' || tileId === 'west') {
+        console.error(`🔍 TILE ${tileId}:`, {
+          found: !!tileContribution,
+          isRequired: tileContribution?.isRequired,
+          isCritical: tileContribution?.isCritical,
+          positions: tileContribution?.positionsInPattern?.length || 0
+        })
+      }
       
       if (tileContribution && tileContribution.isRequired) {
         patterns.push(patternFact.patternId)

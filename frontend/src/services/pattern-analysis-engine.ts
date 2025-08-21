@@ -21,6 +21,7 @@ export interface TileMatchResult {
   completionRatio: number
   missingTiles: string[]
   tileContributions: TileContribution[]
+  patternTiles: string[] // Complete 14-tile array from variation.tiles
 }
 
 export interface TileContribution {
@@ -279,7 +280,8 @@ export class PatternAnalysisEngine {
       tilesNeeded: 14 - tilesMatched,
       completionRatio: tilesMatched / 14,
       missingTiles,
-      tileContributions
+      tileContributions,
+      patternTiles: variation.tiles // Include complete 14-tile array from Engine 1
     }
   }
 

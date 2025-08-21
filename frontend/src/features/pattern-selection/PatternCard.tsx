@@ -182,19 +182,19 @@ export const PatternCard = ({
               <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
                 <div className="text-center">
                   <div className="font-semibold text-blue-600">
-                    {intelligenceScore.analysis.currentTiles.count}
+                    {intelligenceScore.analysis.currentTiles?.count || 0}
                   </div>
                   <div>Current</div>
                 </div>
                 <div className="text-center">
                   <div className="font-semibold text-orange-600">
-                    {intelligenceScore.analysis.missingTiles.total}
+                    {intelligenceScore.analysis.missingTiles?.total || 0}
                   </div>
                   <div>Missing</div>
                 </div>
                 <div className="text-center">
                   <div className="font-semibold text-purple-600">
-                    {intelligenceScore.analysis.jokerSituation.available}
+                    {intelligenceScore.analysis.jokerSituation?.available || 0}
                   </div>
                   <div>Jokers</div>
                 </div>

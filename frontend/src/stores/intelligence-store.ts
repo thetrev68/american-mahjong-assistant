@@ -109,6 +109,7 @@ export interface HandAnalysis {
   }[]
   lastUpdated: number
   analysisVersion: string
+  engine1Facts?: any[] // Engine 1 pattern analysis facts with tile arrays
 }
 
 export interface WhatIfScenario {

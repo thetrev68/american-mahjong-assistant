@@ -8,6 +8,7 @@ import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { PrimaryAnalysisCard } from './PrimaryAnalysisCard'
 import { PatternRecommendations } from './PatternRecommendations'
+import { AdvancedPatternAnalysis } from './AdvancedPatternAnalysis'
 
 export const IntelligencePanelPage = () => {
   const {
@@ -17,7 +18,7 @@ export const IntelligencePanelPage = () => {
     autoAnalyze
   } = useIntelligenceStore()
   
-  const { getTargetPatterns } = usePatternStore()
+  const { getTargetPatterns, clearSelection, addTargetPattern } = usePatternStore()
   const selectedPatterns = getTargetPatterns()
   const { playerHand = [], selectedTiles = [], handSize = 0 } = useTileStore()
   
@@ -187,12 +188,32 @@ export const IntelligencePanelPage = () => {
                 analysis={currentAnalysis}
                 currentPattern={currentAnalysis.recommendedPatterns[0] || null}
                 onPatternSwitch={(pattern) => {
-                  // Handle pattern switch logic
-                  console.log('Pattern switch requested:', pattern)
+                  // Handle pattern switch logic - update pattern store
+                  clearSelection()
+                  addTargetPattern(pattern.pattern.id)
+                  console.log('Pattern switched to:', pattern.pattern.id)
+                  // Trigger re-analysis with new pattern
+                  analyzeHand(playerHand, [pattern.pattern])
                 }}
                 onBrowseAllPatterns={() => {
                   // Navigate to pattern selection
                   window.location.href = '/patterns'
+                }}
+              />
+            )}
+            
+            {/* Advanced Pattern Analysis */}
+            {currentAnalysis && (
+              <AdvancedPatternAnalysis
+                analysis={currentAnalysis}
+                playerTiles={playerHand.map(t => t.id)}
+                gamePhase="charleston" // TODO: Get actual game phase
+                onPatternSelect={(patternId) => {
+                  // Handle pattern selection from advanced analysis
+                  clearSelection()
+                  addTargetPattern(patternId)
+                  console.log('Advanced pattern selected:', patternId)
+                  // TODO: Trigger re-analysis
                 }}
               />
             )}
