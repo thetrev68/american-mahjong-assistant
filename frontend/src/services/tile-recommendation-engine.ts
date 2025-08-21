@@ -248,12 +248,20 @@ export class TileRecommendationEngine {
       return this.analyzeTilePatternValue(tileId, topPatterns || [])
     }
     
+    // Debug logging for tile contributions
+    console.log(`=== TILE CONTRIBUTION ANALYSIS: ${tileId} ===`)
+    console.log('Available analysis facts:', analysisFacts.length)
+    
     // Check each pattern's analysis facts for tile contributions
     for (const patternFact of analysisFacts) {
+      console.log(`Checking pattern: ${patternFact.patternId}`)
       const bestVariation = patternFact.tileMatching.bestVariation
+      console.log(`Best variation tiles matched: ${bestVariation.tilesMatched}/14`)
+      console.log(`Tile contributions available:`, bestVariation.tileContributions.length)
       
       // Check if this tile has contributions in the best variation
       const tileContribution = bestVariation.tileContributions.find((contrib: any) => contrib.tileId === tileId)
+      console.log(`Tile ${tileId} contribution:`, tileContribution)
       
       if (tileContribution && tileContribution.isRequired) {
         patterns.push(patternFact.patternId)

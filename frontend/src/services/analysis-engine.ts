@@ -57,6 +57,12 @@ export class AnalysisEngine {
         fullGameContext
       )
       
+      console.log('=== ENGINE 1 ANALYSIS FACTS ===')
+      console.log('Analysis facts count:', analysisFacts.length)
+      analysisFacts.forEach(fact => {
+        console.log(`Pattern ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
+      })
+      
       const engine1Time = performance.now() - engine1Start
       console.log(`✓ Engine 1 completed in ${engine1Time.toFixed(1)}ms`)
       
@@ -148,6 +154,27 @@ export class AnalysisEngine {
           priorityScore: ranking.components.priorityScore
         },
         
+        // Detailed analysis for UI compatibility
+        analysis: {
+          currentTiles: {
+            count: Math.floor((ranking.components.currentTileScore / 40) * 14), // Calculate actual tiles matched
+            percentage: actualCompletion,
+            matchingGroups: [] // TODO: populate from Engine 1 facts if needed
+          },
+          missingTiles: {
+            total: 14 - Math.floor((ranking.components.currentTileScore / 40) * 14),
+            byAvailability: {
+              easy: [],
+              moderate: [],
+              difficult: []
+            }
+          },
+          gameState: {
+            turnsEstimated: Math.ceil((14 - Math.floor((ranking.components.currentTileScore / 40) * 14)) / 2),
+            progressRate: actualCompletion / 100
+          }
+        },
+        
         recommendations: {
           shouldPursue: ranking.recommendation === 'excellent' || ranking.recommendation === 'good',
           alternativePatterns: [],
@@ -174,6 +201,8 @@ export class AnalysisEngine {
       const actualCompletion = Math.round((ranking.components.currentTileScore / 40) * 100)
       const tilesMatched = Math.floor((ranking.components.currentTileScore / 40) * 14)
       const tilesNeeded = 14 - tilesMatched
+      
+      console.log(`DEBUG bestPatterns - ${ranking.patternId}: ${actualCompletion}% (${tilesMatched}/14 tiles)`)
       
       return {
         patternId: ranking.patternId,
