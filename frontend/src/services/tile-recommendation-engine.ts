@@ -156,6 +156,12 @@ export class TileRecommendationEngine {
     // Get actual tile contribution data from Engine 1 facts
     const tileContributions = this.analyzeTileContributions(tileId, analysisFacts, topPatterns)
     
+    // Debug the recommendation decision process
+    console.log(`=== TILE RECOMMENDATION DECISION: ${tileId} ===`)
+    console.log('Tile contributions:', tileContributions)
+    console.log('Tile count in hand:', tileCount)
+    console.log('Game context phase:', gameContext.phase)
+    
     // Determine base action
     let primaryAction: TileAction['primaryAction'] = 'neutral'
     let confidence = 50
@@ -168,27 +174,34 @@ export class TileRecommendationEngine {
       confidence = 95
       priority = 10
       reasoning = 'Jokers are always valuable for pattern completion'
+      console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileCount >= 2) {
       primaryAction = 'keep'
       confidence = 85
       priority = 8
       reasoning = `Building set with ${tileCount} copies`
+      console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileContributions.isCritical) {
       primaryAction = 'keep'
       confidence = 90
       priority = 9
       reasoning = `Critical for ${tileContributions.topPattern} pattern`
+      console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileContributions.helpsMultiplePatterns) {
       primaryAction = 'keep'
       confidence = 75
       priority = 7
       reasoning = `Useful for ${tileContributions.patternCount} patterns`
+      console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileContributions.patternCount === 0) {
       // Tile doesn't help any top patterns
       primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
       confidence = 80
       priority = 2
       reasoning = 'Not needed for viable patterns'
+      console.log(`Decision: ${primaryAction.toUpperCase()} - ${reasoning}`)
+    } else {
+      console.log(`Decision: NEUTRAL - fallback case`)
     }
     
     // Opponent safety analysis
@@ -245,8 +258,11 @@ export class TileRecommendationEngine {
     
     if (!analysisFacts || analysisFacts.length === 0) {
       // Fallback to old logic if no analysis facts available
+      console.log(`⚠️ No analysis facts available for ${tileId}, falling back to old logic`)
       return this.analyzeTilePatternValue(tileId, topPatterns || [])
     }
+    
+    console.log(`✓ Using Engine 1 facts for ${tileId} analysis`)
     
     // Debug logging for tile contributions
     console.log(`=== TILE CONTRIBUTION ANALYSIS: ${tileId} ===`)
@@ -264,6 +280,7 @@ export class TileRecommendationEngine {
       console.log(`Tile ${tileId} contribution:`, tileContribution)
       
       if (tileContribution && tileContribution.isRequired) {
+        console.log(`✓ ${tileId} contributes to ${patternFact.patternId} - isRequired: ${tileContribution.isRequired}, isCritical: ${tileContribution.isCritical}`)
         patterns.push(patternFact.patternId)
         
         // Calculate value based on actual contribution
@@ -287,10 +304,12 @@ export class TileRecommendationEngine {
         if (!topPattern) {
           topPattern = patternFact.patternId
         }
+      } else {
+        console.log(`✗ ${tileId} does NOT contribute to ${patternFact.patternId} - contribution:`, tileContribution)
       }
     }
     
-    return {
+    const result = {
       patterns,
       patternCount: patterns.length,
       totalValue,
@@ -298,6 +317,9 @@ export class TileRecommendationEngine {
       helpsMultiplePatterns: patterns.length >= 2,
       topPattern
     }
+    
+    console.log(`Final tile contribution result for ${tileId}:`, result)
+    return result
   }
 
   /**
