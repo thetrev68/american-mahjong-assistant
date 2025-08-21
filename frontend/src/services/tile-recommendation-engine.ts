@@ -232,7 +232,7 @@ export class TileRecommendationEngine {
   }
 
   /**
-   * Analyze tile's value across pattern options
+   * Analyze tile's value across pattern options (realistic assessment)
    */
   private static analyzeTilePatternValue(tileId: string, topPatterns: PatternRanking[]) {
     const patterns: string[] = []
@@ -240,26 +240,35 @@ export class TileRecommendationEngine {
     let isCritical = false
     let topPattern = ''
     
-    for (const pattern of topPatterns) {
-      // Check if this tile is needed for pattern completion
-      // We need to access the pattern analysis facts to see missing tiles
-      // For now, implement a reasonable heuristic based on tile frequency and pattern scoring
-      
+    // If no patterns are viable, no tiles have value
+    const viablePatterns = topPatterns.filter(p => p.totalScore > 40)
+    if (viablePatterns.length === 0) {
+      return {
+        patterns: [],
+        patternCount: 0,
+        totalValue: 0,
+        isCritical: false,
+        helpsMultiplePatterns: false,
+        topPattern: ''
+      }
+    }
+    
+    for (const pattern of viablePatterns) {
       // Higher-scoring patterns make tiles more valuable
       const patternWeight = pattern.totalScore / 100
       
-      // Check if tile could contribute to this pattern
-      // This is a simplified check - ideally we'd have access to the pattern facts
+      // Check if tile could contribute to this pattern (more restrictive)
       const tileValue = this.calculateTileValueForPattern(tileId, pattern)
       
-      if (tileValue > 0) {
+      // Only count patterns where the tile has significant value
+      if (tileValue > 0.3) {
         patterns.push(pattern.patternId)
         totalValue += tileValue * patternWeight
         
         if (!topPattern) topPattern = pattern.patternId
         
-        // Tile is critical if it's needed by high-scoring patterns
-        if (pattern.totalScore > 70 && tileValue > 0.5) {
+        // Tile is critical if it's highly valued by top patterns
+        if (pattern.totalScore > 60 && tileValue > 0.6) {
           isCritical = true
         }
       }
@@ -631,42 +640,51 @@ export class TileRecommendationEngine {
   }
 
   /**
-   * Calculate how valuable a specific tile is for a specific pattern
+   * Calculate how valuable a specific tile is for a specific pattern (realistic assessment)
    * Returns 0-1 value indicating tile importance to pattern completion
    */
   private static calculateTileValueForPattern(tileId: string, pattern: PatternRanking): number {
-    // This is a heuristic-based approach since we don't have pattern facts here
-    // In a full implementation, this would check the pattern's missing tiles
+    // Start with very low base value - most tiles don't help most patterns
+    let value = 0.1
     
-    // Base value on pattern components
+    // Pattern must be somewhat viable to assign any significant value
+    if (pattern.totalScore < 30) return 0.05 // Very low value for poor patterns
+    if (pattern.recommendation === 'impossible') return 0.0
+    
     const { components } = pattern
     
-    // Start with base tile value
-    let value = 0.3 // All tiles have some base value
+    // Only value tiles for patterns with reasonable current tile scores
+    if (components.currentTileScore > 25) {
+      value += 0.2 // Base value for contributing to pattern
+      
+      // Additional value based on pattern strength
+      if (components.currentTileScore > 35) value += 0.2
+      if (components.availabilityScore > 25) value += 0.15
+      if (components.jokerScore > 15) value += 0.1
+      if (components.priorityScore > 8) value += 0.1
+    } else {
+      // Pattern isn't progressing well, lower all tile values
+      return 0.05
+    }
     
-    // Tiles are more valuable for higher-scoring patterns
-    if (components.currentTileScore > 30) value += 0.2
-    if (components.availabilityScore > 20) value += 0.2
-    if (components.jokerScore > 15) value += 0.1
-    if (components.priorityScore > 7) value += 0.2
-    
-    // Adjust based on tile type characteristics
-    if (tileId.includes('joker')) {
-      // Jokers are always valuable
-      value = Math.max(value, 0.8)
-    } else if (tileId.includes('F') || tileId.includes('B')) {
-      // Winds/Dragons are often needed for special patterns
-      value += 0.1
-    } else if (tileId.match(/[1-9][BCR]/)) {
-      // Numbered tiles are versatile for sequences and sets
+    // Tile-specific adjustments (more conservative)
+    if (tileId === 'joker') {
+      // Jokers are valuable but not for impossible patterns
+      value = pattern.totalScore > 40 ? 0.85 : 0.4
+    } else if (tileId.match(/^(north|south|east|west|f1|f2|f3|f4)$/)) {
+      // Winds/Dragons are valuable for specific patterns only
+      value = pattern.patternId.includes('WIND') || pattern.patternId.includes('DRAGON') 
+        ? value + 0.3 : Math.max(0.1, value - 0.2)
+    } else if (tileId.match(/^[1-9][BCD]$/)) {
+      // Numbered tiles get slight bonus for sequence/set patterns
       value += 0.05
     }
     
-    // Pattern recommendation affects tile value
-    if (pattern.recommendation === 'excellent') value *= 1.2
+    // Pattern recommendation strongly affects tile value
+    if (pattern.recommendation === 'excellent') value *= 1.3
     else if (pattern.recommendation === 'good') value *= 1.1
-    else if (pattern.recommendation === 'poor') value *= 0.8
-    else if (pattern.recommendation === 'impossible') value *= 0.3
+    else if (pattern.recommendation === 'fair') value *= 0.9
+    else if (pattern.recommendation === 'poor') value *= 0.6
     
     return Math.min(1.0, Math.max(0.0, value))
   }

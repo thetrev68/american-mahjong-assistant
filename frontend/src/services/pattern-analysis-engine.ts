@@ -176,6 +176,13 @@ export class PatternAnalysisEngine {
       current.completionRatio < worst.completionRatio ? current : worst
     )
     
+    // Debug best variation for SINGLES AND PAIRS
+    if (variations[0].handKey.includes('SINGLES_AND_PAIRS-1-1')) {
+      console.log('=== BEST VARIATION SELECTED ===')
+      console.log(`Best: Sequence ${bestVariation.sequence}, ${bestVariation.tilesMatched}/14 tiles (${(bestVariation.completionRatio * 100).toFixed(1)}%)`)
+      console.log('All variations completion rates:', variationResults.map(v => `Seq${v.sequence}: ${v.tilesMatched}/14`).join(', '))
+    }
+    
     // Calculate average completion
     const averageCompletion = variationResults.reduce((sum, result) => 
       sum + result.completionRatio, 0
@@ -226,6 +233,13 @@ export class PatternAnalysisEngine {
     const missingTiles: string[] = []
     const tileContributions: TileContribution[] = []
     
+    // Debug for SINGLES AND PAIRS pattern - show ALL sequences
+    if (variation.handKey.includes('SINGLES_AND_PAIRS-1-1')) {
+      console.log(`=== DEBUG: SINGLES AND PAIRS-1-1 Sequence ${variation.sequence} ===`)
+      console.log('Player tiles:', playerTiles)
+      console.log('Required tiles:', variation.tiles)
+    }
+    
     // Analyze each required tile type
     for (const [requiredTileId, requiredCount] of Object.entries(requiredTileCounts)) {
       const playerCount = playerTileCounts[requiredTileId] || 0
@@ -233,6 +247,10 @@ export class PatternAnalysisEngine {
       const missing = requiredCount - matched
       
       tilesMatched += matched
+      
+      if (variation.handKey.includes('SINGLES_AND_PAIRS-1-1')) {
+        console.log(`Seq ${variation.sequence} - ${requiredTileId}: need ${requiredCount}, have ${playerCount}, matched ${matched}`)
+      }
       
       // Add missing tiles to list
       for (let i = 0; i < missing; i++) {

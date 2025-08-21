@@ -128,10 +128,13 @@ export class AnalysisEngine {
     const recommendedPatterns: PatternRecommendation[] = patternRankings.topRecommendations.map((ranking: any, index: number) => {
       const pattern = patterns.find(p => p.id === ranking.patternId)
       
+      // Get actual completion percentage from pattern analysis facts (not AI score)
+      const actualCompletion = Math.round((ranking.components.currentTileScore / 40) * 100) // currentTileScore is 0-40 based on actual tiles
+      
       return {
         pattern: pattern || { id: ranking.patternId, displayName: ranking.patternId } as PatternSelectionOption,
         confidence: ranking.confidence,
-        completionPercentage: Math.round(ranking.totalScore),
+        completionPercentage: actualCompletion, // Use actual tile completion, not AI score
         reasoning: this.generatePatternReasoning(ranking, index),
         difficulty: pattern?.difficulty || 'medium',
         isPrimary: index === 0,
@@ -166,18 +169,23 @@ export class AnalysisEngine {
     const bestPatterns = patternRankings.viablePatterns.slice(0, 10).map((ranking: any) => {
       const pattern = patterns.find(p => p.id === ranking.patternId)
       
+      // Calculate actual completion and tiles needed from currentTileScore
+      const actualCompletion = Math.round((ranking.components.currentTileScore / 40) * 100)
+      const tilesMatched = Math.floor((ranking.components.currentTileScore / 40) * 14)
+      const tilesNeeded = 14 - tilesMatched
+      
       return {
         patternId: ranking.patternId,
         section: pattern?.section || 'unknown',
         line: pattern?.line || 1,
         pattern: pattern?.pattern || ranking.patternId,
         groups: pattern?.groups || [],
-        completionPercentage: Math.round(ranking.totalScore),
-        tilesNeeded: 14 - Math.floor(ranking.totalScore / 7), // Rough estimate
+        completionPercentage: actualCompletion, // Use actual tile completion
+        tilesNeeded: tilesNeeded, // Use actual tiles needed
         missingTiles: [],
         confidenceScore: ranking.confidence,
         difficulty: pattern?.difficulty || 'medium',
-        estimatedTurns: Math.ceil(ranking.totalScore < 50 ? 8 : 4),
+        estimatedTurns: Math.ceil(tilesNeeded > 7 ? 8 : 4),
         riskLevel: ranking.riskFactors.length > 1 ? 'high' : ranking.riskFactors.length > 0 ? 'medium' : 'low',
         strategicValue: ranking.strategicValue
       }
