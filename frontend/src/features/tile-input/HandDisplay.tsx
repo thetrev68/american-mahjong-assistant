@@ -43,6 +43,15 @@ export const HandDisplay = ({
   // Get AI recommendations for highlighting
   const { currentAnalysis } = useIntelligenceStore()
   
+  // Debug current analysis
+  console.warn('🎯 CURRENT ANALYSIS:', currentAnalysis)
+  if (currentAnalysis?.tileRecommendations) {
+    console.warn('📋 TILE RECOMMENDATIONS:', currentAnalysis.tileRecommendations.length)
+    currentAnalysis.tileRecommendations.forEach(rec => {
+      console.warn(`🎲 ${rec.tileId}: ${rec.action} (${rec.confidence}% confidence)`)
+    })
+  }
+  
   // Create lookup maps for highlighting
   const getTileHighlighting = (tile: PlayerTile): TileRecommendation | undefined => {
     if (!currentAnalysis || !showRecommendations) return undefined

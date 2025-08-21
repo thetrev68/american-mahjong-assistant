@@ -157,10 +157,9 @@ export class TileRecommendationEngine {
     const tileContributions = this.analyzeTileContributions(tileId, analysisFacts, topPatterns)
     
     // Debug the recommendation decision process
-    console.log(`=== TILE RECOMMENDATION DECISION: ${tileId} ===`)
-    console.log('Tile contributions:', tileContributions)
-    console.log('Tile count in hand:', tileCount)
-    console.log('Game context phase:', gameContext.phase)
+    console.warn(`🎯 TILE DECISION: ${tileId}`)
+    console.warn('Contributions:', tileContributions)
+    console.warn('Count in hand:', tileCount)
     
     // Determine base action
     let primaryAction: TileAction['primaryAction'] = 'neutral'
@@ -258,11 +257,11 @@ export class TileRecommendationEngine {
     
     if (!analysisFacts || analysisFacts.length === 0) {
       // Fallback to old logic if no analysis facts available
-      console.log(`⚠️ No analysis facts available for ${tileId}, falling back to old logic`)
+      console.warn(`⚠️ NO ENGINE 1 FACTS for ${tileId}, using fallback logic`)
       return this.analyzeTilePatternValue(tileId, topPatterns || [])
     }
     
-    console.log(`✓ Using Engine 1 facts for ${tileId} analysis`)
+    console.warn(`✅ USING ENGINE 1 FACTS for ${tileId}`)
     
     // Debug logging for tile contributions
     console.log(`=== TILE CONTRIBUTION ANALYSIS: ${tileId} ===`)

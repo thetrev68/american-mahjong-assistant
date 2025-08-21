@@ -212,8 +212,9 @@ export const useIntelligenceStore = create<IntelligenceState>()(
           }
           
           // Use real analysis engine
-          console.log('Running real analysis engine...')
+          console.warn('🧠 RUNNING ANALYSIS ENGINE with', tiles.length, 'tiles and', patterns.length, 'patterns')
           const analysis = await AnalysisEngine.analyzeHand(tiles, patterns)
+          console.warn('🧠 ANALYSIS COMPLETED')
           
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)

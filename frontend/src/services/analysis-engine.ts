@@ -57,10 +57,9 @@ export class AnalysisEngine {
         fullGameContext
       )
       
-      console.log('=== ENGINE 1 ANALYSIS FACTS ===')
-      console.log('Analysis facts count:', analysisFacts.length)
+      console.warn('🔍 ENGINE 1 ANALYSIS FACTS:', analysisFacts.length, 'patterns')
       analysisFacts.forEach(fact => {
-        console.log(`Pattern ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
+        console.warn(`📊 ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
       })
       
       const engine1Time = performance.now() - engine1Start
