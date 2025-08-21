@@ -82,7 +82,8 @@ export class TileRecommendationEngine {
       exposedTiles: { [playerId: string]: string[] }
       playerHands?: { [playerId: string]: number } // hand sizes
       wallTilesRemaining: number
-    }
+    },
+    analysisFacts?: any[] // Engine 1 pattern analysis facts with actual tile matching data
   ): Promise<TileRecommendationResults> {
     
     // Analyze opponents first (informs tile safety)
@@ -100,7 +101,8 @@ export class TileRecommendationEngine {
         playerTiles,
         patternRankings,
         opponentAnalysis,
-        gameContext
+        gameContext,
+        analysisFacts
       )
       tileActions.push(action)
     }
@@ -144,14 +146,15 @@ export class TileRecommendationEngine {
     playerTiles: string[],
     patternRankings: RankedPatternResults,
     opponentAnalysis: OpponentAnalysis[],
-    gameContext: any
+    gameContext: any,
+    analysisFacts?: any[]
   ): TileAction {
     
     const tileCount = playerTiles.filter(t => t === tileId).length
     const topPatterns = patternRankings.topRecommendations.slice(0, 3)
     
-    // Analyze tile's value across top patterns
-    const patternValue = this.analyzeTilePatternValue(tileId, topPatterns)
+    // Get actual tile contribution data from Engine 1 facts
+    const tileContributions = this.analyzeTileContributions(tileId, analysisFacts, topPatterns)
     
     // Determine base action
     let primaryAction: TileAction['primaryAction'] = 'neutral'
@@ -170,17 +173,17 @@ export class TileRecommendationEngine {
       confidence = 85
       priority = 8
       reasoning = `Building set with ${tileCount} copies`
-    } else if (patternValue.isCritical) {
+    } else if (tileContributions.isCritical) {
       primaryAction = 'keep'
       confidence = 90
       priority = 9
-      reasoning = `Critical for ${patternValue.topPattern} pattern`
-    } else if (patternValue.helpsMultiplePatterns) {
+      reasoning = `Critical for ${tileContributions.topPattern} pattern`
+    } else if (tileContributions.helpsMultiplePatterns) {
       primaryAction = 'keep'
       confidence = 75
       priority = 7
-      reasoning = `Useful for ${patternValue.patternCount} patterns`
-    } else if (patternValue.patternCount === 0) {
+      reasoning = `Useful for ${tileContributions.patternCount} patterns`
+    } else if (tileContributions.patternCount === 0) {
       // Tile doesn't help any top patterns
       primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
       confidence = 80
@@ -201,19 +204,19 @@ export class TileRecommendationEngine {
     const contextualActions = this.generateContextualActions(
       tileId,
       primaryAction,
-      patternValue,
+      tileContributions,
       opponentRisk,
       gameContext
     )
     
     // Calculate multi-pattern value
-    const multiPatternValue = Math.min(10, patternValue.patternCount * 2 + patternValue.totalValue)
+    const multiPatternValue = Math.min(10, tileContributions.patternCount * 2 + tileContributions.totalValue)
     
     // Detect dangers
     const dangers = this.detectTileDangers(
       tileId,
       primaryAction,
-      patternValue,
+      tileContributions,
       opponentRisk,
       patternRankings
     )
@@ -225,14 +228,72 @@ export class TileRecommendationEngine {
       priority: Math.min(10, Math.max(1, priority)),
       reasoning,
       contextualActions,
-      patternsHelped: patternValue.patterns,
+      patternsHelped: tileContributions.patterns,
       multiPatternValue,
       dangers: dangers.length > 0 ? dangers : null
     }
   }
 
   /**
-   * Analyze tile's value across pattern options (realistic assessment)
+   * Analyze tile contributions using actual Engine 1 pattern analysis facts
+   */
+  private static analyzeTileContributions(tileId: string, analysisFacts?: any[], topPatterns?: PatternRanking[]) {
+    const patterns: string[] = []
+    let totalValue = 0
+    let isCritical = false
+    let topPattern = ''
+    
+    if (!analysisFacts || analysisFacts.length === 0) {
+      // Fallback to old logic if no analysis facts available
+      return this.analyzeTilePatternValue(tileId, topPatterns || [])
+    }
+    
+    // Check each pattern's analysis facts for tile contributions
+    for (const patternFact of analysisFacts) {
+      const bestVariation = patternFact.tileMatching.bestVariation
+      
+      // Check if this tile has contributions in the best variation
+      const tileContribution = bestVariation.tileContributions.find((contrib: any) => contrib.tileId === tileId)
+      
+      if (tileContribution && tileContribution.isRequired) {
+        patterns.push(patternFact.patternId)
+        
+        // Calculate value based on actual contribution
+        let contributionValue = 0.5 // Base value for required tiles
+        
+        if (tileContribution.isCritical) {
+          contributionValue += 0.3
+          isCritical = true
+        }
+        
+        if (tileContribution.positionsInPattern.length > 1) {
+          contributionValue += 0.2 // Bonus for multi-position tiles
+        }
+        
+        // Pattern completion affects tile value
+        const completionRatio = bestVariation.completionRatio
+        contributionValue *= (0.5 + completionRatio) // Scale by pattern progress
+        
+        totalValue += contributionValue
+        
+        if (!topPattern) {
+          topPattern = patternFact.patternId
+        }
+      }
+    }
+    
+    return {
+      patterns,
+      patternCount: patterns.length,
+      totalValue,
+      isCritical,
+      helpsMultiplePatterns: patterns.length >= 2,
+      topPattern
+    }
+  }
+
+  /**
+   * Analyze tile's value across pattern options (realistic assessment) - FALLBACK
    */
   private static analyzeTilePatternValue(tileId: string, topPatterns: PatternRanking[]) {
     const patterns: string[] = []

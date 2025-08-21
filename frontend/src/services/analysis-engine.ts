@@ -88,7 +88,8 @@ export class AnalysisEngine {
           discardPile: fullGameContext.discardPile,
           exposedTiles: fullGameContext.exposedTiles,
           wallTilesRemaining: fullGameContext.wallTilesRemaining
-        }
+        },
+        analysisFacts // Pass Engine 1 facts so Engine 3 can see actual tile matching
       )
       
       const engine3Time = performance.now() - engine3Start

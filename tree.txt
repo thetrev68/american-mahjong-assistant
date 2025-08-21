@@ -52,10 +52,10 @@ american-mahjong-assistant/
 │   │   │   │   └── LandingPage.tsx (180 lines)
 │   │   │   ├── pattern-selection/
 │   │   │   │   ├── index.ts (6 lines)
-│   │   │   │   ├── PatternAnalysisModal.tsx (370 lines)
+│   │   │   │   ├── PatternAnalysisModal.tsx (384 lines)
 │   │   │   │   ├── PatternCard.tsx (215 lines)
 │   │   │   │   ├── PatternFilters.tsx (158 lines)
-│   │   │   │   ├── PatternGrid.tsx (198 lines)
+│   │   │   │   ├── PatternGrid.tsx (174 lines)
 │   │   │   │   ├── PatternSelectionPage.tsx (129 lines)
 │   │   │   │   └── SelectedPatternsPanel.tsx (158 lines)
 │   │   │   ├── post-game/
@@ -110,13 +110,12 @@ american-mahjong-assistant/
 │   │   ├── services/
 │   │   │   ├── __tests__/
 │   │   │   │   └── nmjl-service.test.ts (299 lines)
-│   │   │   ├── analysis-engine.ts (1238 lines)
-│   │   │   ├── intelligence-calculations.ts (328 lines)
-│   │   │   ├── intelligence-example.ts (173 lines)
+│   │   │   ├── analysis-engine.ts (207 lines)
 │   │   │   ├── nmjl-service.ts (157 lines)
-│   │   │   ├── pattern-completion-analyzer.ts (462 lines)
-│   │   │   ├── pattern-intelligence-service.ts (406 lines)
-│   │   │   ├── tile-frequency-analyzer.ts (295 lines)
+│   │   │   ├── pattern-analysis-engine.ts (357 lines)
+│   │   │   ├── pattern-ranking-engine.ts (360 lines)
+│   │   │   ├── pattern-variation-loader.ts (167 lines)
+│   │   │   ├── tile-recommendation-engine.ts (565 lines)
 │   │   │   └── tile-service.ts (198 lines)
 │   │   ├── stores/
 │   │   │   ├── __tests__/
@@ -196,6 +195,8 @@ american-mahjong-assistant/
 ├── intelligence/
 │   └── nmjl-patterns/
 │       └── nmjl-card-2025.json (4367 lines)
+├── scripts/
+│   └── convert-csv-to-json.js (241 lines)
 ├── shared/
 │   ├── game-types.ts (290 lines)
 │   ├── multiplayer-types.d.ts (124 lines)
@@ -207,26 +208,24 @@ american-mahjong-assistant/
 │   ├── socket-events.ts (543 lines)
 │   └── tile-utils.ts (188 lines)
 ├── .gitignore
+├── audit_2025-08-19.md
 ├── CLAUDE.md
 ├── Memory Note - 2025-08-18.md
-├── memory.md
 ├── NMJL 2025 Card JSON prep 20250808.xlsx
 ├── package-lock.json (30 lines)
 ├── package.json (5 lines)
 ├── README.md
 ├── tree.txt
 ├── tree_scanner.py (250 lines)
-├── USER_ANALYSIS.md
-├── vercel.json (6 lines)
-└── ~$NMJL 2025 Card JSON prep 20250808.xlsx
+└── vercel.json (6 lines)
 
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 44
-Total files: 176
+Total directories: 45
+Total files: 174
 Files with line counts: 159
-Total lines of code: 45,732
+Total lines of code: 44,717
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv
