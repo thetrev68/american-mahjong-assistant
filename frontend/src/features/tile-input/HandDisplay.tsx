@@ -44,7 +44,10 @@ export const HandDisplay = ({
   const { currentAnalysis } = useIntelligenceStore()
   
   // Debug current analysis
-  console.warn('🎯 CURRENT ANALYSIS:', currentAnalysis)
+  console.warn('🎯 CURRENT ANALYSIS at', new Date().toLocaleTimeString())
+  console.warn('Analysis version:', currentAnalysis?.analysisVersion)
+  console.warn('Analysis timestamp:', currentAnalysis?.lastUpdated ? new Date(currentAnalysis.lastUpdated).toLocaleTimeString() : 'unknown')
+  
   if (currentAnalysis?.tileRecommendations) {
     console.warn('📋 TILE RECOMMENDATIONS:', currentAnalysis.tileRecommendations.length)
     currentAnalysis.tileRecommendations.forEach(rec => {

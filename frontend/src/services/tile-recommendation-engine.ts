@@ -2,7 +2,7 @@
 // Generates keep/pass/discard recommendations with opponent analysis
 // Provides contextual actions and danger warnings
 
-import type { PatternRanking, RankedPatternResults } from './pattern-ranking-engine'
+import type { RankedPatternResults } from './pattern-ranking-engine'
 
 export interface TileAction {
   tileId: string
@@ -151,10 +151,12 @@ export class TileRecommendationEngine {
   ): TileAction {
     
     const tileCount = playerTiles.filter(t => t === tileId).length
-    const topPatterns = patternRankings.topRecommendations.slice(0, 3)
+    
+    // Debug if analysisFacts are being passed
+    console.error(`🔧 TILE ${tileId} - analysisFacts:`, analysisFacts ? analysisFacts.length : 'UNDEFINED')
     
     // Get actual tile contribution data from Engine 1 facts
-    const tileContributions = this.analyzeTileContributions(tileId, analysisFacts, topPatterns)
+    const tileContributions = this.analyzeTileContributions(tileId, analysisFacts)
     
     // Debug the recommendation decision process
     console.warn(`🎯 TILE DECISION: ${tileId}`)
@@ -185,22 +187,23 @@ export class TileRecommendationEngine {
       confidence = 90
       priority = 9
       reasoning = `Critical for ${tileContributions.topPattern} pattern`
-      console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileContributions.helpsMultiplePatterns) {
       primaryAction = 'keep'
       confidence = 75
       priority = 7
       reasoning = `Useful for ${tileContributions.patternCount} patterns`
-      console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileContributions.patternCount === 0) {
       // Tile doesn't help any top patterns
       primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
       confidence = 80
       priority = 2
       reasoning = 'Not needed for viable patterns'
-      console.log(`Decision: ${primaryAction.toUpperCase()} - ${reasoning}`)
     } else {
-      console.log(`Decision: NEUTRAL - fallback case`)
+      // Default neutral case
+      primaryAction = 'neutral'
+      confidence = 50
+      priority = 4
+      reasoning = 'Moderate value - monitor for changes'
     }
     
     // Opponent safety analysis
@@ -249,16 +252,23 @@ export class TileRecommendationEngine {
   /**
    * Analyze tile contributions using actual Engine 1 pattern analysis facts
    */
-  private static analyzeTileContributions(tileId: string, analysisFacts?: any[], topPatterns?: PatternRanking[]) {
+  private static analyzeTileContributions(tileId: string, analysisFacts?: any[]) {
     const patterns: string[] = []
     let totalValue = 0
     let isCritical = false
     let topPattern = ''
     
     if (!analysisFacts || analysisFacts.length === 0) {
-      // Fallback to old logic if no analysis facts available
-      console.warn(`⚠️ NO ENGINE 1 FACTS for ${tileId}, using fallback logic`)
-      return this.analyzeTilePatternValue(tileId, topPatterns || [])
+      // No Engine 1 facts - return no contributions so tiles get discarded
+      console.warn(`⚠️ NO ENGINE 1 FACTS for ${tileId} - returning ZERO contributions`)
+      return {
+        patterns: [],
+        patternCount: 0,
+        totalValue: 0,
+        isCritical: false,
+        helpsMultiplePatterns: false,
+        topPattern: ''
+      }
     }
     
     console.warn(`✅ USING ENGINE 1 FACTS for ${tileId}`)
@@ -279,7 +289,6 @@ export class TileRecommendationEngine {
       console.log(`Tile ${tileId} contribution:`, tileContribution)
       
       if (tileContribution && tileContribution.isRequired) {
-        console.log(`✓ ${tileId} contributes to ${patternFact.patternId} - isRequired: ${tileContribution.isRequired}, isCritical: ${tileContribution.isCritical}`)
         patterns.push(patternFact.patternId)
         
         // Calculate value based on actual contribution
@@ -321,58 +330,11 @@ export class TileRecommendationEngine {
     return result
   }
 
-  /**
-   * Analyze tile's value across pattern options (realistic assessment) - FALLBACK
-   */
+  /* FALLBACK FUNCTION - UNUSED IN NEW SYSTEM
   private static analyzeTilePatternValue(tileId: string, topPatterns: PatternRanking[]) {
-    const patterns: string[] = []
-    let totalValue = 0
-    let isCritical = false
-    let topPattern = ''
-    
-    // If no patterns are viable, no tiles have value
-    const viablePatterns = topPatterns.filter(p => p.totalScore > 40)
-    if (viablePatterns.length === 0) {
-      return {
-        patterns: [],
-        patternCount: 0,
-        totalValue: 0,
-        isCritical: false,
-        helpsMultiplePatterns: false,
-        topPattern: ''
-      }
-    }
-    
-    for (const pattern of viablePatterns) {
-      // Higher-scoring patterns make tiles more valuable
-      const patternWeight = pattern.totalScore / 100
-      
-      // Check if tile could contribute to this pattern (more restrictive)
-      const tileValue = this.calculateTileValueForPattern(tileId, pattern)
-      
-      // Only count patterns where the tile has significant value
-      if (tileValue > 0.3) {
-        patterns.push(pattern.patternId)
-        totalValue += tileValue * patternWeight
-        
-        if (!topPattern) topPattern = pattern.patternId
-        
-        // Tile is critical if it's highly valued by top patterns
-        if (pattern.totalScore > 60 && tileValue > 0.6) {
-          isCritical = true
-        }
-      }
-    }
-    
-    return {
-      patterns,
-      patternCount: patterns.length,
-      totalValue,
-      isCritical,
-      helpsMultiplePatterns: patterns.length >= 2,
-      topPattern
-    }
+    // ... function body commented out ...
   }
+  */
 
   /**
    * Analyze opponents based on exposed tiles and discard patterns
@@ -732,7 +694,9 @@ export class TileRecommendationEngine {
   /**
    * Calculate how valuable a specific tile is for a specific pattern (realistic assessment)
    * Returns 0-1 value indicating tile importance to pattern completion
+   * UNUSED IN NEW ENGINE 1 FACTS SYSTEM
    */
+  /*
   private static calculateTileValueForPattern(tileId: string, pattern: PatternRanking): number {
     // Start with very low base value - most tiles don't help most patterns
     let value = 0.1
@@ -778,4 +742,5 @@ export class TileRecommendationEngine {
     
     return Math.min(1.0, Math.max(0.0, value))
   }
+  */
 }

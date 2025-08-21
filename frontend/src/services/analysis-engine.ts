@@ -46,7 +46,7 @@ export class AnalysisEngine {
         ...gameContext
       }
       
-      console.log('🔍 Engine 1: Analyzing pattern facts...')
+      console.error('🔍 ENGINE 1 STARTING - ANALYZING PATTERN FACTS')
       const engine1Start = performance.now()
       
       // Engine 1: Get mathematical facts for all patterns
@@ -57,9 +57,9 @@ export class AnalysisEngine {
         fullGameContext
       )
       
-      console.warn('🔍 ENGINE 1 ANALYSIS FACTS:', analysisFacts.length, 'patterns')
+      console.error('🔍 ENGINE 1 ANALYSIS FACTS:', analysisFacts.length, 'patterns')
       analysisFacts.forEach(fact => {
-        console.warn(`📊 ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
+        console.error(`📊 ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
       })
       
       const engine1Time = performance.now() - engine1Start
@@ -81,7 +81,7 @@ export class AnalysisEngine {
       const engine2Time = performance.now() - engine2Start
       console.log(`✓ Engine 2 completed in ${engine2Time.toFixed(1)}ms`)
       
-      console.log('💡 Engine 3: Generating recommendations...')
+      console.error('💡 ENGINE 3 STARTING - GENERATING TILE RECOMMENDATIONS')
       const engine3Start = performance.now()
       
       // Engine 3: Generate tile recommendations
@@ -113,7 +113,8 @@ export class AnalysisEngine {
       return result
       
     } catch (error) {
-      console.error('Analysis engine error:', error)
+      console.error('🚨 ANALYSIS ENGINE ERROR:', error)
+      console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
       
       // Fallback to basic analysis
       return this.generateFallbackAnalysis(playerTiles, selectedPatterns)

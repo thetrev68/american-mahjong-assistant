@@ -201,15 +201,9 @@ export const useIntelligenceStore = create<IntelligenceState>()(
           // Create a hash of the current hand state
           const handHash = createHandHash(tiles, patterns)
           
-          // Check cache first
-          const cached = get().getCachedAnalysis(handHash)
-          if (cached) {
-            set({ 
-              currentAnalysis: cached, 
-              isAnalyzing: false 
-            })
-            return
-          }
+          // Clear ALL cached analyses first
+          get().clearCache()
+          console.warn('🧠 ALL CACHE CLEARED - FORCING FRESH ANALYSIS')
           
           // Use real analysis engine
           console.warn('🧠 RUNNING ANALYSIS ENGINE with', tiles.length, 'tiles and', patterns.length, 'patterns')
