@@ -32,39 +32,7 @@ export const TileInputPage = () => {
   const isHandComplete = currentTiles >= requiredTiles
   
   
-  // Debug function to test tile service
-  const debugTileService = () => {
-    console.log('=== Tile Service Debug ===')
-    const allTiles = tileService.getAllTiles()
-    console.log('All tiles count:', allTiles.length)
-    console.log('First 5 tiles:', allTiles.slice(0, 5))
-    
-    const jokerTiles = tileService.getTilesBySuit('jokers')
-    console.log('Joker tiles:', jokerTiles)
-    
-    const testTile = tileService.createPlayerTile('joker')
-    console.log('Created test tile:', testTile)
-    
-    console.log('Current player hand:', playerHand)
-    console.log('=== End Debug ===')
-  }
-  
-  // Run debug on first render
-  if (typeof window !== 'undefined' && !(window as unknown as { tileDebugRun?: boolean }).tileDebugRun) {
-    debugTileService()
-    
-    // Debug localStorage to see what's persisted
-    console.log('=== LocalStorage Debug ===')
-    const tileStoreData = localStorage.getItem('tile-store')
-    console.log('tile-store in localStorage:', tileStoreData)
-    
-    // Clear localStorage to test
-    console.log('Clearing tile-store from localStorage...')
-    localStorage.removeItem('tile-store')
-    console.log('=== End LocalStorage Debug ===')
-    
-    ;(window as unknown as { tileDebugRun: boolean }).tileDebugRun = true
-  }
+  // Debug removed to prevent console spam
   
   useEffect(() => {
     // Clear hand when starting fresh (check if we came from home)
@@ -82,9 +50,6 @@ export const TileInputPage = () => {
   
   
   const handleQuickStart = () => {
-    console.log('=== Quick Start Debug ===')
-    console.log('Dealer hand mode:', dealerHand)
-    
     // Create a realistic mahjong tile pool (4 of each suit tile, 4 of each honor tile, etc.)
     const tilePool: string[] = []
     
@@ -107,9 +72,6 @@ export const TileInputPage = () => {
     tilePool.push('f1', 'f2', 'f3', 'f4')
     tilePool.push('joker', 'joker', 'joker', 'joker', 'joker', 'joker', 'joker', 'joker')
 
-    console.log('Tile pool created with', tilePool.length, 'tiles')
-    console.log('Sample tiles from pool:', tilePool.slice(0, 10))
-
     // Shuffle the pool
     const shuffledPool = tilePool.sort(() => Math.random() - 0.5)
 
@@ -117,13 +79,8 @@ export const TileInputPage = () => {
     const handSize = dealerHand ? 14 : 13
     const randomHand = shuffledPool.slice(0, handSize)
     
-    console.log('Generated random hand:', randomHand)
-    console.log('Tile string to import:', randomHand.join(' '))
-    
     // Import the new hand
-    console.log('Calling importTilesFromString...')
     importTilesFromString(randomHand.join(' '))
-    console.log('=== End Quick Start Debug ===')
   }
   
   // const handleImportExport = () => {

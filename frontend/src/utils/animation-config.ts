@@ -306,7 +306,7 @@ export function measureAnimationPerformance(
         
         // Log performance metrics in development
         if (process.env.NODE_ENV === 'development') {
-          console.log(`Animation "${animationName}" took ${duration.toFixed(2)}ms`)
+          // Animation performance data available
         }
         
         resolve(duration)

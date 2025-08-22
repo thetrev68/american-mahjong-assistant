@@ -89,7 +89,7 @@ export const usePatternStore = create<PatternState>()(
             isLoading: false
           })
           
-          console.log(`Pattern store loaded ${patterns.length} patterns`)
+          // Pattern store loaded patterns successfully
         } catch (error) {
           set({
             error: error instanceof Error ? error.message : 'Failed to load patterns',

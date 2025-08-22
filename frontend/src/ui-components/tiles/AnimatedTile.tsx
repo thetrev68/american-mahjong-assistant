@@ -191,7 +191,7 @@ export const AnimatedTile = ({
         willChange: 'transform, opacity'
       }
     } catch (error) {
-      console.warn('Animation style generation failed:', error)
+      // Animation style generation failed silently
       return {}
     }
   }, [animationState.isAnimating, animationState.currentAnimation, performance.shouldReduceAnimations])

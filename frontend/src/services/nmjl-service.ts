@@ -21,7 +21,7 @@ class NMJLService {
       this.patterns = this.validatePatterns(rawData)
       this.loaded = true
       
-      console.log(`Loaded ${this.patterns.length} NMJL 2025 patterns`)
+      // NMJL patterns loaded successfully
       return this.patterns
     } catch (error) {
       console.error('Error loading NMJL patterns:', error)

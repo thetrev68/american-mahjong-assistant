@@ -86,6 +86,17 @@ export class TileRecommendationEngine {
     analysisFacts?: any[] // Engine 1 pattern analysis facts with actual tile matching data
   ): Promise<TileRecommendationResults> {
     
+    try {
+    
+    // Validate Engine 1 analysis facts
+    if (!analysisFacts || !Array.isArray(analysisFacts)) {
+      throw new Error('Engine 3 requires valid Engine 1 analysis facts')
+    }
+    
+    if (analysisFacts.length === 0) {
+      throw new Error('Engine 1 provided no analysis facts')
+    }
+    
     // Analyze opponents first (informs tile safety)
     const opponentAnalysis = this.analyzeOpponents(
       gameContext.exposedTiles,
@@ -136,6 +147,31 @@ export class TileRecommendationEngine {
       strategicAdvice,
       emergencyActions
     }
+    
+    } catch (error) {
+      // Keep this error - it indicates actual Engine 3 failures
+      console.error('🚨 ENGINE 3 CRITICAL ERROR: generateRecommendations failed:', error)
+      if (error instanceof Error && error.stack) {
+        console.error('Stack trace:', error.stack)
+      }
+      
+      // Return safe fallback recommendations
+      return {
+        tileActions: [],
+        keepTiles: [],
+        passTiles: [],
+        discardTiles: [],
+        optimalStrategy: {
+          primaryPattern: 'analysis_failed',
+          backupPattern: null,
+          pivotCondition: null,
+          expectedCompletion: 0
+        },
+        opponentAnalysis: [],
+        strategicAdvice: ['Engine 3 analysis failed - manual review recommended'],
+        emergencyActions: []
+      }
+    }
   }
 
   /**
@@ -150,18 +186,15 @@ export class TileRecommendationEngine {
     analysisFacts?: any[]
   ): TileAction {
     
-    const tileCount = playerTiles.filter(t => t === tileId).length
-    
-    // Debug if analysisFacts are being passed
-    // console.error(`🔧 TILE ${tileId} - analysisFacts:`, analysisFacts ? analysisFacts.length : 'UNDEFINED')
-    
-    // Get actual tile contribution data from Engine 1 facts
-    const tileContributions = this.analyzeTileContributions(tileId, analysisFacts)
+    try {
+      const tileCount = playerTiles.filter(t => t === tileId).length
+      
+      // Debug if analysisFacts are being passed
+      
+      // Get actual tile contribution data from Engine 1 facts
+      const tileContributions = this.analyzeTileContributions(tileId, analysisFacts)
     
     // Debug the recommendation decision process
-    // console.warn(`🎯 TILE DECISION: ${tileId}`)
-    // console.warn('Contributions:', tileContributions)
-    // console.warn('Count in hand:', tileCount)
     
     // Determine base action
     let primaryAction: TileAction['primaryAction'] = 'neutral'
@@ -169,41 +202,54 @@ export class TileRecommendationEngine {
     let priority = 5
     let reasoning = 'Neutral strategic value'
     
-    // High-value tiles (jokers, multiple copies, pattern-critical)
+    // Realistic recommendations based on game context and tile value
     if (tileId === 'joker') {
       primaryAction = 'keep'
       confidence = 95
       priority = 10
       reasoning = 'Jokers are always valuable for pattern completion'
-      // console.log(`Decision: KEEP - ${reasoning}`)
-    } else if (tileCount >= 2) {
+    } else if (tileCount >= 3) {
+      // Already have 3+ copies - likely complete pung
+      primaryAction = 'keep'
+      confidence = 95
+      priority = 9
+      reasoning = `Complete set with ${tileCount} copies`
+    } else if (tileCount === 2) {
+      // Pair - good for building pung
       primaryAction = 'keep'
       confidence = 85
       priority = 8
-      reasoning = `Building set with ${tileCount} copies`
-      // console.log(`Decision: KEEP - ${reasoning}`)
+      reasoning = `Pair building toward pung (${tileCount} copies)`
     } else if (tileContributions.isCritical) {
+      // Critical single tile
       primaryAction = 'keep'
       confidence = 90
       priority = 9
-      reasoning = `Critical for ${tileContributions.topPattern} pattern`
-    } else if (tileContributions.helpsMultiplePatterns) {
+      reasoning = `Critical single tile for ${tileContributions.topPattern}`
+    } else if (tileContributions.helpsMultiplePatterns && tileContributions.patternCount >= 3) {
+      // Very flexible tile
       primaryAction = 'keep'
       confidence = 75
       priority = 7
-      reasoning = `Useful for ${tileContributions.patternCount} patterns`
+      reasoning = `Flexible tile helping ${tileContributions.patternCount} patterns`
     } else if (tileContributions.patternCount === 0) {
-      // Tile doesn't help any top patterns
+      // Tile doesn't help any viable patterns - MUST recommend discard/pass
       primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
-      confidence = 80
+      confidence = 85
+      priority = 1
+      reasoning = 'Does not contribute to any viable patterns'
+    } else if (tileContributions.patternCount === 1 && tileContributions.totalValue < 0.3) {
+      // Low value single tile - recommend discard/pass
+      primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
+      confidence = 70
       priority = 2
-      reasoning = 'Not needed for viable patterns'
+      reasoning = 'Low strategic value for current patterns'
     } else {
-      // Default neutral case
+      // Moderate value tile - lean toward keeping but could pass/discard
       primaryAction = 'neutral'
       confidence = 50
       priority = 4
-      reasoning = 'Moderate value - monitor for changes'
+      reasoning = 'Moderate strategic value - evaluate with hand balance'
     }
     
     // Opponent safety analysis
@@ -236,16 +282,43 @@ export class TileRecommendationEngine {
       patternRankings
     )
     
-    return {
-      tileId,
-      primaryAction,
-      confidence: Math.min(95, Math.max(15, confidence)),
-      priority: Math.min(10, Math.max(1, priority)),
-      reasoning,
-      contextualActions,
-      patternsHelped: tileContributions.patterns,
-      multiPatternValue,
-      dangers: dangers.length > 0 ? dangers : null
+      return {
+        tileId,
+        primaryAction,
+        confidence: Math.min(95, Math.max(15, confidence)),
+        priority: Math.min(10, Math.max(1, priority)),
+        reasoning,
+        contextualActions,
+        patternsHelped: tileContributions.patterns,
+        multiPatternValue,
+        dangers: dangers.length > 0 ? dangers : null
+      }
+      
+    } catch (error) {
+      // Keep this error - it indicates tile action generation failures
+      console.error(`🚨 ENGINE 3: Failed to generate tile action for ${tileId}:`, error)
+      
+      // Return safe fallback action
+      return {
+        tileId,
+        primaryAction: 'neutral' as const,
+        confidence: 50,
+        priority: 5,
+        reasoning: 'Engine 3 analysis failed - using neutral recommendation',
+        contextualActions: {
+          charleston: 'neutral' as const,
+          gameplay: 'neutral' as const,
+          exposition: 'keep' as const
+        },
+        patternsHelped: [],
+        multiPatternValue: 0,
+        dangers: [{
+          type: 'strategic_error' as const,
+          severity: 'medium' as const,
+          message: 'Analysis engine error - manual review recommended',
+          impact: 'Unable to provide strategic recommendations for this tile'
+        }]
+      }
     }
   }
 
@@ -260,7 +333,6 @@ export class TileRecommendationEngine {
     
     if (!analysisFacts || analysisFacts.length === 0) {
       // No Engine 1 facts - return no contributions so tiles get discarded
-      // console.warn(`⚠️ NO ENGINE 1 FACTS for ${tileId} - returning ZERO contributions`)
       return {
         patterns: [],
         patternCount: 0,
@@ -271,72 +343,112 @@ export class TileRecommendationEngine {
       }
     }
     
-    // Using Engine 1 facts for tile analysis
-    
-    // Check ALL viable patterns that have meaningful progress (not just top 3)
-    const viablePatterns = analysisFacts
-      .filter(fact => fact.tileMatching.bestVariation.completionRatio > 0.15) // At least 15% complete (2+ tiles)
-      .sort((a, b) => b.tileMatching.bestVariation.completionRatio - a.tileMatching.bestVariation.completionRatio)
-    
-    // Check each viable pattern's analysis facts for tile contributions
-    for (const patternFact of viablePatterns) {
-      // console.log(`Checking pattern: ${patternFact.patternId}`)
-      const bestVariation = patternFact.tileMatching.bestVariation
-      // console.log(`Best variation tiles matched: ${bestVariation.tilesMatched}/14`)
-      // console.log(`Tile contributions available:`, bestVariation.tileContributions.length)
+    try {
+      // Using Engine 1 facts for tile analysis with safe property access
       
-      // Check if this tile has contributions in the best variation
-      const tileContribution = bestVariation.tileContributions.find((contrib: any) => contrib.tileId === tileId)
+      // Check ALL viable patterns that have meaningful progress (not just top 3)
+      const viablePatterns = analysisFacts
+        .filter(fact => {
+          // Validate fact structure silently - log only critical errors
+          if (!fact?.tileMatching?.bestVariation) {
+            return false
+          }
+          try {
+            return fact.tileMatching.bestVariation.completionRatio > 0.15 // At least 15% complete (2+ tiles)
+          } catch (error) {
+            // Silent - expected data validation failure
+            return false
+          }
+        })
+        .sort((a, b) => {
+          const aRatio = a?.tileMatching?.bestVariation?.completionRatio || 0
+          const bRatio = b?.tileMatching?.bestVariation?.completionRatio || 0
+          return bRatio - aRatio
+        })
       
-      if (tileId === '1D' || tileId === 'west') {
-        // console.error(`🔍 TILE ${tileId}:`, {
-        //   found: !!tileContribution,
-        //   isRequired: tileContribution?.isRequired,
-        //   isCritical: tileContribution?.isCritical,
-        //   positions: tileContribution?.positionsInPattern?.length || 0
-        // })
+      // Check each viable pattern's analysis facts for tile contributions
+      for (const patternFact of viablePatterns) {
+        try {
+          const bestVariation = patternFact?.tileMatching?.bestVariation
+          
+          if (!bestVariation) {
+            // Expected case for incomplete pattern analysis - skip silently
+            continue
+          }
+          
+          
+          // Check if this tile has contributions in the best variation
+          const tileContributions = bestVariation.tileContributions
+          if (!tileContributions || !Array.isArray(tileContributions)) {
+            // Expected case for patterns without tile contribution data - skip silently
+            continue
+          }
+          
+          const tileContribution = tileContributions.find((contrib: any) => contrib?.tileId === tileId)
+          
+          if (tileContribution && tileContribution.isRequired) {
+            patterns.push(patternFact.patternId)
+            
+            // Calculate value based on actual contribution
+            let contributionValue = 0.5 // Base value for required tiles
+            
+            if (tileContribution.isCritical === true) {
+              contributionValue += 0.3
+              isCritical = true
+            }
+            
+            if (tileContribution.positionsInPattern && Array.isArray(tileContribution.positionsInPattern) && tileContribution.positionsInPattern.length > 1) {
+              contributionValue += 0.2 // Bonus for multi-position tiles
+            }
+            
+            // Pattern completion affects tile value
+            const completionRatio = bestVariation.completionRatio || 0
+            contributionValue *= (0.5 + completionRatio) // Scale by pattern progress
+            
+            totalValue += contributionValue
+            
+            if (!topPattern) {
+              topPattern = patternFact.patternId
+            }
+          } else {
+          }
+        } catch (patternError) {
+          // Silent - expected data validation failure
+          continue
+        }
+      }
+    
+      const result = {
+        patterns,
+        patternCount: patterns.length,
+        totalValue,
+        isCritical,
+        helpsMultiplePatterns: patterns.length >= 2,
+        topPattern
       }
       
-      if (tileContribution && tileContribution.isRequired) {
-        patterns.push(patternFact.patternId)
-        
-        // Calculate value based on actual contribution
-        let contributionValue = 0.5 // Base value for required tiles
-        
-        if (tileContribution.isCritical) {
-          contributionValue += 0.3
-          isCritical = true
-        }
-        
-        if (tileContribution.positionsInPattern.length > 1) {
-          contributionValue += 0.2 // Bonus for multi-position tiles
-        }
-        
-        // Pattern completion affects tile value
-        const completionRatio = bestVariation.completionRatio
-        contributionValue *= (0.5 + completionRatio) // Scale by pattern progress
-        
-        totalValue += contributionValue
-        
-        if (!topPattern) {
-          topPattern = patternFact.patternId
-        }
-      } else {
-        // console.log(`✗ ${tileId} does NOT contribute to ${patternFact.patternId} - contribution:`, tileContribution)
+      return result
+      
+    } catch (error) {
+      // Keep this error - it indicates tile contribution analysis failures
+      console.error(`🚨 ENGINE 3 CRITICAL ERROR: Failed to analyze tile contributions for ${tileId}:`, error)
+      console.error('Engine 1 facts structure:', analysisFacts?.map(f => ({ 
+        patternId: f?.patternId, 
+        hasTileMatching: !!f?.tileMatching,
+        hasBestVariation: !!f?.tileMatching?.bestVariation,
+        hasTileContributions: !!f?.tileMatching?.bestVariation?.tileContributions
+      })))
+      
+      // Return safe fallback to prevent complete Engine 3 failure
+      return {
+        patterns: [],
+        patternCount: 0,
+        totalValue: 0,
+        isCritical: false,
+        helpsMultiplePatterns: false,
+        topPattern: ''
       }
     }
-    
-    const result = {
-      patterns,
-      patternCount: patterns.length,
-      totalValue,
-      isCritical,
-      helpsMultiplePatterns: patterns.length >= 2,
-      topPattern
-    }
-    
-    // console.log(`Final tile contribution result for ${tileId}:`, result)
-    return result
   }
 
   /* FALLBACK FUNCTION - UNUSED IN NEW SYSTEM
@@ -553,7 +665,7 @@ export class TileRecommendationEngine {
   }
 
   /**
-   * Generate strategic advice
+   * Generate strategic advice with realistic tile counts
    */
   private static generateStrategicAdvice(
     patternRankings: RankedPatternResults,
@@ -567,19 +679,41 @@ export class TileRecommendationEngine {
     // Primary strategy advice
     advice.push(`Focus on ${topPattern.patternId} (${topPattern.recommendation} viability)`)
     
-    // Tile management advice
+    // Realistic tile management advice
     const keepCount = tileActions.filter(a => a.primaryAction === 'keep').length
-    if (keepCount > 10) {
-      advice.push('Consider passing some tiles to improve hand flexibility')
-    } else if (keepCount < 6) {
-      advice.push('Be more selective - keep tiles that help multiple patterns')
+    const passCount = tileActions.filter(a => a.primaryAction === 'pass').length
+    const discardCount = tileActions.filter(a => a.primaryAction === 'discard').length
+    const totalHand = tileActions.length
+    
+    // Phase-specific realistic advice
+    if (gameContext.phase === 'charleston') {
+      const needToPass = 3 // Charleston requires passing 3 tiles
+      const passCandidates = passCount + discardCount
+      
+      if (passCandidates < needToPass) {
+        advice.push(`Need ${needToPass - passCandidates} more tiles to pass - consider lower value keeps`)
+      } else if (passCandidates > needToPass + 2) {
+        advice.push('Many disposal options - pass lowest strategic value tiles first')
+      } else {
+        advice.push(`Pass the ${passCount} recommended tiles, plus ${needToPass - passCount} from neutral tiles`)
+      }
+    } else {
+      // Gameplay phase - must discard at least 1 tile per turn
+      if (discardCount === 0 && totalHand >= 14) {
+        advice.push('Must discard at least one tile - consider breaking up low-value pairs')
+      } else if (discardCount >= 3) {
+        advice.push('Multiple disposal options - start with tiles that help opponents least')
+      } else {
+        advice.push('Discard recommended tiles while monitoring opponent needs')
+      }
     }
     
-    // Phase-specific advice
-    if (gameContext.phase === 'charleston') {
-      advice.push('Pass tiles that don\'t fit your target patterns')
-    } else {
-      advice.push('Monitor opponent discards for safe disposal opportunities')
+    // Hand balance advice
+    const keepRatio = keepCount / totalHand
+    if (keepRatio > 0.85) {
+      advice.push('Hand too rigid - consider strategic tile releases for flexibility')
+    } else if (keepRatio < 0.50) {
+      advice.push('Many disposal candidates - focus on pattern completion priorities')
     }
     
     // Risk management advice

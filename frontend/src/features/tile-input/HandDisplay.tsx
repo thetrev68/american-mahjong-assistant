@@ -33,27 +33,8 @@ export const HandDisplay = ({
     getTileGroups
   } = useTileStore()
   
-  // Debug logging for hand display
-  console.log('=== HandDisplay Debug ===')
-  console.log('PlayerHand from store:', playerHand)
-  console.log('PlayerHand length:', playerHand.length)
-  console.log('HandDisplay props:', { showRecommendations, allowReordering, compactMode })
-  console.log('=== End HandDisplay Debug ===')
-  
   // Get AI recommendations for highlighting
   const { currentAnalysis } = useIntelligenceStore()
-  
-  // Debug current analysis
-  console.warn('🎯 CURRENT ANALYSIS at', new Date().toLocaleTimeString())
-  console.warn('Analysis version:', currentAnalysis?.analysisVersion)
-  console.warn('Analysis timestamp:', currentAnalysis?.lastUpdated ? new Date(currentAnalysis.lastUpdated).toLocaleTimeString() : 'unknown')
-  
-  if (currentAnalysis?.tileRecommendations) {
-    console.warn('📋 TILE RECOMMENDATIONS:', currentAnalysis.tileRecommendations.length)
-    currentAnalysis.tileRecommendations.forEach(rec => {
-      console.warn(`🎲 ${rec.tileId}: ${rec.action} (${rec.confidence}% confidence)`)
-    })
-  }
   
   // Create lookup maps for highlighting
   const getTileHighlighting = (tile: PlayerTile): TileRecommendation | undefined => {

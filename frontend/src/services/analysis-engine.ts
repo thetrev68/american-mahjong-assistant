@@ -59,12 +59,11 @@ export class AnalysisEngine {
     const now = Date.now()
     
     if (cached && (now - cached.timestamp) < this.CACHE_TTL_MS) {
-      console.log('🚀 ENGINE 1 CACHE HIT - Pattern switching optimization')
-      console.log(`📊 Cached analysis for ${cached.facts.length} patterns`)
+      // Cache hit - using cached analysis
       return cached.facts
     }
     
-    console.log('🔍 ENGINE 1 CACHE MISS - Computing fresh analysis')
+    // Cache miss - computing fresh analysis
     
     // Compute fresh Engine 1 results
     const facts = await PatternAnalysisEngine.analyzePatterns(
@@ -109,7 +108,7 @@ export class AnalysisEngine {
       })
       
       if (entriesToRemove.length > 0) {
-        console.log(`🧹 Cleared ${entriesToRemove.length} cache entries for hand change`)
+        // Cleared cache entries for hand change
       }
     }
   }
@@ -128,7 +127,7 @@ export class AnalysisEngine {
         this.engine1Cache.delete(key)
       })
       
-      console.log(`🧹 Cache cleanup: Removed ${toRemove.length} old entries`)
+      // Cache cleanup completed
     }
   }
 
@@ -151,9 +150,7 @@ export class AnalysisEngine {
   ): Promise<HandAnalysis> {
     const startTime = performance.now()
     
-    console.log('=== 3-Engine Intelligence System ===')
-    console.log('Input player tiles:', playerTiles.length)
-    console.log('Selected patterns:', selectedPatterns.length)
+    // Starting 3-Engine Intelligence System analysis
     
     try {
       // Convert PlayerTile[] to string[] for engine compatibility
@@ -191,13 +188,13 @@ export class AnalysisEngine {
       // })
       
       const engine1Time = performance.now() - engine1Start
-      console.log(`✓ Engine 1 completed in ${engine1Time.toFixed(1)}ms`)
+      // Engine 1 completed
       
       // Log cache stats for performance monitoring
       const cacheStats = this.getCacheStats()
-      console.log(`📈 Engine 1 Cache: ${cacheStats.size} entries`)
+      // Engine 1 cache status updated
       
-      console.log('🎯 Engine 2: Ranking patterns...')
+      // Engine 2: Ranking patterns
       const engine2Start = performance.now()
       
       // Engine 2: Apply strategic ranking and scoring
@@ -211,7 +208,7 @@ export class AnalysisEngine {
       )
       
       const engine2Time = performance.now() - engine2Start
-      console.log(`✓ Engine 2 completed in ${engine2Time.toFixed(1)}ms`)
+      // Engine 2 completed
       
       // console.error('💡 ENGINE 3 STARTING - GENERATING TILE RECOMMENDATIONS')
       const engine3Start = performance.now()
@@ -230,7 +227,7 @@ export class AnalysisEngine {
       )
       
       const engine3Time = performance.now() - engine3Start
-      console.log(`✓ Engine 3 completed in ${engine3Time.toFixed(1)}ms`)
+      // Engine 3 completed
       
       // Convert results to HandAnalysis format (maintaining interface compatibility)
       const result = this.convertToHandAnalysis(
@@ -241,7 +238,7 @@ export class AnalysisEngine {
       )
       
       const totalTime = performance.now() - startTime
-      console.log(`🎉 Total analysis completed in ${totalTime.toFixed(1)}ms`)
+      // Total analysis completed
       
       return result
       
@@ -343,7 +340,7 @@ export class AnalysisEngine {
       const tilesMatched = Math.floor((ranking.components.currentTileScore / 40) * 14)
       const tilesNeeded = 14 - tilesMatched
       
-      console.log(`DEBUG bestPatterns - ${ranking.patternId}: ${actualCompletion}% (${tilesMatched}/14 tiles)`)
+      // Pattern ranking debug info available
       
       return {
         patternId: ranking.patternId,

@@ -92,23 +92,13 @@ export const useTileStore = create<TileState>()(
         
         // Hand Management Actions
         addTile: (tileId: string) => {
-          console.log('=== Tile Store addTile Debug ===')
-          console.log('Adding tile ID:', tileId)
-          
           const playerTile = tileService.createPlayerTile(tileId)
-          console.log('Created player tile:', playerTile)
           
           if (!playerTile) {
-            console.log('FAILED: Could not create player tile')
             return
           }
           
           set((state) => {
-            console.log('Current state before update:', {
-              handSize: state.playerHand.length,
-              tiles: state.playerHand.map(t => t.id)
-            })
-            
             const oldTileIds = state.playerHand.map(tile => tile.id)
             const newHand = [...state.playerHand, playerTile]
             const newTileIds = newHand.map(tile => tile.id)
@@ -117,12 +107,6 @@ export const useTileStore = create<TileState>()(
             AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
             
             const validation = tileService.validateHand(newHand, state.dealerHand ? 14 : 13)
-            
-            console.log('New hand after update:', {
-              handSize: newHand.length,
-              tiles: newHand.map(t => t.id)
-            })
-            console.log('=== End Tile Store Debug ===')
             
             return {
               playerHand: newHand,
@@ -334,7 +318,7 @@ export const useTileStore = create<TileState>()(
               lastAnalysis: Date.now()
             })
           } catch (error) {
-            console.error('Hand analysis failed:', error)
+            // Analysis failed - continue silently
             set({ analysisInProgress: false })
           }
         },
@@ -354,32 +338,20 @@ export const useTileStore = create<TileState>()(
         
         // Bulk Operations
         importTilesFromString: (tileString: string) => {
-          console.log('=== Import Tiles Debug ===')
-          console.log('Input tile string:', tileString)
-          
           // Parse tile string format like "1D 2D 3B 4B east south"
           const tileIds = tileString.trim().split(/\s+/)
-          console.log('Parsed tile IDs:', tileIds)
           
           const validTiles: PlayerTile[] = []
-          const invalidTiles: string[] = []
           
           tileIds.forEach(tileId => {
             const tile = tileService.createPlayerTile(tileId)
             if (tile) {
               validTiles.push(tile)
-            } else {
-              invalidTiles.push(tileId)
             }
           })
           
-          console.log('Valid tiles created:', validTiles.length, validTiles.map(t => t.id))
-          console.log('Invalid tile IDs:', invalidTiles)
-          
           set((state) => {
             const validation = tileService.validateHand(validTiles, state.dealerHand ? 14 : 13)
-            console.log('Setting new hand with', validTiles.length, 'tiles')
-            console.log('=== End Import Tiles Debug ===')
             
             return {
               playerHand: validTiles,

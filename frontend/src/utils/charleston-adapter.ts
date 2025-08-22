@@ -94,12 +94,7 @@ export class CharlestonAdapter {
     playerCount: number = 4
   ): CharlestonRecommendation {
     
-    console.log('[Charleston] Generating recommendations:', {
-      tileCount: playerTiles.length,
-      targetPatternCount: targetPatterns.length,
-      phase,
-      playerCount
-    })
+    // Charleston recommendations generated
     
     // Step 1: Evaluate each tile against target patterns
     const tileValues = this.evaluateTilesForTargetPatterns(playerTiles, targetPatterns)

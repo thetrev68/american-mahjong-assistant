@@ -134,11 +134,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         } as TileType & { instanceId: string; isSelected: boolean }
       })
       
-      console.log('🧠 Analyzing hand:', {
-        concealedTiles: handForAnalysis.length,
-        exposedSets: (exposedTiles || []).length,
-        targetPatterns: (selectedPatterns || []).length
-      })
+      // Hand analysis initiated
       
       // Trigger intelligence analysis with enhanced context
       await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns)
@@ -151,14 +147,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Initialize game mode
   useEffect(() => {
-    console.log('🎮 GameModeView initialized - basic demo mode')
+    // GameModeView initialized
     setIsMyTurn(true)
   }, [])
 
   // Auto-analyze hand when it changes
   useEffect(() => {
     if (fullHand.length > 0 && selectedPatterns.length > 0) {
-      console.log('🔄 Hand changed, triggering auto-analysis')
+      // Hand changed - triggering analysis
       analyzeCurrentHand()
     }
   }, [fullHand, selectedPatterns, analyzeCurrentHand])
@@ -223,14 +219,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       setShowCallDialog(true)
       
       const timeoutId = setTimeout(() => {
-        console.log('⏰ Call timeout - automatically passing')
+        // Call timeout - automatically passing
         handleCallDecision('pass')
       }, 5000)
       
       setCallTimeoutId(timeoutId)
     }
 
-    console.log(`🎯 Found ${opportunities.length} call opportunities for ${discardedTile.displayName}`)
+    // Call opportunities evaluated
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentHand, selectedPatterns])
 
@@ -259,7 +255,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setIsMyTurn(false)
     setSelectedDiscardTile(null)
 
-    console.log(`🗑️ Discarded ${tile.displayName}`)
+    // Tile discarded
 
     setTimeout(() => {
       if (isMyTurn && currentHand.length > 0 && lastDrawnTile && gameStore.currentPlayerId && selectedPatterns.length > 0) {
@@ -311,9 +307,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
       setIsMyTurn(true)
 
-      console.log(`✅ Called ${opportunity.callType} with ${opportunity.exposedTiles.map(t => t.displayName).join(', ')}`)
+      // Call accepted
     } else {
-      console.log(`❌ Passed on ${callOpportunities[0]?.callType} opportunity`)
+      // Call passed
     }
   }, [gameStore.currentPlayerId, callOpportunities, callTimeoutId])
 
@@ -347,7 +343,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
       const isOurTurnNext = currentPlayerIndex === 3
       if (currentPlayerIndex < 3 && playerNames[currentPlayerIndex + 1] && !showCallDialog) {
-        console.log(`🔄 ${nextPlayerName}'s turn - simulating...`)
+        // Next player's turn
 
         setTimeout(() => {
           if (!gameEnded) {
@@ -355,7 +351,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           }
         }, 2000)
       } else if (isOurTurnNext) {
-        console.log('🟢 Back to your turn!')
+        // Back to your turn
         setGameEnded(true)
         setIsMyTurn(false)
 
@@ -408,7 +404,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     
     setTimeout(() => analyzeCurrentHand(), 100)
     
-    console.log('🔄 Switched to alternative pattern strategy')
+    // Switched to alternative pattern
   }, [selectedPatterns, currentAnalysis, analyzeCurrentHand])
 
   if (gameEnded) {

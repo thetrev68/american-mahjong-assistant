@@ -149,7 +149,7 @@ export function useHapticFeedback(): UseHapticFeedbackReturn {
       return false
       
     } catch (error) {
-      console.warn('Haptic feedback failed:', error)
+      // Haptic feedback failed silently
       return false
     }
   }, [isReducedMotion, isEnabled, isSupported, hasIOSHaptics, hasAndroidHaptics])
@@ -259,7 +259,7 @@ export function useHapticTester() {
     ]
     
     for (const test of tests) {
-      console.log(`Testing haptic: ${test.name}`)
+      // Testing haptic feedback
       await test.fn()
       await new Promise(resolve => setTimeout(resolve, 500))
     }

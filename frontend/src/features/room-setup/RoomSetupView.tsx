@@ -41,7 +41,7 @@ export const RoomSetupView: React.FC = () => {
   const currentStepNumber = steps.findIndex(s => s.title.toLowerCase().includes(currentStep.split('-')[0])) + 1
   
   const handleStartGame = () => {
-    console.log('Starting game...')
+    // Starting game
     
     // Mark the game as started in game store for route guards
     gameStore.setGamePhase('charleston') // Set to charleston first (or skip if needed)

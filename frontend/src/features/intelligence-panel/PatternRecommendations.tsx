@@ -230,12 +230,12 @@ function PatternRecommendationCard({
         <div className="flex items-center gap-4 text-sm">
           <div className="flex items-center gap-1">
             <span className="text-gray-600">Confidence:</span>
-            <span className="font-medium text-indigo-600">{confidence}%</span>
+            <span className="font-medium text-indigo-600">{Math.round(confidence)}%</span>
           </div>
           
           <div className="flex items-center gap-1">
             <span className="text-gray-600">Completion:</span>
-            <span className="font-medium text-green-600">{completionPercentage}%</span>
+            <span className="font-medium text-green-600">{Math.round(completionPercentage)}%</span>
           </div>
           
           <div className="flex items-center gap-1">

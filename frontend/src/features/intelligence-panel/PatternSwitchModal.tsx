@@ -45,7 +45,7 @@ export const PatternSwitchModal = ({
       await onPatternSelect(pattern)
       
       const duration = performance.now() - startTime
-      console.log(`🔄 Pattern switch in modal completed: ${duration.toFixed(1)}ms`)
+      // Pattern switch completed in modal
       
       onClose()
     } catch (error) {

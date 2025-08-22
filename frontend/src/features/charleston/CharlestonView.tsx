@@ -66,7 +66,7 @@ export function CharlestonView() {
       charlestonStore.startCharleston()
     } else {
       // Redirect to tile input if no tiles are available
-      console.warn('No tiles available for Charleston. Redirecting to tile input.')
+      // No tiles available - redirecting to tile input
       window.location.href = '/tiles'
     }
   }

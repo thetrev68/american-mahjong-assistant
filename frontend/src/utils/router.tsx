@@ -18,7 +18,7 @@ export const router = createBrowserRouter([
   },
   {
     path: '/tutorial',
-    element: <AppLayout><TutorialView initialSection="welcome" onComplete={() => console.log('Tutorial completed!')} /></AppLayout>,
+    element: <AppLayout><TutorialView initialSection="welcome" onComplete={() => {/* Tutorial completed */}} /></AppLayout>,
   },
   {
     path: '/patterns',

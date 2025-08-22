@@ -15,15 +15,22 @@ export interface TileDisplayChar {
  * F = Flower, N = North, E = East, W = West, S = South, J = Joker
  */
 export function getTileDisplayChar(tileId: string): TileDisplayChar {
+  // Handle null/undefined cases
+  if (!tileId) {
+    return { char: '?', color: 'black', tileId: tileId || 'unknown' }
+  }
+  
+  const tileStr = String(tileId).toLowerCase()
+  
   // Numbers 1-9 for each suit
-  if (tileId.match(/^[1-9][BCD]$/)) {
-    const num = tileId[0]
-    const suit = tileId[1]
+  if (tileStr.match(/^[1-9][bcd]$/)) {
+    const num = tileStr[0]
+    const suit = tileStr[1]
     
     let color: TileDisplayChar['color'] = 'black'
-    if (suit === 'B') color = 'green'      // Bams = green
-    else if (suit === 'C') color = 'red'   // Cracks = red  
-    else if (suit === 'D') color = 'blue'  // Dots = blue
+    if (suit === 'b') color = 'green'      // Bams = green
+    else if (suit === 'c') color = 'red'   // Cracks = red  
+    else if (suit === 'd') color = 'blue'  // Dots = blue
     
     return {
       char: num,
@@ -32,24 +39,53 @@ export function getTileDisplayChar(tileId: string): TileDisplayChar {
     }
   }
   
-  // Dragons
-  if (tileId === 'f2') return { char: 'G', color: 'green', tileId } // Green Dragon
-  if (tileId === 'f3') return { char: 'R', color: 'red', tileId }   // Red Dragon  
-  if (tileId === 'f4') return { char: 'D', color: 'blue', tileId }  // White Dragon
+  // Dragons (handle multiple formats)
+  if (tileStr === 'f2' || tileStr.includes('green') || tileStr === 'gd') {
+    return { char: 'G', color: 'green', tileId }
+  }
+  if (tileStr === 'f3' || tileStr.includes('red') || tileStr === 'rd') {
+    return { char: 'R', color: 'red', tileId }
+  }
+  if (tileStr === 'f4' || tileStr.includes('white') || tileStr === 'wd') {
+    return { char: 'D', color: 'blue', tileId }
+  }
   
-  // Winds
-  if (tileId === 'north') return { char: 'N', color: 'black', tileId }
-  if (tileId === 'east') return { char: 'E', color: 'black', tileId }
-  if (tileId === 'west') return { char: 'W', color: 'black', tileId }
-  if (tileId === 'south') return { char: 'S', color: 'black', tileId }
+  // Winds (handle multiple formats)
+  if (tileStr === 'north' || tileStr === 'n' || tileStr === 'nw') {
+    return { char: 'N', color: 'black', tileId }
+  }
+  if (tileStr === 'east' || tileStr === 'e' || tileStr === 'ew') {
+    return { char: 'E', color: 'black', tileId }
+  }
+  if (tileStr === 'west' || tileStr === 'w' || tileStr === 'ww') {
+    return { char: 'W', color: 'black', tileId }
+  }
+  if (tileStr === 'south' || tileStr === 's' || tileStr === 'sw') {
+    return { char: 'S', color: 'black', tileId }
+  }
   
-  // Flowers
-  if (tileId === 'f1') return { char: 'F', color: 'black', tileId }
+  // Flowers (handle multiple formats)
+  if (tileStr === 'f1' || tileStr.includes('flower') || tileStr === 'f') {
+    return { char: 'F', color: 'black', tileId }
+  }
   
-  // Jokers
-  if (tileId === 'joker') return { char: 'J', color: 'black', tileId }
+  // Jokers (handle multiple formats)
+  if (tileStr.includes('joker') || tileStr === 'j') {
+    return { char: 'J', color: 'black', tileId }
+  }
   
-  // Fallback
+  // Advanced pattern matching for unknown formats
+  if (tileStr.match(/^[1-9]/)) {
+    return { char: tileStr[0], color: 'black', tileId }
+  }
+  
+  // Last resort - use first character
+  const firstChar = tileStr.charAt(0).toUpperCase()
+  if (firstChar && firstChar !== '?') {
+    return { char: firstChar, color: 'black', tileId }
+  }
+  
+  // Final fallback
   return { char: '?', color: 'black', tileId }
 }
 
@@ -60,12 +96,33 @@ export function getPatternDisplayChars(
   patternTiles: string[], 
   playerTiles: string[] = []
 ): TileDisplayChar[] {
-  const playerTileSet = new Set(playerTiles)
+  // Create normalized sets for better matching
+  const normalizeId = (id: string): string => String(id).toLowerCase().trim()
+  const playerTileSet = new Set(playerTiles.map(normalizeId))
   
-  return patternTiles.map(tileId => ({
-    ...getTileDisplayChar(tileId),
-    isMatched: playerTileSet.has(tileId)
-  }))
+  return patternTiles.map(tileId => {
+    const displayChar = getTileDisplayChar(tileId)
+    
+    // Handle unknown tiles more gracefully
+    if (displayChar.char === '?' && tileId) {
+      // Log for debugging but don't spam console in production
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Unknown tile ID: ${tileId}`)
+      }
+      
+      // Try to extract meaningful character from tile ID
+      if (typeof tileId === 'string') {
+        if (tileId.includes('joker')) displayChar.char = 'J'
+        else if (tileId.match(/^[1-9]/)) displayChar.char = tileId[0]
+        else displayChar.char = tileId.charAt(0).toUpperCase()
+      }
+    }
+    
+    return {
+      ...displayChar,
+      isMatched: playerTileSet.has(normalizeId(tileId))
+    }
+  })
 }
 
 /**
@@ -73,24 +130,28 @@ export function getPatternDisplayChars(
  */
 export function getTileCharClasses(
   tileChar: TileDisplayChar, 
-  inverted: boolean = false
+  inverted: boolean = true
 ): string {
   const baseClasses = 'font-mono text-sm font-bold px-1 rounded'
   
-  if (inverted && tileChar.isMatched) {
-    // Inverted colors: colored background with white text for matches
+  // Correct logic: when inverted=true, show matched tiles with colored background (inverted)
+  // when inverted=false, show all tiles with normal styling
+  const shouldShowInverted = inverted && tileChar.isMatched
+  
+  if (shouldShowInverted) {
+    // Hand tiles (matched): colored background with white text (inverted)
     switch (tileChar.color) {
       case 'green':
-        return `${baseClasses} bg-green-600 text-white`
+        return `${baseClasses} bg-green-600 text-white border border-green-700`
       case 'red':
-        return `${baseClasses} bg-red-600 text-white`
+        return `${baseClasses} bg-red-600 text-white border border-red-700`
       case 'blue':
-        return `${baseClasses} bg-blue-600 text-white`
+        return `${baseClasses} bg-blue-600 text-white border border-blue-700`
       case 'black':
-        return `${baseClasses} bg-gray-800 text-white`
+        return `${baseClasses} bg-gray-800 text-white border border-gray-900`
     }
   } else {
-    // Normal colors: white background with colored text
+    // Pattern tiles (not in hand): white background with colored text (normal)
     switch (tileChar.color) {
       case 'green':
         return `${baseClasses} bg-white text-green-600 border border-green-200`
@@ -107,7 +168,7 @@ export function getTileCharClasses(
 }
 
 /**
- * Render pattern variation as single characters
+ * Render pattern variation as single characters with proper grouping
  */
 export function renderPatternVariation(
   patternTiles: string[],
@@ -116,13 +177,55 @@ export function renderPatternVariation(
     showMatches?: boolean
     invertMatches?: boolean
     spacing?: boolean
+    patternGroups?: Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>
   } = {}
 ): TileDisplayChar[] {
-  const { showMatches = true, spacing = true } = options
+  const { showMatches = true, spacing = true, patternGroups } = options
   
   const chars = getPatternDisplayChars(patternTiles, showMatches ? playerTiles : [])
   
-  // Add spacing every 4 characters for readability
+  // Add spacing based on actual pattern groups if available
+  if (spacing && patternGroups && patternGroups.length > 0) {
+    const spacedChars: TileDisplayChar[] = []
+    let currentIndex = 0
+    
+    // Calculate group sizes based on pattern groups
+    const groupSizes = patternGroups.map(group => {
+      const groupStr = String(group.Group)
+      if (groupStr.includes('FFFF')) return 4
+      if (groupStr.includes('FFF')) return 3
+      if (groupStr.includes('FF')) return 2
+      if (groupStr.length >= 3) return groupStr.length
+      return 4 // Default fallback
+    })
+    
+    // Add tiles with spacing between groups
+    groupSizes.forEach((size, groupIndex) => {
+      const endIndex = Math.min(currentIndex + size, chars.length)
+      
+      for (let i = currentIndex; i < endIndex; i++) {
+        if (i < chars.length) {
+          spacedChars.push(chars[i])
+        }
+      }
+      
+      // Add spacer between groups (except after last group)
+      if (groupIndex < groupSizes.length - 1 && currentIndex + size < chars.length) {
+        spacedChars.push({
+          char: ' ',
+          color: 'black',
+          tileId: 'spacer',
+          isMatched: false
+        })
+      }
+      
+      currentIndex += size
+    })
+    
+    return spacedChars
+  }
+  
+  // Fallback to every 4 characters spacing if no groups available
   if (spacing) {
     const spacedChars: TileDisplayChar[] = []
     chars.forEach((char, index) => {

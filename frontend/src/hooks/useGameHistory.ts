@@ -191,7 +191,7 @@ export function useGameHistory() {
         .filter(([, stats]) => stats.successRate < 30)
         .map(([patternId]) => patternId)
       
-      console.log('Struggling patterns:', strugglingPatterns)
+      // Struggling patterns identified
       
       // This would need custom filtering logic for pattern-based filtering
       // For now, we'll clear filters as a placeholder
@@ -232,6 +232,7 @@ export function useGameHistory() {
       completeGame(completedGameData)
       
     } catch (error) {
+      // Keep this error - it indicates analysis failures
       console.error('Error completing game analysis:', error)
       setError('Failed to analyze completed game')
     }

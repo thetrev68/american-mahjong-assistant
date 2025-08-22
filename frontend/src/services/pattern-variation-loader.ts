@@ -74,7 +74,7 @@ export class PatternVariationLoader {
       this.isLoaded = true
 
       const loadTime = performance.now() - startTime
-      console.log(`✓ Loaded ${variations.length} pattern variations in ${loadTime.toFixed(1)}ms`)
+      // Pattern variations loaded successfully
 
     } catch (error) {
       console.error('Failed to load pattern variations:', error)

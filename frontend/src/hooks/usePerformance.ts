@@ -173,7 +173,7 @@ export function usePerformance(): UsePerformanceReturn {
     try {
       await fn()
     } catch (error) {
-      console.warn(`Animation "${name}" failed:`, error)
+      // Animation failed silently
     }
     
     const endTime = performance.now()
@@ -187,12 +187,7 @@ export function usePerformance(): UsePerformanceReturn {
     const performanceImpact = framesUsed > expectedFrames ? framesUsed - expectedFrames : 0
     
     if (process.env.NODE_ENV === 'development') {
-      console.log(`Animation "${name}" performance:`, {
-        duration: `${duration.toFixed(2)}ms`,
-        framesUsed,
-        expectedFrames,
-        performanceImpact: performanceImpact > 0 ? `+${performanceImpact} frames` : 'Good'
-      })
+      // Animation performance data available
     }
     
     return duration

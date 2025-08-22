@@ -1,10 +1,7 @@
 // Primary Analysis Card - Dominant intelligence display with actionable recommendations
 // Mobile-first design focusing on function and clear guidance
 
-import { useState } from 'react'
 import { Card } from '../../ui-components/Card'
-import { Button } from '../../ui-components/Button'
-import { PatternSwitchModal } from './PatternSwitchModal'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 import { tileService } from '../../services/tile-service' // Import tile service
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
@@ -22,8 +19,6 @@ export const PrimaryAnalysisCard = ({
   onPatternSwitch,
   onBrowseAllPatterns
 }: PrimaryAnalysisCardProps) => {
-  const [showExpanded, setShowExpanded] = useState(false)
-  const [showPatternModal, setShowPatternModal] = useState(false)
 
   // Get the primary pattern (first recommendation)
   const primaryPattern = currentPattern || analysis.recommendedPatterns[0]
@@ -174,80 +169,7 @@ export const PrimaryAnalysisCard = ({
           </div>
         )}
 
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-2 pt-2">
-          <Button
-            variant="outline"
-            className="flex-1"
-            onClick={() => setShowPatternModal(true)}
-          >
-            🔄 Switch Pattern
-          </Button>
-          
-          <Button
-            variant="ghost" // Changed from "link" to "ghost"
-            className="flex-1"
-            onClick={() => setShowExpanded(!showExpanded)}
-          >
-            {showExpanded ? '↑ Less Details' : '↓ More Details'}
-          </Button>
-        </div>
 
-        {/* Expanded Details */}
-        {showExpanded && (
-          <div className="border-t pt-4 space-y-3 text-sm">
-            <div>
-              <div className="font-medium text-gray-700 mb-2">Alternative Patterns:</div>
-              {analysis.recommendedPatterns.slice(1, 3).map((pattern) => (
-                <div key={pattern.pattern.id} className="py-2 text-gray-600 border-l-2 border-gray-200 pl-3">
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium">{pattern.pattern.section} #{pattern.pattern.line}</span>
-                    <span className="text-xs font-bold text-primary">{Math.round(pattern.completionPercentage)}%</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {getColoredPatternParts(pattern.pattern.pattern, pattern.pattern.groups).map((part, partIndex) => (
-                      <span 
-                        key={partIndex}
-                        className={`font-mono text-xs ${getColorClasses(part.color, 'text')}`}
-                      >
-                        {part.text}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {analysis.strategicAdvice.length > 1 && (
-              <div>
-                <div className="font-medium text-gray-700 mb-2">Additional Advice:</div>
-                {analysis.strategicAdvice.slice(1).map((advice, index) => (
-                  <div key={index} className="text-gray-600 py-1 leading-relaxed">
-                    • {advice}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Pattern Switch Modal */}
-        <PatternSwitchModal
-          isOpen={showPatternModal}
-          onClose={() => setShowPatternModal(false)}
-          currentPattern={primaryPattern}
-          availablePatterns={analysis.recommendedPatterns}
-          onPatternSelect={async (pattern) => {
-            // Close modal immediately for better UX
-            setShowPatternModal(false)
-            // Then perform the actual pattern switch
-            await onPatternSwitch(pattern)
-          }}
-          onBrowseMore={() => {
-            setShowPatternModal(false)
-            onBrowseAllPatterns()
-          }}
-        />
       </div>
     </Card>
   )

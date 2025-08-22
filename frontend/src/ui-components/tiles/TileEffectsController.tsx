@@ -143,7 +143,7 @@ export const TileEffectsController = React.memo(({
       onEffectComplete?.(trigger)
       
     } catch (error) {
-      console.warn('Tile effect processing failed:', error)
+      // Tile effect processing failed silently
       onEffectComplete?.(trigger) // Still call completion callback
     }
   }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete])

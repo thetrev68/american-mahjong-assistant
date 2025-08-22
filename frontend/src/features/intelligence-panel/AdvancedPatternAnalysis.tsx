@@ -5,7 +5,8 @@ import { useState } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { PatternVariationGrid, PatternComparison } from '../../ui-components/patterns/PatternVariationDisplay'
-import type { HandAnalysis } from '../../stores/intelligence-store'
+import type { HandAnalysis, PatternRecommendation } from '../../stores/intelligence-store'
+import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface AdvancedPatternAnalysisProps {
   analysis: HandAnalysis
@@ -33,7 +34,7 @@ export const AdvancedPatternAnalysis = ({
   const getPatternVariationsFromAnalysis = () => {
     try {
       if (!analysis.engine1Facts || analysis.engine1Facts.length === 0) {
-        console.warn('No Engine 1 facts available for pattern tile data')
+        // No Engine 1 facts available
         return []
       }
       
@@ -84,15 +85,16 @@ export const AdvancedPatternAnalysis = ({
         </div>
         
         {/* Tab Navigation */}
-        <div className="flex border-b border-gray-200">
+        <div className="flex border-b border-gray-200 overflow-x-auto scrollbar-none">
           {[
-            { id: 'variations' as const, label: '🧩 Variations', description: 'Visual tile patterns' },
-            { id: 'comparison' as const, label: '📊 Comparison', description: 'Side-by-side analysis' },
-            { id: 'details' as const, label: '📋 Details', description: 'Full breakdown' }
+            { id: 'recommendations' as const, label: '🤖 AI Recommendations', shortLabel: '🤖 AI', description: 'Pattern suggestions' },
+            { id: 'variations' as const, label: '🧩 Variations', shortLabel: '🧩 Tiles', description: 'Visual tile patterns' },
+            { id: 'comparison' as const, label: '📊 Comparison', shortLabel: '📊 Compare', description: 'Side-by-side analysis' },
+            { id: 'details' as const, label: '📋 Details', shortLabel: '📋 Info', description: 'Full breakdown' }
           ].map(tab => (
             <button
               key={tab.id}
-              className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+              className={`px-2 sm:px-4 py-2 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap flex-shrink-0 ${
                 activeTab === tab.id
                   ? 'border-primary text-primary bg-primary/5'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
@@ -100,13 +102,48 @@ export const AdvancedPatternAnalysis = ({
               onClick={() => setActiveTab(tab.id)}
               title={tab.description}
             >
-              {tab.label}
+              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="sm:hidden">{tab.shortLabel}</span>
             </button>
           ))}
         </div>
       </div>
       
       <div className="p-4 pt-0">
+        {/* AI Recommendations Tab */}
+        {activeTab === 'recommendations' && (
+          <div className="space-y-4">
+            {analysis.recommendedPatterns && analysis.recommendedPatterns.length > 0 ? (
+              <div className="space-y-3">
+                <div className="text-sm font-semibold text-gray-700 mb-3">
+                  🤖 Top AI Pattern Recommendations
+                </div>
+                
+                {analysis.recommendedPatterns.slice(0, 5).map((rec, index) => (
+                  <RecommendationCard
+                    key={rec.pattern.id}
+                    recommendation={rec}
+                    rank={index + 1}
+                    onSelect={() => onPatternSelect?.(rec.pattern.id)}
+                  />
+                ))}
+                
+                {analysis.recommendedPatterns.length > 5 && (
+                  <div className="text-center py-2 text-sm text-gray-500">
+                    Showing top 5 of {analysis.recommendedPatterns.length} recommendations
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <div className="text-2xl mb-2">🤔</div>
+                <div className="text-sm font-semibold">No AI Recommendations Available</div>
+                <div className="text-xs mt-1">Analysis engine needs more data</div>
+              </div>
+            )}
+          </div>
+        )}
+        
         {/* Variations Tab */}
         {activeTab === 'variations' && (
           <div>
@@ -179,7 +216,7 @@ export const AdvancedPatternAnalysis = ({
                           {pattern.section} #{pattern.line}
                         </div>
                         <div className="text-sm text-gray-600">
-                          {pattern.completionPercentage}% complete • {pattern.tilesNeeded} tiles needed
+                          {Math.round(pattern.completionPercentage)}% complete • {pattern.tilesNeeded} tiles needed
                         </div>
                       </div>
                     </div>
@@ -202,15 +239,15 @@ export const AdvancedPatternAnalysis = ({
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-gray-600">Confidence:</span>
-                        <span className="ml-2 font-semibold">{pattern.confidenceScore}%</span>
+                        <span className="ml-2 font-semibold">{Math.round(pattern.confidenceScore)}%</span>
                       </div>
                       <div>
                         <span className="text-gray-600">Strategic Value:</span>
-                        <span className="ml-2 font-semibold">{pattern.strategicValue}/10</span>
+                        <span className="ml-2 font-semibold">{Math.round(pattern.strategicValue)}/10</span>
                       </div>
                       <div>
                         <span className="text-gray-600">Estimated Turns:</span>
-                        <span className="ml-2 font-semibold">{pattern.estimatedTurns}</span>
+                        <span className="ml-2 font-semibold">{Math.round(pattern.estimatedTurns)}</span>
                       </div>
                       <div>
                         <span className="text-gray-600">Difficulty:</span>
@@ -250,21 +287,86 @@ export const AdvancedPatternAnalysis = ({
           </div>
         )}
         
-        {/* Game Phase Advice */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
-          <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
-            <div className="text-sm font-semibold text-blue-800 mb-1">
-              💡 {gamePhase === 'charleston' ? 'Charleston Strategy' : 'Gameplay Strategy'}:
+      </div>
+    </Card>
+  )
+}
+
+// Recommendation Card Component for AI Suggestions
+interface RecommendationCardProps {
+  recommendation: PatternRecommendation
+  rank: number
+  onSelect: () => void
+}
+
+function RecommendationCard({ recommendation, rank, onSelect }: RecommendationCardProps) {
+  const { pattern, confidence, completionPercentage, reasoning } = recommendation
+  const coloredParts = getColoredPatternParts(pattern.pattern, pattern.groups)
+  const isPrimary = rank === 1
+  
+  return (
+    <div className={`border rounded-lg p-3 transition-all ${
+      isPrimary 
+        ? 'border-indigo-300 bg-indigo-50' 
+        : 'border-gray-200 bg-white hover:border-gray-300'
+    }`}>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+            isPrimary 
+              ? 'bg-indigo-500 text-white'
+              : 'bg-gray-300 text-gray-600'
+          }`}>
+            {rank}
+          </div>
+          
+          <div>
+            <div className="text-sm font-medium text-gray-900">
+              {pattern.section} #{pattern.line}
             </div>
-            <div className="text-sm text-blue-700 leading-relaxed">
-              {gamePhase === 'charleston' 
-                ? `Keep tiles that work across multiple patterns. Focus on the top ${Math.min(equivalentPatterns.length, 4)} patterns since they're closely matched.`
-                : `Commit to your highest completion pattern (${displayPatterns[0]?.completionPercentage}%) but watch for switch opportunities.`
-              }
+            <div className="text-xs text-gray-500">
+              {pattern.points} pts • {pattern.difficulty} difficulty
             </div>
           </div>
         </div>
+        
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={onSelect}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          🔄 Switch
+        </Button>
       </div>
-    </Card>
+      
+      {/* Colorized Pattern */}
+      <div className="font-mono text-sm tracking-wide mb-2">
+        {coloredParts.map((part, index) => (
+          <span key={index} className={getColorClasses(part.color)}>
+            {part.text}
+            {index < coloredParts.length - 1 && <span className="text-gray-400"> </span>}
+          </span>
+        ))}
+      </div>
+      
+      {/* Analysis Stats */}
+      <div className="flex items-center gap-4 text-xs mb-2">
+        <div>
+          <span className="text-gray-600">Confidence:</span>
+          <span className="ml-1 font-medium text-indigo-600">{Math.round(confidence)}%</span>
+        </div>
+        <div>
+          <span className="text-gray-600">Complete:</span>
+          <span className="ml-1 font-medium text-green-600">{Math.round(completionPercentage)}%</span>
+        </div>
+      </div>
+      
+      {/* AI Reasoning */}
+      <p className="text-xs text-gray-700 italic">
+        💡 {reasoning}
+      </p>
+    </div>
   )
 }

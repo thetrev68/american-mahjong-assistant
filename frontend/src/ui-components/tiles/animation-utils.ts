@@ -212,7 +212,7 @@ export const withPerformanceTracking = <T extends unknown[]>(
       
       // Log slow animations for debugging
       if (duration > 100) {
-        console.warn(`Slow tile animation detected: ${name} took ${duration.toFixed(2)}ms`)
+        // Slow animation detected
       }
       
       // Track in performance metrics if available
