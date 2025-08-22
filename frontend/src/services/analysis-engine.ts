@@ -174,7 +174,7 @@ export class AnalysisEngine {
         ...gameContext
       }
       
-      console.error('🔍 ENGINE 1 STARTING - ANALYZING PATTERN FACTS')
+      // console.error('🔍 ENGINE 1 STARTING - ANALYZING PATTERN FACTS')
       const engine1Start = performance.now()
       
       // Engine 1: Get mathematical facts for all patterns (with caching)
@@ -185,10 +185,10 @@ export class AnalysisEngine {
         fullGameContext
       )
       
-      console.error('🔍 ENGINE 1 ANALYSIS FACTS:', analysisFacts.length, 'patterns')
-      analysisFacts.forEach(fact => {
-        console.error(`📊 ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
-      })
+      // console.error('🔍 ENGINE 1 ANALYSIS FACTS:', analysisFacts.length, 'patterns')
+      // analysisFacts.forEach(fact => {
+      //   console.error(`📊 ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
+      // })
       
       const engine1Time = performance.now() - engine1Start
       console.log(`✓ Engine 1 completed in ${engine1Time.toFixed(1)}ms`)
@@ -213,7 +213,7 @@ export class AnalysisEngine {
       const engine2Time = performance.now() - engine2Start
       console.log(`✓ Engine 2 completed in ${engine2Time.toFixed(1)}ms`)
       
-      console.error('💡 ENGINE 3 STARTING - GENERATING TILE RECOMMENDATIONS')
+      // console.error('💡 ENGINE 3 STARTING - GENERATING TILE RECOMMENDATIONS')
       const engine3Start = performance.now()
       
       // Engine 3: Generate tile recommendations
