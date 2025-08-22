@@ -12,7 +12,7 @@ import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '..
 interface PrimaryAnalysisCardProps {
   analysis: HandAnalysis
   currentPattern: PatternRecommendation | null
-  onPatternSwitch: (pattern: PatternRecommendation) => void
+  onPatternSwitch: (pattern: PatternRecommendation) => Promise<void>
   onBrowseAllPatterns: () => void
 }
 
@@ -237,8 +237,16 @@ export const PrimaryAnalysisCard = ({
           onClose={() => setShowPatternModal(false)}
           currentPattern={primaryPattern}
           availablePatterns={analysis.recommendedPatterns}
-          onPatternSelect={onPatternSwitch}
-          onBrowseMore={onBrowseAllPatterns}
+          onPatternSelect={async (pattern) => {
+            // Close modal immediately for better UX
+            setShowPatternModal(false)
+            // Then perform the actual pattern switch
+            await onPatternSwitch(pattern)
+          }}
+          onBrowseMore={() => {
+            setShowPatternModal(false)
+            onBrowseAllPatterns()
+          }}
         />
       </div>
     </Card>

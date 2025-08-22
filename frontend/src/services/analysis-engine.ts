@@ -6,13 +6,141 @@ import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 import type { PlayerTile } from '../types/tile-types'
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../stores/intelligence-store'
 import { nmjlService } from './nmjl-service'
-import { PatternAnalysisEngine, type GameContext } from './pattern-analysis-engine'
+import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from './pattern-analysis-engine'
 import { PatternRankingEngine } from './pattern-ranking-engine'
 import { TileRecommendationEngine } from './tile-recommendation-engine'
 
 // Legacy interfaces removed - now using the new 3-engine system
 
+interface CacheEntry {
+  facts: PatternAnalysisFacts[]
+  timestamp: number
+  handHash: string
+  patternIds: string[]
+}
+
 export class AnalysisEngine {
+  // Engine 1 cache: Map<cacheKey, CacheEntry>
+  private static engine1Cache = new Map<string, CacheEntry>()
+  private static readonly CACHE_SIZE_LIMIT = 50 // Prevent memory issues
+  private static readonly CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes TTL
+
+  /**
+   * Generate cache key for Engine 1 results
+   */
+  private static generateCacheKey(
+    tileIds: string[],
+    patternIds: string[],
+    gameContext: GameContext
+  ): string {
+    // Sort tiles and patterns for consistent key
+    const sortedTiles = [...tileIds].sort().join(',')
+    const sortedPatterns = [...patternIds].sort().join(',')
+    
+    // Include relevant game context that affects Engine 1 analysis
+    const contextKey = `${gameContext.jokersInHand}_${gameContext.currentPhase}_${gameContext.wallTilesRemaining}`
+    
+    return `${sortedTiles}|${sortedPatterns}|${contextKey}`
+  }
+
+  /**
+   * Get Engine 1 results from cache or compute fresh
+   */
+  private static async getEngine1Facts(
+    tileIds: string[],
+    patternIds: string[],
+    gameContext: GameContext
+  ): Promise<PatternAnalysisFacts[]> {
+    const cacheKey = this.generateCacheKey(tileIds, patternIds, gameContext)
+    const handHash = [...tileIds].sort().join(',')
+    
+    // Check cache first
+    const cached = this.engine1Cache.get(cacheKey)
+    const now = Date.now()
+    
+    if (cached && (now - cached.timestamp) < this.CACHE_TTL_MS) {
+      console.log('🚀 ENGINE 1 CACHE HIT - Pattern switching optimization')
+      console.log(`📊 Cached analysis for ${cached.facts.length} patterns`)
+      return cached.facts
+    }
+    
+    console.log('🔍 ENGINE 1 CACHE MISS - Computing fresh analysis')
+    
+    // Compute fresh Engine 1 results
+    const facts = await PatternAnalysisEngine.analyzePatterns(
+      tileIds,
+      patternIds,
+      gameContext
+    )
+    
+    // Store in cache
+    this.engine1Cache.set(cacheKey, {
+      facts,
+      timestamp: now,
+      handHash,
+      patternIds: [...patternIds]
+    })
+    
+    // Manage cache size
+    this.manageCacheSize()
+    
+    return facts
+  }
+
+  /**
+   * Clear cache when hand changes (tiles added/removed)
+   */
+  static clearCacheForHandChange(oldTileIds: string[], newTileIds: string[]): void {
+    const oldHash = [...oldTileIds].sort().join(',')
+    const newHash = [...newTileIds].sort().join(',')
+    
+    if (oldHash !== newHash) {
+      // Hand actually changed - clear relevant cache entries
+      const entriesToRemove: string[] = []
+      
+      for (const [key, entry] of this.engine1Cache.entries()) {
+        if (entry.handHash === oldHash) {
+          entriesToRemove.push(key)
+        }
+      }
+      
+      entriesToRemove.forEach(key => {
+        this.engine1Cache.delete(key)
+      })
+      
+      if (entriesToRemove.length > 0) {
+        console.log(`🧹 Cleared ${entriesToRemove.length} cache entries for hand change`)
+      }
+    }
+  }
+
+  /**
+   * Manage cache size to prevent memory issues
+   */
+  private static manageCacheSize(): void {
+    if (this.engine1Cache.size > this.CACHE_SIZE_LIMIT) {
+      // Remove oldest entries
+      const entries = Array.from(this.engine1Cache.entries())
+        .sort((a, b) => a[1].timestamp - b[1].timestamp)
+      
+      const toRemove = entries.slice(0, entries.length - this.CACHE_SIZE_LIMIT)
+      toRemove.forEach(([key]) => {
+        this.engine1Cache.delete(key)
+      })
+      
+      console.log(`🧹 Cache cleanup: Removed ${toRemove.length} old entries`)
+    }
+  }
+
+  /**
+   * Get cache statistics for debugging
+   */
+  static getCacheStats(): { size: number; hitRate?: number } {
+    return {
+      size: this.engine1Cache.size
+    }
+  }
+
   /**
    * Main analysis function - coordinates 3-engine intelligence system
    */
@@ -49,9 +177,9 @@ export class AnalysisEngine {
       console.error('🔍 ENGINE 1 STARTING - ANALYZING PATTERN FACTS')
       const engine1Start = performance.now()
       
-      // Engine 1: Get mathematical facts for all patterns
+      // Engine 1: Get mathematical facts for all patterns (with caching)
       const patternIds = patternsToAnalyze.map(p => p.id)
-      const analysisFacts = await PatternAnalysisEngine.analyzePatterns(
+      const analysisFacts = await this.getEngine1Facts(
         tileIds,
         patternIds,
         fullGameContext
@@ -64,6 +192,10 @@ export class AnalysisEngine {
       
       const engine1Time = performance.now() - engine1Start
       console.log(`✓ Engine 1 completed in ${engine1Time.toFixed(1)}ms`)
+      
+      // Log cache stats for performance monitoring
+      const cacheStats = this.getCacheStats()
+      console.log(`📈 Engine 1 Cache: ${cacheStats.size} entries`)
       
       console.log('🎯 Engine 2: Ranking patterns...')
       const engine2Start = performance.now()

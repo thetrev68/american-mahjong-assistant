@@ -67,7 +67,7 @@ export function CharlestonView() {
     } else {
       // Redirect to tile input if no tiles are available
       console.warn('No tiles available for Charleston. Redirecting to tile input.')
-      window.location.href = '/tile-input'
+      window.location.href = '/tiles'
     }
   }
   
@@ -102,7 +102,7 @@ export function CharlestonView() {
                 Before starting Charleston analysis, you need to input your hand tiles.
               </p>
               <a 
-                href="/tile-input"
+                href="/tiles"
                 className="inline-block bg-yellow-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-yellow-700 transition-colors"
               >
                 Go to Tile Input
@@ -122,7 +122,7 @@ export function CharlestonView() {
                   Continue with {tileStore.playerHand.length} tiles
                 </button>
                 <a 
-                  href="/tile-input"
+                  href="/tiles"
                   className="inline-block bg-gray-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-700 transition-colors"
                 >
                   Add More Tiles

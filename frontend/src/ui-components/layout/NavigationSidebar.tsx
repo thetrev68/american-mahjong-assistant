@@ -31,7 +31,7 @@ const navItems: NavItem[] = [
   },
   {
     label: 'Tile Input',
-    path: '/tile-input',
+    path: '/tiles',
     icon: '🀄',
     description: 'Input your hand and get recommendations'
   },

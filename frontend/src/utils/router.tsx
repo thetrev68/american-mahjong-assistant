@@ -33,10 +33,6 @@ export const router = createBrowserRouter([
     element: <AppLayout><TileInputPage /></AppLayout>,
   },
   {
-    path: '/tile-input',
-    element: <AppLayout><TileInputPage /></AppLayout>,
-  },
-  {
     path: '/intelligence',
     element: <AppLayout><IntelligencePanelPage /></AppLayout>,
   },

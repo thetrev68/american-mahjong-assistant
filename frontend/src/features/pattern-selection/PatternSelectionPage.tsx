@@ -79,7 +79,7 @@ export const PatternSelectionPage = () => {
                   size="lg"
                   className="w-full"
                   disabled={!selectedPattern}
-                  onClick={() => navigate('/tile-input')}
+                  onClick={() => navigate('/tiles')}
                 >
                   Continue with {selectedPattern ? `${selectedPattern.section} #${selectedPattern.line}` : 'Selection'}
                 </Button>
@@ -89,7 +89,7 @@ export const PatternSelectionPage = () => {
                     variant="outline"
                     size="lg"
                     className="w-full"
-                    onClick={() => navigate('/tile-input')}
+                    onClick={() => navigate('/tiles')}
                   >
                     Modify Hand
                   </Button>
@@ -98,7 +98,7 @@ export const PatternSelectionPage = () => {
                     variant="outline"
                     size="lg"
                     className="w-full"
-                    onClick={() => navigate('/tile-input')}
+                    onClick={() => navigate('/tiles')}
                   >
                     Add Hand for AI Analysis
                   </Button>

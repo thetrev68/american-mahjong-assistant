@@ -1,7 +1,7 @@
 // Intelligence Panel Page - Main interface for AI analysis and recommendations
 // Simplified interface using PrimaryAnalysisCard
 
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
@@ -9,10 +9,13 @@ import { useTileStore } from '../../stores/tile-store'
 import { PrimaryAnalysisCard } from './PrimaryAnalysisCard'
 import { PatternRecommendations } from './PatternRecommendations'
 import { AdvancedPatternAnalysis } from './AdvancedPatternAnalysis'
+import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 
 export const IntelligencePanelPage = () => {
   const {
     currentAnalysis,
+    isAnalyzing,
+    analysisError,
     analyzeHand,
     clearAnalysis,
     autoAnalyze
@@ -22,7 +25,19 @@ export const IntelligencePanelPage = () => {
   const selectedPatterns = getTargetPatterns()
   const { playerHand = [], selectedTiles = [], handSize = 0 } = useTileStore()
   
-  // Auto-analyze when tiles or patterns change
+  // Track if we've already triggered initial analysis
+  const hasTriggeredInitialAnalysis = useRef(false)
+  
+  // Pattern switching state - optimized for instant feedback
+  const [isPatternSwitching, setIsPatternSwitching] = useState(false)
+  const [patternSwitchStartTime, setPatternSwitchStartTime] = useState<number | null>(null)
+  const [patternSwitchPerformance, setPatternSwitchPerformance] = useState<{
+    lastSwitchTime: number
+    cacheHit: boolean
+    patternName: string
+  } | null>(null)
+  
+  // Auto-analyze when tiles or patterns change, including immediate analysis on page load
   useEffect(() => {
     if (!autoAnalyze) return
     
@@ -30,11 +45,25 @@ export const IntelligencePanelPage = () => {
     const hasTiles = playerHand?.length >= 10 // Minimum for meaningful analysis
     
     if (hasPatterns && hasTiles) {
+      // Trigger analysis immediately if we have sufficient data
       analyzeHand(playerHand, selectedPatterns)
+    } else if (hasTiles && !hasPatterns) {
+      // If we have tiles but no patterns, analyze with empty patterns to get AI recommendations
+      analyzeHand(playerHand, [])
     } else if (currentAnalysis) {
       clearAnalysis()
     }
   }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, clearAnalysis, currentAnalysis])
+  
+  // Immediate analysis trigger on component mount if we have enough tiles
+  useEffect(() => {
+    const hasTiles = playerHand?.length >= 10
+    if (hasTiles && !isAnalyzing && !currentAnalysis && !hasTriggeredInitialAnalysis.current) {
+      // Auto-trigger analysis when navigating from tile input
+      hasTriggeredInitialAnalysis.current = true
+      analyzeHand(playerHand, selectedPatterns || [])
+    }
+  }, [playerHand, selectedPatterns, isAnalyzing, currentAnalysis, analyzeHand])
   
   const tileCount = handSize || 0
   const hasEnoughTiles = tileCount >= 10
@@ -75,8 +104,93 @@ export const IntelligencePanelPage = () => {
       
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Prerequisites Check */}
-        {!hasEnoughTiles && (
+        {/* Pattern Switch Loading State - Optimized for instant feedback */}
+        {hasEnoughTiles && isPatternSwitching && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-6 h-6">
+                <LoadingSpinner size="sm" color="primary" />
+              </div>
+              <div>
+                <div className="font-medium text-blue-900">
+                  🔄 Switching Pattern...
+                </div>
+                <div className="text-sm text-blue-700">
+                  Leveraging Engine 1 cache for instant analysis
+                  {patternSwitchStartTime && (
+                    <span className="ml-2 text-xs">
+                      ({Math.round(performance.now() - patternSwitchStartTime)}ms)
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State - Prominent when analysis is running */}
+        {hasEnoughTiles && isAnalyzing && !isPatternSwitching && (
+          <div className="mb-8 p-8 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <div className="text-center">
+              <div className="mb-6">
+                <LoadingSpinner 
+                  size="xl" 
+                  color="primary" 
+                  message="Analyzing all 71 NMJL patterns..."
+                />
+              </div>
+              
+              <h2 className="text-xl font-semibold text-gray-900 mb-3">
+                🧠 AI Analysis in Progress
+              </h2>
+              
+              <div className="max-w-lg mx-auto space-y-3">
+                <p className="text-gray-600">
+                  Running comprehensive pattern analysis on your {tileCount} tiles using our 
+                  3-engine intelligence system.
+                </p>
+                
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
+                    <span className="text-sm font-medium text-blue-900">Engine Progress</span>
+                  </div>
+                  <div className="text-sm text-blue-800 space-y-1">
+                    <div>🔍 Pattern Facts Engine - Mathematical tile matching</div>
+                    <div>📊 Pattern Ranking Engine - 4-component scoring system</div>
+                    <div>🎯 Tile Recommendation Engine - Strategic analysis</div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-gray-500">
+                  Estimated completion: 2-5 seconds
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {hasEnoughTiles && analysisError && !isAnalyzing && (
+          <div className="mb-8 p-6 bg-white rounded-xl border border-red-200 shadow-sm">
+            <div className="text-center">
+              <div className="text-4xl mb-4">⚠️</div>
+              <h2 className="text-lg font-semibold text-red-900 mb-3">
+                Analysis Failed
+              </h2>
+              <p className="text-red-700 mb-4">{analysisError}</p>
+              <button
+                onClick={() => analyzeHand(playerHand, selectedPatterns || [])}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Retry Analysis
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Prerequisites Check - Only show when no tiles */}
+        {!hasEnoughTiles && !isAnalyzing && (
           <div className="mb-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="text-center">
               <div className="text-4xl mb-4">🤖</div>
@@ -86,59 +200,60 @@ export const IntelligencePanelPage = () => {
               
               <div className="space-y-3 max-w-md mx-auto">
                 {/* Tile Input Status */}
-                <div className={`
-                  flex items-center gap-3 p-3 rounded-lg border
-                  ${hasEnoughTiles 
-                    ? 'bg-green-50 border-green-200' 
-                    : 'bg-gray-50 border-gray-200'
-                  }
-                `}>
-                  <div className={`
-                    w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold
-                    ${hasEnoughTiles 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-indigo-500 text-white'
-                    }
-                  `}>
-                    {hasEnoughTiles ? '✓' : '1'}
+                <div className="flex items-center gap-3 p-3 rounded-lg border bg-gray-50 border-gray-200">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold bg-indigo-500 text-white">
+                    1
                   </div>
                   <div className="flex-1 text-left">
                     <div className="font-medium text-gray-900">
                       Input Your Hand Tiles
                     </div>
                     <div className="text-sm text-gray-600">
-                      {hasEnoughTiles 
-                        ? `${tileCount} tiles entered - ready for analysis!` 
-                        : `${tileCount}/10 tiles minimum needed`
-                      }
+                      {tileCount}/10 tiles minimum needed for analysis
                     </div>
                   </div>
-                  {!hasEnoughTiles && (
-                    <Link
-                      to="/tiles"
-                      className="px-3 py-1 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/80 transition-colors"
-                    >
-                      Input Tiles
-                    </Link>
-                  )}
+                  <Link
+                    to="/tiles"
+                    className="px-3 py-1 bg-primary text-white text-sm font-medium rounded-lg hover:bg-primary/80 transition-colors"
+                  >
+                    Input Tiles
+                  </Link>
                 </div>
                 
-                {hasEnoughTiles && (
-                  <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
-                    <h4 className="font-medium text-indigo-900 mb-1">✨ AI-Powered Flow</h4>
-                    <p className="text-sm text-indigo-800">
-                      AI will analyze your tiles and recommend the best patterns, 
-                      then you can accept or override the recommendations.
-                    </p>
-                  </div>
-                )}
+                <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
+                  <h4 className="font-medium text-indigo-900 mb-1">✨ AI-Powered Flow</h4>
+                  <p className="text-sm text-indigo-800">
+                    Once you input your tiles, AI will instantly analyze all 71 NMJL patterns 
+                    and provide strategic recommendations.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Success State Transition - Show brief success message after loading */}
+        {hasEnoughTiles && !isAnalyzing && currentAnalysis && !analysisError && (
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-sm font-bold">✓</span>
+              </div>
+              <div>
+                <div className="font-medium text-green-900">
+                  Analysis Complete! 
+                </div>
+                <div className="text-sm text-green-700">
+                  Found {currentAnalysis.recommendedPatterns?.length || 0} recommended patterns 
+                  with overall score: {currentAnalysis.overallScore}/100
+                </div>
               </div>
             </div>
           </div>
         )}
         
-        {/* Intelligence Panel */}
-        {hasEnoughTiles && (
+        {/* Intelligence Panel - Only show when analysis is complete */}
+        {hasEnoughTiles && !isAnalyzing && currentAnalysis && !analysisError && (
           <div className="space-y-6">
             {/* Context Summary */}
             <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
@@ -179,6 +294,42 @@ export const IntelligencePanelPage = () => {
             {currentAnalysis?.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 0 && (
               <PatternRecommendations 
                 recommendations={currentAnalysis.recommendedPatterns}
+                onPatternSwitch={async (pattern) => {
+                  // Reuse the optimized pattern switching logic
+                  const switchStartTime = performance.now()
+                  setIsPatternSwitching(true)
+                  setPatternSwitchStartTime(switchStartTime)
+                  
+                  try {
+                    console.log('🔄 Quick pattern switch from recommendations:', pattern.pattern.section, '#' + pattern.pattern.line)
+                    
+                    // Update pattern store
+                    clearSelection()
+                    addTargetPattern(pattern.pattern.id)
+                    
+                    // Trigger re-analysis with Engine 1 cache optimization
+                    await analyzeHand(playerHand, [pattern.pattern])
+                    
+                    const switchEndTime = performance.now()
+                    const switchDuration = switchEndTime - switchStartTime
+                    const wasCacheHit = switchDuration < 200
+                    
+                    setPatternSwitchPerformance({
+                      lastSwitchTime: switchDuration,
+                      cacheHit: wasCacheHit,
+                      patternName: `${pattern.pattern.section} #${pattern.pattern.line}`
+                    })
+                    
+                    console.log(`🚀 Quick pattern switch completed in ${switchDuration.toFixed(1)}ms`, 
+                      wasCacheHit ? '(Cache Hit ✓)' : '(Fresh Analysis)')
+                    
+                  } catch (error) {
+                    console.error('❌ Quick pattern switch failed:', error)
+                  } finally {
+                    setIsPatternSwitching(false)
+                    setPatternSwitchStartTime(null)
+                  }
+                }}
               />
             )}
             
@@ -187,13 +338,42 @@ export const IntelligencePanelPage = () => {
               <PrimaryAnalysisCard 
                 analysis={currentAnalysis}
                 currentPattern={currentAnalysis.recommendedPatterns[0] || null}
-                onPatternSwitch={(pattern) => {
-                  // Handle pattern switch logic - update pattern store
-                  clearSelection()
-                  addTargetPattern(pattern.pattern.id)
-                  console.log('Pattern switched to:', pattern.pattern.id)
-                  // Trigger re-analysis with new pattern
-                  analyzeHand(playerHand, [pattern.pattern])
+                onPatternSwitch={async (pattern) => {
+                  // Optimized pattern switching with performance monitoring
+                  const switchStartTime = performance.now()
+                  setIsPatternSwitching(true)
+                  setPatternSwitchStartTime(switchStartTime)
+                  
+                  try {
+                    console.log('🔄 Pattern switch initiated:', pattern.pattern.section, '#' + pattern.pattern.line)
+                    
+                    // Update pattern store (instant)
+                    clearSelection()
+                    addTargetPattern(pattern.pattern.id)
+                    
+                    // Trigger re-analysis with new pattern - Engine 1 cache should make this instant
+                    await analyzeHand(playerHand, [pattern.pattern])
+                    
+                    const switchEndTime = performance.now()
+                    const switchDuration = switchEndTime - switchStartTime
+                    const wasCacheHit = switchDuration < 200 // Likely cache hit if under 200ms
+                    
+                    // Track performance for development insights
+                    setPatternSwitchPerformance({
+                      lastSwitchTime: switchDuration,
+                      cacheHit: wasCacheHit,
+                      patternName: `${pattern.pattern.section} #${pattern.pattern.line}`
+                    })
+                    
+                    console.log(`🚀 Pattern switch completed in ${switchDuration.toFixed(1)}ms`, 
+                      wasCacheHit ? '(Cache Hit ✓)' : '(Fresh Analysis)')
+                    
+                  } catch (error) {
+                    console.error('❌ Pattern switch failed:', error)
+                  } finally {
+                    setIsPatternSwitching(false)
+                    setPatternSwitchStartTime(null)
+                  }
                 }}
                 onBrowseAllPatterns={() => {
                   // Navigate to pattern selection
@@ -222,13 +402,36 @@ export const IntelligencePanelPage = () => {
         
         {/* Debug Info (Development) */}
         {process.env.NODE_ENV === 'development' && currentAnalysis && (
-          <div className="mt-8 p-4 bg-gray-100 rounded-lg text-xs font-mono">
-            <div className="font-semibold mb-2">Debug Info:</div>
-            <div>Analysis Version: {currentAnalysis.analysisVersion}</div>
-            <div>Last Updated: {new Date(currentAnalysis.lastUpdated).toISOString()}</div>
-            <div>Best Patterns: {currentAnalysis.bestPatterns.length}</div>
-            <div>Recommendations: {currentAnalysis.tileRecommendations.length}</div>
-            <div>Threats: {currentAnalysis.threats.length}</div>
+          <div className="mt-8 space-y-4">
+            {/* Pattern Switch Performance Monitor */}
+            {patternSwitchPerformance && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-xs font-mono">
+                <div className="font-semibold mb-2 text-green-800">🚀 Pattern Switch Performance:</div>
+                <div className="space-y-1 text-green-700">
+                  <div>Pattern: {patternSwitchPerformance.patternName}</div>
+                  <div>Switch Time: {patternSwitchPerformance.lastSwitchTime.toFixed(1)}ms</div>
+                  <div>Cache Hit: {patternSwitchPerformance.cacheHit ? '✓ Yes' : '✗ No'}</div>
+                  <div className="text-xs mt-2 text-green-600">
+                    {patternSwitchPerformance.cacheHit 
+                      ? '🎯 Engine 1 cache optimization successful!' 
+                      : '⚡ Fresh analysis - consider cache warming'}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* General Debug Info */}
+            <div className="p-4 bg-gray-100 rounded-lg text-xs font-mono">
+              <div className="font-semibold mb-2">Debug Info:</div>
+              <div>Analysis Version: {currentAnalysis.analysisVersion}</div>
+              <div>Last Updated: {new Date(currentAnalysis.lastUpdated).toISOString()}</div>
+              <div>Best Patterns: {currentAnalysis.bestPatterns.length}</div>
+              <div>Recommendations: {currentAnalysis.tileRecommendations.length}</div>
+              <div>Threats: {currentAnalysis.threats.length}</div>
+              {currentAnalysis.engine1Facts && (
+                <div>Engine 1 Facts: {currentAnalysis.engine1Facts.length} patterns cached</div>
+              )}
+            </div>
           </div>
         )}
       </div>

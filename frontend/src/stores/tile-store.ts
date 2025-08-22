@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { PlayerTile, TileInputState, HandValidation, TileInputMode, TileAnimation, TileRecommendation } from '../types/tile-types'
 import { tileService } from '../services/tile-service'
+import { AnalysisEngine } from '../services/analysis-engine'
 
 interface TileState extends TileInputState {
   // Hand Management
@@ -108,7 +109,13 @@ export const useTileStore = create<TileState>()(
               tiles: state.playerHand.map(t => t.id)
             })
             
+            const oldTileIds = state.playerHand.map(tile => tile.id)
             const newHand = [...state.playerHand, playerTile]
+            const newTileIds = newHand.map(tile => tile.id)
+            
+            // Clear Engine 1 cache when hand changes
+            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            
             const validation = tileService.validateHand(newHand, state.dealerHand ? 14 : 13)
             
             console.log('New hand after update:', {
@@ -120,14 +127,21 @@ export const useTileStore = create<TileState>()(
             return {
               playerHand: newHand,
               handSize: newHand.length,
-              validation
+              validation,
+              lastAnalysis: null // Clear analysis timestamp when hand changes
             }
           })
         },
         
         removeTile: (instanceId: string) => {
           set((state) => {
+            const oldTileIds = state.playerHand.map(tile => tile.id)
             const newHand = state.playerHand.filter(tile => tile.instanceId !== instanceId)
+            const newTileIds = newHand.map(tile => tile.id)
+            
+            // Clear Engine 1 cache when hand changes
+            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            
             const validation = tileService.validateHand(newHand, state.dealerHand ? 14 : 13)
             
             // Remove from recommendations
@@ -138,25 +152,35 @@ export const useTileStore = create<TileState>()(
               playerHand: newHand,
               handSize: newHand.length,
               validation,
-              recommendations: newRecommendations
+              recommendations: newRecommendations,
+              lastAnalysis: null // Clear analysis timestamp when hand changes
             }
           })
         },
         
         clearHand: () => {
-          set({
-            playerHand: [],
-            handSize: 0,
-            selectedTiles: [],
-            selectedCount: 0,
-            recommendations: {},
-            validation: {
-              isValid: false,
-              errors: [],
-              warnings: [],
-              tileCount: 0,
-              expectedCount: get().dealerHand ? 14 : 13,
-              duplicateErrors: []
+          set((state) => {
+            const oldTileIds = state.playerHand.map(tile => tile.id)
+            const newTileIds: string[] = []
+            
+            // Clear Engine 1 cache when hand cleared
+            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            
+            return {
+              playerHand: [],
+              handSize: 0,
+              selectedTiles: [],
+              selectedCount: 0,
+              recommendations: {},
+              lastAnalysis: null, // Clear analysis timestamp
+              validation: {
+                isValid: false,
+                errors: [],
+                warnings: [],
+                tileCount: 0,
+                expectedCount: state.dealerHand ? 14 : 13,
+                duplicateErrors: []
+              }
             }
           })
         },

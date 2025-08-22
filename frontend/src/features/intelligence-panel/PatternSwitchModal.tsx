@@ -1,9 +1,11 @@
 // Pattern Switch Modal - Quick pattern switching with top recommendations
 // Shows top 3 viable patterns plus browse more option
+// Optimized for instant pattern switching with Engine 1 cache
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
+import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 import type { PatternRecommendation } from '../../stores/intelligence-store'
 
@@ -12,7 +14,7 @@ interface PatternSwitchModalProps {
   onClose: () => void
   currentPattern: PatternRecommendation | null
   availablePatterns: PatternRecommendation[]
-  onPatternSelect: (pattern: PatternRecommendation) => void
+  onPatternSelect: (pattern: PatternRecommendation) => Promise<void>
   onBrowseMore: () => void
 }
 
@@ -24,6 +26,9 @@ export const PatternSwitchModal = ({
   onPatternSelect,
   onBrowseMore
 }: PatternSwitchModalProps) => {
+  const [switchingPatternId, setSwitchingPatternId] = useState<string | null>(null)
+  const [switchStartTime, setSwitchStartTime] = useState<number | null>(null)
+  
   if (!isOpen) return null
 
   // Get top 3 patterns (excluding current if it's in the list)
@@ -31,9 +36,24 @@ export const PatternSwitchModal = ({
     .filter(p => p.pattern.id !== currentPattern?.pattern.id)
     .slice(0, 3)
 
-  const handlePatternSelect = (pattern: PatternRecommendation) => {
-    onPatternSelect(pattern)
-    onClose()
+  const handlePatternSelect = async (pattern: PatternRecommendation) => {
+    const startTime = performance.now()
+    setSwitchingPatternId(pattern.pattern.id)
+    setSwitchStartTime(startTime)
+    
+    try {
+      await onPatternSelect(pattern)
+      
+      const duration = performance.now() - startTime
+      console.log(`🔄 Pattern switch in modal completed: ${duration.toFixed(1)}ms`)
+      
+      onClose()
+    } catch (error) {
+      console.error('❌ Pattern switch failed in modal:', error)
+    } finally {
+      setSwitchingPatternId(null)
+      setSwitchStartTime(null)
+    }
   }
 
   const handleBackdropClick = (e: React.MouseEvent) => {
@@ -81,14 +101,32 @@ export const PatternSwitchModal = ({
                 <Card 
                   key={pattern.pattern.id}
                   variant="default" 
-                  className="p-3 cursor-pointer hover:shadow-md transition-shadow"
-                  onClick={() => handlePatternSelect(pattern)}
+                  className={`p-3 transition-all duration-200 ${
+                    switchingPatternId === pattern.pattern.id
+                      ? 'opacity-60 cursor-wait border-blue-300 bg-blue-50'
+                      : 'cursor-pointer hover:shadow-md hover:border-blue-200'
+                  }`}
+                  onClick={() => {
+                    if (switchingPatternId === null) {
+                      handlePatternSelect(pattern)
+                    }
+                  }}
                 >
                   <div className="space-y-2">
                     {/* Pattern Header */}
                     <div className="flex items-center justify-between">
-                      <div className="font-medium text-gray-900">
-                        {pattern.pattern.section} #{pattern.pattern.line}
+                      <div className="flex items-center gap-2">
+                        <div className="font-medium text-gray-900">
+                          {pattern.pattern.section} #{pattern.pattern.line}
+                        </div>
+                        {switchingPatternId === pattern.pattern.id && (
+                          <div className="flex items-center gap-1">
+                            <LoadingSpinner size="sm" color="primary" />
+                            <span className="text-xs text-blue-600">
+                              {switchStartTime && Math.round(performance.now() - switchStartTime)}ms
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="text-right">
                         <div className="text-lg font-bold text-primary">
@@ -155,25 +193,34 @@ export const PatternSwitchModal = ({
 
         {/* Footer */}
         <div className="p-4 border-t border-gray-200 bg-gray-50">
-          <div className="flex gap-2">
-            <Button
-              variant="ghost"
-              className="flex-1"
-              onClick={onClose}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={() => {
-                onBrowseMore()
-                onClose()
-              }}
-            >
-              Browse All
-            </Button>
-          </div>
+          {switchingPatternId ? (
+            <div className="flex items-center justify-center gap-2 py-2">
+              <LoadingSpinner size="sm" color="primary" />
+              <span className="text-sm text-gray-600">
+                Switching pattern with Engine 1 cache optimization...
+              </span>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                className="flex-1"
+                onClick={onClose}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => {
+                  onBrowseMore()
+                  onClose()
+                }}
+              >
+                Browse All
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>

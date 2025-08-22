@@ -196,20 +196,35 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       
       // Analysis Actions  
       analyzeHand: async (tiles, patterns = []) => {
+        const startTime = performance.now()
         set({ isAnalyzing: true, analysisError: null })
         
         try {
           // Create a hash of the current hand state
           const handHash = createHandHash(tiles, patterns)
           
-          // Clear ALL cached analyses first
-          get().clearCache()
-          console.warn('🧠 ALL CACHE CLEARED - FORCING FRESH ANALYSIS')
+          // Check if this is a pattern switch (same tiles, different patterns)
+          const { currentAnalysis } = get()
+          const isPatternSwitch = currentAnalysis && 
+            tiles.length > 0 && 
+            patterns.length === 1 && 
+            currentAnalysis.recommendedPatterns.some(p => p.pattern.id !== patterns[0].id)
+          
+          if (isPatternSwitch) {
+            console.log('🔄 Pattern switch detected - leveraging Engine 1 cache')
+          } else {
+            // Clear cache only for full re-analysis (not pattern switches)
+            get().clearCache()
+            console.warn('🧠 CACHE CLEARED - FULL FRESH ANALYSIS')
+          }
           
           // Use real analysis engine
           console.warn('🧠 RUNNING ANALYSIS ENGINE with', tiles.length, 'tiles and', patterns.length, 'patterns')
           const analysis = await AnalysisEngine.analyzeHand(tiles, patterns)
-          console.warn('🧠 ANALYSIS COMPLETED')
+          
+          const duration = performance.now() - startTime
+          console.warn(`🧠 ANALYSIS COMPLETED in ${duration.toFixed(1)}ms`, 
+            isPatternSwitch && duration < 200 ? '(Cache optimized ✓)' : '')
           
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)

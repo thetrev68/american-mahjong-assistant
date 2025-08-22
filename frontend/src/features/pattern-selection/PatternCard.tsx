@@ -2,10 +2,8 @@
 // Displays individual NMJL patterns with modern design
 
 import { Card } from '../../ui-components/Card'
-import { Button } from '../../ui-components/Button'
 import { useAnimationsEnabled } from '../../stores'
 import type { PatternSelectionOption, PatternProgress } from '../../../../shared/nmjl-types'
-import type { PatternRecommendation } from '../../stores/intelligence-store'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface PatternCardProps {
@@ -13,10 +11,8 @@ interface PatternCardProps {
   isSelected: boolean
   isTarget: boolean
   progress?: PatternProgress
-  intelligenceScore?: PatternRecommendation
   onSelect: (patternId: string) => void
   onToggleTarget: (patternId: string) => void
-  onAnalyze?: (patternId: string) => void
 }
 
 export const PatternCard = ({
@@ -24,10 +20,8 @@ export const PatternCard = ({
   isSelected,
   isTarget,
   progress,
-  intelligenceScore,
   onSelect,
-  onToggleTarget,
-  onAnalyze
+  onToggleTarget
 }: PatternCardProps) => {
   const animationsEnabled = useAnimationsEnabled()
   
@@ -40,24 +34,6 @@ export const PatternCard = ({
     }
   }
   
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600'
-    if (score >= 65) return 'text-blue-600'
-    if (score >= 45) return 'text-yellow-600'
-    if (score >= 25) return 'text-orange-600'
-    return 'text-red-600'
-  }
-  
-  const getRecommendationColor = (recommendation: string) => {
-    switch (recommendation) {
-      case 'excellent': return 'bg-green-100 text-green-800 border-green-200'
-      case 'good': return 'bg-blue-100 text-blue-800 border-blue-200'
-      case 'fair': return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-      case 'poor': return 'bg-orange-100 text-orange-800 border-orange-200'
-      case 'impossible': return 'bg-red-100 text-red-800 border-red-200'
-      default: return 'bg-gray-100 text-gray-800 border-gray-200'
-    }
-  }
   
   return (
     <Card
@@ -132,79 +108,8 @@ export const PatternCard = ({
           </button>
         </div>
         
-        {/* Intelligence Score (if available) */}
-        {intelligenceScore && (
-          <div className="space-y-3 border-t pt-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-gray-700">Completion Score</span>
-                <span className={`text-lg font-bold ${getScoreColor(intelligenceScore.completionPercentage)}`}>
-                  {intelligenceScore.completionPercentage.toFixed(0)}
-                </span>
-              </div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium border ${getRecommendationColor(intelligenceScore.difficulty)}`}>
-                {intelligenceScore.difficulty.toUpperCase()}
-              </span>
-            </div>
-            
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-500 ${
-                      intelligenceScore.completionPercentage >= 80 ? 'bg-green-500' :
-                      intelligenceScore.completionPercentage >= 65 ? 'bg-blue-500' :
-                      intelligenceScore.completionPercentage >= 45 ? 'bg-yellow-500' :
-                      intelligenceScore.completionPercentage >= 25 ? 'bg-orange-500' : 'bg-red-500'
-                    }`}
-                    style={{ width: `${intelligenceScore.completionPercentage}%` }}
-                  />
-                </div>
-              </div>
-              
-              {onAnalyze && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onAnalyze(pattern.id)
-                  }}
-                  className="text-xs px-2 py-1 h-auto"
-                >
-                  Analyze
-                </Button>
-              )}
-            </div>
-            
-            {/* Quick stats */}
-            {intelligenceScore.analysis && (
-              <div className="grid grid-cols-3 gap-2 text-xs text-gray-600">
-                <div className="text-center">
-                  <div className="font-semibold text-blue-600">
-                    {intelligenceScore.analysis.currentTiles?.count || 0}
-                  </div>
-                  <div>Current</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-orange-600">
-                    {intelligenceScore.analysis.missingTiles?.total || 0}
-                  </div>
-                  <div>Missing</div>
-                </div>
-                <div className="text-center">
-                  <div className="font-semibold text-purple-600">
-                    {intelligenceScore.analysis.jokerSituation?.available || 0}
-                  </div>
-                  <div>Jokers</div>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Progress Bar (if available and no intelligence score) */}
-        {progress && !intelligenceScore && (
+        {/* Progress Bar (if available) */}
+        {progress && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">Progress</span>

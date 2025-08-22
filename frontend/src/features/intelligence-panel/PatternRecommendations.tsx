@@ -1,19 +1,22 @@
 // Pattern Recommendations Component
 // Shows AI's recommended patterns with user override capability
+// Enhanced with instant pattern switching via Engine 1 cache
 
 import { useState } from 'react'
 import { usePatternStore } from '../../stores/pattern-store'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
+import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 import type { PatternRecommendation } from '../../stores/intelligence-store'
 
 interface PatternRecommendationsProps {
   recommendations: PatternRecommendation[]
   className?: string
+  onPatternSwitch?: (pattern: PatternRecommendation) => Promise<void>
 }
 
-export function PatternRecommendations({ recommendations, className = '' }: PatternRecommendationsProps) {
+export function PatternRecommendations({ recommendations, className = '', onPatternSwitch }: PatternRecommendationsProps) {
   const { getTargetPatterns, addTargetPattern, removeTargetPattern, clearSelection } = usePatternStore()
   const selectedPatterns = getTargetPatterns()
   const [showOverride, setShowOverride] = useState(false)
@@ -91,6 +94,7 @@ export function PatternRecommendations({ recommendations, className = '' }: Patt
             isSelected={isPatternSelected(rec.pattern.id)}
             onToggle={() => togglePattern(rec.pattern)}
             showControls={showOverride || selectedPatterns.length > 0}
+            onQuickSwitch={onPatternSwitch ? () => onPatternSwitch(rec) : undefined}
           />
         ))}
         
@@ -119,6 +123,7 @@ interface PatternRecommendationCardProps {
   isSelected: boolean
   onToggle: () => void
   showControls: boolean
+  onQuickSwitch?: () => Promise<void>
 }
 
 function PatternRecommendationCard({ 
@@ -126,8 +131,10 @@ function PatternRecommendationCard({
   rank, 
   isSelected, 
   onToggle, 
-  showControls 
+  showControls,
+  onQuickSwitch
 }: PatternRecommendationCardProps) {
+  const [isSwitching, setIsSwitching] = useState(false)
   const { pattern, confidence, completionPercentage, reasoning, isPrimary } = recommendation
   const coloredParts = getColoredPatternParts(pattern.pattern, pattern.groups)
   
@@ -171,15 +178,40 @@ function PatternRecommendationCard({
             {pattern.points} pts
           </span>
           
-          {showControls && (
-            <Button
-              variant={isSelected ? 'primary' : 'outline'}
-              size="sm"
-              onClick={onToggle}
-            >
-              {isSelected ? '✓ Selected' : 'Select'}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            {onQuickSwitch && rank <= 3 && (
+              <Button
+                variant="primary"
+                size="sm"
+                disabled={isSwitching}
+                onClick={async () => {
+                  setIsSwitching(true)
+                  try {
+                    await onQuickSwitch()
+                  } finally {
+                    setIsSwitching(false)
+                  }
+                }}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isSwitching ? (
+                  <><LoadingSpinner size="sm" color="white" /> Switching...</>
+                ) : (
+                  <>🔄 Switch</>
+                )}
+              </Button>
+            )}
+            
+            {showControls && (
+              <Button
+                variant={isSelected ? 'primary' : 'outline'}
+                size="sm"
+                onClick={onToggle}
+              >
+                {isSelected ? '✓ Selected' : 'Select'}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       

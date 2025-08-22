@@ -1,17 +1,18 @@
 // Tile Input Page
 // Complete interface for inputting and managing player tiles
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Container } from '../../ui-components/layout/Container'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
-import { PrimaryAnalysisCard } from '../intelligence-panel/PrimaryAnalysisCard'
-import { useTileStore, usePatternStore, useIntelligenceStore } from '../../stores'
+import { useTileStore } from '../../stores'
 import { tileService } from '../../services/tile-service'
 
 export const TileInputPage = () => {
+  const navigate = useNavigate()
   const [selectorMode] = useState<'full' | 'compact'>('full')
   const [showTileSelector, setShowTileSelector] = useState(true)
   
@@ -24,18 +25,12 @@ export const TileInputPage = () => {
     importTilesFromString
   } = useTileStore()
   
-  const { getSelectedPattern, getTargetPatterns } = usePatternStore()
-  const selectedPattern = getSelectedPattern()
-  const targetPatterns = getTargetPatterns() // Array of selected pattern objects
+  // Calculate hand completion status
+  const requiredTiles = dealerHand ? 14 : 13
+  const currentTiles = playerHand.length
+  const missingTiles = Math.max(0, requiredTiles - currentTiles)
+  const isHandComplete = currentTiles >= requiredTiles
   
-  // Intelligence Panel Integration
-  const { currentAnalysis, autoAnalyze, analyzeHand, isAnalyzing } = useIntelligenceStore() // setAutoAnalyze removed
-  
-  // Check if we should show intelligence panel
-  const showIntelligencePanel = playerHand.length >= 10
-  
-  // Track if we've already triggered analysis to prevent loops
-  const analysisTriggeredRef = useRef(false)
   
   // Debug function to test tile service
   const debugTileService = () => {
@@ -55,7 +50,7 @@ export const TileInputPage = () => {
   }
   
   // Run debug on first render
-  if (typeof window !== 'undefined' && !((window as any).tileDebugRun)) {
+  if (typeof window !== 'undefined' && !(window as unknown as { tileDebugRun?: boolean }).tileDebugRun) {
     debugTileService()
     
     // Debug localStorage to see what's persisted
@@ -68,7 +63,7 @@ export const TileInputPage = () => {
     localStorage.removeItem('tile-store')
     console.log('=== End LocalStorage Debug ===')
     
-    ;(window as any).tileDebugRun = true
+    ;(window as unknown as { tileDebugRun: boolean }).tileDebugRun = true
   }
   
   useEffect(() => {
@@ -78,25 +73,13 @@ export const TileInputPage = () => {
     if (isFromHome && playerHand.length > 0) {
       clearHand()
     }
-  }, [clearHand]) // Run only on mount - removed playerHand.length to prevent infinite loop
+  }, [clearHand, playerHand.length]) // Run only on mount
   
   useEffect(() => {
     // Validate hand whenever it changes
     validateHand()
   }, [playerHand, validateHand])
   
-  // Auto-analyze when conditions are met
-  useEffect(() => {
-    const shouldAnalyze = autoAnalyze && playerHand.length >= 10 && !isAnalyzing
-    
-    if (shouldAnalyze && !analysisTriggeredRef.current) {
-      analysisTriggeredRef.current = true
-      analyzeHand(playerHand, targetPatterns).finally(() => {
-        // Reset flag after analysis completes
-        analysisTriggeredRef.current = false
-      })
-    }
-  }, [autoAnalyze, playerHand.length, analyzeHand, isAnalyzing, playerHand, targetPatterns]) // Only track hand length, patterns optional
   
   const handleQuickStart = () => {
     console.log('=== Quick Start Debug ===')
@@ -180,8 +163,7 @@ export const TileInputPage = () => {
           </h1>
           
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Input your tiles privately and get AI-powered analysis and recommendations.
-            {selectedPattern && ` Working toward: ${selectedPattern.displayName}`}
+            Input your tiles privately to begin your game setup. You need {requiredTiles} tiles total.
           </p>
         </div>
         
@@ -256,98 +238,64 @@ export const TileInputPage = () => {
           allowReordering={true}
         />
         
-        {/* Intelligence Panel */}
-        {showIntelligencePanel && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 px-4">
-              🧠 AI Intelligence Panel
-            </h3>
-            
-            {currentAnalysis ? (
-              <PrimaryAnalysisCard
-                analysis={currentAnalysis}
-                currentPattern={currentAnalysis.recommendedPatterns[0] || null}
-                onPatternSwitch={(pattern) => {
-                  // TODO: Update current pattern selection
-                  console.log('Switched to pattern:', pattern.pattern.id)
-                }}
-                onBrowseAllPatterns={() => {
-                  // TODO: Navigate to pattern selection page
-                  window.location.href = '/patterns'
-                }}
-              />
-            ) : (
-              <Card variant="elevated" className="p-8">
-                <div className="text-center text-gray-500">
-                  <div className="text-2xl mb-2">🤔</div>
-                  <p>Analyzing your hand and patterns...</p>
-                  <p className="text-sm mt-1">
-                    Select patterns and add tiles to see AI recommendations
-                  </p>
-                </div>
-              </Card>
-            )}
-          </div>
-        )}
         
-        {/* Intelligence Panel Hint */}
-        {!showIntelligencePanel && (
-          <Card variant="default" className="p-4 bg-gradient-to-r from-primary/5 to-secondary/5">
-            <div className="text-center">
-              <div className="text-lg mb-2">🧠✨</div>
-              <h4 className="font-semibold text-gray-800 mb-1">
-                AI Intelligence Panel Available
-              </h4>
-              <p className="text-sm text-gray-600">
-                {playerHand.length < 10 
-                  ? `Add ${10 - playerHand.length} more tiles to unlock AI analysis`
-                  : targetPatterns.length === 0
-                    ? "Go to Pattern Selection first to choose target patterns"
-                    : "AI analysis will appear here"
-                }
-              </p>
-              {playerHand.length < 10 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleQuickStart}
-                  className="mt-2"
-                >
-                  🎲 Add Sample Hand
-                </Button>
-              )}
-              {targetPatterns.length === 0 && playerHand.length >= 10 && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => window.location.href = '/patterns'}
-                  className="mt-2"
-                >
-                  🎯 Select Patterns
-                </Button>
-              )}
+        {/* Hand Status Indicator */}
+        <Card variant="default" className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="text-2xl">
+                {isHandComplete ? '✅' : '🎯'}
+              </div>
+              <div>
+                <div className="text-lg font-semibold text-gray-900">
+                  Hand Progress: {currentTiles}/{requiredTiles} tiles
+                </div>
+                <div className="text-sm text-gray-600">
+                  {isHandComplete 
+                    ? 'Hand is complete and ready for analysis!' 
+                    : `Add ${missingTiles} more tile${missingTiles !== 1 ? 's' : ''} to continue`
+                  }
+                </div>
+              </div>
             </div>
-          </Card>
-        )}
+            <div className="text-right">
+              <div className="text-2xl font-bold text-primary">
+                {Math.round((currentTiles / requiredTiles) * 100)}%
+              </div>
+              <div className="text-xs text-gray-500">Complete</div>
+            </div>
+          </div>
+        </Card>
         
         {/* Action Buttons */}
         <div className="flex justify-center gap-4">
           <Button
             variant="outline"
             size="lg"
-            onClick={() => window.location.href = '/pattern-selection'}
+            onClick={() => navigate('/pattern-selection')}
           >
-            🎯 Select Patterns
+            🎯 Browse Patterns
           </Button>
           
-          <Button
-            variant="primary"
-            size="lg"
-            disabled={playerHand.length < 13}
-            onClick={() => window.location.href = '/game'}
-          >
-            Continue...
-          </Button>
+          {isHandComplete ? (
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={() => navigate('/intelligence')}
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold"
+            >
+              ✨ Submit & Analyze Hand
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              size="lg"
+              disabled
+              className="text-gray-400 border-gray-200 cursor-not-allowed"
+            >
+              Add {missingTiles} more tile{missingTiles !== 1 ? 's' : ''}
+            </Button>
+          )}
         </div>
       </div>
     </Container>

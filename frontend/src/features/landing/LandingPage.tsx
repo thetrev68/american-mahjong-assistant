@@ -99,7 +99,7 @@ export const LandingPage = () => {
           <Button 
             variant="secondary" 
             size="lg"
-            onClick={() => navigate('/tile-input')}
+            onClick={() => navigate('/tiles')}
             icon="🧠"
           >
             AI Co-Pilot
@@ -159,8 +159,8 @@ export const LandingPage = () => {
                           onClick={(e) => {
                             e.stopPropagation()
                             if (feature.id === 'pattern-selection') navigate('/pattern-selection')
-                            if (feature.id === 'tile-intelligence') navigate('/tile-input')
-                            if (feature.id === 'charleston-ai') navigate('/tile-input')
+                            if (feature.id === 'tile-intelligence') navigate('/tiles')
+                            if (feature.id === 'charleston-ai') navigate('/tiles')
                           }}
                         >
                           Try It Now
