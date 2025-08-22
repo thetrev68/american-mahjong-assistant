@@ -3,7 +3,7 @@
 
 import { Card } from '../../ui-components/Card'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
-import { renderPatternVariation, getTileCharClasses, getPatternDisplayChars } from '../../utils/tile-display-utils'
+import { renderPatternVariation, getTileCharClasses, getTileDisplayChar } from '../../utils/tile-display-utils'
 import { tileService } from '../../services/tile-service'
 import { useTileStore } from '../../stores/tile-store'
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
@@ -17,9 +17,7 @@ interface PrimaryAnalysisCardProps {
 
 export const PrimaryAnalysisCard = ({
   analysis,
-  currentPattern,
-  onPatternSwitch,
-  onBrowseAllPatterns
+  currentPattern
 }: PrimaryAnalysisCardProps) => {
   // Get player hand tiles for visualization
   const { playerHand = [] } = useTileStore()
@@ -44,9 +42,38 @@ export const PrimaryAnalysisCard = ({
     return tileService.getTileById(tileId)?.displayName || 'Unknown Tile'
   }
 
-  // Separate recommendations by action
-  const passRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'pass' || rec.action === 'discard')
-  const keepRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'keep')
+  // Separate recommendations by action and validate they're in player's hand
+  const normalizeId = (id: string): string => String(id).toLowerCase().trim()
+  const playerTileSet = new Set(playerTileIds.map(normalizeId))
+  
+  // Debug logging for development
+  if (process.env.NODE_ENV === 'development' && analysis.tileRecommendations.length > 0) {
+    console.log('🔍 Player hand tiles:', playerTileIds)
+    console.log('🔍 All recommendations:', analysis.tileRecommendations.map(rec => ({ tile: rec.tileId, action: rec.action })))
+    console.log('🎯 Primary pattern displayed:', primaryPattern.pattern.section, '#' + primaryPattern.pattern.line, 'ID:', primaryPattern.pattern.id)
+  }
+  
+  const passRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => {
+    const isValidAction = rec.action === 'pass' || rec.action === 'discard'
+    const isInHand = playerTileSet.has(normalizeId(rec.tileId))
+    
+    if (isValidAction && !isInHand) {
+      console.warn('⚠️ Recommendation for tile not in hand:', rec.tileId, 'Action:', rec.action)
+    }
+    
+    return isValidAction && isInHand
+  })
+  
+  const keepRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => {
+    const isValidAction = rec.action === 'keep'
+    const isInHand = playerTileSet.has(normalizeId(rec.tileId))
+    
+    if (isValidAction && !isInHand) {
+      console.warn('⚠️ Recommendation for tile not in hand:', rec.tileId, 'Action:', rec.action)
+    }
+    
+    return isValidAction && isInHand
+  })
 
   // Use the new mathematical analysis data
   const completionPercentage = primaryPattern.completionPercentage || 0
@@ -66,11 +93,54 @@ export const PrimaryAnalysisCard = ({
   const priorityScore = scoreBreakdown?.priorityScore || 0
   const totalScore = currentTileScore + availabilityScore + jokerScore + priorityScore
 
-  // Get pattern tiles for visualization (from best variation)
-  const patternTiles = analysisData?.tileMatching?.bestVariation?.patternTiles || []
+  // Get pattern tiles for visualization - using empty array for now since tileMatching doesn't exist
+  const patternTiles: string[] = []
   
-  // Render hand tiles visualization
-  const handTileChars = getPatternDisplayChars(playerTileIds, playerTileIds)
+  // Sort hand tiles alphabetically: Jokers, Flowers, suits (1-9 B/C/D), dragons, winds
+  const sortTilesAlphabetically = (tiles: string[]): string[] => {
+    return [...tiles].sort((a, b) => {
+      const getOrder = (tile: string): number => {
+        const t = tile.toLowerCase()
+        // Jokers first
+        if (t.includes('joker') || t === 'j') return 0
+        // Flowers second  
+        if (t === 'f1' || t.includes('flower') || t === 'f') return 1
+        // Numbers 1-9 for each suit (B, C, D)
+        if (t.match(/^[1-9][bcd]$/)) {
+          const num = parseInt(t[0])
+          const suit = t[1]
+          if (suit === 'b') return 2000 + num      // Bams: 2001-2009
+          if (suit === 'c') return 3000 + num      // Cracks: 3001-3009  
+          if (suit === 'd') return 4000 + num      // Dots: 4001-4009
+        }
+        // Dragons
+        if (t === 'f2' || t.includes('green') || t === 'gd') return 5001
+        if (t === 'f3' || t.includes('red') || t === 'rd') return 5002
+        if (t === 'f4' || t.includes('white') || t === 'wd') return 5003
+        // Winds  
+        if (t === 'east' || t === 'e' || t === 'ew') return 6001
+        if (t === 'south' || t === 's' || t === 'sw') return 6002
+        if (t === 'west' || t === 'w' || t === 'ww') return 6003
+        if (t === 'north' || t === 'n' || t === 'nw') return 6004
+        // Unknown tiles last
+        return 9999
+      }
+      return getOrder(a) - getOrder(b)
+    })
+  }
+  
+  // Render hand tiles visualization with sorting
+  const sortedPlayerTileIds = sortTilesAlphabetically(playerTileIds)
+  const handTileChars = sortedPlayerTileIds.map(tileId => ({
+    ...getTileDisplayChar(tileId),
+    isMatched: true // All hand tiles are "matched" for display purposes
+  }))
+  
+  // Debug logging for hand display
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎯 Hand display tiles (sorted):', sortedPlayerTileIds)
+    console.log('🎯 Hand display chars:', handTileChars.map(char => char.char))
+  }
 
   return (
     <Card variant="elevated" className="p-3 md:p-4">
@@ -122,7 +192,7 @@ export const PrimaryAnalysisCard = ({
                     showMatches: true, 
                     invertMatches: false, 
                     spacing: false,
-                    patternGroups: primaryPattern.pattern.groups
+                    patternGroups: undefined
                   }
                 ).map((tileChar, index) => (
                   <span
@@ -135,6 +205,7 @@ export const PrimaryAnalysisCard = ({
               </div>
             </div>
           )}
+
         </div>
 
         {/* Enhanced Mathematical Analysis */}

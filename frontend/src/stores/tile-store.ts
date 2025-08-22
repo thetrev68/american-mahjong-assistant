@@ -338,8 +338,10 @@ export const useTileStore = create<TileState>()(
         
         // Bulk Operations
         importTilesFromString: (tileString: string) => {
+          console.log('🔧 importTilesFromString called with:', tileString)
           // Parse tile string format like "1D 2D 3B 4B east south"
           const tileIds = tileString.trim().split(/\s+/)
+          console.log('🔧 Parsed tile IDs:', tileIds)
           
           const validTiles: PlayerTile[] = []
           
@@ -347,19 +349,33 @@ export const useTileStore = create<TileState>()(
             const tile = tileService.createPlayerTile(tileId)
             if (tile) {
               validTiles.push(tile)
+            } else {
+              console.log('🔧 Failed to create tile for ID:', tileId)
             }
           })
           
+          console.log('🔧 Valid tiles created:', validTiles.length)
+          
           set((state) => {
+            const oldTileIds = state.playerHand.map(tile => tile.id)
+            const newTileIds = validTiles.map(tile => tile.id)
+            
+            // Clear Engine 1 cache when hand changes
+            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            
             const validation = tileService.validateHand(validTiles, state.dealerHand ? 14 : 13)
             
-            return {
+            const newState = {
               playerHand: validTiles,
               handSize: validTiles.length,
               validation,
               selectedTiles: [],
-              selectedCount: 0
+              selectedCount: 0,
+              lastAnalysis: null
             }
+            
+            console.log('🔧 importTilesFromString: New hand size:', newState.handSize)
+            return newState
           })
         },
         
@@ -433,8 +449,24 @@ export const useTileStore = create<TileState>()(
           playerHand: state.playerHand,
           dealerHand: state.dealerHand,
           showRecommendations: state.showRecommendations,
-          sortBy: state.sortBy
-        })
+          sortBy: state.sortBy,
+          handSize: state.playerHand.length, // Ensure handSize matches playerHand length
+          selectedCount: state.playerHand.filter(tile => tile.isSelected).length
+        }),
+        onRehydrateStorage: () => (state) => {
+          // Fix any state inconsistencies after rehydration
+          if (state) {
+            console.log('🔧 Rehydrating tile store with:', state.playerHand?.length || 0, 'tiles')
+            state.handSize = state.playerHand?.length || 0
+            state.selectedCount = state.playerHand?.filter(tile => tile.isSelected).length || 0
+            state.selectedTiles = state.playerHand?.filter(tile => tile.isSelected) || []
+            
+            // Revalidate hand after rehydration
+            if (state.playerHand && state.playerHand.length > 0) {
+              state.validation = tileService.validateHand(state.playerHand, state.dealerHand ? 14 : 13)
+            }
+          }
+        }
       }
     )
   )

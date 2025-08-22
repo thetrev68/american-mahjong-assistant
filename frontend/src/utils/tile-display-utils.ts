@@ -90,15 +90,23 @@ export function getTileDisplayChar(tileId: string): TileDisplayChar {
 }
 
 /**
- * Convert pattern variation tiles array to display characters
+ * Convert pattern variation tiles array to display characters with quantity-aware matching
  */
 export function getPatternDisplayChars(
   patternTiles: string[], 
   playerTiles: string[] = []
 ): TileDisplayChar[] {
-  // Create normalized sets for better matching
+  // Count quantities of each tile type in player's hand
   const normalizeId = (id: string): string => String(id).toLowerCase().trim()
-  const playerTileSet = new Set(playerTiles.map(normalizeId))
+  const playerTileCounts = new Map<string, number>()
+  
+  playerTiles.forEach(tileId => {
+    const normalized = normalizeId(tileId)
+    playerTileCounts.set(normalized, (playerTileCounts.get(normalized) || 0) + 1)
+  })
+  
+  // Track how many of each tile type we've already matched in the pattern
+  const usedTileCounts = new Map<string, number>()
   
   return patternTiles.map(tileId => {
     const displayChar = getTileDisplayChar(tileId)
@@ -118,9 +126,20 @@ export function getPatternDisplayChars(
       }
     }
     
+    // Check if this tile can be matched based on quantities
+    const normalized = normalizeId(tileId)
+    const playerHasCount = playerTileCounts.get(normalized) || 0
+    const alreadyUsedCount = usedTileCounts.get(normalized) || 0
+    const canMatch = playerHasCount > alreadyUsedCount
+    
+    if (canMatch) {
+      // Mark this tile as used
+      usedTileCounts.set(normalized, alreadyUsedCount + 1)
+    }
+    
     return {
       ...displayChar,
-      isMatched: playerTileSet.has(normalizeId(tileId))
+      isMatched: canMatch
     }
   })
 }

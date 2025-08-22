@@ -28,24 +28,31 @@ export const IntelligencePanelPage = () => {
   // Pattern switching state - optimized for instant feedback
   const [isPatternSwitching, setIsPatternSwitching] = useState(false)
   const [patternSwitchStartTime, setPatternSwitchStartTime] = useState<number | null>(null)
+  const [intendedPrimaryPatternId, setIntendedPrimaryPatternId] = useState<string | null>(null)
   
   // Auto-analyze when tiles or patterns change - single effect to prevent loops
   useEffect(() => {
+    console.log('🔧 Auto-analyze effect triggered - autoAnalyze:', autoAnalyze, 'isAnalyzing:', isAnalyzing, 'currentAnalysis exists:', !!currentAnalysis, 'isPatternSwitching:', isPatternSwitching)
+    
     if (!autoAnalyze) return
     
     const hasPatterns = selectedPatterns?.length > 0
     const hasTiles = playerHand?.length >= 10 // Minimum for meaningful analysis
     
     // Only trigger analysis if we're not already analyzing and haven't analyzed yet
-    if (hasTiles && !isAnalyzing && !currentAnalysis) {
+    // Don't re-analyze if we're in the middle of a pattern switch
+    if (hasTiles && !isAnalyzing && !currentAnalysis && !isPatternSwitching) {
+      console.log('🔧 Triggering new analysis with patterns:', selectedPatterns?.length || 0)
       if (hasPatterns) {
         analyzeHand(playerHand, selectedPatterns)
       } else {
         // If we have tiles but no patterns, analyze with empty patterns to get AI recommendations
         analyzeHand(playerHand, [])
       }
+    } else {
+      console.log('🔧 Skipping analysis - conditions not met')
     }
-  }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, isAnalyzing, currentAnalysis])
+  }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, isAnalyzing, currentAnalysis, isPatternSwitching])
   
   const tileCount = handSize || 0
   const hasEnoughTiles = tileCount >= 10
@@ -187,7 +194,7 @@ export const IntelligencePanelPage = () => {
                 <div className="bg-indigo-50 border border-indigo-200 rounded-lg p-3">
                   <h4 className="font-medium text-indigo-900 mb-1">✨ AI-Powered Flow</h4>
                   <p className="text-sm text-indigo-800">
-                    Once you input your tiles, AI will instantly analyze all 71 NMJL patterns 
+                    Once you input your tiles, AI will analyze all 71 NMJL patterns 
                     and provide strategic recommendations.
                   </p>
                 </div>
@@ -224,7 +231,17 @@ export const IntelligencePanelPage = () => {
             {currentAnalysis && (
               <PrimaryAnalysisCard 
                 analysis={currentAnalysis}
-                currentPattern={currentAnalysis.recommendedPatterns[0] || null}
+                currentPattern={(() => {
+                  // Use intended primary pattern if it exists in recommendations
+                  if (intendedPrimaryPatternId) {
+                    const intendedPattern = currentAnalysis.recommendedPatterns.find(rec => rec.pattern.id === intendedPrimaryPatternId)
+                    if (intendedPattern) {
+                      return intendedPattern
+                    }
+                  }
+                  // Fallback to first pattern
+                  return currentAnalysis.recommendedPatterns[0] || null
+                })()}
                 onPatternSwitch={async (pattern) => {
                   // Optimized pattern switching with performance monitoring
                   const switchStartTime = performance.now()
@@ -232,31 +249,36 @@ export const IntelligencePanelPage = () => {
                   setPatternSwitchStartTime(switchStartTime)
                   
                   try {
-                    // Pattern switch initiated - True swap logic
-                    
-                    // Get current primary pattern (first in target patterns)
+                    // True pattern swap - preserve other patterns
                     const currentTargetPatterns = getTargetPatterns()
-                    const currentPrimaryPattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                    const currentPrimary = currentAnalysis.recommendedPatterns[0]?.pattern
                     
-                    // Perform true swap instead of clearing all patterns
-                    if (currentPrimaryPattern && currentTargetPatterns.includes(currentPrimaryPattern.id)) {
-                      // Remove current primary pattern
-                      removeTargetPattern(currentPrimaryPattern.id)
+                    // Build new pattern list with swapped positions  
+                    let newPatterns = []
+                    
+                    if (currentPrimary && currentTargetPatterns.includes(currentPrimary.id)) {
+                      // Replace primary with new pattern, keep others
+                      newPatterns = [
+                        pattern.pattern,
+                        ...currentAnalysis.recommendedPatterns.slice(1).map(rec => rec.pattern)
+                      ]
+                    } else {
+                      // Add new pattern as primary, keep existing
+                      newPatterns = [
+                        pattern.pattern,
+                        ...currentAnalysis.recommendedPatterns.map(rec => rec.pattern).filter(p => p.id !== pattern.pattern.id)
+                      ]
                     }
                     
-                    // Add new pattern to primary position (start of array)
-                    // Insert at beginning to make it primary
-                    const newTargetPatterns = [pattern.pattern.id, ...currentTargetPatterns.filter(id => id !== pattern.pattern.id)]
+                    // Set the intended primary pattern
+                    setIntendedPrimaryPatternId(pattern.pattern.id)
                     
-                    // Update pattern store with swapped patterns
+                    // Update pattern store
                     clearSelection()
-                    newTargetPatterns.forEach(patternId => addTargetPattern(patternId))
+                    newPatterns.forEach(pattern => addTargetPattern(pattern.id))
                     
-                    // Trigger re-analysis with new primary pattern - Engine 1 cache should make this instant
-                    await analyzeHand(playerHand, newTargetPatterns.map(id => 
-                      pattern.pattern.id === id ? pattern.pattern : 
-                      currentAnalysis.recommendedPatterns.find(rec => rec.pattern.id === id)?.pattern
-                    ).filter(Boolean))
+                    // Trigger re-analysis with all patterns
+                    await analyzeHand(playerHand, newPatterns)
                     
                     const switchEndTime = performance.now()
                     const switchDuration = switchEndTime - switchStartTime
@@ -274,6 +296,11 @@ export const IntelligencePanelPage = () => {
                   } finally {
                     setIsPatternSwitching(false)
                     setPatternSwitchStartTime(null)
+                    // Clear intended pattern after switch is complete - increased timeout to ensure stability
+                    setTimeout(() => {
+                      console.log('🔧 Clearing intendedPrimaryPatternId after timeout')
+                      setIntendedPrimaryPatternId(null)
+                    }, 1000)
                   }
                 }}
                 onBrowseAllPatterns={() => {
@@ -296,34 +323,72 @@ export const IntelligencePanelPage = () => {
                   setPatternSwitchStartTime(switchStartTime)
                   
                   try {
-                    // Find the pattern recommendation
-                    const patternRec = currentAnalysis.recommendedPatterns?.find(rec => rec.pattern.id === patternId)
+                    console.log('🔄 Pattern switch initiated for:', patternId)
+                    console.log('🔄 Current primary pattern:', currentAnalysis.recommendedPatterns[0]?.pattern?.section, '#' + currentAnalysis.recommendedPatterns[0]?.pattern?.line)
+                    console.log('🔄 All current patterns:', currentAnalysis.recommendedPatterns?.map(r => r.pattern.section + ' #' + r.pattern.line))
+                    
+                    // Find the pattern recommendation - try multiple ID formats
+                    let patternRec = currentAnalysis.recommendedPatterns?.find(rec => rec.pattern.id === patternId)
+                    
+                    // If not found, try finding by engine1Facts patternId
+                    if (!patternRec && currentAnalysis.engine1Facts) {
+                      const engine1Fact = currentAnalysis.engine1Facts.find(fact => fact.patternId === patternId)
+                      if (engine1Fact) {
+                        // Find corresponding recommendation by pattern matching
+                        patternRec = currentAnalysis.recommendedPatterns?.find(rec => 
+                          rec.pattern.id === engine1Fact.patternId ||
+                          rec.pattern.section + '-' + rec.pattern.line === engine1Fact.patternId ||
+                          (rec.pattern.section + rec.pattern.line) === engine1Fact.patternId
+                        )
+                      }
+                    }
+                    
                     if (!patternRec) {
-                      console.warn('Pattern not found in recommendations:', patternId)
+                      console.warn('Pattern not found in recommendations:', patternId, 'Available:', currentAnalysis.recommendedPatterns?.map(r => r.pattern.id))
                       return
                     }
                     
-                    // Perform true swap instead of clearing all patterns
-                    const currentTargetPatterns = getTargetPatterns()
-                    const currentPrimaryPattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                    console.log('🔄 Found pattern to switch to:', patternRec.pattern.section, '#' + patternRec.pattern.line)
                     
-                    if (currentPrimaryPattern && currentTargetPatterns.includes(currentPrimaryPattern.id)) {
-                      // Remove current primary pattern
-                      removeTargetPattern(currentPrimaryPattern.id)
+                    // Check if this is already the primary pattern
+                    const currentPrimary = currentAnalysis.recommendedPatterns[0]?.pattern
+                    if (currentPrimary && currentPrimary.id === patternRec.pattern.id) {
+                      console.log('⚠️ Pattern is already primary, no switch needed')
+                      return
                     }
                     
-                    // Add new pattern to primary position
-                    const newTargetPatterns = [patternId, ...currentTargetPatterns.filter(id => id !== patternId)]
+                    // True pattern swap - preserve other patterns
+                    const currentTargetPatterns = getTargetPatterns()
+                    console.log('🔄 Current target patterns in store:', currentTargetPatterns)
                     
-                    // Update pattern store with swapped patterns
+                    // Build new pattern list with swapped positions
+                    let newPatterns = []
+                    
+                    if (currentPrimary && currentTargetPatterns.includes(currentPrimary.id)) {
+                      // Replace primary with new pattern, keep others
+                      newPatterns = [
+                        patternRec.pattern,
+                        ...currentAnalysis.recommendedPatterns.slice(1).map(rec => rec.pattern)
+                      ]
+                    } else {
+                      // Add new pattern as primary, keep existing
+                      newPatterns = [
+                        patternRec.pattern,
+                        ...currentAnalysis.recommendedPatterns.map(rec => rec.pattern).filter(p => p.id !== patternRec.pattern.id)
+                      ]
+                    }
+                    
+                    console.log('🔄 New patterns after swap:', newPatterns.map(p => p.section + ' #' + p.line))
+                    
+                    // Set the intended primary pattern
+                    setIntendedPrimaryPatternId(patternRec.pattern.id)
+                    
+                    // Update pattern store
                     clearSelection()
-                    newTargetPatterns.forEach(patternId => addTargetPattern(patternId))
+                    newPatterns.forEach(pattern => addTargetPattern(pattern.id))
                     
-                    // Trigger re-analysis with Engine 1 cache optimization
-                    await analyzeHand(playerHand, newTargetPatterns.map(id => 
-                      patternRec.pattern.id === id ? patternRec.pattern : 
-                      currentAnalysis.recommendedPatterns.find(rec => rec.pattern.id === id)?.pattern
-                    ).filter(Boolean))
+                    // Trigger re-analysis with all patterns
+                    await analyzeHand(playerHand, newPatterns)
                     
                     const switchEndTime = performance.now()
                     const switchDuration = switchEndTime - switchStartTime
@@ -337,6 +402,11 @@ export const IntelligencePanelPage = () => {
                   } finally {
                     setIsPatternSwitching(false)
                     setPatternSwitchStartTime(null)
+                    // Clear intended pattern after switch is complete - increased timeout to ensure stability
+                    setTimeout(() => {
+                      console.log('🔧 Clearing intendedPrimaryPatternId after timeout')
+                      setIntendedPrimaryPatternId(null)
+                    }, 1000)
                   }
                 }}
               />

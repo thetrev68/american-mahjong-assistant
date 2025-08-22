@@ -23,40 +23,43 @@ export const AdvancedPatternAnalysis = ({
 }: AdvancedPatternAnalysisProps) => {
   const [expandedPattern, setExpandedPattern] = useState<string | null>(null)
   
-  // Get patterns with meaningful completion (15% or higher)
-  const viablePatterns = analysis.bestPatterns.filter(p => p.completionPercentage >= 15)
-  const equivalentPatterns = viablePatterns.filter(p => p.completionPercentage >= 35) // Top tier patterns
+  // Use recommended patterns from analysis (the ones mentioned in "Found X recommended patterns")
+  const recommendedPatterns = analysis.recommendedPatterns || []
+  const viablePatterns = recommendedPatterns.filter(p => p.completionPercentage >= 15)
+  const topPatterns = viablePatterns.slice(1) // Skip first one as it's shown as primary
   
   // Get real pattern variations from Engine 1 analysis data
   const getPatternVariationsFromAnalysis = () => {
     try {
-      if (!analysis.engine1Facts || analysis.engine1Facts.length === 0) {
-        // No Engine 1 facts available
-        return []
-      }
-      
-      // Extract pattern variations from Engine 1 facts
-      return analysis.engine1Facts.map(fact => {
-        const bestVariation = fact.tileMatching.bestVariation
+      // Use the recommended patterns to find their corresponding Engine 1 facts
+      return topPatterns.map(patternRec => {
+        // Find corresponding Engine 1 fact for this pattern
+        const engine1Fact = analysis.engine1Facts?.find(fact => 
+          fact.patternId === patternRec.pattern.id ||
+          fact.patternId === patternRec.pattern.section + '-' + patternRec.pattern.line ||
+          fact.patternId === (patternRec.pattern.section + patternRec.pattern.line)
+        )
+        
+        const bestVariation = engine1Fact?.tileMatching?.bestVariation
         
         return {
-          id: fact.patternId,
-          name: fact.patternId, // Use pattern ID as name for now
-          tiles: bestVariation.patternTiles || [], // Real tile array from Engine 1!
-          sequence: bestVariation.sequence || 1,
-          completionRatio: bestVariation.completionRatio || 0
+          id: patternRec.pattern.id,
+          name: `${patternRec.pattern.section} #${patternRec.pattern.line}`,
+          tiles: bestVariation?.patternTiles || [],
+          sequence: bestVariation?.sequence || 1,
+          completionRatio: patternRec.completionPercentage / 100
         }
-      })
+      }).filter(p => p.tiles.length > 0) // Only include patterns with tile data
     } catch (error) {
-      console.warn('Failed to extract pattern variations from Engine 1 facts:', error)
+      console.warn('Failed to extract pattern variations from recommended patterns:', error)
       return []
     }
   }
   
   const patternVariations = getPatternVariationsFromAnalysis()
   
-  const showAllPatterns = gamePhase === 'charleston' || equivalentPatterns.length > 3
-  const displayPatterns = showAllPatterns ? viablePatterns : equivalentPatterns.slice(0, 3)
+  const showAllPatterns = gamePhase === 'charleston' || topPatterns.length > 3
+  const displayPatterns = showAllPatterns ? viablePatterns : topPatterns.slice(0, 3)
   
   return (
     <Card variant="elevated" className={`space-y-4 ${className}`}>

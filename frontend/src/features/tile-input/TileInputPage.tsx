@@ -9,7 +9,6 @@ import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { useTileStore } from '../../stores'
-import { tileService } from '../../services/tile-service'
 
 export const TileInputPage = () => {
   const navigate = useNavigate()
@@ -38,10 +37,12 @@ export const TileInputPage = () => {
     // Clear hand when starting fresh (check if we came from home)
     const referrer = document.referrer
     const isFromHome = referrer.includes('/') && !referrer.includes('/patterns') && !referrer.includes('/tiles')
+    console.log('🔧 TileInputPage: Mount effect - isFromHome:', isFromHome, 'playerHand.length:', playerHand.length)
     if (isFromHome && playerHand.length > 0) {
+      console.log('🔧 TileInputPage: Clearing hand due to fresh start')
       clearHand()
     }
-  }, [clearHand, playerHand.length]) // Run only on mount
+  }, []) // Run only on mount - removed clearHand and playerHand.length to prevent loops
   
   useEffect(() => {
     // Validate hand whenever it changes

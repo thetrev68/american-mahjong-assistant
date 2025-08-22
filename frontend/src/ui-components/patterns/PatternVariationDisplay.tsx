@@ -132,8 +132,7 @@ export const PatternVariationGrid = ({
                 isTopChoice 
                   ? 'border-indigo-300 bg-indigo-50' 
                   : 'border-gray-200 bg-white hover:border-gray-300'
-              } ${onPatternClick ? 'cursor-pointer' : ''}`}
-              onClick={() => onPatternClick?.(pattern.id)}
+              }`}
             >
               <div className="space-y-2">
                 {/* Header */}
@@ -145,8 +144,19 @@ export const PatternVariationGrid = ({
                       <span className="text-xs text-gray-500">#{pattern.sequence}</span>
                     )}
                   </div>
-                  <div className="text-sm font-bold text-primary">
-                    {Math.round((pattern.completionRatio || 0) * 100)}%
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm font-bold text-primary">
+                      {Math.round((pattern.completionRatio || 0) * 100)}%
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation() // Prevent card click
+                        onPatternClick?.(pattern.id)
+                      }}
+                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                    >
+                      🔄 Switch
+                    </button>
                   </div>
                 </div>
                 

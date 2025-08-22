@@ -38,19 +38,24 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
   })
   
   const handleTileClick = (tile: BaseTile) => {
+    console.log('🔧 TileSelector: handleTileClick called with tile:', tile.id)
     const currentCount = tileCounts.get(tile.id) || 0
     
     // Check if we're at max hand size
     const maxHandSize = dealerHand ? 14 : 13
+    console.log('🔧 Current hand size:', playerHand.length, 'Max:', maxHandSize)
     
     if (playerHand.length >= maxHandSize) {
+      console.log('🔧 Cannot add tile - hand is full')
       return
     }
     
     if (currentCount >= 4) {
+      console.log('🔧 Cannot add tile - already have 4 of this type')
       return
     }
     
+    console.log('🔧 Calling addTile for:', tile.id)
     addTile(tile.id)
     
     if (onTileSelect) {

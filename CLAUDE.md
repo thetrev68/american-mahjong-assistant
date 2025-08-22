@@ -220,6 +220,13 @@ Development follows a **context-window-sized chunk approach** documented in `doc
 - **Production Quality**: 0 TypeScript errors, comprehensive testing, clean architecture
 - **Eliminated Technical Debt**: Removed 6 unused intelligence services and 6,000+ lines of duplicate code
 
+#### 🔧 **BUG FIX: Tile Input Functionality Restored (AUGUST 2025)**
+- **Critical Issue Resolved**: Fixed useEffect dependency loop that was clearing tiles after addition
+- **Zustand State Management**: Improved persistence and rehydration logic for consistent state
+- **Hand Building**: Sample Hand button and individual tile selection now work reliably
+- **UI Consistency**: Fixed Clear All button state and tile count synchronization
+- **Pattern Switching**: Identified architectural issue with temporary override system (partial fix)
+
 #### 🚀 Future Feature Roadmap (Post-MVP Enhancement Phases)
 
 ##### **Phase 1: Enhanced Intelligence & Analytics (Q1 2025)**
