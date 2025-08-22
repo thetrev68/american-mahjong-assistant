@@ -153,15 +153,15 @@ export class TileRecommendationEngine {
     const tileCount = playerTiles.filter(t => t === tileId).length
     
     // Debug if analysisFacts are being passed
-    console.error(`🔧 TILE ${tileId} - analysisFacts:`, analysisFacts ? analysisFacts.length : 'UNDEFINED')
+    // console.error(`🔧 TILE ${tileId} - analysisFacts:`, analysisFacts ? analysisFacts.length : 'UNDEFINED')
     
     // Get actual tile contribution data from Engine 1 facts
     const tileContributions = this.analyzeTileContributions(tileId, analysisFacts)
     
     // Debug the recommendation decision process
-    console.warn(`🎯 TILE DECISION: ${tileId}`)
-    console.warn('Contributions:', tileContributions)
-    console.warn('Count in hand:', tileCount)
+    // console.warn(`🎯 TILE DECISION: ${tileId}`)
+    // console.warn('Contributions:', tileContributions)
+    // console.warn('Count in hand:', tileCount)
     
     // Determine base action
     let primaryAction: TileAction['primaryAction'] = 'neutral'
@@ -175,13 +175,13 @@ export class TileRecommendationEngine {
       confidence = 95
       priority = 10
       reasoning = 'Jokers are always valuable for pattern completion'
-      console.log(`Decision: KEEP - ${reasoning}`)
+      // console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileCount >= 2) {
       primaryAction = 'keep'
       confidence = 85
       priority = 8
       reasoning = `Building set with ${tileCount} copies`
-      console.log(`Decision: KEEP - ${reasoning}`)
+      // console.log(`Decision: KEEP - ${reasoning}`)
     } else if (tileContributions.isCritical) {
       primaryAction = 'keep'
       confidence = 90
@@ -260,7 +260,7 @@ export class TileRecommendationEngine {
     
     if (!analysisFacts || analysisFacts.length === 0) {
       // No Engine 1 facts - return no contributions so tiles get discarded
-      console.warn(`⚠️ NO ENGINE 1 FACTS for ${tileId} - returning ZERO contributions`)
+      // console.warn(`⚠️ NO ENGINE 1 FACTS for ${tileId} - returning ZERO contributions`)
       return {
         patterns: [],
         patternCount: 0,
@@ -280,21 +280,21 @@ export class TileRecommendationEngine {
     
     // Check each viable pattern's analysis facts for tile contributions
     for (const patternFact of viablePatterns) {
-      console.log(`Checking pattern: ${patternFact.patternId}`)
+      // console.log(`Checking pattern: ${patternFact.patternId}`)
       const bestVariation = patternFact.tileMatching.bestVariation
-      console.log(`Best variation tiles matched: ${bestVariation.tilesMatched}/14`)
-      console.log(`Tile contributions available:`, bestVariation.tileContributions.length)
+      // console.log(`Best variation tiles matched: ${bestVariation.tilesMatched}/14`)
+      // console.log(`Tile contributions available:`, bestVariation.tileContributions.length)
       
       // Check if this tile has contributions in the best variation
       const tileContribution = bestVariation.tileContributions.find((contrib: any) => contrib.tileId === tileId)
       
       if (tileId === '1D' || tileId === 'west') {
-        console.error(`🔍 TILE ${tileId}:`, {
-          found: !!tileContribution,
-          isRequired: tileContribution?.isRequired,
-          isCritical: tileContribution?.isCritical,
-          positions: tileContribution?.positionsInPattern?.length || 0
-        })
+        // console.error(`🔍 TILE ${tileId}:`, {
+        //   found: !!tileContribution,
+        //   isRequired: tileContribution?.isRequired,
+        //   isCritical: tileContribution?.isCritical,
+        //   positions: tileContribution?.positionsInPattern?.length || 0
+        // })
       }
       
       if (tileContribution && tileContribution.isRequired) {
@@ -322,7 +322,7 @@ export class TileRecommendationEngine {
           topPattern = patternFact.patternId
         }
       } else {
-        console.log(`✗ ${tileId} does NOT contribute to ${patternFact.patternId} - contribution:`, tileContribution)
+        // console.log(`✗ ${tileId} does NOT contribute to ${patternFact.patternId} - contribution:`, tileContribution)
       }
     }
     
@@ -335,7 +335,7 @@ export class TileRecommendationEngine {
       topPattern
     }
     
-    console.log(`Final tile contribution result for ${tileId}:`, result)
+    // console.log(`Final tile contribution result for ${tileId}:`, result)
     return result
   }
 
