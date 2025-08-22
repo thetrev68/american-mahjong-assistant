@@ -1,7 +1,7 @@
 // Intelligence Panel Page - Main interface for AI analysis and recommendations
 // Simplified interface using PrimaryAnalysisCard
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
@@ -17,7 +17,6 @@ export const IntelligencePanelPage = () => {
     isAnalyzing,
     analysisError,
     analyzeHand,
-    clearAnalysis,
     autoAnalyze
   } = useIntelligenceStore()
   
@@ -25,8 +24,7 @@ export const IntelligencePanelPage = () => {
   const selectedPatterns = getTargetPatterns()
   const { playerHand = [], selectedTiles = [], handSize = 0 } = useTileStore()
   
-  // Track if we've already triggered initial analysis
-  const hasTriggeredInitialAnalysis = useRef(false)
+  // Removed hasTriggeredInitialAnalysis as it's no longer needed
   
   // Pattern switching state - optimized for instant feedback
   const [isPatternSwitching, setIsPatternSwitching] = useState(false)
@@ -37,33 +35,23 @@ export const IntelligencePanelPage = () => {
     patternName: string
   } | null>(null)
   
-  // Auto-analyze when tiles or patterns change, including immediate analysis on page load
+  // Auto-analyze when tiles or patterns change - single effect to prevent loops
   useEffect(() => {
     if (!autoAnalyze) return
     
     const hasPatterns = selectedPatterns?.length > 0
     const hasTiles = playerHand?.length >= 10 // Minimum for meaningful analysis
     
-    if (hasPatterns && hasTiles) {
-      // Trigger analysis immediately if we have sufficient data
-      analyzeHand(playerHand, selectedPatterns)
-    } else if (hasTiles && !hasPatterns) {
-      // If we have tiles but no patterns, analyze with empty patterns to get AI recommendations
-      analyzeHand(playerHand, [])
-    } else if (currentAnalysis) {
-      clearAnalysis()
+    // Only trigger analysis if we're not already analyzing and haven't analyzed yet
+    if (hasTiles && !isAnalyzing && !currentAnalysis) {
+      if (hasPatterns) {
+        analyzeHand(playerHand, selectedPatterns)
+      } else {
+        // If we have tiles but no patterns, analyze with empty patterns to get AI recommendations
+        analyzeHand(playerHand, [])
+      }
     }
-  }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, clearAnalysis, currentAnalysis])
-  
-  // Immediate analysis trigger on component mount if we have enough tiles
-  useEffect(() => {
-    const hasTiles = playerHand?.length >= 10
-    if (hasTiles && !isAnalyzing && !currentAnalysis && !hasTriggeredInitialAnalysis.current) {
-      // Auto-trigger analysis when navigating from tile input
-      hasTriggeredInitialAnalysis.current = true
-      analyzeHand(playerHand, selectedPatterns || [])
-    }
-  }, [playerHand, selectedPatterns, isAnalyzing, currentAnalysis, analyzeHand])
+  }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, isAnalyzing, currentAnalysis])
   
   const tileCount = handSize || 0
   const hasEnoughTiles = tileCount >= 10
