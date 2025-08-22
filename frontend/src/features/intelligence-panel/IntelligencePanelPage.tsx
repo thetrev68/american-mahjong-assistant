@@ -19,7 +19,7 @@ export const IntelligencePanelPage = () => {
     autoAnalyze
   } = useIntelligenceStore()
   
-  const { getTargetPatterns, clearSelection, addTargetPattern } = usePatternStore()
+  const { getTargetPatterns, clearSelection, addTargetPattern, removeTargetPattern } = usePatternStore()
   const selectedPatterns = getTargetPatterns()
   const { playerHand = [], selectedTiles = [], handSize = 0 } = useTileStore()
   
@@ -54,38 +54,20 @@ export const IntelligencePanelPage = () => {
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-full mx-auto px-3 sm:px-4 py-3 sm:py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2 truncate">
-                🧠 AI Intelligence Panel
-              </h1>
-              <p className="text-gray-600 text-xs sm:text-sm">
-                Advanced pattern analysis and strategic recommendations
-              </p>
-            </div>
-            
-            {/* Navigation Links */}
-            <div className="flex gap-1 sm:gap-3 flex-shrink-0 ml-2">
-              <Link
-                to="/patterns"
-                className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors whitespace-nowrap"
-              >
-                Patterns
-              </Link>
-              <Link
-                to="/tiles"
-                className="px-2 sm:px-4 py-1 sm:py-2 text-xs sm:text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors whitespace-nowrap"
-              >
-                Tiles
-              </Link>
-            </div>
+        <div className="max-w-full mx-auto px-2 sm:px-3 py-2 sm:py-4">
+          <div className="w-full">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
+              🧠 AI Intelligence Panel
+            </h1>
+            <p className="text-gray-600 text-xs sm:text-sm">
+              Advanced pattern analysis and strategic recommendations
+            </p>
           </div>
         </div>
       </div>
       
       {/* Main Content */}
-      <div className="max-w-full mx-auto px-3 sm:px-4 py-4 sm:py-8">
+      <div className="max-w-full mx-auto px-1 sm:px-2 py-2 sm:py-4">
         {/* Pattern Switch Loading State - Optimized for instant feedback */}
         {hasEnoughTiles && isPatternSwitching && (
           <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
@@ -237,40 +219,6 @@ export const IntelligencePanelPage = () => {
         {/* Intelligence Panel - Only show when analysis is complete */}
         {hasEnoughTiles && !isAnalyzing && currentAnalysis && !analysisError && (
           <div className="space-y-6">
-            {/* Context Summary */}
-            <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4">
-              <div className="flex flex-wrap items-center gap-4 text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-600">Tiles:</span>
-                  <span className="font-semibold text-primary">
-                    {tileCount} entered
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-600">Patterns:</span>
-                  <span className="font-semibold text-primary">
-                    {selectedPatterns?.length || 0} selected
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-600">Selected:</span>
-                  <span className="font-semibold text-accent">
-                    {selectedTiles?.length || 0} tiles
-                  </span>
-                </div>
-                
-                {currentAnalysis && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-600">Score:</span>
-                    <span className="font-semibold text-secondary">
-                      {currentAnalysis.overallScore}/100
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
             
             {/* Primary Analysis */}
             {currentAnalysis && (
@@ -284,14 +232,31 @@ export const IntelligencePanelPage = () => {
                   setPatternSwitchStartTime(switchStartTime)
                   
                   try {
-                    // Pattern switch initiated
+                    // Pattern switch initiated - True swap logic
                     
-                    // Update pattern store (instant)
+                    // Get current primary pattern (first in target patterns)
+                    const currentTargetPatterns = getTargetPatterns()
+                    const currentPrimaryPattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                    
+                    // Perform true swap instead of clearing all patterns
+                    if (currentPrimaryPattern && currentTargetPatterns.includes(currentPrimaryPattern.id)) {
+                      // Remove current primary pattern
+                      removeTargetPattern(currentPrimaryPattern.id)
+                    }
+                    
+                    // Add new pattern to primary position (start of array)
+                    // Insert at beginning to make it primary
+                    const newTargetPatterns = [pattern.pattern.id, ...currentTargetPatterns.filter(id => id !== pattern.pattern.id)]
+                    
+                    // Update pattern store with swapped patterns
                     clearSelection()
-                    addTargetPattern(pattern.pattern.id)
+                    newTargetPatterns.forEach(patternId => addTargetPattern(patternId))
                     
-                    // Trigger re-analysis with new pattern - Engine 1 cache should make this instant
-                    await analyzeHand(playerHand, [pattern.pattern])
+                    // Trigger re-analysis with new primary pattern - Engine 1 cache should make this instant
+                    await analyzeHand(playerHand, newTargetPatterns.map(id => 
+                      pattern.pattern.id === id ? pattern.pattern : 
+                      currentAnalysis.recommendedPatterns.find(rec => rec.pattern.id === id)?.pattern
+                    ).filter(Boolean))
                     
                     const switchEndTime = performance.now()
                     const switchDuration = switchEndTime - switchStartTime
@@ -338,12 +303,27 @@ export const IntelligencePanelPage = () => {
                       return
                     }
                     
-                    // Update pattern store
+                    // Perform true swap instead of clearing all patterns
+                    const currentTargetPatterns = getTargetPatterns()
+                    const currentPrimaryPattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                    
+                    if (currentPrimaryPattern && currentTargetPatterns.includes(currentPrimaryPattern.id)) {
+                      // Remove current primary pattern
+                      removeTargetPattern(currentPrimaryPattern.id)
+                    }
+                    
+                    // Add new pattern to primary position
+                    const newTargetPatterns = [patternId, ...currentTargetPatterns.filter(id => id !== patternId)]
+                    
+                    // Update pattern store with swapped patterns
                     clearSelection()
-                    addTargetPattern(patternId)
+                    newTargetPatterns.forEach(patternId => addTargetPattern(patternId))
                     
                     // Trigger re-analysis with Engine 1 cache optimization
-                    await analyzeHand(playerHand, [patternRec.pattern])
+                    await analyzeHand(playerHand, newTargetPatterns.map(id => 
+                      patternRec.pattern.id === id ? patternRec.pattern : 
+                      currentAnalysis.recommendedPatterns.find(rec => rec.pattern.id === id)?.pattern
+                    ).filter(Boolean))
                     
                     const switchEndTime = performance.now()
                     const switchDuration = switchEndTime - switchStartTime

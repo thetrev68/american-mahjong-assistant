@@ -122,9 +122,43 @@ export class TileRecommendationEngine {
     tileActions.sort((a, b) => b.priority - a.priority)
     
     // Categorize actions
-    const keepTiles = tileActions.filter(a => a.primaryAction === 'keep')
-    const passTiles = tileActions.filter(a => a.primaryAction === 'pass')
-    const discardTiles = tileActions.filter(a => a.primaryAction === 'discard')
+    let keepTiles = tileActions.filter(a => a.primaryAction === 'keep')
+    let passTiles = tileActions.filter(a => a.primaryAction === 'pass')
+    let discardTiles = tileActions.filter(a => a.primaryAction === 'discard')
+    
+    // Ensure minimum recommendations based on game phase
+    if (gameContext.phase === 'charleston') {
+      // Charleston needs minimum 3 pass recommendations
+      if (passTiles.length < 3) {
+        const needMore = 3 - passTiles.length
+        const candidates = tileActions
+          .filter(a => a.primaryAction !== 'pass')
+          .sort((a, b) => a.priority - b.priority) // lowest priority first for passing
+          .slice(0, needMore)
+        
+        candidates.forEach(action => {
+          action.primaryAction = 'pass'
+          action.reasoning = `${action.reasoning} (Auto-selected for Charleston minimum)`
+        })
+        
+        passTiles = tileActions.filter(a => a.primaryAction === 'pass')
+      }
+    } else {
+      // Gameplay needs minimum 1 discard recommendation
+      if (discardTiles.length < 1) {
+        const candidates = tileActions
+          .filter(a => a.primaryAction !== 'discard')
+          .sort((a, b) => a.priority - b.priority) // lowest priority first for discarding
+          .slice(0, 1)
+        
+        candidates.forEach(action => {
+          action.primaryAction = 'discard'
+          action.reasoning = `${action.reasoning} (Auto-selected for gameplay minimum)`
+        })
+        
+        discardTiles = tileActions.filter(a => a.primaryAction === 'discard')
+      }
+    }
     
     // Generate optimal strategy
     const optimalStrategy = this.generateOptimalStrategy(patternRankings, tileActions)

@@ -156,6 +156,7 @@ export const PatternVariationGrid = ({
                   playerTiles={playerTiles}
                   showCompletion={false}
                   size="sm"
+                  spacing={false}
                 />
                 
                 {/* Quick Stats */}
@@ -230,6 +231,7 @@ export const PatternComparison = ({
                   playerTiles={playerTiles}
                   showCompletion={false}
                   size="sm"
+                  spacing={false}
                 />
               </div>
             </div>

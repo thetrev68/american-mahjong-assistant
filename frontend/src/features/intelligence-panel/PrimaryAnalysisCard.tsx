@@ -3,7 +3,9 @@
 
 import { Card } from '../../ui-components/Card'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
-import { tileService } from '../../services/tile-service' // Import tile service
+import { renderPatternVariation, getTileCharClasses, getPatternDisplayChars } from '../../utils/tile-display-utils'
+import { tileService } from '../../services/tile-service'
+import { useTileStore } from '../../stores/tile-store'
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
 
 interface PrimaryAnalysisCardProps {
@@ -19,6 +21,9 @@ export const PrimaryAnalysisCard = ({
   onPatternSwitch,
   onBrowseAllPatterns
 }: PrimaryAnalysisCardProps) => {
+  // Get player hand tiles for visualization
+  const { playerHand = [] } = useTileStore()
+  const playerTileIds = playerHand.map(tile => tile.id)
 
   // Get the primary pattern (first recommendation)
   const primaryPattern = currentPattern || analysis.recommendedPatterns[0]
@@ -61,9 +66,32 @@ export const PrimaryAnalysisCard = ({
   const priorityScore = scoreBreakdown?.priorityScore || 0
   const totalScore = currentTileScore + availabilityScore + jokerScore + priorityScore
 
+  // Get pattern tiles for visualization (from best variation)
+  const patternTiles = analysisData?.tileMatching?.bestVariation?.patternTiles || []
+  
+  // Render hand tiles visualization
+  const handTileChars = getPatternDisplayChars(playerTileIds, playerTileIds)
+
   return (
-    <Card variant="elevated" className="p-4 md:p-6">
+    <Card variant="elevated" className="p-3 md:p-4">
       <div className="space-y-4">
+        {/* Hand Tiles Visualization */}
+        {playerTileIds.length > 0 && (
+          <div className="text-center space-y-2">
+            <div className="text-sm font-medium text-gray-600">Your Hand:</div>
+            <div className="flex flex-wrap justify-center gap-1">
+              {handTileChars.map((tileChar, index) => (
+                <span
+                  key={index}
+                  className={getTileCharClasses(tileChar, true)}
+                >
+                  {tileChar.char}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Pattern Header */}
         <div className="text-center space-y-2">
           <div className="text-lg md:text-xl font-bold text-gray-900">
@@ -81,6 +109,32 @@ export const PrimaryAnalysisCard = ({
               </span>
             ))}
           </div>
+
+          {/* Pattern Sequence Visualization */}
+          {patternTiles.length > 0 && (
+            <div className="space-y-1">
+              <div className="text-xs text-gray-500">Pattern Sequence:</div>
+              <div className="flex flex-wrap justify-center gap-0">
+                {renderPatternVariation(
+                  patternTiles, 
+                  playerTileIds, 
+                  { 
+                    showMatches: true, 
+                    invertMatches: false, 
+                    spacing: false,
+                    patternGroups: primaryPattern.pattern.groups
+                  }
+                ).map((tileChar, index) => (
+                  <span
+                    key={index}
+                    className={tileChar.char === ' ' ? 'w-2' : getTileCharClasses(tileChar, false)}
+                  >
+                    {tileChar.char === ' ' ? '' : tileChar.char}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Enhanced Mathematical Analysis */}
@@ -108,26 +162,46 @@ export const PrimaryAnalysisCard = ({
             </div>
           </div>
 
-          {/* Score Breakdown */}
+          {/* Improved Score Breakdown */}
           {scoreBreakdown && (
             <div className="mt-4 pt-4 border-t border-gray-200">
-              <div className="text-xs text-gray-600 mb-2">Score Components:</div>
-              <div className="grid grid-cols-4 gap-2 text-xs">
-                <div className="text-center">
-                  <div className="font-semibold">{Math.round(currentTileScore)}</div>
-                  <div className="text-gray-500">Current</div>
+              <div className="text-xs text-gray-600 mb-3">AI Score Breakdown:</div>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">{Math.round(currentTileScore)} / 40 points from available tile matches</span>
+                  <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-green-500 h-2 rounded-full" 
+                      style={{ width: `${(currentTileScore / 40) * 100}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="font-semibold">{Math.round(availabilityScore)}</div>
-                  <div className="text-gray-500">Available</div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">{Math.round(availabilityScore)} / 30 points for difficulty of remaining tiles</span>
+                  <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-blue-500 h-2 rounded-full" 
+                      style={{ width: `${(availabilityScore / 30) * 100}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="font-semibold">{Math.round(jokerScore)}</div>
-                  <div className="text-gray-500">Jokers</div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">{Math.round(jokerScore)} / 20 points for joker substitution availability</span>
+                  <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-purple-500 h-2 rounded-full" 
+                      style={{ width: `${(jokerScore / 20) * 100}%` }}
+                    ></div>
+                  </div>
                 </div>
-                <div className="text-center">
-                  <div className="font-semibold">{Math.round(priorityScore)}</div>
-                  <div className="text-gray-500">Priority</div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700">{Math.round(priorityScore)} / 10 points for strategic priority</span>
+                  <div className="w-16 bg-gray-200 rounded-full h-2">
+                    <div 
+                      className="bg-orange-500 h-2 rounded-full" 
+                      style={{ width: `${(priorityScore / 10) * 100}%` }}
+                    ></div>
+                  </div>
                 </div>
               </div>
             </div>
