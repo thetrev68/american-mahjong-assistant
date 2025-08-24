@@ -248,7 +248,7 @@ describe('NMJL Service', () => {
       expect(option1.difficulty).toBe('medium')
       expect(option1.allowsJokers).toBe(true)
       expect(option1.concealed).toBe(false)
-      expect(option1.section).toBe(2025)
+      expect(option1.section).toBe('2025')
       expect(option1.line).toBe(1)
       
       const option2 = options[1]
