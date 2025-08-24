@@ -4,7 +4,6 @@
 export type ConstraintType = 'kong' | 'pung' | 'sequence' | 'pair' | 'single' | 'consecutive' | 'like'
 export type SuitRole = 'first' | 'second' | 'third' | 'any' | 'none'
 export type HandDifficulty = 'easy' | 'medium' | 'hard'
-export type TileValue = string | number // Covers '1'-'9', 'east', 'west', 'north', 'south', 'red', 'green', 'white', 'joker', etc.
 
 export interface PatternGroup {
   Group: string

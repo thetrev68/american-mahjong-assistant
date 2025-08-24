@@ -1,11 +1,12 @@
 // Shared Multiplayer Types - Common interfaces for frontend and backend
 
+import type { Tile } from '../game-types'
+
 export interface Player {
   id: string
   name: string
   isHost: boolean
   joinedAt?: Date
-  socketId?: string
 }
 
 export interface Room {
@@ -40,8 +41,8 @@ export interface PlayerGameState {
   isActive?: boolean
 }
 
-export interface SharedGameState {
-  discardPile: any[] // Tile objects
+export interface SharedState {
+  discardPile: Tile[] // Tile objects
   wallTilesRemaining: number
   currentPlayer: string | null
   currentWind?: 'east' | 'south' | 'west' | 'north'

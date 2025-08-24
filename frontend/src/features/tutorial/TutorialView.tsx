@@ -221,7 +221,7 @@ export const TutorialView: React.FC<TutorialViewProps> = ({
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-900 mb-2">Oops! Something went wrong</h2>
           <p className="text-gray-600 mb-4">{error}</p>
-          <Button variant="primary" onClick={() => window.location.reload()}>
+          <Button variant="primary" onClick={() => startTutorial()}>
             Restart Tutorial
           </Button>
         </Card>

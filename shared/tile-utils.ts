@@ -1,5 +1,5 @@
 // frontend/src/utils/tile-utils.ts
-import type { TileValue } from './nmjl-types';
+import type { TileValue } from '../game-types';
 
 // Define tile-related types here
 export type TileSuit = 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers';

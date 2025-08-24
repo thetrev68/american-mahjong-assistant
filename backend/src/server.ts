@@ -50,8 +50,6 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
-  console.log(`🚀 Mahjong Co-Pilot server running on port ${PORT}`);
-  console.log(`🌐 Frontend URLs: http://localhost:5173, http://localhost:3000`);
 });
 
 export { io };

@@ -5,7 +5,6 @@ export interface Player {
   name: string
   isHost: boolean
   joinedAt?: Date
-  socketId?: string
 }
 
 export interface RoomConfig {

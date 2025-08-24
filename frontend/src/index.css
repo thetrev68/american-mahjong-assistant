@@ -41,6 +41,26 @@
 
 /* Modern Component Patterns */
 @layer components {
+  .tile-count-badge {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    width: 20px;
+    height: 20px;
+    background-color: rgb(99 102 241);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: bold;
+    z-index: 10;
+    border: 1px solid white;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    transform: translate(50%, -50%);
+  }
+
   .glass-card {
     @apply bg-white/80 backdrop-blur-lg border border-white/20 rounded-xl shadow-glass;
   }

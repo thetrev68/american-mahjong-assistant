@@ -291,7 +291,6 @@ export const RoomSetupView: React.FC = () => {
             size="sm"
             onClick={() => {
               roomStore.resetToStart()
-              window.location.reload() // Force refresh to reset all state
             }}
             className="text-red-600 hover:bg-red-50"
           >

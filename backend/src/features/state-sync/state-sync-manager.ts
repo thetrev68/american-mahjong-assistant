@@ -33,7 +33,7 @@ export class StateSyncManager {
     }
   }
 
-  async processUpdate(roomId: string, playerId: string, update: any): Promise<GameState> {
+  async processUpdate(roomId: string, playerId: string, update: StateUpdate): Promise<GameState> {
     let gameState = this.getGameState(roomId)
     
     if (!gameState) {
@@ -265,7 +265,7 @@ export class StateSyncManager {
     }
   }
 
-  private validatePlayerState(data: any): void {
+  private validatePlayerState(data: Partial<PlayerGameState>): void {
     if (data.handTileCount !== undefined && (data.handTileCount < 0 || data.handTileCount > 14)) {
       throw new Error('Invalid hand tile count')
     }
@@ -279,7 +279,7 @@ export class StateSyncManager {
     }
   }
 
-  private validateSharedState(data: any): void {
+  private validateSharedState(data: Partial<SharedGameState>): void {
     if (data.wallTilesRemaining !== undefined && (data.wallTilesRemaining < 0 || data.wallTilesRemaining > 144)) {
       throw new Error('Invalid wall tiles remaining')
     }
@@ -293,7 +293,7 @@ export class StateSyncManager {
     }
   }
 
-  private validateRoundChange(gameState: GameState, data: any): void {
+  private validateRoundChange(gameState: GameState, data: { round: number; wind: GameState['currentWind'] }): void {
     if (data.round < 1 || data.round > 4) {
       throw new Error('Invalid round number')
     }
@@ -303,7 +303,7 @@ export class StateSyncManager {
     }
   }
 
-  private validateTurnChange(gameState: GameState, data: any): void {
+  private validateTurnChange(gameState: GameState, data: { currentPlayer: string }): void {
     if (!data.currentPlayer) {
       throw new Error('Current player must be specified')
     }
@@ -313,7 +313,7 @@ export class StateSyncManager {
     }
   }
 
-  private defaultConflictResolution(current: any, incoming: StateUpdate, history: StateUpdate[]): any {
+  private defaultConflictResolution(current: GameState, incoming: StateUpdate, history: StateUpdate[]): GameState {
     return incoming.timestamp > current.lastUpdated ? incoming.data : current
   }
 }

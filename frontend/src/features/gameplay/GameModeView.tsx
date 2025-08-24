@@ -11,6 +11,7 @@ import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { Tile as TileType } from '../../types/tile-types'
+import type { PatternGroup } from '../../../../shared/nmjl-types'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -54,7 +55,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [patternStore])
 
   // Helper function to check if a tile matches a pattern group
-  const checkTileMatchesPatternGroup = useCallback((tileId: string, group: { Constraint_Values?: string; Constraint_Type?: string }) => {
+  const checkTileMatchesPatternGroup = useCallback((tileId: string, group: PatternGroup) => {
     const constraintValues = group.Constraint_Values || ''
 
     // Basic matching logic based on constraint values
@@ -62,7 +63,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (constraintValues === 'joker' && tileId === 'joker') return true
     
     // For numeric constraints, check if tile matches
-    const values = constraintValues.split(',').map((v: string) => v.trim())
+    const values: string[] = constraintValues.split(',').map((v: string) => v.trim())
     for (const value of values) {
       if (value === '0') continue // Skip neutral positions
       if (tileId.startsWith(value)) return true
@@ -227,8 +228,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
 
     // Call opportunities evaluated
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentHand, selectedPatterns])
+  }, [currentHand, selectedPatterns, handleCallDecision, checkTileMatchesPatternGroup])
 
   // Discard tile action
   const handleDiscardTile = useCallback((tile: TileType) => {
@@ -237,8 +237,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (lastDrawnTile && tile.id === lastDrawnTile.id) {
       setLastDrawnTile(null)
     } else {
-      // const updatedHand = currentHand.filter(h => h.id !== tile.id)
-      // tileStore.setPlayerHand(updatedHand)
     }
 
     const turn: GameTurn = {
@@ -248,9 +246,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       timestamp: new Date()
     }
     setGameHistory(prev => [turn, ...prev])
-
-    // const updatedHand = currentHand.filter(h => h.id !== tile.id)
-    // tileStore.setPlayerHand(updatedHand)
 
     setIsMyTurn(false)
     setSelectedDiscardTile(null)
@@ -262,8 +257,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         evaluateCallOpportunities(tile)
       }
     }, 500)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isMyTurn, lastDrawnTile, gameStore.currentPlayerId, selectedPatterns])
+  }, [isMyTurn, lastDrawnTile, gameStore.currentPlayerId, selectedPatterns, currentHand, evaluateCallOpportunities])
 
   // Handle call decision
   const handleCallDecision = useCallback((decision: 'call' | 'pass') => {
@@ -277,10 +271,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
     if (decision === 'call' && callOpportunities.length > 0) {
       const opportunity = callOpportunities[0]
-      // const updatedHand = currentHand.filter(h => 
-      //   !opportunity.exposedTiles.some(et => et.id === h.id)
-      // )
-      // tileStore.setPlayerHand(updatedHand)
 
       setExposedTiles(prev => [...prev, {
         type: opportunity.callType,

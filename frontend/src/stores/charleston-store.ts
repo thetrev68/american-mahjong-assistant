@@ -319,7 +319,25 @@ function getNextPhase(currentPhase: CharlestonPhase, playerCount: number): Charl
 }
 
 // Selectors for common derived state
-export const useCharlestonSelectors = () => {
+export type CharlestonSelectorState = {
+  isActive: boolean;
+  isComplete: boolean;
+  canAdvancePhase: boolean;
+  currentPhase: CharlestonPhase;
+  phaseDisplayName: string;
+  nextPhase: CharlestonPhase;
+  tileCount: number;
+  jokerCount: number;
+  selectedCount: number;
+  canSelectMore: boolean;
+  hasRecommendations: boolean;
+  isAnalyzing: boolean;
+  hasError: boolean;
+  hasTargets: boolean;
+  targetCount: number;
+};
+
+export const useCharlestonSelectors = (): CharlestonSelectorState => {
   const store = useCharlestonStore()
   
   return {

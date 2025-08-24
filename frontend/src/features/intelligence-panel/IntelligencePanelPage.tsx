@@ -2,15 +2,17 @@
 // Simplified interface using PrimaryAnalysisCard
 
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
+import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 import { PrimaryAnalysisCard } from './PrimaryAnalysisCard'
 import { AdvancedPatternAnalysis } from './AdvancedPatternAnalysis'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 
 export const IntelligencePanelPage = () => {
+  const navigate = useNavigate()
   const {
     currentAnalysis,
     isAnalyzing,
@@ -32,7 +34,7 @@ export const IntelligencePanelPage = () => {
   
   // Auto-analyze when tiles or patterns change - single effect to prevent loops
   useEffect(() => {
-    console.log('🔧 Auto-analyze effect triggered - autoAnalyze:', autoAnalyze, 'isAnalyzing:', isAnalyzing, 'currentAnalysis exists:', !!currentAnalysis, 'isPatternSwitching:', isPatternSwitching)
+    
     
     if (!autoAnalyze) return
     
@@ -42,7 +44,7 @@ export const IntelligencePanelPage = () => {
     // Only trigger analysis if we're not already analyzing and haven't analyzed yet
     // Don't re-analyze if we're in the middle of a pattern switch
     if (hasTiles && !isAnalyzing && !currentAnalysis && !isPatternSwitching) {
-      console.log('🔧 Triggering new analysis with patterns:', selectedPatterns?.length || 0)
+      
       if (hasPatterns) {
         analyzeHand(playerHand, selectedPatterns)
       } else {
@@ -50,7 +52,7 @@ export const IntelligencePanelPage = () => {
         analyzeHand(playerHand, [])
       }
     } else {
-      console.log('🔧 Skipping analysis - conditions not met')
+      
     }
   }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, isAnalyzing, currentAnalysis, isPatternSwitching])
   
@@ -254,7 +256,7 @@ export const IntelligencePanelPage = () => {
                     const currentPrimary = currentAnalysis.recommendedPatterns[0]?.pattern
                     
                     // Build new pattern list with swapped positions  
-                    let newPatterns = []
+                    let newPatterns: PatternSelectionOption[] = []
                     
                     if (currentPrimary && currentTargetPatterns.includes(currentPrimary.id)) {
                       // Replace primary with new pattern, keep others
@@ -286,26 +288,25 @@ export const IntelligencePanelPage = () => {
                     
                     // Track performance for development insights (console only)
                     if (process.env.NODE_ENV === 'development') {
-                      console.log(`Pattern switch: ${switchDuration}ms (${wasCacheHit ? 'cache hit' : 'cache miss'}) - ${pattern.pattern.section} #${pattern.pattern.line}`)
+                      
                     }
                     
                     // Pattern switch completed
                     
                   } catch (error) {
-                    console.error('❌ Pattern switch failed:', error)
+                    
                   } finally {
                     setIsPatternSwitching(false)
                     setPatternSwitchStartTime(null)
                     // Clear intended pattern after switch is complete - increased timeout to ensure stability
                     setTimeout(() => {
-                      console.log('🔧 Clearing intendedPrimaryPatternId after timeout')
                       setIntendedPrimaryPatternId(null)
                     }, 1000)
                   }
                 }}
                 onBrowseAllPatterns={() => {
                   // Navigate to pattern selection
-                  window.location.href = '/patterns'
+                  navigate('/patterns')
                 }}
               />
             )}
@@ -323,9 +324,9 @@ export const IntelligencePanelPage = () => {
                   setPatternSwitchStartTime(switchStartTime)
                   
                   try {
-                    console.log('🔄 Pattern switch initiated for:', patternId)
-                    console.log('🔄 Current primary pattern:', currentAnalysis.recommendedPatterns[0]?.pattern?.section, '#' + currentAnalysis.recommendedPatterns[0]?.pattern?.line)
-                    console.log('🔄 All current patterns:', currentAnalysis.recommendedPatterns?.map(r => r.pattern.section + ' #' + r.pattern.line))
+                    
+                    
+                    
                     
                     // Find the pattern recommendation - try multiple ID formats
                     let patternRec = currentAnalysis.recommendedPatterns?.find(rec => rec.pattern.id === patternId)
@@ -344,25 +345,25 @@ export const IntelligencePanelPage = () => {
                     }
                     
                     if (!patternRec) {
-                      console.warn('Pattern not found in recommendations:', patternId, 'Available:', currentAnalysis.recommendedPatterns?.map(r => r.pattern.id))
+                      
                       return
                     }
                     
-                    console.log('🔄 Found pattern to switch to:', patternRec.pattern.section, '#' + patternRec.pattern.line)
+                    
                     
                     // Check if this is already the primary pattern
                     const currentPrimary = currentAnalysis.recommendedPatterns[0]?.pattern
                     if (currentPrimary && currentPrimary.id === patternRec.pattern.id) {
-                      console.log('⚠️ Pattern is already primary, no switch needed')
+                      
                       return
                     }
                     
                     // True pattern swap - preserve other patterns
                     const currentTargetPatterns = getTargetPatterns()
-                    console.log('🔄 Current target patterns in store:', currentTargetPatterns)
+                    
                     
                     // Build new pattern list with swapped positions
-                    let newPatterns = []
+                    let newPatterns: PatternSelectionOption[] = []
                     
                     if (currentPrimary && currentTargetPatterns.includes(currentPrimary.id)) {
                       // Replace primary with new pattern, keep others
@@ -378,7 +379,7 @@ export const IntelligencePanelPage = () => {
                       ]
                     }
                     
-                    console.log('🔄 New patterns after swap:', newPatterns.map(p => p.section + ' #' + p.line))
+                    
                     
                     // Set the intended primary pattern
                     setIntendedPrimaryPatternId(patternRec.pattern.id)
@@ -394,17 +395,12 @@ export const IntelligencePanelPage = () => {
                     const switchDuration = switchEndTime - switchStartTime
                     const wasCacheHit = switchDuration < 200
                     
-                    if (process.env.NODE_ENV === 'development') {
-                      console.log(`Advanced pattern switch: ${switchDuration}ms (${wasCacheHit ? 'cache hit' : 'cache miss'}) - ${patternRec.pattern.section} #${patternRec.pattern.line}`)
-                    }
-                  } catch (error) {
-                    console.error('❌ Pattern switch from advanced analysis failed:', error)
-                  } finally {
+                    
+                  
                     setIsPatternSwitching(false)
                     setPatternSwitchStartTime(null)
                     // Clear intended pattern after switch is complete - increased timeout to ensure stability
                     setTimeout(() => {
-                      console.log('🔧 Clearing intendedPrimaryPatternId after timeout')
                       setIntendedPrimaryPatternId(null)
                     }, 1000)
                   }

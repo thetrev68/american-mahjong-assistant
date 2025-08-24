@@ -7,7 +7,7 @@ import { TargetPatternDisplay } from './TargetPatternDisplay'
 import { PassingRecommendations } from './PassingRecommendations'
 import { TilePassingArea } from './TilePassingArea'
 import { StrategyExplanation } from './StrategyExplanation'
-import { useCharlestonStore, useCharlestonSelectors } from '../../stores/charleston-store'
+import { useCharlestonStore, useCharlestonSelectors, type CharlestonSelectorState } from '../../stores/charleston-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { CharlestonAdapter, type Tile } from '../../utils/charleston-adapter'
@@ -15,9 +15,10 @@ import { CharlestonAdapter, type Tile } from '../../utils/charleston-adapter'
 export function CharlestonView() {
   const navigate = useNavigate()
   const charlestonStore = useCharlestonStore()
-  const charlestonSelectors = useCharlestonSelectors()
+  const charlestonSelectors: CharlestonSelectorState = useCharlestonSelectors()
   const patternStore = usePatternStore()
-  const tileStore = useTileStore()
+  const playerHand = useTileStore(state => state.playerHand)
+  const validation = useTileStore(state => state.validation)
   
   // Sync target patterns from pattern selection (if any are selected)
   useEffect(() => {
@@ -28,16 +29,17 @@ export function CharlestonView() {
         charlestonStore.setTargetPatterns(targetPatterns)
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patternStore.targetPatterns, charlestonStore.targetPatterns, charlestonStore])
   
   // Convert real tiles from tile store to Charleston format
   const charlestonTiles: Tile[] = useMemo(() => {
-    return CharlestonAdapter.convertPlayerTilesToCharlestonTiles(tileStore.playerHand)
-  }, [tileStore.playerHand])
+    return CharlestonAdapter.convertPlayerTilesToCharlestonTiles(playerHand)
+  }, [playerHand])
   
   // Check if we have tiles available for Charleston
-  const hasTiles = tileStore.playerHand.length > 0
-  const hasValidHand = tileStore.validation.isValid || tileStore.playerHand.length >= 10 // Allow Charleston with partial hands
+  const hasTiles = playerHand.length > 0
+  const hasValidHand = validation.isValid || playerHand.length >= 10 // Allow Charleston with partial hands
   
   // Initialize tiles from tile store when Charleston starts
   useEffect(() => {
@@ -58,7 +60,6 @@ export function CharlestonView() {
   }, [charlestonStore.currentPhase, charlestonSelectors.isActive, navigate])
   
   const recommendedTiles = charlestonStore.recommendations?.tilesToPass || []
-  const jokerCount = charlestonSelectors.jokerCount
   
   const handleStartCharleston = () => {
     if (hasTiles) {
@@ -112,14 +113,14 @@ export function CharlestonView() {
             <div className="bg-orange-50 border border-orange-200 rounded-lg p-6 mb-6">
               <h3 className="font-semibold text-orange-900 mb-2">⚠️ Incomplete Hand</h3>
               <p className="text-orange-800 mb-3">
-                You have {tileStore.playerHand.length} tiles. Charleston works best with 13+ tiles.
+                You have {playerHand.length} tiles. Charleston works best with 13+ tiles.
               </p>
               <div className="space-x-2">
                 <button
                   onClick={handleStartCharleston}
                   className="bg-orange-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-orange-700 transition-colors"
                 >
-                  Continue with {tileStore.playerHand.length} tiles
+                  Continue with {playerHand.length} tiles
                 </button>
                 <a 
                   href="/tiles"
@@ -133,7 +134,7 @@ export function CharlestonView() {
             <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
               <h3 className="font-semibold text-green-900 mb-2">✅ Ready for Charleston</h3>
               <p className="text-green-800 mb-3">
-                You have {tileStore.playerHand.length} tiles ready for Charleston analysis.
+                You have {playerHand.length} tiles ready for Charleston analysis.
               </p>
             </div>
           )}
@@ -291,7 +292,7 @@ export function CharlestonView() {
             </div>
             
             <div className="text-sm text-gray-500">
-              {charlestonStore.playerTiles.length} tiles • {jokerCount} joker{jokerCount !== 1 ? 's' : ''}
+              {charlestonStore.playerTiles.length} tiles • {charlestonSelectors.jokerCount} joker{charlestonSelectors.jokerCount !== 1 ? 's' : ''}
             </div>
           </div>
         </div>
@@ -303,7 +304,7 @@ export function CharlestonView() {
           <StrategyExplanation
             phase={charlestonStore.currentPhase}
             targetPatterns={charlestonStore.targetPatterns}
-            jokerCount={jokerCount}
+            jokerCount={charlestonSelectors.jokerCount}
           />
         </div>
       )}

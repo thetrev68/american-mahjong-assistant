@@ -38,24 +38,19 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
   })
   
   const handleTileClick = (tile: BaseTile) => {
-    console.log('🔧 TileSelector: handleTileClick called with tile:', tile.id)
     const currentCount = tileCounts.get(tile.id) || 0
     
     // Check if we're at max hand size
     const maxHandSize = dealerHand ? 14 : 13
-    console.log('🔧 Current hand size:', playerHand.length, 'Max:', maxHandSize)
     
     if (playerHand.length >= maxHandSize) {
-      console.log('🔧 Cannot add tile - hand is full')
       return
     }
     
     if (currentCount >= 4) {
-      console.log('🔧 Cannot add tile - already have 4 of this type')
       return
     }
     
-    console.log('🔧 Calling addTile for:', tile.id)
     addTile(tile.id)
     
     if (onTileSelect) {
@@ -111,39 +106,21 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
               const isMaxed = currentCount >= 4
               
               return (
-                <div key={tile.id} style={{ position: 'relative', display: 'inline-block' }}>
-                  <AnimatedTile
-                    tile={createDummyPlayerTile(tile)}
-                    size="sm"
-                    onClick={() => !isMaxed && handleTileClick(tile)}
-                    className={isMaxed ? 'opacity-50 cursor-not-allowed' : ''}
-                    animateOnSelect={true}
-                    context="selection"
-                  />
-                  {currentCount > 0 && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '0px',
-                      right: '0px',
-                      width: '20px',
-                      height: '20px',
-                      backgroundColor: 'rgb(99 102 241)',
-                      borderRadius: '50%',
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      zIndex: 9999,
-                      border: '1px solid white',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                      transform: 'translate(50%, -50%)'
-                    }}>
-                      {currentCount}
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                      <AnimatedTile
+                        tile={createDummyPlayerTile(tile)}
+                        size="sm"
+                        onClick={() => !isMaxed && handleTileClick(tile)}
+                        className={isMaxed ? 'opacity-50 cursor-not-allowed' : ''}
+                        animateOnSelect={true}
+                        context="selection"
+                      />
+                      {currentCount > 0 && (
+                        <div className="tile-count-badge">
+                          {currentCount}
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
               )
             })}
           </div>
@@ -212,25 +189,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
                 >
                   {/* Count Badge */}
                   {currentCount > 0 && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-10px',
-                      right: '-10px',
-                      width: '20px',
-                      height: '20px',
-                      backgroundColor: 'rgb(99 102 241)',
-                      borderRadius: '50%',
-                      color: 'white',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '12px',
-                      fontWeight: 'bold',
-                      zIndex: 9999,
-                      border: '1px solid white',
-                      boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
-                      pointerEvents: 'none'
-                    }}>
+                    <div className="tile-count-badge" style={{ top: '-10px', right: '-10px', pointerEvents: 'none' }}>
                       {currentCount}
                     </div>
                   )}

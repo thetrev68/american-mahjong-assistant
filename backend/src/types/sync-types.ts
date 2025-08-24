@@ -1,5 +1,7 @@
 // Sync Types - Backend state synchronization data structures
 
+import type { Tile } from '../../../shared/tile-utils'
+
 export interface PlayerState {
   handTileCount?: number
   isReady?: boolean
@@ -11,7 +13,7 @@ export interface PlayerState {
 }
 
 export interface SharedState {
-  discardPile: any[] // Tile objects
+  discardPile: Tile[] // Tile objects
   wallTilesRemaining: number
   currentPlayer: string | null
   currentWind?: 'east' | 'south' | 'west' | 'north'
@@ -49,5 +51,5 @@ export interface SyncMessage {
 }
 
 export interface ConflictResolutionStrategy {
-  resolveConflict: (current: any, incoming: StateUpdate, history: StateUpdate[]) => any
+  resolveConflict: (current: GameState, incoming: StateUpdate, history: StateUpdate[]) => GameState
 }

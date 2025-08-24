@@ -8,6 +8,7 @@ import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { CompletedGame } from '../../stores/history-store'
+import type { TileSuit, TileValue } from '../../types/tile-types'
 
 interface PostGameViewProps {
   gameId?: string
@@ -52,7 +53,6 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
         // Could show a success message
       }
     } catch (error) {
-      console.error('Failed to share game:', error)
     } finally {
       setIsSharing(false)
     }
@@ -202,8 +202,8 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
               key={index}
               tile={{
                 id: tile.id,
-                suit: tile.suit as 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers',
-                value: tile.value as '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' | 'east' | 'south' | 'west' | 'north' | 'red' | 'green' | 'white' | 'f1' | 'f2' | 'f3' | 'f4' | 'joker',
+                suit: tile.suit as TileSuit,
+                value: tile.value as TileValue,
                 displayName: `${tile.value} ${tile.suit}`,
                 instanceId: `final-${tile.id}-${index}`,
                 isSelected: false

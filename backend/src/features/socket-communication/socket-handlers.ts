@@ -23,8 +23,7 @@ export class SocketHandlers {
         const hostPlayer = {
           id: socket.id,
           name: hostName,
-          isHost: true,
-          socketId: socket.id
+          isHost: true
         }
 
         const room = this.roomManager.createRoom(socket.id, {
@@ -56,8 +55,7 @@ export class SocketHandlers {
         const player = {
           id: socket.id,
           name: playerName,
-          isHost: false,
-          socketId: socket.id
+          isHost: false
         }
 
         const room = this.roomManager.joinRoom(roomId, player)

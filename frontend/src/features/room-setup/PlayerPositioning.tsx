@@ -13,9 +13,6 @@ interface PlayerPositioningProps {
   currentPlayerId: string | null
   onPositionChange: (playerId: string, position: PlayerPosition) => void
   disabled?: boolean
-  coPilotMode?: CoPilotMode
-  otherPlayerNames?: string[]
-  hostName?: string
 }
 
 interface PositionInfo {
@@ -37,12 +34,8 @@ export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
   playerPositions,
   currentPlayerId,
   onPositionChange,
-  disabled = false,
-  coPilotMode,
-  otherPlayerNames = [],
-  hostName = ''
+  disabled = false
 }) => {
-  const isSoloMode = coPilotMode === 'solo'
   const getPlayerAtPosition = (position: PlayerPosition): Player | null => {
     const playerId = Object.entries(playerPositions).find(([, pos]) => pos === position)?.[0]
     return playerId ? players.find(p => p.id === playerId) || null : null
@@ -51,11 +44,6 @@ export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
   const getUnpositionedPlayers = (): Player[] => {
     const positionedPlayerIds = Object.keys(playerPositions)
     return players.filter(player => !positionedPlayerIds.includes(player.id))
-  }
-  
-  // Consume props to prevent unused warnings
-  if (isSoloMode && hostName && otherPlayerNames.length > 0) {
-    // Solo mode logic would be implemented here
   }
 
   const handlePositionClick = (position: PlayerPosition) => {

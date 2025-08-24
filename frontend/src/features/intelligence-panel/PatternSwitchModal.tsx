@@ -49,7 +49,6 @@ export const PatternSwitchModal = ({
       
       onClose()
     } catch (error) {
-      console.error('❌ Pattern switch failed in modal:', error)
     } finally {
       setSwitchingPatternId(null)
       setSwitchStartTime(null)

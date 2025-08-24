@@ -37,9 +37,7 @@ export const TileInputPage = () => {
     // Clear hand when starting fresh (check if we came from home)
     const referrer = document.referrer
     const isFromHome = referrer.includes('/') && !referrer.includes('/patterns') && !referrer.includes('/tiles')
-    console.log('🔧 TileInputPage: Mount effect - isFromHome:', isFromHome, 'playerHand.length:', playerHand.length)
     if (isFromHome && playerHand.length > 0) {
-      console.log('🔧 TileInputPage: Clearing hand due to fresh start')
       clearHand()
     }
   }, []) // Run only on mount - removed clearHand and playerHand.length to prevent loops
@@ -84,23 +82,7 @@ export const TileInputPage = () => {
     importTilesFromString(randomHand.join(' '))
   }
   
-  // const handleImportExport = () => {
-  //   if (playerHand.length > 0) {
-  //     // Export current hand
-  //     const tileString = exportTilesToString()
-  //     navigator.clipboard.writeText(tileString).then(() => {
-  //       alert('Hand copied to clipboard!')
-  //     }).catch(() => {
-  //       prompt('Copy this tile string:', tileString)
-  //     })
-  //   } else {
-  //     // Import from clipboard or prompt
-  //     const tileString = prompt('Paste tile string (e.g., "1D 2D 3B east joker"):')
-  //     if (tileString) {
-  //       importTilesFromString(tileString)
-  //     }
-  //   }
-  // }
+  
   
   return (
     <Container size="full" padding="lg">

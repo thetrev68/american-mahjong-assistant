@@ -1,7 +1,6 @@
 // Hand Display Component
 // Shows current tiles with management and animation features
 
-// import { useState } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
