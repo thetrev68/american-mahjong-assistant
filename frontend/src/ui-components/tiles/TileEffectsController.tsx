@@ -119,7 +119,7 @@ export const TileEffectsController = React.memo(({
         setTimeout(processEffectQueue, 16) // Next frame
       }
     }
-  }, [effectQuality.concurrentLimit])
+  }, [effectQuality.concurrentLimit, processEffect])
   
   // Process individual effect
   const processEffect = useCallback(async (trigger: TileEffectTrigger) => {
@@ -142,11 +142,11 @@ export const TileEffectsController = React.memo(({
       await Promise.allSettled(promises)
       onEffectComplete?.(trigger)
       
-    } catch (error) {
+    } catch {
       // Tile effect processing failed silently
       onEffectComplete?.(trigger) // Still call completion callback
     }
-  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete])
+  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete, executeAnimation, executeHaptic])
   
   // Execute animation based on tile and action
   const executeAnimation = useCallback(async (tile: PlayerTile, action: string) => {
@@ -241,46 +241,5 @@ export const TileEffectsController = React.memo(({
 
 TileEffectsController.displayName = 'TileEffectsController'
 
-// Hook for using the effects controller
-export const useTileEffects = () => {
-  const controllerRef = useRef<{
-    triggerEffect: (tile: PlayerTile, action: string, options?: {
-      intensity?: 'light' | 'medium' | 'heavy'
-      priority?: 'low' | 'normal' | 'high'
-    }) => void
-    clearQueue: () => void
-    getQueueLength: () => number
-    getPerformanceMetrics: () => unknown
-  } | null>(null)
-  
-  const triggerTileEffect = useCallback((
-    tile: PlayerTile, 
-    action: string, 
-    options: {
-      intensity?: 'light' | 'medium' | 'heavy'
-      priority?: 'low' | 'normal' | 'high'
-    } = {}
-  ) => {
-    controllerRef.current?.triggerEffect(tile, action, options)
-  }, [])
-  
-  const clearEffectQueue = useCallback(() => {
-    controllerRef.current?.clearQueue()
-  }, [])
-  
-  const getEffectQueueLength = useCallback(() => {
-    return controllerRef.current?.getQueueLength() || 0
-  }, [])
-  
-  const getEffectPerformanceMetrics = useCallback(() => {
-    return controllerRef.current?.getPerformanceMetrics()
-  }, [])
-  
-  return {
-    triggerTileEffect,
-    clearEffectQueue,
-    getEffectQueueLength,
-    getEffectPerformanceMetrics,
-    controllerRef
-  }
-}
+// Hook is now exported from hooks/useTileEffects.ts for Fast Refresh compatibility
+// export { useTileEffects } from '../../hooks/useTileEffects' - removed to fix Fast Refresh

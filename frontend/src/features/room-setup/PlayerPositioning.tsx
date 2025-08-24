@@ -1,5 +1,5 @@
 import React from 'react'
-import { type PlayerPosition, type CoPilotMode } from '../../stores/room-store'
+import { type PlayerPosition } from '../../stores/room-store'
 
 interface Player {
   id: string

@@ -317,7 +317,7 @@ export const useTileStore = create<TileState>()(
               analysisInProgress: false,
               lastAnalysis: Date.now()
             })
-          } catch (error) {
+          } catch {
             // Analysis failed - continue silently
             set({ analysisInProgress: false })
           }

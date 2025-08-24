@@ -1,7 +1,7 @@
 // Advanced Pattern Analysis Component
 // Shows detailed pattern analysis with variations, comparisons, and visual displays
 
-import { useState } from 'react'
+// Removed unused useState import
 import { Card } from '../../ui-components/Card'
 import { PatternVariationGrid } from '../../ui-components/patterns/PatternVariationDisplay'
 import type { HandAnalysis } from '../../stores/intelligence-store'
@@ -21,7 +21,6 @@ export const AdvancedPatternAnalysis = ({
   onPatternSelect,
   className = ''
 }: AdvancedPatternAnalysisProps) => {
-  const [expandedPattern, setExpandedPattern] = useState<string | null>(null)
   
   // Use recommended patterns from analysis (the ones mentioned in "Found X recommended patterns")
   const recommendedPatterns = analysis.recommendedPatterns || []

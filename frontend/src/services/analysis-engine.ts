@@ -148,7 +148,7 @@ export class AnalysisEngine {
     selectedPatterns: PatternSelectionOption[] = [],
     gameContext?: Partial<GameContext>
   ): Promise<HandAnalysis> {
-    const startTime = performance.now()
+    // const startTime = performance.now()
     
     // Starting 3-Engine Intelligence System analysis
     
@@ -172,7 +172,7 @@ export class AnalysisEngine {
       }
       
       // console.error('🔍 ENGINE 1 STARTING - ANALYZING PATTERN FACTS')
-      const engine1Start = performance.now()
+      // const engine1Start = performance.now()
       
       // Engine 1: Get mathematical facts for all patterns (with caching)
       const patternIds = patternsToAnalyze.map(p => p.id)
@@ -187,15 +187,15 @@ export class AnalysisEngine {
       //   console.error(`📊 ${fact.patternId}: ${fact.tileMatching.bestVariation.tilesMatched}/14 tiles`)
       // })
       
-      const engine1Time = performance.now() - engine1Start
+      // const engine1Time = performance.now() - engine1Start
       // Engine 1 completed
       
       // Log cache stats for performance monitoring
-      const cacheStats = this.getCacheStats()
+      // const cacheStats = this.getCacheStats()
       // Engine 1 cache status updated
       
       // Engine 2: Ranking patterns
-      const engine2Start = performance.now()
+      // const engine2Start = performance.now()
       
       // Engine 2: Apply strategic ranking and scoring
       const patternRankings = await PatternRankingEngine.rankPatterns(
@@ -207,11 +207,11 @@ export class AnalysisEngine {
         }
       )
       
-      const engine2Time = performance.now() - engine2Start
+      // const engine2Time = performance.now() - engine2Start
       // Engine 2 completed
       
       // console.error('💡 ENGINE 3 STARTING - GENERATING TILE RECOMMENDATIONS')
-      const engine3Start = performance.now()
+      // const engine3Start = performance.now()
       
       // Engine 3: Generate tile recommendations
       const tileRecommendations = await TileRecommendationEngine.generateRecommendations(
@@ -226,7 +226,7 @@ export class AnalysisEngine {
         analysisFacts // Pass Engine 1 facts so Engine 3 can see actual tile matching
       )
       
-      const engine3Time = performance.now() - engine3Start
+      // const engine3Time = performance.now() - engine3Start
       // Engine 3 completed
       
       // Convert results to HandAnalysis format (maintaining interface compatibility)
@@ -237,7 +237,7 @@ export class AnalysisEngine {
         analysisFacts
       )
       
-      const totalTime = performance.now() - startTime
+      // const totalTime = performance.now() - startTime
       // Total analysis completed
       
       return result
@@ -256,21 +256,57 @@ export class AnalysisEngine {
    * Convert 3-engine results to HandAnalysis interface format
    */
   private static convertToHandAnalysis(
-    patternRankings: any,
-    tileRecommendations: any,
+    patternRankings: {
+      topRecommendations: Array<{
+        patternId: string
+        confidence: number
+        totalScore: number
+        recommendation: string
+        riskFactors: string[]
+        components: {
+          currentTileScore: number
+          availabilityScore: number
+          jokerScore: number
+          priorityScore: number
+        }
+      }>
+      viablePatterns: Array<{
+        patternId: string
+        confidence: number
+        totalScore: number
+        riskFactors: string[]
+        strategicValue: string
+        components: {
+          currentTileScore: number
+          availabilityScore: number
+          jokerScore: number
+          priorityScore: number
+        }
+      }>
+    },
+    tileRecommendations: {
+      tileActions: Array<{ 
+        tileId: string
+        primaryAction: string
+        confidence: number
+        reasoning: string
+        priority: number
+      }>
+      strategicAdvice: string[]
+    },
     patterns: PatternSelectionOption[],
-    analysisFacts: any[]
+    analysisFacts: PatternAnalysisFacts[]
   ): HandAnalysis {
     
     // Sort recommendations by actual completion percentage instead of AI scores
-    const sortedRecommendations = patternRankings.topRecommendations.sort((a: any, b: any) => {
+    const sortedRecommendations = patternRankings.topRecommendations.sort((a, b) => {
       const aCompletion = (a.components.currentTileScore / 40) * 100
       const bCompletion = (b.components.currentTileScore / 40) * 100
       return bCompletion - aCompletion // Highest completion first
     })
     
     // Convert pattern rankings to PatternRecommendation format
-    const recommendedPatterns: PatternRecommendation[] = sortedRecommendations.map((ranking: any, index: number) => {
+    const recommendedPatterns: PatternRecommendation[] = sortedRecommendations.map((ranking, index: number) => {
       const pattern = patterns.find(p => p.id === ranking.patternId)
       
       // Get actual completion percentage from pattern analysis facts (not AI score)
@@ -323,7 +359,7 @@ export class AnalysisEngine {
     })
 
     // Convert tile actions to TileRecommendation format
-    const tileRecommendationsList: TileRecommendation[] = tileRecommendations.tileActions.map((action: any) => ({
+    const tileRecommendationsList: TileRecommendation[] = tileRecommendations.tileActions.map((action) => ({
       tileId: action.tileId,
       action: action.primaryAction,
       confidence: action.confidence,
@@ -332,7 +368,7 @@ export class AnalysisEngine {
     }))
 
     // Generate best patterns for detailed analysis
-    const bestPatterns = patternRankings.viablePatterns.slice(0, 10).map((ranking: any) => {
+    const bestPatterns = patternRankings.viablePatterns.slice(0, 10).map((ranking) => {
       const pattern = patterns.find(p => p.id === ranking.patternId)
       
       // Calculate actual completion and tiles needed from currentTileScore
@@ -407,7 +443,12 @@ export class AnalysisEngine {
   /**
    * Generate pattern reasoning text
    */
-  private static generatePatternReasoning(ranking: any, index: number): string {
+  private static generatePatternReasoning(
+    ranking: {
+      totalScore: number
+    }, 
+    index: number
+  ): string {
     if (index === 0) return "Highest scoring pattern with current hand"
     if (ranking.totalScore > 70) return "Strong alternative with good fundamentals"
     if (ranking.totalScore > 50) return "Viable backup option worth considering"

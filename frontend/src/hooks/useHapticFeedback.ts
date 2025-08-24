@@ -148,8 +148,8 @@ export function useHapticFeedback(): UseHapticFeedbackReturn {
       // Fallback: no haptic feedback available
       return false
       
-    } catch (error) {
-      // Haptic feedback failed silently
+    } catch {
+      // Haptic feedback failed silently - error details not needed
       return false
     }
   }, [isReducedMotion, isEnabled, isSupported, hasIOSHaptics, hasAndroidHaptics])

@@ -165,7 +165,7 @@ export function useTutorial() {
   const {
     progress,
     isActive,
-    currentStep: _storeCurrentStep,
+    currentStep,
     canProceed,
     canGoBack,
     error,

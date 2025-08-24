@@ -68,7 +68,7 @@ export function CharlestonView() {
     } else {
       // Redirect to tile input if no tiles are available
       // No tiles available - redirecting to tile input
-      window.location.href = '/tiles'
+      navigate('/tiles')
     }
   }
   

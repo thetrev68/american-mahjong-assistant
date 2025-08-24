@@ -144,6 +144,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     } finally {
       setIsAnalyzing(false)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fullHand, selectedPatterns, exposedTiles, intelligenceStore])
 
   // Initialize game mode
@@ -236,7 +237,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
     if (lastDrawnTile && tile.id === lastDrawnTile.id) {
       setLastDrawnTile(null)
-    } else {
     }
 
     const turn: GameTurn = {
@@ -306,7 +306,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Simulate other players' turns
   const simulateOtherPlayerTurn = useCallback(() => {
     const nextPlayerIndex = (currentPlayerIndex + 1) % 4
-    const nextPlayerName = playerNames[nextPlayerIndex]
+    // const nextPlayerName = playerNames[nextPlayerIndex] // Not used
 
     setGameHistory(prev => [
       {

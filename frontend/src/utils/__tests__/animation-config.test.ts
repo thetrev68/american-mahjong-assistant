@@ -230,7 +230,7 @@ describe('Animation Configuration', () => {
     it('should reject config with invalid easing', () => {
       const invalidConfig = {
         duration: 300,
-        easing: 'invalid-easing' as any
+        easing: 'invalid-easing' as never
       }
 
       expect(validateAnimationConfig(invalidConfig)).toBe(false)

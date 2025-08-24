@@ -41,21 +41,5 @@ export const TileAnimationWrapper = ({
   )
 }
 
-import { 
-  TILE_KEYFRAMES, 
-  applyTileAnimation, 
-  createAnimationCSS, 
-  createSequenceCSS 
-} from './tile-animation-constants'
-
-// Re-export for backward compatibility
-export { 
-  TILE_KEYFRAMES, 
-  applyTileAnimation, 
-  createAnimationCSS, 
-  createSequenceCSS 
-}
-
-// Satisfy Fast Refresh requirement
-const TileAnimationsExport = () => null
-export default TileAnimationsExport
+// Animation constants are available from './tile-animation-constants'
+// Import them directly from that file to maintain Fast Refresh compatibility

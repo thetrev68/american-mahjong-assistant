@@ -21,7 +21,7 @@ describe('useCoPilotMode Hook', () => {
     mockRoomStore.coPilotMode = 'everyone'
     mockRoomStore.setCoPilotMode = vi.fn()
     mockRoomStore.getCoPilotModeDescription = vi.fn()
-    ;(useRoomStore as any).mockReturnValue(mockRoomStore)
+    ;(useRoomStore as vi.MockedFunction<typeof useRoomStore>).mockReturnValue(mockRoomStore)
   })
 
   describe('Hook Initialization', () => {
@@ -131,7 +131,7 @@ describe('useCoPilotMode Hook', () => {
     it('should validate invalid mode as false', () => {
       const { result } = renderHook(() => useCoPilotMode())
 
-      const isValid = result.current.isValidMode('invalid' as any)
+      const isValid = result.current.isValidMode('invalid' as 'everyone' | 'solo')
 
       expect(isValid).toBe(false)
     })

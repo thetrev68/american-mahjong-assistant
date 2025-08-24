@@ -40,7 +40,8 @@ export const TileInputPage = () => {
     if (isFromHome && playerHand.length > 0) {
       clearHand()
     }
-  }, []) // Run only on mount - removed clearHand and playerHand.length to prevent loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // Run only on mount - clearHand and playerHand.length intentionally excluded to prevent loops
   
   useEffect(() => {
     // Validate hand whenever it changes

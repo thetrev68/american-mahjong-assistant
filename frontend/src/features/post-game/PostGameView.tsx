@@ -53,6 +53,7 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
         // Could show a success message
       }
     } catch (error) {
+      console.error('Share game error:', error)
     } finally {
       setIsSharing(false)
     }

@@ -62,8 +62,8 @@ export class CharlestonAdapter {
   static convertCharlestonTileToPlayerTile(charlestonTile: Tile): PlayerTile {
     return {
       id: charlestonTile.id,
-      suit: charlestonTile.suit as any, // Charleston uses string, PlayerTile uses specific union
-      value: parseInt(charlestonTile.value) || charlestonTile.value as any,
+      suit: charlestonTile.suit as PlayerTile['suit'], // Charleston uses string, PlayerTile uses specific union
+      value: parseInt(charlestonTile.value) || (charlestonTile.value as PlayerTile['value']),
       displayName: charlestonTile.display || charlestonTile.id,
       instanceId: `charleston-${charlestonTile.id}-${Date.now()}`,
       isSelected: false

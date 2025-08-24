@@ -19,9 +19,7 @@ interface AnimatedTileProps {
   children?: React.ReactNode
   
   // Animation props
-  animateOnMount?: boolean
   animateOnSelect?: boolean
-  animateOnRecommendation?: boolean
   enableHaptics?: boolean
   
   // Context-specific animations
@@ -37,9 +35,7 @@ export const AnimatedTile = ({
   onDoubleClick,
   className = '',
   children,
-  animateOnMount: _animateOnMount = false,
   animateOnSelect = true,
-  animateOnRecommendation: _animateOnRecommendation = true,
   enableHaptics = true,
   context = 'selection',
   recommendationType
@@ -190,7 +186,7 @@ export const AnimatedTile = ({
         transition: `all ${config.duration}ms ${config.easing}`,
         willChange: 'transform, opacity'
       }
-    } catch (error) {
+    } catch {
       // Animation style generation failed silently
       return {}
     }
@@ -260,7 +256,7 @@ export const AnimatedTile = ({
     }
     
     return classes.join(' ')
-  }, [isAnimating, context, recommendationType, tile.isSelected, isSpecialTile, isJoker, isDragon, isFlower, performance.shouldReduceAnimations])
+  }, [isAnimating, context, recommendationType, tile.isSelected, isSpecialTile, isJoker, isDragon, isFlower, performance.shouldReduceAnimations, animationState.isAnimating])
   
   // Animation methods are available through the tileAnimations hook
   

@@ -84,19 +84,19 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                 <div>
                   <div className="text-2xl font-bold text-blue-600">
-                    {hasDetailedAnalysis ? (analysis.analysis!!.currentTiles?.count ?? 0) : '—'}
+                    {hasDetailedAnalysis ? (analysis.analysis!.currentTiles?.count ?? 0) : '—'}
                   </div>
                   <div className="text-sm text-gray-600">Current Tiles</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-orange-600">
-                    {hasDetailedAnalysis ? (analysis.analysis!!.missingTiles?.total ?? 0) : '—'}
+                    {hasDetailedAnalysis ? (analysis.analysis!.missingTiles?.total ?? 0) : '—'}
                   </div>
                   <div className="text-sm text-gray-600">Missing Tiles</div>
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-purple-600">
-                    {hasDetailedAnalysis ? (analysis.analysis!!.jokerSituation?.available ?? 0) : '—'}
+                    {hasDetailedAnalysis ? (analysis.analysis!.jokerSituation?.available ?? 0) : '—'}
                   </div>
                   <div className="text-sm text-gray-600">Jokers Available</div>
                 </div>
@@ -150,22 +150,22 @@ export const PatternAnalysisModal: React.FC<PatternAnalysisModalProps> = ({
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">Pattern Completion</span>
                   <span className="text-sm font-bold text-blue-600">
-                    {analysis.analysis!!.currentTiles.percentage.toFixed(1)}%
+                    {analysis.analysis!.currentTiles.percentage.toFixed(1)}%
                   </span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${analysis.analysis!!.currentTiles.percentage}%` }}
+                    style={{ width: `${analysis.analysis!.currentTiles.percentage}%` }}
                   />
                 </div>
               </div>
 
-              {analysis.analysis!!.currentTiles.matchingGroups.length > 0 && (
+              {analysis.analysis!.currentTiles.matchingGroups.length > 0 && (
                 <div>
                   <p className="text-sm text-gray-600 mb-2">Groups with matches:</p>
                   <div className="flex flex-wrap gap-2">
-                    {analysis.analysis!!.currentTiles.matchingGroups.map(group => (
+                    {analysis.analysis!.currentTiles.matchingGroups.map(group => (
                       <span key={group} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
                         {group}
                       </span>

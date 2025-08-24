@@ -88,7 +88,7 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create room'
       roomStore.handleRoomCreationError(errorMessage)
     }
-  }, [roomStore, multiplayer, multiplayerStore.currentPlayerId])
+  }, [roomStore, multiplayer, multiplayerStore, generateRoomCode, generatePlayerId, generateRoomCodeFromId])
 
   const joinRoom = useCallback(async (roomCode: string, playerName: string) => {
     // Validation

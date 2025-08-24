@@ -12,7 +12,26 @@ vi.mock('../../../hooks/useRoomSetup')
 vi.mock('../../../stores/room-store')
 vi.mock('../../../stores/multiplayer-store')
 
-let mockRoomSetup: any = {
+interface MockRoomSetup {
+  coPilotMode: string
+  roomCode: string | null
+  isHost: boolean
+  isCreatingRoom: boolean
+  isJoiningRoom: boolean
+  error: string | null
+  setupProgress: {
+    currentStep: string
+    completedSteps: number
+    totalSteps: number
+  }
+  setCoPilotMode: ReturnType<typeof vi.fn>
+  createRoom: ReturnType<typeof vi.fn>
+  joinRoom: ReturnType<typeof vi.fn>
+  generateRoomCode: ReturnType<typeof vi.fn>
+  clearError: ReturnType<typeof vi.fn>
+}
+
+const mockRoomSetup: MockRoomSetup = {
   coPilotMode: 'everyone',
   roomCode: null,
   isHost: false,
@@ -37,7 +56,20 @@ const mockRoomStore = {
   isHost: vi.fn(() => false)
 }
 
-let mockMultiplayerStore: any = {
+interface MockMultiplayerStore {
+  currentRoom: {
+    id: string
+    code: string
+    players: Array<{
+      id: string
+      name: string
+      isHost: boolean
+    }>
+  } | null
+  currentPlayerId: string
+}
+
+const mockMultiplayerStore: MockMultiplayerStore = {
   currentRoom: null,
   currentPlayerId: 'player-1'
 }

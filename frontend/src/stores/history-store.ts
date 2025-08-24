@@ -236,7 +236,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
         error: null,
 
         // Game management actions
-        startGame: (gameId: string, _difficulty: GameDifficulty) => {
+        startGame: (gameId: string) => {
           set({ currentGameId: gameId })
         },
 
@@ -266,8 +266,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
         },
 
         // Decision tracking
-        recordDecision: (decision: Omit<GameDecision, 'id'>) => {
-          const decisionId = `decision-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        recordDecision: () => {
           // Decision recorded for game history
           // This would be implemented to track decisions during active gameplay
           // For now, decisions are added when the game is completed
@@ -316,7 +315,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
           })
 
           // Calculate pattern statistics
-          const patternStats: Record<string, any> = {}
+          const patternStats: Record<string, { attempted: number; completed: number; successRate: number; averageCompletion: number }> = {}
           games.forEach(game => {
             game.selectedPatterns.forEach(pattern => {
               const patternId = pattern.Hands_Key
@@ -394,7 +393,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
 
             // Pattern-specific recommendations
             const strugglingPatterns = Object.entries(performanceStats.patternStats)
-              .filter(([_, stats]) => stats.attempted >= 2 && stats.successRate < 30)
+              .filter(([, stats]) => stats.attempted >= 2 && stats.successRate < 30)
               .slice(0, 2)
 
             strugglingPatterns.forEach(([patternId, stats]) => {
@@ -466,12 +465,12 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
           return false
         },
 
-        voteOnGame: async (_gameId: string, _vote: 'up' | 'down') => {
+        voteOnGame: async () => {
           // Implementation would integrate with backend voting system
           return true
         },
 
-        addComment: async (_gameId: string, _comment: string) => {
+        addComment: async () => {
           // Implementation would integrate with backend comment system
           return true
         },

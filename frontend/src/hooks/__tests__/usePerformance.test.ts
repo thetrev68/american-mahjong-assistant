@@ -270,7 +270,7 @@ describe('usePerformance Hook', () => {
 
     it('should return null when memory API not available', () => {
       // Remove memory API
-      delete (global.performance as any).memory
+      delete (global.performance as Record<string, unknown>).memory
 
       const { result } = renderHook(() => usePerformance())
 

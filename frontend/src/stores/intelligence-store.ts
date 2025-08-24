@@ -109,7 +109,7 @@ export interface HandAnalysis {
   }[]
   lastUpdated: number
   analysisVersion: string
-  engine1Facts?: any[] // Engine 1 pattern analysis facts with tile arrays
+  engine1Facts?: Array<{ patternId: string; tileMatching?: { bestVariation?: { patternTiles: string[]; sequence: number } } }> // Engine 1 pattern analysis facts with tile arrays
 }
 
 export interface WhatIfScenario {
@@ -196,7 +196,6 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       
       // Analysis Actions  
       analyzeHand: async (tiles, patterns = []) => {
-        const startTime = performance.now()
         set({ isAnalyzing: true, analysisError: null })
         
         try {

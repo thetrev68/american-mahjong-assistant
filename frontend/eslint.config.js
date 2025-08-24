@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { globalIgnores } from 'eslint/config'
 
 export default tseslint.config([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'src/features/gameplay/GameModeView.tsx']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

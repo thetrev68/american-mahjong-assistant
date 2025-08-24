@@ -21,9 +21,9 @@ export const IntelligencePanelPage = () => {
     autoAnalyze
   } = useIntelligenceStore()
   
-  const { getTargetPatterns, clearSelection, addTargetPattern, removeTargetPattern } = usePatternStore()
+  const { getTargetPatterns, clearSelection, addTargetPattern } = usePatternStore()
   const selectedPatterns = getTargetPatterns()
-  const { playerHand = [], selectedTiles = [], handSize = 0 } = useTileStore()
+  const { playerHand = [], handSize = 0 } = useTileStore()
   
   // Removed hasTriggeredInitialAnalysis as it's no longer needed
   
@@ -51,8 +51,6 @@ export const IntelligencePanelPage = () => {
         // If we have tiles but no patterns, analyze with empty patterns to get AI recommendations
         analyzeHand(playerHand, [])
       }
-    } else {
-      
     }
   }, [playerHand, selectedPatterns, autoAnalyze, analyzeHand, isAnalyzing, currentAnalysis, isPatternSwitching])
   
@@ -284,17 +282,15 @@ export const IntelligencePanelPage = () => {
                     
                     const switchEndTime = performance.now()
                     const switchDuration = switchEndTime - switchStartTime
-                    const wasCacheHit = switchDuration < 200 // Likely cache hit if under 200ms
-                    
-                    // Track performance for development insights (console only)
-                    if (process.env.NODE_ENV === 'development') {
-                      
+                    // Track performance for development insights
+                    if (process.env.NODE_ENV === 'development' && switchDuration < 200) {
+                      console.log('Pattern switch cache hit:', switchDuration + 'ms')
                     }
                     
                     // Pattern switch completed
                     
                   } catch (error) {
-                    
+                    console.error('Pattern switch error:', error)
                   } finally {
                     setIsPatternSwitching(false)
                     setPatternSwitchStartTime(null)
@@ -393,8 +389,9 @@ export const IntelligencePanelPage = () => {
                     
                     const switchEndTime = performance.now()
                     const switchDuration = switchEndTime - switchStartTime
-                    const wasCacheHit = switchDuration < 200
-                    
+                    if (process.env.NODE_ENV === 'development' && switchDuration < 200) {
+                      console.log('Pattern switch cache hit:', switchDuration + 'ms')
+                    }
                     
                   
                     setIsPatternSwitching(false)
@@ -403,6 +400,10 @@ export const IntelligencePanelPage = () => {
                     setTimeout(() => {
                       setIntendedPrimaryPatternId(null)
                     }, 1000)
+                  } catch (error) {
+                    console.error('Pattern switch error:', error)
+                    setIsPatternSwitching(false)
+                    setPatternSwitchStartTime(null)
                   }
                 }}
               />

@@ -111,7 +111,12 @@ export class PatternRankingEngine {
   private static calculatePatternRanking(
     facts: PatternAnalysisFacts,
     selectedPatterns: PatternSelectionOption[],
-    gameContext: any
+    gameContext: {
+      phase: 'charleston' | 'gameplay'
+      currentFocus?: string
+      turnsElapsed?: number
+      wallTilesRemaining?: number
+    }
   ): PatternRanking {
     
     const bestVariation = facts.tileMatching.bestVariation
@@ -219,7 +224,12 @@ export class PatternRankingEngine {
   private static calculatePriorityScore(
     pattern: PatternSelectionOption | undefined,
     facts: PatternAnalysisFacts,
-    gameContext: any
+    gameContext: {
+      phase: 'charleston' | 'gameplay'
+      currentFocus?: string
+      turnsElapsed?: number
+      wallTilesRemaining?: number
+    }
   ): number {
     if (!pattern) return 5 // Default mid-range
     
@@ -388,7 +398,12 @@ export class PatternRankingEngine {
   /**
    * Assess game state factors
    */
-  private static assessGameStateFactors(gameContext: any): RankedPatternResults['gameStateFactors'] {
+  private static assessGameStateFactors(gameContext: {
+    phase: 'charleston' | 'gameplay'
+    currentFocus?: string
+    turnsElapsed?: number
+    wallTilesRemaining?: number
+  }): RankedPatternResults['gameStateFactors'] {
     const wallTiles = gameContext.wallTilesRemaining || 80
     
     // Estimate turns remaining (rough calculation)
@@ -428,13 +443,19 @@ export class PatternRankingEngine {
     maxRecommendations?: number
   }): void {
     if (options.viabilityThreshold !== undefined) {
-      (this as any).VIABILITY_THRESHOLD = options.viabilityThreshold
+      // TypeScript doesn't allow modifying readonly properties, but this is intentional
+      // @ts-expect-error - Intentionally modifying readonly property for configuration
+      this.VIABILITY_THRESHOLD = options.viabilityThreshold
     }
     if (options.switchThreshold !== undefined) {
-      (this as any).SWITCH_THRESHOLD = options.switchThreshold
+      // TypeScript doesn't allow modifying readonly properties, but this is intentional
+      // @ts-expect-error - Intentionally modifying readonly property for configuration
+      this.SWITCH_THRESHOLD = options.switchThreshold
     }
     if (options.maxRecommendations !== undefined) {
-      (this as any).MAX_RECOMMENDATIONS = options.maxRecommendations
+      // TypeScript doesn't allow modifying readonly properties, but this is intentional
+      // @ts-expect-error - Intentionally modifying readonly property for configuration
+      this.MAX_RECOMMENDATIONS = options.maxRecommendations
     }
   }
 }

@@ -168,30 +168,30 @@ export function usePerformance(): UsePerformanceReturn {
     const startTime = performance.now()
     
     // Track frames during animation
-    const framesBefore = monitoringRef.current.frameCount
+    // const framesBefore = monitoringRef.current.frameCount
     
     try {
       await fn()
-    } catch (error) {
+    } catch {
       // Animation failed silently
     }
     
     const endTime = performance.now()
     const duration = endTime - startTime
-    const framesAfter = monitoringRef.current.frameCount
-    const framesUsed = framesAfter - framesBefore
+    // const framesAfter = monitoringRef.current.frameCount
+    // const framesUsed = framesAfter - framesBefore
     
     // Calculate performance impact
-    const avgFrameTimeBeforeAnimation = metrics.animationPerformance.averageFrameTime
-    const expectedFrames = Math.ceil(duration / avgFrameTimeBeforeAnimation)
-    const performanceImpact = framesUsed > expectedFrames ? framesUsed - expectedFrames : 0
+    // const avgFrameTimeBeforeAnimation = metrics.animationPerformance.averageFrameTime
+    // const expectedFrames = Math.ceil(duration / avgFrameTimeBeforeAnimation)
+    // const performanceImpact = framesUsed > expectedFrames ? framesUsed - expectedFrames : 0
     
     if (process.env.NODE_ENV === 'development') {
       // Animation performance data available
     }
     
     return duration
-  }, [metrics.animationPerformance.averageFrameTime])
+  }, [])
   
   // Frame rate tracking for a specific duration
   const trackFrameRate = useCallback(async (duration: number = 1000): Promise<number> => {

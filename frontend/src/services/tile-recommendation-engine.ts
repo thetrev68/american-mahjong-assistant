@@ -83,7 +83,7 @@ export class TileRecommendationEngine {
       playerHands?: { [playerId: string]: number } // hand sizes
       wallTilesRemaining: number
     },
-    analysisFacts?: any[] // Engine 1 pattern analysis facts with actual tile matching data
+    analysisFacts?: unknown[] // Engine 1 pattern analysis facts with actual tile matching data
   ): Promise<TileRecommendationResults> {
     
     try {
@@ -122,7 +122,7 @@ export class TileRecommendationEngine {
     tileActions.sort((a, b) => b.priority - a.priority)
     
     // Categorize actions
-    let keepTiles = tileActions.filter(a => a.primaryAction === 'keep')
+    const keepTiles = tileActions.filter(a => a.primaryAction === 'keep')
     let passTiles = tileActions.filter(a => a.primaryAction === 'pass')
     let discardTiles = tileActions.filter(a => a.primaryAction === 'discard')
     
@@ -216,8 +216,14 @@ export class TileRecommendationEngine {
     playerTiles: string[],
     patternRankings: RankedPatternResults,
     opponentAnalysis: OpponentAnalysis[],
-    gameContext: any,
-    analysisFacts?: any[]
+    gameContext: {
+      phase: 'charleston' | 'gameplay'
+      discardPile: string[]
+      exposedTiles: { [playerId: string]: string[] }
+      playerHands?: { [playerId: string]: number }
+      wallTilesRemaining: number
+    },
+    analysisFacts?: unknown[]
   ): TileAction {
     
     try {
@@ -359,7 +365,7 @@ export class TileRecommendationEngine {
   /**
    * Analyze tile contributions using actual Engine 1 pattern analysis facts
    */
-  private static analyzeTileContributions(tileId: string, analysisFacts?: any[]) {
+  private static analyzeTileContributions(tileId: string, analysisFacts?: unknown[]) {
     const patterns: string[] = []
     let totalValue = 0
     let isCritical = false
@@ -389,7 +395,7 @@ export class TileRecommendationEngine {
           }
           try {
             return fact.tileMatching.bestVariation.completionRatio > 0.15 // At least 15% complete (2+ tiles)
-          } catch (error) {
+          } catch {
             // Silent - expected data validation failure
             return false
           }
@@ -418,20 +424,31 @@ export class TileRecommendationEngine {
             continue
           }
           
-          const tileContribution = tileContributions.find((contrib: any) => contrib?.tileId === tileId)
+          const tileContribution = tileContributions.find((contrib: unknown) => {
+            if (typeof contrib === 'object' && contrib !== null && 'tileId' in contrib) {
+              return (contrib as { tileId: string }).tileId === tileId
+            }
+            return false
+          })
           
-          if (tileContribution && tileContribution.isRequired) {
+          if (tileContribution && 
+              typeof tileContribution === 'object' && 
+              tileContribution !== null && 
+              'isRequired' in tileContribution && 
+              (tileContribution as { isRequired: boolean }).isRequired) {
             patterns.push(patternFact.patternId)
             
             // Calculate value based on actual contribution
             let contributionValue = 0.5 // Base value for required tiles
             
-            if (tileContribution.isCritical === true) {
+            if ('isCritical' in tileContribution && (tileContribution as { isCritical: boolean }).isCritical === true) {
               contributionValue += 0.3
               isCritical = true
             }
             
-            if (tileContribution.positionsInPattern && Array.isArray(tileContribution.positionsInPattern) && tileContribution.positionsInPattern.length > 1) {
+            if ('positionsInPattern' in tileContribution && 
+                Array.isArray((tileContribution as { positionsInPattern: unknown[] }).positionsInPattern) && 
+                (tileContribution as { positionsInPattern: unknown[] }).positionsInPattern.length > 1) {
               contributionValue += 0.2 // Bonus for multi-position tiles
             }
             
@@ -445,8 +462,9 @@ export class TileRecommendationEngine {
               topPattern = patternFact.patternId
             }
           } else {
+            // Tile not required for this pattern - skip
           }
-        } catch (patternError) {
+        } catch {
           // Silent - expected data validation failure
           continue
         }
@@ -463,9 +481,9 @@ export class TileRecommendationEngine {
       
       return result
       
-    } catch (error) {
+    } catch (analysisError) {
       // Keep this error - it indicates tile contribution analysis failures
-      console.error(`🚨 ENGINE 3 CRITICAL ERROR: Failed to analyze tile contributions for ${tileId}:`, error)
+      console.error(`🚨 ENGINE 3 CRITICAL ERROR: Failed to analyze tile contributions for ${tileId}:`, analysisError)
       console.error('Engine 1 facts structure:', analysisFacts?.map(f => ({ 
         patternId: f?.patternId, 
         hasTileMatching: !!f?.tileMatching,
@@ -565,7 +583,7 @@ export class TileRecommendationEngine {
    */
   private static analyzeOpponentRisk(tileId: string, opponents: OpponentAnalysis[]) {
     let maxRisk = 0
-    let riskReasons: string[] = []
+    const riskReasons: string[] = []
     
     for (const opponent of opponents) {
       for (const need of opponent.likelyNeeds) {
@@ -594,9 +612,16 @@ export class TileRecommendationEngine {
   private static generateContextualActions(
     tileId: string,
     primaryAction: TileAction['primaryAction'],
-    patternValue: any,
-    opponentRisk: any,
-    gameContext: any
+    patternValue: {
+      isCritical: boolean
+      patternCount: number
+    },
+    opponentRisk: {
+      isRisky: boolean
+    },
+    gameContext: {
+      phase: 'charleston' | 'gameplay'
+    }
   ): TileAction['contextualActions'] {
     
     let charleston: 'keep' | 'pass' | 'neutral' = 'neutral'
@@ -629,8 +654,17 @@ export class TileRecommendationEngine {
   private static detectTileDangers(
     tileId: string,
     action: TileAction['primaryAction'],
-    patternValue: any,
-    opponentRisk: any,
+    patternValue: {
+      isCritical: boolean
+      helpsMultiplePatterns: boolean
+      topPattern: string
+      patternCount: number
+    },
+    opponentRisk: {
+      isRisky: boolean
+      riskLevel: number
+      risk: string
+    },
     patternRankings: RankedPatternResults
   ): DangerWarning[] {
     
@@ -704,7 +738,9 @@ export class TileRecommendationEngine {
   private static generateStrategicAdvice(
     patternRankings: RankedPatternResults,
     tileActions: TileAction[],
-    gameContext: any
+    gameContext: {
+      phase: 'charleston' | 'gameplay'
+    }
   ): string[] {
     
     const advice: string[] = []

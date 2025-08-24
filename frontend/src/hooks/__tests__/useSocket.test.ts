@@ -23,7 +23,7 @@ const mockSocket = {
 describe('useSocket Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(io as any).mockReturnValue(mockSocket)
+    ;(io as vi.MockedFunction<typeof io>).mockReturnValue(mockSocket)
   })
 
   describe('Connection Management', () => {
@@ -48,7 +48,7 @@ describe('useSocket Hook', () => {
           throw new Error('Connection failed')
         })
       }
-      ;(io as any).mockReturnValue(failingSocket)
+      ;(io as vi.MockedFunction<typeof io>).mockReturnValue(failingSocket)
 
       const { result } = renderHook(() => useSocket())
 
@@ -76,7 +76,7 @@ describe('useSocket Hook', () => {
 
       // Simulate connection event
       act(() => {
-        const connectHandler = mockSocket.on.mock.calls.find((call: any) => call[0] === 'connect')?.[1]
+        const connectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'connect')?.[1]
         connectHandler()
       })
 
@@ -85,7 +85,7 @@ describe('useSocket Hook', () => {
 
       // Simulate disconnection event
       act(() => {
-        const disconnectHandler = mockSocket.on.mock.calls.find((call: any) => call[0] === 'disconnect')?.[1]
+        const disconnectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'disconnect')?.[1]
         disconnectHandler('server error')
       })
 
@@ -98,7 +98,7 @@ describe('useSocket Hook', () => {
         ...mockSocket,
         connected: false
       }
-      ;(io as any).mockReturnValue(retriableSocket)
+      ;(io as vi.MockedFunction<typeof io>).mockReturnValue(retriableSocket)
 
       const { result } = renderHook(() => useSocket())
 
@@ -140,7 +140,7 @@ describe('useSocket Hook', () => {
         ...mockSocket,
         connected: false
       }
-      ;(io as any).mockReturnValue(disconnectedSocket)
+      ;(io as vi.MockedFunction<typeof io>).mockReturnValue(disconnectedSocket)
 
       const { result } = renderHook(() => useSocket())
 
@@ -161,7 +161,7 @@ describe('useSocket Hook', () => {
       
       // Simulate disconnect and queue events
       act(() => {
-        const disconnectHandler = mockSocket.on.mock.calls.find((call: any) => call[0] === 'disconnect')?.[1]
+        const disconnectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'disconnect')?.[1]
         disconnectHandler()
         result.current.emit('queued-event', { data: 'queued' })
       })
@@ -170,7 +170,7 @@ describe('useSocket Hook', () => {
 
       // Simulate reconnection
       act(() => {
-        const connectHandler = mockSocket.on.mock.calls.find((call: any) => call[0] === 'connect')?.[1]
+        const connectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'connect')?.[1]
         connectHandler()
       })
 
@@ -243,7 +243,7 @@ describe('useSocket Hook', () => {
 
       // Simulate pong response
       act(() => {
-        const pongHandler = mockSocket.on.mock.calls.find((call: any) => call[0] === 'pong')?.[1]
+        const pongHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'pong')?.[1]
         pongHandler({ timestamp: Date.now() - 100 }) // 100ms latency
       })
 

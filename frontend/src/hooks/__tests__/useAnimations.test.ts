@@ -18,8 +18,8 @@ vi.mock('../../utils/animation-config', () => ({
     ...overrides
   })),
   getOptimizedDuration: vi.fn((duration) => duration),
-  createAnimationSequence: vi.fn((sequence) => 
-    sequence.map((item: any) => ({
+  createAnimationSequence: vi.fn((sequence: Array<{ name: string; delay: number }>) => 
+    sequence.map((item) => ({
       ...item,
       config: { duration: 300, easing: 'ease-out' }
     }))

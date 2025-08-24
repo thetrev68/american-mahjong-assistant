@@ -49,8 +49,6 @@ export class PatternVariationLoader {
 
   private static async _performLoad(): Promise<void> {
     try {
-      const startTime = performance.now()
-
       // Load variations and index in parallel
       const [variationsResponse, indexResponse] = await Promise.all([
         fetch('/intelligence/nmjl-patterns/pattern-variations.json'),
@@ -73,7 +71,6 @@ export class PatternVariationLoader {
       this.index = index
       this.isLoaded = true
 
-      const loadTime = performance.now() - startTime
       // Pattern variations loaded successfully
 
     } catch (error) {

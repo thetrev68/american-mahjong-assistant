@@ -120,7 +120,7 @@ export function useMultiplayer() {
 
       socket.on('room-created', handleResponse)
     })
-  }, [socket, clearError, handleError])
+  }, [socket, clearError, handleError, setCurrentRoom, setCurrentPlayerId])
 
   // Room joining
   const joinRoom = useCallback(async (roomId: string, playerName: string): Promise<Room> => {
@@ -157,7 +157,7 @@ export function useMultiplayer() {
 
       socket.on('room-joined', handleResponse)
     })
-  }, [socket, clearError, handleError])
+  }, [socket, clearError, handleError, setCurrentRoom, setCurrentPlayerId])
 
   // Room leaving
   const leaveRoom = useCallback(async (): Promise<void> => {
@@ -184,7 +184,7 @@ export function useMultiplayer() {
 
       socket.on('room-left', handleResponse)
     })
-  }, [socket])
+  }, [socket, currentRoom, clearCurrentRoom])
 
   // Game state updates
   const updateGamePhase = useCallback(async (phase: GameState['phase']): Promise<void> => {
@@ -212,7 +212,7 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket])
+  }, [socket, currentRoom])
 
   const updatePlayerState = useCallback(async (playerState: Partial<PlayerGameState>): Promise<void> => {
     if (!socket.isConnected) {
@@ -239,7 +239,7 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket])
+  }, [socket, currentRoom])
 
   const updateSharedState = useCallback(async (sharedState: Partial<SharedGameState>): Promise<void> => {
     if (!socket.isConnected) {
@@ -266,7 +266,7 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket])
+  }, [socket, currentRoom])
 
   const requestGameState = useCallback(async (): Promise<GameState | null> => {
     if (!currentRoom) {
@@ -292,7 +292,7 @@ export function useMultiplayer() {
 
       socket.on('game-state', handleResponse)
     })
-  }, [socket])
+  }, [socket, currentRoom, setGameState])
 
   // Error setter for testing
   const setError = useCallback((error: string) => {
@@ -343,7 +343,7 @@ export function useMultiplayer() {
       socket.off('room-deleted', handleRoomDeleted)
       socket.off('room-list-updated', handleRoomListUpdated)
     }
-  }, [socket])
+  }, [socket, addPlayerToRoom, removePlayerFromRoom, setGameState, currentRoom, clearCurrentRoom, updateAvailableRooms])
 
   // Process pending updates when reconnected
   useEffect(() => {
@@ -358,12 +358,12 @@ export function useMultiplayer() {
       })
       setPendingUpdates([])
     }
-  }, [socket.isConnected, pendingUpdates, socket])
+  }, [socket.isConnected, pendingUpdates, socket, currentRoom])
 
   // Cleanup timeouts on unmount
   useEffect(() => {
+    const timeouts = retryTimeoutsRef.current
     return () => {
-      const timeouts = retryTimeoutsRef.current
       timeouts.forEach(clearTimeout)
     }
   }, [])

@@ -20,8 +20,8 @@ const mockSocketHook = {
 }
 
 const mockStore = {
-  currentRoom: null as any,
-  gameState: null as any,
+  currentRoom: null as Record<string, unknown> | null,
+  gameState: null as Record<string, unknown> | null,
   isHost: false,
   availableRooms: [],
   setCurrentRoom: vi.fn(),
@@ -40,8 +40,8 @@ const mockStore = {
 describe('useMultiplayer Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(useSocket as any).mockReturnValue(mockSocketHook)
-    ;(useMultiplayerStore as any).mockReturnValue(mockStore)
+    ;(useSocket as vi.MockedFunction<typeof useSocket>).mockReturnValue(mockSocketHook)
+    ;(useMultiplayerStore as vi.MockedFunction<typeof useMultiplayerStore>).mockReturnValue(mockStore)
   })
 
   describe('Room Management', () => {
@@ -245,7 +245,7 @@ describe('useMultiplayer Hook', () => {
 
       act(() => {
         const joinHandler = mockSocketHook.on.mock.calls.find(
-          (call: any) => call[0] === 'player-joined'
+          (call: [string, (...args: unknown[]) => void]) => call[0] === 'player-joined'
         )?.[1]
         joinHandler({ player: newPlayer, room: { id: 'room-123' } })
       })
@@ -258,7 +258,7 @@ describe('useMultiplayer Hook', () => {
 
       act(() => {
         const leaveHandler = mockSocketHook.on.mock.calls.find(
-          (call: any) => call[0] === 'player-left'
+          (call: [string, (...args: unknown[]) => void]) => call[0] === 'player-left'
         )?.[1]
         leaveHandler({ playerId: 'leaving-player', roomId: 'room-123' })
       })
@@ -277,7 +277,7 @@ describe('useMultiplayer Hook', () => {
 
       act(() => {
         const stateHandler = mockSocketHook.on.mock.calls.find(
-          (call: any) => call[0] === 'game-state-changed'
+          (call: [string, (...args: unknown[]) => void]) => call[0] === 'game-state-changed'
         )?.[1]
         stateHandler({ gameState: updatedGameState })
       })
@@ -291,7 +291,7 @@ describe('useMultiplayer Hook', () => {
 
       act(() => {
         const deleteHandler = mockSocketHook.on.mock.calls.find(
-          (call: any) => call[0] === 'room-deleted'
+          (call: [string, (...args: unknown[]) => void]) => call[0] === 'room-deleted'
         )?.[1]
         deleteHandler({ roomId: 'room-123' })
       })
