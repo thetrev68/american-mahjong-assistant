@@ -119,13 +119,13 @@ export class TileRecommendationEngine {
       tileActions.push(action)
     }
     
-    // Sort by priority (highest first)
-    tileActions.sort((a, b) => b.priority - a.priority)
+    // Sort by tile position (same as hand sorting), then by priority
+    const sortedTileActions = this.sortTileActions(tileActions)
     
-    // Categorize actions
-    const keepTiles = tileActions.filter(a => a.primaryAction === 'keep')
-    let passTiles = tileActions.filter(a => a.primaryAction === 'pass')
-    let discardTiles = tileActions.filter(a => a.primaryAction === 'discard')
+    // Categorize actions (maintaining sort order)
+    const keepTiles = sortedTileActions.filter(a => a.primaryAction === 'keep')
+    let passTiles = sortedTileActions.filter(a => a.primaryAction === 'pass')
+    let discardTiles = sortedTileActions.filter(a => a.primaryAction === 'discard')
     
     // Ensure minimum recommendations based on game phase
     if (gameContext.phase === 'charleston') {
@@ -173,7 +173,7 @@ export class TileRecommendationEngine {
     )
     
     return {
-      tileActions,
+      tileActions: sortedTileActions,
       keepTiles,
       passTiles,
       discardTiles,
@@ -235,7 +235,6 @@ export class TileRecommendationEngine {
       // Get actual tile contribution data from Engine 1 facts
       const tileContributions = this.analyzeTileContributions(tileId, analysisFacts)
     
-    // Debug the recommendation decision process
     
     // Determine base action
     let primaryAction: TileAction['primaryAction'] = 'neutral'
@@ -267,30 +266,44 @@ export class TileRecommendationEngine {
       confidence = 90
       priority = 9
       reasoning = `Critical single tile for ${tileContributions.topPattern}`
-    } else if (tileContributions.helpsMultiplePatterns && tileContributions.patternCount >= 3) {
-      // Very flexible tile
-      primaryAction = 'keep'
-      confidence = 75
-      priority = 7
-      reasoning = `Flexible tile helping ${tileContributions.patternCount} patterns`
-    } else if (tileContributions.patternCount === 0) {
-      // Tile doesn't help any viable patterns - MUST recommend discard/pass
-      primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
-      confidence = 85
-      priority = 1
-      reasoning = 'Does not contribute to any viable patterns'
-    } else if (tileContributions.patternCount === 1 && tileContributions.totalValue < 0.3) {
-      // Low value single tile - recommend discard/pass
-      primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
-      confidence = 70
-      priority = 2
-      reasoning = 'Low strategic value for current patterns'
+    } else if (tileContributions.isKeepTile) {
+      // TIER-BASED SYSTEM: Use priority tier for recommendations
+      if (tileContributions.priorityTier === 1) {
+        // Tier 1: Primary pattern tile
+        primaryAction = 'keep'
+        confidence = 90
+        priority = 9
+        reasoning = `Required for primary pattern (${tileContributions.topPattern})`
+      } else if (tileContributions.priorityTier === 2) {
+        // Tier 2: Top variation tile  
+        primaryAction = 'keep'
+        confidence = 80
+        priority = 7
+        reasoning = `Required for top variation (${tileContributions.topPattern})`
+      } else if (tileContributions.priorityTier === 3) {
+        // Tier 3: Alternate pattern tile
+        primaryAction = 'keep'
+        confidence = 65
+        priority = 6
+        reasoning = `Required for alternate pattern (${tileContributions.topPattern})`
+      } else {
+        // Fallback keep (shouldn't happen with current logic)
+        primaryAction = 'keep'
+        confidence = 50
+        priority = 5
+        reasoning = 'Contributes to viable patterns'
+      }
     } else {
-      // Moderate value tile - lean toward keeping but could pass/discard
-      primaryAction = 'neutral'
-      confidence = 50
-      priority = 4
-      reasoning = 'Moderate strategic value - evaluate with hand balance'
+      // Not a keep tile - recommend discard/pass
+      primaryAction = gameContext.phase === 'charleston' ? 'pass' : 'discard'
+      confidence = 80
+      priority = 2
+      reasoning = 'Does not contribute to priority patterns'
+    }
+    
+    // Debug final action determination
+    if (tileId === '4C' || tileId === 'green' || tileId === '1B' || tileId === '3C') {
+      console.log(`🎯 ENGINE 3 FINAL ACTION - ${tileId}: ${primaryAction} (${reasoning})`)
     }
     
     // Opponent safety analysis
@@ -364,14 +377,81 @@ export class TileRecommendationEngine {
   }
 
   /**
-   * Analyze tile contributions using actual Engine 1 pattern analysis facts
+   * Helper method to sort tile actions using the same logic as hand sorting
+   */
+   private static sortTileActions(tileActions: TileAction[]): TileAction[] {
+    const suitOrder = ['dots', 'bams', 'cracks', 'winds', 'dragons', 'flowers', 'jokers']
+    
+    return [...tileActions].sort((a, b) => {
+      // First sort by tile position (same as hand sorting)
+      const getSuitFromTileId = (tileId: string) => {
+        if (tileId.endsWith('D')) return 'dots'
+        if (tileId.endsWith('B')) return 'bams' 
+        if (tileId.endsWith('C')) return 'cracks'
+        if (['east', 'south', 'west', 'north'].includes(tileId)) return 'winds'
+        if (['red', 'green', 'white'].includes(tileId)) return 'dragons'
+        if (tileId.startsWith('f') || tileId === 'flower') return 'flowers'
+        if (tileId === 'joker') return 'jokers'
+        return 'unknown'
+      }
+      
+      const suitA = suitOrder.indexOf(getSuitFromTileId(a.tileId))
+      const suitB = suitOrder.indexOf(getSuitFromTileId(b.tileId))
+      if (suitA !== suitB) return suitA - suitB
+      
+      // Then by value within suit
+      const getValue = (tileId: string) => {
+        if (['east', 'south', 'west', 'north'].includes(tileId)) {
+          const windOrder = ['east', 'south', 'west', 'north']
+          return windOrder.indexOf(tileId)
+        }
+        if (['red', 'green', 'white'].includes(tileId)) {
+          const dragonOrder = ['red', 'green', 'white']
+          return dragonOrder.indexOf(tileId)
+        }
+        const num = parseInt(tileId)
+        return !isNaN(num) ? num : tileId.localeCompare(tileId)
+      }
+      
+      const valueA = getValue(a.tileId)
+      const valueB = getValue(b.tileId)
+      if (valueA !== valueB) return valueA - valueB
+      
+      // Finally by priority if tiles are the same
+      return b.priority - a.priority
+    })
+  }
+
+  /**
+   * Helper method to find a tile's contribution in a specific pattern
+   */
+  private static findTileInPattern(tileId: string, patternFact: PatternAnalysisFacts): any {
+    try {
+      const bestVariation = patternFact?.tileMatching?.bestVariation
+      if (!bestVariation) return null
+      
+      const tileContributions = bestVariation.tileContributions
+      if (!tileContributions || !Array.isArray(tileContributions)) return null
+      
+      const tileContribution = tileContributions.find((contrib: any) => {
+        if (typeof contrib === 'object' && contrib !== null && 'tileId' in contrib) {
+          return contrib.tileId === tileId
+        }
+        return false
+      })
+      
+      return tileContribution
+    } catch {
+      return null
+    }
+  }
+
+  /**
+   * Analyze tile contributions using sophisticated tier-based priority system
+   * (1) Primary pattern, (2) Top variations, (3) Top alternate patterns
+   * Target: ~11 keep tiles for balanced recommendations
    */
   private static analyzeTileContributions(tileId: string, analysisFacts?: unknown[]) {
-    const patterns: string[] = []
-    let totalValue = 0
-    let isCritical = false
-    let topPattern = ''
-    
     if (!analysisFacts || analysisFacts.length === 0) {
       // No Engine 1 facts - return no contributions so tiles get discarded
       return {
@@ -380,15 +460,17 @@ export class TileRecommendationEngine {
         totalValue: 0,
         isCritical: false,
         helpsMultiplePatterns: false,
-        topPattern: ''
+        topPattern: '',
+        priorityTier: 0,
+        isKeepTile: false
       }
     }
     
     try {
-      // Using Engine 1 facts for tile analysis with safe property access
+      // TIER-BASED PRIORITY SYSTEM: Sophisticated keep/discard recommendations
       
-      // Check ALL viable patterns that have meaningful progress (not just top 3)
-      const viablePatterns = analysisFacts
+      // Step 1: Get all viable patterns sorted by completion ratio
+      const allViablePatterns = analysisFacts
         .filter((fact): fact is PatternAnalysisFacts => {
           // Type guard: validate fact structure silently - log only critical errors
           if (!fact || typeof fact !== 'object') return false
@@ -409,80 +491,66 @@ export class TileRecommendationEngine {
           return bRatio - aRatio
         })
       
-      // Check each viable pattern's analysis facts for tile contributions
-      for (const patternFact of viablePatterns) {
-        try {
-          const bestVariation = patternFact?.tileMatching?.bestVariation
-          
-          if (!bestVariation) {
-            // Expected case for incomplete pattern analysis - skip silently
-            continue
-          }
-          
-          
-          // Check if this tile has contributions in the best variation
-          const tileContributions = bestVariation.tileContributions
-          if (!tileContributions || !Array.isArray(tileContributions)) {
-            // Expected case for patterns without tile contribution data - skip silently
-            continue
-          }
-          
-          const tileContribution = tileContributions.find((contrib: unknown) => {
-            if (typeof contrib === 'object' && contrib !== null && 'tileId' in contrib) {
-              return (contrib as { tileId: string }).tileId === tileId
-            }
-            return false
-          })
-          
-          if (tileContribution && 
-              typeof tileContribution === 'object' && 
-              tileContribution !== null && 
-              'isRequired' in tileContribution && 
-              (tileContribution as { isRequired: boolean }).isRequired) {
-            patterns.push(patternFact.patternId)
-            
-            // Calculate value based on actual contribution
-            let contributionValue = 0.5 // Base value for required tiles
-            
-            if ('isCritical' in tileContribution && (tileContribution as { isCritical: boolean }).isCritical === true) {
-              contributionValue += 0.3
-              isCritical = true
-            }
-            
-            if ('positionsInPattern' in tileContribution && 
-                Array.isArray((tileContribution as { positionsInPattern: unknown[] }).positionsInPattern) && 
-                (tileContribution as { positionsInPattern: unknown[] }).positionsInPattern.length > 1) {
-              contributionValue += 0.2 // Bonus for multi-position tiles
-            }
-            
-            // Pattern completion affects tile value
-            const completionRatio = bestVariation.completionRatio || 0
-            contributionValue *= (0.5 + completionRatio) // Scale by pattern progress
-            
-            totalValue += contributionValue
-            
-            if (!topPattern) {
-              topPattern = patternFact.patternId
-            }
-          } else {
-            // Tile not required for this pattern - skip
-          }
-        } catch {
-          // Silent - expected data validation failure
-          continue
+      // Step 2: Determine tile's priority tier and value
+      let priorityTier = 0
+      let tileValue = 0
+      let topPattern = ''
+      let isCritical = false
+      const patterns: string[] = []
+      
+      // Tier 1: Primary pattern (top completion ratio)
+      if (allViablePatterns.length > 0) {
+        const primaryPattern = allViablePatterns[0]
+        const tileContribution = this.findTileInPattern(tileId, primaryPattern)
+        if (tileContribution?.isRequired) {
+          priorityTier = 1
+          tileValue += 1.0 // High value for primary pattern
+          topPattern = primaryPattern.patternId
+          isCritical = tileContribution.isCritical
+          patterns.push(primaryPattern.patternId)
         }
       }
-    
-      const result = {
-        patterns,
-        patternCount: patterns.length,
-        totalValue,
-        isCritical,
-        helpsMultiplePatterns: patterns.length >= 2,
-        topPattern
+      
+      // TODO: Tier 2: Top variations of primary pattern (not implemented yet)
+      // This would require variation-level analysis to check alternate variations
+      // of the same pattern (e.g., SINGLES_AND_PAIRS-2-1 sequence 1 vs sequence 2)
+      
+      // Tier 3: Top alternate patterns
+      if (priorityTier === 0) {
+        for (let i = 1; i < Math.min(4, allViablePatterns.length); i++) {
+          const alternatePattern = allViablePatterns[i]
+          const tileContribution = this.findTileInPattern(tileId, alternatePattern)
+          if (tileContribution?.isRequired) {
+            priorityTier = 3
+            tileValue += 0.5 // Lower value for alternate patterns
+            if (!topPattern) topPattern = alternatePattern.patternId
+            patterns.push(alternatePattern.patternId)
+          }
+        }
       }
       
-      return result
+      // Determine if this is a keep tile based on tier system
+      const isKeepTile = priorityTier > 0
+      
+      // Debug Engine 1 facts for specific tiles
+      if (tileId === '4C' || tileId === 'green' || tileId === '1B' || tileId === '3C') {
+        console.log(`🎯 ENGINE 3 TIER-BASED analyzing ${tileId}`)
+        console.log(`  Priority Tier: ${priorityTier} (${isKeepTile ? 'KEEP' : 'DISCARD'})`)
+        console.log(`  Top pattern: ${topPattern}`)
+        console.log(`  Tile value: ${tileValue}`)
+        console.log(`  All viable patterns: ${allViablePatterns.length}`)
+      }
+      
+      return {
+        patterns,
+        patternCount: patterns.length,
+        totalValue: tileValue,
+        isCritical,
+        helpsMultiplePatterns: patterns.length >= 2,
+        topPattern,
+        priorityTier,
+        isKeepTile
+      }
       
     } catch (analysisError) {
       // Keep this error - it indicates tile contribution analysis failures

@@ -177,12 +177,6 @@ export class PatternAnalysisEngine {
       current.completionRatio < worst.completionRatio ? current : worst
     )
     
-    // Debug best variation for SINGLES AND PAIRS
-    if (variations[0].handKey.includes('SINGLES_AND_PAIRS-1-1')) {
-      // console.log('=== BEST VARIATION SELECTED ===')
-      // console.log(`Best: Sequence ${bestVariation.sequence}, ${bestVariation.tilesMatched}/14 tiles (${(bestVariation.completionRatio * 100).toFixed(1)}%)`)
-      // console.log('All variations completion rates:', variationResults.map(v => `Seq${v.sequence}: ${v.tilesMatched}/14`).join(', '))
-    }
     
     // Calculate average completion
     const averageCompletion = variationResults.reduce((sum, result) => 
@@ -262,10 +256,13 @@ export class PatternAnalysisEngine {
     // Analyze tile contributions for each player tile
     for (const playerTile of new Set(playerTiles)) {
       const positions = this.findTilePositions(playerTile, variation.tiles)
+      const isRequired = variation.tiles.includes(playerTile)
+      
+      
       const contribution: TileContribution = {
         tileId: playerTile,
         positionsInPattern: positions,
-        isRequired: variation.tiles.includes(playerTile),
+        isRequired: isRequired,
         isCritical: this.isCriticalTile(playerTile, variation),
         canBeReplaced: this.canJokerReplace(playerTile, variation)
       }
