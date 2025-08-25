@@ -86,7 +86,7 @@ export const TileInputPage = () => {
   
   
   return (
-    <Container size="full" padding="lg">
+    <Container size="full" padding="sm" center={true}>
       <div className="space-y-6">
         {/* Header */}
         <div className="text-center space-y-4">
@@ -109,7 +109,7 @@ export const TileInputPage = () => {
         </div>
         
         {/* Game Controls */}
-        <Card variant="default" className="p-4">
+        <Card variant="default" className="p-3">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-4">
               {/* Dealer Toggle */}
@@ -181,7 +181,7 @@ export const TileInputPage = () => {
         
         
         {/* Hand Status Indicator */}
-        <Card variant="default" className="p-4">
+        <Card variant="default" className="p-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="text-2xl">

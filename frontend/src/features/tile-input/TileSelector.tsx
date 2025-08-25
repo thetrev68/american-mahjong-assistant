@@ -130,8 +130,8 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
   }
   
   return (
-    <Card variant="elevated" className="p-6">
-      <div className="space-y-6">
+    <Card variant="elevated" className="p-3">
+      <div className="space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-gray-900">
@@ -169,7 +169,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
         </div>
         
         {/* Tiles Grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 lg:grid-cols-9 gap-4">
+        <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-9 gap-4">
           {availableTiles.map(tile => {
             const currentCount = tileCounts.get(tile.id) || 0
             const isMaxed = currentCount >= 4
@@ -186,14 +186,14 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
                   `}
                   animateOnSelect={true}
                   context="selection"
-                >
-                  {/* Count Badge */}
-                  {currentCount > 0 && (
-                    <div className="tile-count-badge" style={{ top: '-10px', right: '-10px', pointerEvents: 'none' }}>
-                      {currentCount}
-                    </div>
-                  )}
-                </AnimatedTile>
+                />
+                
+                {/* Count Badge */}
+                {currentCount > 0 && (
+                  <div className="tile-count-badge">
+                    {currentCount}
+                  </div>
+                )}
                 
                 {/* Max Badge */}
                 {isMaxed && (
@@ -208,7 +208,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
         </div>
         
         {/* Quick Actions */}
-        <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
+        <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-200">
           <Button
             variant="outline"
             size="sm"

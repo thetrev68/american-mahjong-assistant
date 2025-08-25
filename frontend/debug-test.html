@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Test - Engine 3 Issue</title>
+</head>
+<body>
+    <h1>Debug Test for Engine 3 Tile Recommendation Issue</h1>
+    <div id="debug-output"></div>
+    
+    <script>
+        // Open browser console to run this test:
+        console.log('=== ENGINE 3 DEBUG TEST ===');
+        console.log('Test Hand: 1B, 8B, 2C, 3C, 4C, 1D, 3D, 3D, 9D, green×2, red, south wind');
+        console.log('Pattern: SINGLES AND PAIRS #2 (FF 2468 DD 2468 DD)');
+        console.log('Expected variation tiles: ["flower", "flower", "2B", "4B", "6B", "8B", "green", "green", "2C", "4C", "6C", "8C", "red", "red"]');
+        console.log('');
+        console.log('Expected isRequired results:');
+        console.log('- 4C: true (in variation)');
+        console.log('- green: true (in variation)');
+        console.log('- red: true (in variation)');
+        console.log('- 8B: true (in variation)');  
+        console.log('- 2C: true (in variation)');
+        console.log('- 1B: false (NOT in variation)');
+        console.log('- 3C: false (NOT in variation)');
+        console.log('- 1D: false (NOT in variation)');
+        console.log('- 3D: false (NOT in variation)');
+        console.log('- 9D: false (NOT in variation)');
+        console.log('- south: false (NOT in variation)');
+        console.log('');
+        console.log('Navigate to http://localhost:5174/intelligence and run test with browser dev tools');
+    </script>
+</body>
+</html>

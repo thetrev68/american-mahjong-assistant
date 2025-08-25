@@ -93,7 +93,7 @@ export const HandDisplay = ({
               <span>{suit}</span>
               <span className="text-xs text-gray-500">({tiles.length})</span>
             </h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-4">
               {tiles.map(tile => {
                 const recommendation = getTileHighlighting(tile)
                 return (
@@ -106,12 +106,13 @@ export const HandDisplay = ({
                       context="selection"
                       recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
                     />
-                    {/* Remove button that appears on hover/selection */}
+                    {/* Remove button that appears on selection */}
                     {(tile.isSelected || false) && (
                       <button
                         onClick={() => removeTile(tile.instanceId)}
-                        className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-10"
+                        className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-20 border border-white transform translate-x-1/2 -translate-y-1/2"
                         title="Remove tile"
+                        style={{ pointerEvents: 'auto' }}
                       >
                         ×
                       </button>
@@ -128,7 +129,7 @@ export const HandDisplay = ({
   
   const renderTileList = () => {
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-4">
         {playerHand.map(tile => {
           const recommendation = getTileHighlighting(tile)
           return (
@@ -141,12 +142,13 @@ export const HandDisplay = ({
                 context="selection"
                 recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
               />
-              {/* Remove button that appears on hover/selection */}
+              {/* Remove button that appears on selection */}
               {(tile.isSelected || false) && (
                 <button
                   onClick={() => removeTile(tile.instanceId)}
-                  className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-10"
-                  title="Remove tile (or double-click)"
+                  className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-20 border border-white transform translate-x-1/2 -translate-y-1/2"
+                  title="Remove tile"
+                  style={{ pointerEvents: 'auto' }}
                 >
                   ×
                 </button>
@@ -174,10 +176,9 @@ export const HandDisplay = ({
   }
   
   return (
-    <Card variant="elevated" className="space-y-4">
-      <div className="p-4 pb-0">
+    <Card variant="elevated" className="p-3 space-y-3">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h3 className="text-lg font-semibold text-gray-900">
               Your Hand
@@ -234,7 +235,7 @@ export const HandDisplay = ({
         
         {/* Sort Controls */}
         {allowReordering && (
-          <div className="flex items-center gap-2 mb-4 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm text-gray-600 whitespace-nowrap">Sort By:</span>
             <div className="flex gap-2 flex-wrap">
               {(['suit', 'recommendation'] as const).map(sort => (
@@ -256,7 +257,7 @@ export const HandDisplay = ({
         
         {/* Validation Feedback */}
         {!validation.isValid && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
             <div className="flex items-start gap-2">
               <span className="text-red-500 text-sm">⚠️</span>
               <div className="text-sm">
@@ -280,10 +281,9 @@ export const HandDisplay = ({
             </div>
           </div>
         )}
-      </div>
       
       {/* Tiles Display */}
-      <div className="p-4 pt-0">
+      <div>
         {sortBy === 'suit' ? renderTileGroups() : renderTileList()}
       </div>
     </Card>

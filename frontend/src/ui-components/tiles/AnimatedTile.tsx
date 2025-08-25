@@ -237,7 +237,7 @@ export const AnimatedTile = ({
       case 'selection':
       default:
         if (tile.isSelected) {
-          classes.push('transform scale-105')
+          classes.push('transform scale-105 z-10')
         } else {
           classes.push('hover:scale-102 hover:shadow-md')
         }

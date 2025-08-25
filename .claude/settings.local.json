@@ -12,7 +12,10 @@
       "Bash(npm run lint)",
       "Bash(npm run lint:*)",
       "Bash(npm run test:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)",
+      "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)",
+      "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)"
     ],
     "deny": [],
     "ask": [],

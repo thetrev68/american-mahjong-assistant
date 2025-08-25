@@ -25,10 +25,10 @@ export const Container = ({
   
   const paddings = {
     none: '',
-    sm: 'px-4 py-3',
-    md: 'px-6 py-4',
-    lg: 'px-8 py-6',
-    xl: 'px-12 py-8'
+    sm: 'px-2 sm:px-4 py-3',
+    md: 'px-4 sm:px-6 py-4',
+    lg: 'px-6 sm:px-8 py-6',
+    xl: 'px-8 sm:px-12 py-8'
   }
   
   const centerClasses = center ? 'mx-auto' : ''

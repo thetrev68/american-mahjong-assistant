@@ -1,7 +1,7 @@
 import type { 
   GameState, 
   PlayerGameState, 
-  SharedGameState 
+  SharedState 
 } from '@shared/multiplayer-types'
 
 export type StateUpdateType = 
@@ -112,7 +112,7 @@ export class StateSyncManager {
     return gameState
   }
 
-  updateSharedState(roomId: string, sharedState: Partial<SharedGameState>): GameState | null {
+  updateSharedState(roomId: string, sharedState: Partial<SharedState>): GameState | null {
     const gameState = this.getGameState(roomId)
     if (!gameState) {
       return null
@@ -279,7 +279,7 @@ export class StateSyncManager {
     }
   }
 
-  private validateSharedState(data: Partial<SharedGameState>): void {
+  private validateSharedState(data: Partial<SharedState>): void {
     if (data.wallTilesRemaining !== undefined && (data.wallTilesRemaining < 0 || data.wallTilesRemaining > 144)) {
       throw new Error('Invalid wall tiles remaining')
     }

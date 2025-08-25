@@ -10,6 +10,7 @@ import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 import { PrimaryAnalysisCard } from './PrimaryAnalysisCard'
 import { AdvancedPatternAnalysis } from './AdvancedPatternAnalysis'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
+import { Container } from '../../ui-components/layout/Container'
 
 export const IntelligencePanelPage = () => {
   const navigate = useNavigate()
@@ -61,7 +62,7 @@ export const IntelligencePanelPage = () => {
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-full mx-auto px-2 sm:px-3 py-2 sm:py-4">
+        <Container size="full" padding="sm" center={true}>
           <div className="w-full">
             <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
               🧠 AI Intelligence Panel
@@ -70,14 +71,15 @@ export const IntelligencePanelPage = () => {
               Advanced pattern analysis and strategic recommendations
             </p>
           </div>
-        </div>
+        </Container>
       </div>
       
       {/* Main Content */}
-      <div className="max-w-full mx-auto px-1 sm:px-2 py-2 sm:py-4">
+      <Container size="full" padding="sm" center={true}>
+        <div className="space-y-6">
         {/* Pattern Switch Loading State - Optimized for instant feedback */}
         {hasEnoughTiles && isPatternSwitching && (
-          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center gap-3">
               <div className="w-6 h-6">
                 <LoadingSpinner size="sm" color="primary" />
@@ -101,7 +103,7 @@ export const IntelligencePanelPage = () => {
 
         {/* Loading State - Prominent when analysis is running */}
         {hasEnoughTiles && isAnalyzing && !isPatternSwitching && (
-          <div className="mb-8 p-8 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="mb-8 p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="text-center">
               <div className="mb-6">
                 <LoadingSpinner 
@@ -143,7 +145,7 @@ export const IntelligencePanelPage = () => {
 
         {/* Error State */}
         {hasEnoughTiles && analysisError && !isAnalyzing && (
-          <div className="mb-8 p-6 bg-white rounded-xl border border-red-200 shadow-sm">
+          <div className="mb-8 p-3 bg-white rounded-xl border border-red-200 shadow-sm">
             <div className="text-center">
               <div className="text-4xl mb-4">⚠️</div>
               <h2 className="text-lg font-semibold text-red-900 mb-3">
@@ -162,7 +164,7 @@ export const IntelligencePanelPage = () => {
 
         {/* Prerequisites Check - Only show when no tiles */}
         {!hasEnoughTiles && !isAnalyzing && (
-          <div className="mb-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+          <div className="mb-8 p-3 bg-white rounded-xl border border-gray-200 shadow-sm">
             <div className="text-center">
               <div className="text-4xl mb-4">🤖</div>
               <h2 className="text-lg font-semibold text-gray-900 mb-3">
@@ -205,7 +207,7 @@ export const IntelligencePanelPage = () => {
 
         {/* Success State Transition - Show brief success message after loading */}
         {hasEnoughTiles && !isAnalyzing && currentAnalysis && !analysisError && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+          <div className="mb-6 p-3 bg-green-50 border border-green-200 rounded-lg">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                 <span className="text-white text-sm font-bold">✓</span>
@@ -410,8 +412,8 @@ export const IntelligencePanelPage = () => {
             )}
           </div>
         )}
-        
-      </div>
+        </div>
+      </Container>
     </div>
   )
 }

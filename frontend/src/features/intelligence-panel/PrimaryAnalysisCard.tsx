@@ -28,7 +28,7 @@ export const PrimaryAnalysisCard = ({
   
   if (!primaryPattern) {
     return (
-      <Card variant="elevated" className="p-6">
+      <Card variant="elevated" className="p-3">
         <div className="text-center text-gray-500">
           <div className="text-2xl mb-2">🤔</div>
           <p>Analyzing your hand...</p>
@@ -143,7 +143,7 @@ export const PrimaryAnalysisCard = ({
   }
 
   return (
-    <Card variant="elevated" className="p-3 md:p-4">
+    <Card variant="elevated" className="p-3">
       <div className="space-y-4">
         {/* Hand Tiles Visualization */}
         {playerTileIds.length > 0 && (

@@ -50,6 +50,9 @@ app.get('/health', (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 server.listen(PORT, () => {
+  console.log(`🚀 Mahjong Co-Pilot Backend server running on port ${PORT}`);
+  console.log(`📡 Socket.io server ready for connections`);
+  console.log(`🏥 Health check available at http://localhost:${PORT}/health`);
 });
 
 export { io };
