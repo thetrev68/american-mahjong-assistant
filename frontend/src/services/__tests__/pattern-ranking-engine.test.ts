@@ -2,20 +2,10 @@
 // Tests 4-component scoring system and strategic assessment
 
 import { describe, test, expect, beforeAll } from 'vitest'
-import { PatternRankingEngine, type ScoringComponents, type PatternRanking, type PatternSwitchAnalysis } from '../pattern-ranking-engine'
-import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from '../pattern-analysis-engine'
+import { PatternRankingEngine } from '../pattern-ranking-engine'
+import { type PatternAnalysisFacts } from '../pattern-analysis-engine'
 import { PatternVariationLoader } from '../pattern-variation-loader'
 import { type PatternSelectionOption } from '../../stores/pattern-store'
-
-// Sample game context for testing
-const createGameContext = (overrides: Partial<GameContext> = {}): GameContext => ({
-  jokersInHand: 0,
-  wallTilesRemaining: 84,
-  discardPile: [],
-  exposedTiles: {},
-  currentPhase: 'gameplay',
-  ...overrides
-})
 
 // Sample pattern selection options for testing
 const createMockPatterns = (): PatternSelectionOption[] => ([
@@ -172,10 +162,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     test('should calculate availability score (0-30 points)', async () => {
       const facts = [createMockFacts('2025-CONSECUTIVE_RUN-7-1', 5, 5/14)]
       
-      // Test with different wall states
-      const fullWallContext = createGameContext({ wallTilesRemaining: 84 })
-      const halfWallContext = createGameContext({ wallTilesRemaining: 42 })
-      const lowWallContext = createGameContext({ wallTilesRemaining: 10 })
+      // Test with different wall states - direct usage in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const fullWallResults = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -197,12 +184,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     })
 
     test('should calculate joker score (0-20 points)', async () => {
-      const facts = [createMockFacts('2025-ANY_LIKE_NUMBERS-2-1', 3, 3/14)]
-      
-      // Test with different joker counts
-      const noJokersContext = createGameContext({ jokersInHand: 0 })
-      const someJokersContext = createGameContext({ jokersInHand: 2 })
-      const manyJokersContext = createGameContext({ jokersInHand: 4 })
+      // Test with different joker counts - use facts directly
 
       // Update facts to reflect different joker scenarios
       const noJokersFactsUpdated = createMockFacts('2025-ANY_LIKE_NUMBERS-2-1', 3, 3/14)
@@ -226,10 +208,10 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
       expect(noJokersResults.rankings[0].components.jokerScore).toBe(0)
       expect(someJokersResults.rankings[0].components.jokerScore).toBeGreaterThan(0)
       expect(someJokersResults.rankings[0].components.jokerScore).toBeLessThanOrEqual(20)
+      expect(manyJokersResults.rankings[0].components.jokerScore).toBeGreaterThan(someJokersResults.rankings[0].components.jokerScore)
     })
 
     test('should calculate priority score (0-10 points)', async () => {
-      const gameContext = createGameContext()
       
       // Test different pattern types that should have different priorities
       const highValuePattern = createMockFacts('2025-2025-1-1', 5, 5/14) // 25 points
@@ -247,7 +229,6 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
     test('should calculate total score as sum of all components', async () => {
       const facts = [createMockFacts('2025-CONSECUTIVE_RUN-7-1', 7, 0.5)]
-      const gameContext = createGameContext({ jokersInHand: 2 })
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -269,7 +250,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     test('should mark patterns as viable when >40% complete', async () => {
       const viableFacts = createMockFacts('2025-SINGLES_AND_PAIRS-3-1', 6, 6/14) // 42.8% complete
       const nonViableFacts = createMockFacts('2025-CONSECUTIVE_RUN-7-1', 1, 1/14) // 7.1% complete - much lower
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const viableResults = await PatternRankingEngine.rankPatterns([viableFacts], selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -282,7 +263,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     })
 
     test('should assign recommendation categories correctly', async () => {
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
       
       // High completion + good score = excellent
       const excellentFacts = createMockFacts('2025-2025-1-1', 10, 10/14)
@@ -306,7 +287,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
     test('should calculate strategic value for patterns', async () => {
       const facts = [createMockFacts('2025-2025-1-1', 5, 5/14)]
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -318,11 +299,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     })
 
     test('should identify risk factors', async () => {
-      const gameContext = createGameContext({ 
-        wallTilesRemaining: 5, // Very low wall
-        discardPile: ['1B', '1B', '1C', '1C'], // Some tiles already discarded
-        exposedTiles: { 'player2': ['2B', '2B', '2B'] } // Player 2 exposed tiles
-      })
+      // Risk factors tested through direct rankPatterns call with low wall context
       
       const facts = [createMockFacts('2025-CONSECUTIVE_RUN-7-1', 3, 3/14)]
       const selectedPatterns = createMockPatterns()
@@ -341,7 +318,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
         createMockFacts('2025-CONSECUTIVE_RUN-7-1', 4, 4/14),   // Medium completion
         createMockFacts('2025-ANY_LIKE_NUMBERS-2-1', 2, 2/14)   // Low completion
       ]
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -362,7 +339,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
         createMockFacts('2025-2025-1-1', 5, 5/14),
         createMockFacts('2025-2468-1-1', 5, 5/14)
       ]
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -377,7 +354,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
   describe('Pattern Switch Analysis', () => {
     test('should detect when pattern switching is beneficial', async () => {
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
       
       // Current focus pattern with low progress
       const currentPattern = createMockFacts('2025-CONSECUTIVE_RUN-7-1', 2, 2/14)
@@ -401,7 +378,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     })
 
     test('should not suggest switching for marginal improvements', async () => {
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
       
       // Patterns with similar viability
       const facts = [
@@ -423,7 +400,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
     test('should provide pattern switch analysis structure', async () => {
       const facts = [createMockFacts('2025-ANY_LIKE_NUMBERS-2-1', 3, 3/14)]
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -437,8 +414,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     test('should adjust rankings based on Charleston vs Gameplay phase', async () => {
       const facts = [createMockFacts('2025-CONSECUTIVE_RUN-7-1', 4, 4/14)]
       
-      const charlestonContext = createGameContext({ currentPhase: 'charleston' })
-      const gameplayContext = createGameContext({ currentPhase: 'gameplay' })
+      // Contexts passed directly to rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const charlestonResults = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'charleston', wallTilesRemaining: 84 })
@@ -452,13 +428,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
     test('should consider exposed tiles in scoring', async () => {
       const facts = [createMockFacts('2025-ANY_LIKE_NUMBERS-2-1', 3, 3/14)]
       
-      const noExposuresContext = createGameContext({ exposedTiles: {} })
-      const withExposuresContext = createGameContext({ 
-        exposedTiles: {
-          'player2': ['1B', '1B', '1B'], // Player 2 exposed 1B pung
-          'player3': ['2C', '2C'] // Player 3 exposed pair
-        }
-      })
+      // Exposure contexts used inline in rankPatterns calls for comparison
 
       const selectedPatterns = createMockPatterns()
       const noExposuresResults = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -472,7 +442,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
   describe('Edge Cases and Error Handling', () => {
     test('should handle empty facts array', async () => {
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns([], selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -483,7 +453,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
     test('should handle patterns with zero completion', async () => {
       const facts = [createMockFacts('2025-SINGLES_AND_PAIRS-3-1', 0, 0)]
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -500,7 +470,6 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
     test('should validate scoring component ranges', async () => {
       const facts = [createMockFacts('2025-CONSECUTIVE_RUN-7-1', 7, 0.5)]
-      const gameContext = createGameContext({ jokersInHand: 3 })
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
@@ -522,7 +491,7 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
 
     test('should maintain confidence values', async () => {
       const facts = [createMockFacts('2025-ANY_LIKE_NUMBERS-2-1', 4, 4/14)]
-      const gameContext = createGameContext()
+      // Context created inline in rankPatterns calls
 
       const selectedPatterns = createMockPatterns()
       const results = await PatternRankingEngine.rankPatterns(facts, selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
