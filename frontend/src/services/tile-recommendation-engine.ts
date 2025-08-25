@@ -3,7 +3,7 @@
 // Provides contextual actions and danger warnings
 
 import type { RankedPatternResults } from './pattern-ranking-engine'
-import type { PatternAnalysisFacts } from './pattern-analysis-engine'
+import type { PatternAnalysisFacts, TileContribution } from './pattern-analysis-engine'
 
 export interface TileAction {
   tileId: string
@@ -301,10 +301,6 @@ export class TileRecommendationEngine {
       reasoning = 'Does not contribute to priority patterns'
     }
     
-    // Debug final action determination
-    if (tileId === '4C' || tileId === 'green' || tileId === '1B' || tileId === '3C') {
-      console.log(`🎯 ENGINE 3 FINAL ACTION - ${tileId}: ${primaryAction} (${reasoning})`)
-    }
     
     // Opponent safety analysis
     const opponentRisk = this.analyzeOpponentRisk(tileId, opponentAnalysis)
@@ -425,7 +421,7 @@ export class TileRecommendationEngine {
   /**
    * Helper method to find a tile's contribution in a specific pattern
    */
-  private static findTileInPattern(tileId: string, patternFact: PatternAnalysisFacts): any {
+  private static findTileInPattern(tileId: string, patternFact: PatternAnalysisFacts): TileContribution | null {
     try {
       const bestVariation = patternFact?.tileMatching?.bestVariation
       if (!bestVariation) return null
@@ -433,14 +429,11 @@ export class TileRecommendationEngine {
       const tileContributions = bestVariation.tileContributions
       if (!tileContributions || !Array.isArray(tileContributions)) return null
       
-      const tileContribution = tileContributions.find((contrib: any) => {
-        if (typeof contrib === 'object' && contrib !== null && 'tileId' in contrib) {
-          return contrib.tileId === tileId
-        }
-        return false
+      const tileContribution = tileContributions.find((contrib: TileContribution) => {
+        return contrib.tileId === tileId
       })
       
-      return tileContribution
+      return tileContribution || null
     } catch {
       return null
     }
@@ -532,15 +525,7 @@ export class TileRecommendationEngine {
       // Determine if this is a keep tile based on tier system
       const isKeepTile = priorityTier > 0
       
-      // Debug Engine 1 facts for specific tiles
-      if (tileId === '4C' || tileId === 'green' || tileId === '1B' || tileId === '3C') {
-        console.log(`🎯 ENGINE 3 TIER-BASED analyzing ${tileId}`)
-        console.log(`  Priority Tier: ${priorityTier} (${isKeepTile ? 'KEEP' : 'DISCARD'})`)
-        console.log(`  Top pattern: ${topPattern}`)
-        console.log(`  Tile value: ${tileValue}`)
-        console.log(`  All viable patterns: ${allViablePatterns.length}`)
-      }
-      
+        
       return {
         patterns,
         patternCount: patterns.length,
