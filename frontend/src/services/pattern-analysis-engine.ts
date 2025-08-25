@@ -234,11 +234,11 @@ export class PatternAnalysisEngine {
     const missingTiles: string[] = []
     const tileContributions: TileContribution[] = []
     
-    // Pattern analysis debug logging (disabled in production)
-    if (process.env.NODE_ENV === 'development' && variation.handKey.includes('SINGLES_AND_PAIRS-2-1')) {
-      console.log(`=== ENGINE 1 DEBUG: SINGLES AND PAIRS-2-1 Sequence ${variation.sequence} ===`)
-      console.log('Player tiles:', playerTiles)
-      console.log('Pattern tiles:', variation.tiles)
+    // Debug for SINGLES AND PAIRS pattern - show ALL sequences
+    if (variation.handKey.includes('SINGLES_AND_PAIRS-1-1')) {
+      // console.log(`=== DEBUG: SINGLES AND PAIRS-1-1 Sequence ${variation.sequence} ===`)
+      // console.log('Player tiles:', playerTiles)
+      // console.log('Required tiles:', variation.tiles)
     }
     
     // Analyze each required tile type
@@ -262,24 +262,12 @@ export class PatternAnalysisEngine {
     // Analyze tile contributions for each player tile
     for (const playerTile of new Set(playerTiles)) {
       const positions = this.findTilePositions(playerTile, variation.tiles)
-      const isRequired = this.doesTileMatchPattern(playerTile, variation.tiles)
-      
-      // Debug tile matching for development
-      if (process.env.NODE_ENV === 'development' && variation.handKey.includes('SINGLES_AND_PAIRS-2-1')) {
-        console.log(`Tile ${playerTile}: isRequired=${isRequired}, positions=[${positions.join(',')}]`)
-      }
-      
       const contribution: TileContribution = {
         tileId: playerTile,
         positionsInPattern: positions,
-        isRequired: isRequired,
+        isRequired: variation.tiles.includes(playerTile),
         isCritical: this.isCriticalTile(playerTile, variation),
         canBeReplaced: this.canJokerReplace(playerTile, variation)
-      }
-      
-      // Debug contribution analysis for development
-      if (process.env.NODE_ENV === 'development' && variation.handKey.includes('SINGLES_AND_PAIRS-2-1') && positions.length > 0) {
-        console.log(`CONTRIBUTION: ${playerTile} -> required=${isRequired}, critical=${contribution.isCritical}`)
       }
       tileContributions.push(contribution)
     }
@@ -402,11 +390,8 @@ export class PatternAnalysisEngine {
 
   private static findTilePositions(tileId: string, tiles: string[]): number[] {
     const positions: number[] = []
-    const normalizedTile = this.normalizeTileId(tileId)
-    
     tiles.forEach((tile, index) => {
-      const normalizedPattern = this.normalizeTileId(tile)
-      if (normalizedTile === normalizedPattern) {
+      if (tile === tileId) {
         positions.push(index)
       }
     })
@@ -415,8 +400,10 @@ export class PatternAnalysisEngine {
 
   private static isCriticalTile(tileId: string, variation: PatternVariation): boolean {
     const positions = this.findTilePositions(tileId, variation.tiles)
-    // A tile is critical if it appears in multiple positions or is unique
-    return positions.length > 1 || this.isUniqueTileInPattern(tileId, variation.tiles)
+    const count = positions.length
+    
+    // Consider a tile critical if it appears 2+ times (pair, pung, kong)
+    return count >= 2
   }
 
   private static canJokerReplace(tileId: string, variation: PatternVariation): boolean {
@@ -451,66 +438,5 @@ export class PatternAnalysisEngine {
     if (tileId === 'joker') return 8
     if (tileId.startsWith('f')) return 1 // Flowers
     return 4 // Standard tiles
-  }
-
-  /**
-   * Check if a player tile matches any tile in the pattern variation
-   * Handles tile ID normalization and variations
-   */
-  private static doesTileMatchPattern(playerTile: string, patternTiles: string[]): boolean {
-    // Direct match first
-    if (patternTiles.includes(playerTile)) {
-      return true
-    }
-    
-    // Normalize and try alternate formats
-    const normalizedPlayer = this.normalizeTileId(playerTile)
-    
-    for (const patternTile of patternTiles) {
-      const normalizedPattern = this.normalizeTileId(patternTile)
-      if (normalizedPlayer === normalizedPattern) {
-        return true
-      }
-    }
-    
-    return false
-  }
-
-  /**
-   * Normalize tile ID to handle different naming conventions
-   */
-  private static normalizeTileId(tileId: string): string {
-    const id = tileId.toLowerCase().trim()
-    
-    // Handle dragon variations
-    if (id.includes('green') || id === 'gd') return 'green'
-    if (id.includes('red') || id === 'rd') return 'red'  
-    if (id.includes('white') || id === 'wd') return 'white'
-    
-    // Handle wind variations
-    if (id.includes('east') || id === 'ew') return 'east'
-    if (id.includes('south') || id === 'sw') return 'south'
-    if (id.includes('west') || id === 'ww') return 'west'
-    if (id.includes('north') || id === 'nw') return 'north'
-    
-    // Handle flower variations
-    if (id.includes('flower') || id.startsWith('f')) return 'flower'
-    
-    // Handle joker variations
-    if (id.includes('joker') || id === 'j') return 'joker'
-    
-    // Standard numbered tiles should be already normalized (e.g., '4C')
-    return id
-  }
-
-  /**
-   * Check if a tile appears only once in the pattern
-   */
-  private static isUniqueTileInPattern(tileId: string, patternTiles: string[]): boolean {
-    const normalizedTile = this.normalizeTileId(tileId)
-    const count = patternTiles.filter(tile => 
-      this.normalizeTileId(tile) === normalizedTile
-    ).length
-    return count === 1
   }
 }
