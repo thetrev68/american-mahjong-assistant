@@ -9,6 +9,7 @@ import { RoomCreation } from './RoomCreation'
 import { RoomJoining } from './RoomJoining'
 import { PlayerPositioning } from './PlayerPositioning'
 import { Button } from '../../ui-components/Button'
+import { ShareButton } from '../../ui-components/ShareButton'
 
 type RoomMode = 'create' | 'join'
 
@@ -36,6 +37,20 @@ export const RoomSetupView: React.FC = () => {
   const [playerName, setPlayerName] = useState('')
   const [roomCodeInput, setRoomCodeInput] = useState('')
   const [forceStep, setForceStep] = useState<string | null>(null)
+
+  // Check for URL parameters to auto-fill room code and switch to join mode
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const joinCode = urlParams.get('join')
+    
+    if (joinCode && joinCode.length === 4) {
+      setRoomCodeInput(joinCode.toUpperCase())
+      setRoomMode('join')
+      // Clear the URL parameter to avoid confusion on refresh
+      const newUrl = window.location.pathname
+      window.history.replaceState({}, '', newUrl)
+    }
+  }, [])
 
   const currentStep = forceStep || roomSetup.setupProgress.currentStep
   const currentStepNumber = steps.findIndex(s => s.title.toLowerCase().includes(currentStep.split('-')[0])) + 1
@@ -221,8 +236,17 @@ export const RoomSetupView: React.FC = () => {
               </div>
             ) : (
               <div className="text-center bg-primary-50 border border-primary-200 rounded-lg p-4">
-                <div className="text-primary-900 font-medium">
-                  Room Code: <span className="font-mono text-lg">{roomSetup.roomCode}</span>
+                <div className="text-primary-900 font-medium flex items-center justify-center space-x-3">
+                  <span>Room Code: <span className="font-mono text-lg">{roomSetup.roomCode}</span></span>
+                  {/* Show share button for host (multiple fallback conditions for reliability) */}
+                  {(roomSetup.isHost || 
+                    roomStore.roomCreationStatus === 'success' || 
+                    multiplayerStore.currentRoom?.hostId === multiplayerStore.currentPlayerId) && roomSetup.roomCode && (
+                    <ShareButton 
+                      roomCode={roomSetup.roomCode}
+                      disabled={roomSetup.isCreatingRoom || roomSetup.isJoiningRoom}
+                    />
+                  )}
                 </div>
                 <div className="text-sm text-primary-600 mt-1">
                   Share this code with other players to join
@@ -236,6 +260,7 @@ export const RoomSetupView: React.FC = () => {
               currentPlayerId={multiplayerStore.currentPlayerId}
               onPositionChange={roomStore.setPlayerPosition}
               disabled={false}
+              isSoloMode={roomStore.coPilotMode === 'solo'}
             />
           </div>
         )

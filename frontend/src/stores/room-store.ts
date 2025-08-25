@@ -218,9 +218,15 @@ export const useRoomStore = create<RoomState>()(
           if (!state.currentRoomCode) return false
           
           const positionedPlayers = Object.keys(state.playerPositions).length
-          return state.coPilotMode === 'solo' 
-            ? positionedPlayers >= 1 // Solo mode: just need host positioned
-            : positionedPlayers >= 2 // Everyone mode: minimum players for game
+          
+          if (state.coPilotMode === 'solo') {
+            // Solo mode: all players (1 + other players) must be positioned
+            const totalPlayers = 1 + state.otherPlayerNames.filter(name => name.trim().length > 0).length
+            return positionedPlayers >= totalPlayers
+          } else {
+            // Everyone mode: minimum 2 players for game
+            return positionedPlayers >= 2
+          }
         },
 
         getRoomSetupProgress: () => {
@@ -242,9 +248,16 @@ export const useRoomStore = create<RoomState>()(
 
           // Step 3: Players positioned
           const positionedPlayersCount = Object.keys(state.playerPositions).length
-          const isReadyForGame = state.coPilotMode === 'solo' 
-            ? positionedPlayersCount >= 1 // Solo mode: just need host positioned
-            : positionedPlayersCount >= 2 // Everyone mode: need at least 2 players
+          let isReadyForGame = false
+          
+          if (state.coPilotMode === 'solo') {
+            // Solo mode: all players must be positioned
+            const totalPlayers = 1 + state.otherPlayerNames.filter(name => name.trim().length > 0).length
+            isReadyForGame = positionedPlayersCount >= totalPlayers
+          } else {
+            // Everyone mode: need at least 2 players
+            isReadyForGame = positionedPlayersCount >= 2
+          }
           
           if (state.currentRoomCode && isReadyForGame) {
             completedSteps = 3
