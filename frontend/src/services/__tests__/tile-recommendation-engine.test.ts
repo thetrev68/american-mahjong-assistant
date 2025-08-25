@@ -38,7 +38,7 @@ const createMockRankings = (): RankedPatternResults => {
       priorityScore: 8
     },
     isViable: true,
-    recommendation: 'good',
+    recommendation: 'good' as const,
     confidence: 0.8,
     strategicValue: 72,
     riskFactors: []
@@ -55,7 +55,7 @@ const createMockRankings = (): RankedPatternResults => {
       priorityScore: 4
     },
     isViable: false,
-    recommendation: 'fair',
+    recommendation: 'fair' as const,
     confidence: 0.6,
     strategicValue: 55,
     riskFactors: ['low_completion']
