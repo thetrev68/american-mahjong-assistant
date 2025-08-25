@@ -3,6 +3,7 @@
 // Provides contextual actions and danger warnings
 
 import type { RankedPatternResults } from './pattern-ranking-engine'
+import type { PatternAnalysisFacts } from './pattern-analysis-engine'
 
 export interface TileAction {
   tileId: string
@@ -83,7 +84,7 @@ export class TileRecommendationEngine {
       playerHands?: { [playerId: string]: number } // hand sizes
       wallTilesRemaining: number
     },
-    analysisFacts?: unknown[] // Engine 1 pattern analysis facts with actual tile matching data
+    analysisFacts?: PatternAnalysisFacts[] // Engine 1 pattern analysis facts with actual tile matching data
   ): Promise<TileRecommendationResults> {
     
     try {
@@ -388,21 +389,23 @@ export class TileRecommendationEngine {
       
       // Check ALL viable patterns that have meaningful progress (not just top 3)
       const viablePatterns = analysisFacts
-        .filter(fact => {
-          // Validate fact structure silently - log only critical errors
-          if (!fact?.tileMatching?.bestVariation) {
+        .filter((fact): fact is PatternAnalysisFacts => {
+          // Type guard: validate fact structure silently - log only critical errors
+          if (!fact || typeof fact !== 'object') return false
+          const typedFact = fact as PatternAnalysisFacts
+          if (!typedFact.tileMatching?.bestVariation) {
             return false
           }
           try {
-            return fact.tileMatching.bestVariation.completionRatio > 0.15 // At least 15% complete (2+ tiles)
+            return typedFact.tileMatching.bestVariation.completionRatio > 0.15 // At least 15% complete (2+ tiles)
           } catch {
             // Silent - expected data validation failure
             return false
           }
         })
         .sort((a, b) => {
-          const aRatio = a?.tileMatching?.bestVariation?.completionRatio || 0
-          const bRatio = b?.tileMatching?.bestVariation?.completionRatio || 0
+          const aRatio = a.tileMatching?.bestVariation?.completionRatio || 0
+          const bRatio = b.tileMatching?.bestVariation?.completionRatio || 0
           return bRatio - aRatio
         })
       
@@ -484,12 +487,15 @@ export class TileRecommendationEngine {
     } catch (analysisError) {
       // Keep this error - it indicates tile contribution analysis failures
       console.error(`🚨 ENGINE 3 CRITICAL ERROR: Failed to analyze tile contributions for ${tileId}:`, analysisError)
-      console.error('Engine 1 facts structure:', analysisFacts?.map(f => ({ 
-        patternId: f?.patternId, 
-        hasTileMatching: !!f?.tileMatching,
-        hasBestVariation: !!f?.tileMatching?.bestVariation,
-        hasTileContributions: !!f?.tileMatching?.bestVariation?.tileContributions
-      })))
+      console.error('Engine 1 facts structure:', analysisFacts?.map(f => {
+        const typedFact = f as PatternAnalysisFacts
+        return {
+          patternId: typedFact?.patternId, 
+          hasTileMatching: !!typedFact?.tileMatching,
+          hasBestVariation: !!typedFact?.tileMatching?.bestVariation,
+          hasTileContributions: !!typedFact?.tileMatching?.bestVariation?.tileContributions
+        }
+      }))
       
       // Return safe fallback to prevent complete Engine 3 failure
       return {

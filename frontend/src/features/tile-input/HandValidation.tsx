@@ -33,7 +33,7 @@ export const HandValidation = ({ onCollapse }: HandValidationProps) => {
       totalTiles: playerHand.length,
       expectedTiles: dealerHand ? 14 : 13,
       uniqueTileTypes: Object.keys(counts).length,
-      maxOfAnyTile: Math.max(...Object.values(counts), 0)
+      maxOfAnyTile: Math.max(...Object.values(counts).map(Number), 0)
     }
   }, [playerHand, dealerHand])
   

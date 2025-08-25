@@ -165,7 +165,6 @@ export function useTutorial() {
   const {
     progress,
     isActive,
-    currentStep,
     canProceed,
     canGoBack,
     error,

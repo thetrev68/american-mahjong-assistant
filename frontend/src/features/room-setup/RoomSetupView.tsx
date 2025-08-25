@@ -236,9 +236,6 @@ export const RoomSetupView: React.FC = () => {
               currentPlayerId={multiplayerStore.currentPlayerId}
               onPositionChange={roomStore.setPlayerPosition}
               disabled={false}
-              coPilotMode={roomSetup.coPilotMode}
-              otherPlayerNames={roomStore.otherPlayerNames}
-              hostName={hostName}
             />
           </div>
         )

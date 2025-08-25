@@ -256,7 +256,7 @@ export const IntelligencePanelPage = () => {
                     // Build new pattern list with swapped positions  
                     let newPatterns: PatternSelectionOption[] = []
                     
-                    if (currentPrimary && currentTargetPatterns.includes(currentPrimary.id)) {
+                    if (currentPrimary && currentTargetPatterns.some(pattern => pattern.id === currentPrimary.id)) {
                       // Replace primary with new pattern, keep others
                       newPatterns = [
                         pattern.pattern,
@@ -335,7 +335,7 @@ export const IntelligencePanelPage = () => {
                         patternRec = currentAnalysis.recommendedPatterns?.find(rec => 
                           rec.pattern.id === engine1Fact.patternId ||
                           rec.pattern.section + '-' + rec.pattern.line === engine1Fact.patternId ||
-                          (rec.pattern.section + rec.pattern.line) === engine1Fact.patternId
+                          (String(rec.pattern.section) + String(rec.pattern.line)) === engine1Fact.patternId
                         )
                       }
                     }
@@ -361,7 +361,7 @@ export const IntelligencePanelPage = () => {
                     // Build new pattern list with swapped positions
                     let newPatterns: PatternSelectionOption[] = []
                     
-                    if (currentPrimary && currentTargetPatterns.includes(currentPrimary.id)) {
+                    if (currentPrimary && currentTargetPatterns.some(pattern => pattern.id === currentPrimary.id)) {
                       // Replace primary with new pattern, keep others
                       newPatterns = [
                         patternRec.pattern,

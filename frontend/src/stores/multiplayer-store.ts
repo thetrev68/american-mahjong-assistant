@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { Room, Player, GameState, PlayerGameState, SharedGameState } from '@shared/multiplayer-types'
+import type { Room, Player, GameState, PlayerGameState, SharedState } from '@shared/multiplayer-types'
 
 interface MultiplayerState {
   // Connection state
@@ -38,7 +38,7 @@ interface MultiplayerState {
   setGameState: (gameState: GameState | null) => void
   updateGamePhase: (phase: GameState['phase']) => void
   updatePlayerGameState: (playerId: string, state: Partial<PlayerGameState>) => void
-  updateSharedGameState: (state: Partial<SharedGameState>) => void
+  updateSharedGameState: (state: Partial<SharedState>) => void
   
   // Utility actions
   clearAll: () => void

@@ -222,14 +222,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       
       const timeoutId = setTimeout(() => {
         // Call timeout - automatically passing
-        handleCallDecision('pass')
+        setShowCallDialog(false)
+        setCallOpportunities([])
       }, 5000)
       
       setCallTimeoutId(timeoutId)
     }
 
     // Call opportunities evaluated
-  }, [currentHand, selectedPatterns, handleCallDecision, checkTileMatchesPatternGroup])
+  }, [currentHand, selectedPatterns, checkTileMatchesPatternGroup])
 
   // Discard tile action
   const handleDiscardTile = useCallback((tile: TileType) => {

@@ -10,7 +10,9 @@
       "Bash(node:*)",
       "Bash(npx eslint:*)",
       "Bash(npm run lint)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(npm run test:*)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": [],

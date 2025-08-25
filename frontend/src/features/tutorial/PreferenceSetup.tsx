@@ -66,7 +66,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
           ].map(option => (
             <button
               key={option.value}
-              onClick={() => updatePreference('assistanceLevel', option.value)}
+              onClick={() => updatePreference('assistanceLevel', option.value as 'detailed' | 'minimal' | 'moderate')}
               className={`
                 p-4 text-left rounded-lg border transition-all
                 ${preferences.assistanceLevel === option.value
@@ -136,7 +136,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
           ].map(option => (
             <button
               key={option.value}
-              onClick={() => updatePreference('colorScheme', option.value)}
+              onClick={() => updatePreference('colorScheme', option.value as 'light' | 'dark' | 'system')}
               className={`
                 p-4 text-center rounded-lg border transition-all
                 ${preferences.colorScheme === option.value
@@ -163,7 +163,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
           ].map(option => (
             <button
               key={option.value}
-              onClick={() => updatePreference('tileSize', option.value)}
+              onClick={() => updatePreference('tileSize', option.value as 'small' | 'medium' | 'large')}
               className={`
                 p-4 text-center rounded-lg border transition-all
                 ${preferences.tileSize === option.value

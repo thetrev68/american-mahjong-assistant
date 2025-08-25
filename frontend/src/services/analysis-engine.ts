@@ -7,7 +7,7 @@ import type { PlayerTile } from '../types/tile-types'
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../stores/intelligence-store'
 import { nmjlService } from './nmjl-service'
 import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from './pattern-analysis-engine'
-import { PatternRankingEngine } from './pattern-ranking-engine'
+import { PatternRankingEngine, type RankedPatternResults } from './pattern-ranking-engine'
 import { TileRecommendationEngine } from './tile-recommendation-engine'
 
 // Legacy interfaces removed - now using the new 3-engine system
@@ -256,34 +256,7 @@ export class AnalysisEngine {
    * Convert 3-engine results to HandAnalysis interface format
    */
   private static convertToHandAnalysis(
-    patternRankings: {
-      topRecommendations: Array<{
-        patternId: string
-        confidence: number
-        totalScore: number
-        recommendation: string
-        riskFactors: string[]
-        components: {
-          currentTileScore: number
-          availabilityScore: number
-          jokerScore: number
-          priorityScore: number
-        }
-      }>
-      viablePatterns: Array<{
-        patternId: string
-        confidence: number
-        totalScore: number
-        riskFactors: string[]
-        strategicValue: string
-        components: {
-          currentTileScore: number
-          availabilityScore: number
-          jokerScore: number
-          priorityScore: number
-        }
-      }>
-    },
+    patternRankings: RankedPatternResults,
     tileRecommendations: {
       tileActions: Array<{ 
         tileId: string
@@ -340,12 +313,26 @@ export class AnalysisEngine {
             byAvailability: {
               easy: [],
               moderate: [],
-              difficult: []
+              difficult: [],
+              impossible: []
             }
           },
+          jokerSituation: {
+            available: 2, // Default assumption
+            needed: Math.max(0, 14 - Math.floor((ranking.components.currentTileScore / 40) * 14) - 2),
+            canComplete: ranking.components.jokerScore > 0,
+            substitutionPlan: {}
+          },
+          strategicValue: {
+            tilePriorities: {}, // TODO: populate from Engine 1 facts if needed
+            groupPriorities: {}, // TODO: populate from Engine 1 facts if needed
+            overallPriority: ranking.components.priorityScore / 10, // Convert to 0-1 scale
+            reasoning: [`Confidence: ${Math.round(ranking.confidence * 100)}%`, ...ranking.riskFactors]
+          },
           gameState: {
+            wallTilesRemaining: 152, // Default assumption
             turnsEstimated: Math.ceil((14 - Math.floor((ranking.components.currentTileScore / 40) * 14)) / 2),
-            progressRate: actualCompletion / 100
+            drawProbability: 0.5 // Default probability
           }
         },
         
@@ -361,7 +348,7 @@ export class AnalysisEngine {
     // Convert tile actions to TileRecommendation format
     const tileRecommendationsList: TileRecommendation[] = tileRecommendations.tileActions.map((action) => ({
       tileId: action.tileId,
-      action: action.primaryAction,
+      action: this.normalizeAction(action.primaryAction),
       confidence: action.confidence,
       reasoning: action.reasoning,
       priority: action.priority
@@ -390,7 +377,7 @@ export class AnalysisEngine {
         confidenceScore: ranking.confidence,
         difficulty: pattern?.difficulty || 'medium',
         estimatedTurns: Math.ceil(tilesNeeded > 7 ? 8 : 4),
-        riskLevel: ranking.riskFactors.length > 1 ? 'high' : ranking.riskFactors.length > 0 ? 'medium' : 'low',
+        riskLevel: ranking.riskFactors.length > 1 ? 'high' : (ranking.riskFactors.length > 0 ? 'medium' : 'low') as 'low' | 'medium' | 'high',
         strategicValue: ranking.strategicValue
       }
     })
@@ -406,6 +393,17 @@ export class AnalysisEngine {
       analysisVersion: 'AV3-ThreeEngine',
       engine1Facts: analysisFacts // Include Engine 1 facts for UI access
     }
+  }
+
+  /**
+   * Normalize action string to valid TileRecommendation action type
+   */
+  private static normalizeAction(action: string): 'keep' | 'pass' | 'discard' | 'neutral' {
+    const normalized = action.toLowerCase()
+    if (normalized === 'keep' || normalized === 'hold') return 'keep'
+    if (normalized === 'pass' || normalized === 'charleston') return 'pass'
+    if (normalized === 'discard' || normalized === 'drop') return 'discard'
+    return 'neutral'
   }
 
   /**

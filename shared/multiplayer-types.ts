@@ -1,6 +1,6 @@
 // Shared Multiplayer Types - Common interfaces for frontend and backend
 
-import type { Tile } from '../game-types'
+import type { Tile } from './game-types'
 
 export interface Player {
   id: string
@@ -56,7 +56,7 @@ export interface GameState {
   currentWind: 'east' | 'south' | 'west' | 'north'
   dealerPosition: number
   playerStates: Record<string, PlayerGameState>
-  sharedState: SharedGameState
+  sharedState: SharedState
   lastUpdated: Date
 }
 

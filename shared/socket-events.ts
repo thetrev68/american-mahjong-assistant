@@ -2,8 +2,7 @@
 // Socket Event Schema & Communication Protocol
 // This defines the exact event names and data structures for real-time communication
 
-import type { NMJL2025Pattern } from './nmjl-types';
-import type { Player, Room, RoomConfig, PlayerGameState, SharedGameState, GameState } from './multiplayer-types';
+import type { Player, Room, PlayerGameState } from './multiplayer-types';
 import type { Tile, PlayerAction, CharlestonState, DiscardedTile, GameSettings, PlayerPosition, GamePhase, CharlestonPhase, ExposedSet, ActionType, HandAnalysis } from './game-types';
 
 
@@ -246,6 +245,6 @@ export interface RateLimitMiddleware {
 
 // Validation middleware
 export interface ValidationMiddleware {
-  validateGameAction: (action: PlayerAction, gameState: GameRoom) => boolean;
+  validateGameAction: (action: PlayerAction, gameState: Room) => boolean;
   validateTileOperation: (tiles: Tile[], playerId: string) => boolean;
 }

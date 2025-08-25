@@ -291,7 +291,6 @@ export function createOptimizedKeyframes(config: AnimationConfig): Record<string
 
 // Animation performance monitoring
 export function measureAnimationPerformance(
-  animationName: string,
   callback: () => void
 ): Promise<number> {
   return new Promise((resolve) => {

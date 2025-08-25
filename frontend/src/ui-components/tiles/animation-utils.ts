@@ -2,7 +2,7 @@
 // Helper functions for complex tile animations and sequences
 
 import type { PlayerTile } from '../../types/tile-types'
-import { TILE_KEYFRAMES, applyTileAnimation } from './TileAnimations'
+import { TILE_KEYFRAMES, applyTileAnimation } from './tile-animation-constants'
 import { TILE_ANIMATIONS } from '../../utils/animation-config'
 
 export type TileAnimationContext = 'charleston' | 'gameplay' | 'analysis' | 'selection'
@@ -97,7 +97,8 @@ export const animateTilesBatch = async (
       
       return new Promise<void>((resolve) => {
         setTimeout(() => {
-          applyTileAnimation(element, animation, duration).then(resolve)
+          applyTileAnimation(element, animation, duration)
+          setTimeout(resolve, duration)
         }, delay)
       })
     })
@@ -180,7 +181,7 @@ const getRecommendationAnimation = (type: TileRecommendationType): keyof typeof 
   switch (type) {
     case 'keep': return 'tileKeep'
     case 'pass': return 'tilePass'
-    case 'discard': return 'tileHighlight'
+    case 'discard': return 'tileDiscard'
     case 'joker': return 'jokerGlow'
     default: return 'tileRecommendation'
   }

@@ -36,7 +36,7 @@ export const AdvancedPatternAnalysis = ({
         const engine1Fact = analysis.engine1Facts?.find(fact => 
           fact.patternId === patternRec.pattern.id ||
           fact.patternId === patternRec.pattern.section + '-' + patternRec.pattern.line ||
-          fact.patternId === (patternRec.pattern.section + patternRec.pattern.line)
+          fact.patternId === (String(patternRec.pattern.section) + String(patternRec.pattern.line))
         )
         
         const bestVariation = engine1Fact?.tileMatching?.bestVariation

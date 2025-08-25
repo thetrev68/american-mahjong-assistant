@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSocket } from './useSocket'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
-import type { Room, Player, GameState, PlayerGameState, SharedGameState, RoomConfig } from '@shared/multiplayer-types'
+import type { Room, Player, GameState, PlayerGameState, RoomConfig } from '@shared/multiplayer-types'
 
 interface CreateRoomData {
   hostName: string
@@ -241,7 +241,7 @@ export function useMultiplayer() {
     })
   }, [socket, currentRoom])
 
-  const updateSharedState = useCallback(async (sharedState: Partial<SharedGameState>): Promise<void> => {
+  const updateSharedState = useCallback(async (sharedState: Partial<any>): Promise<void> => {
     if (!socket.isConnected) {
       throw new Error('Not connected to server')
     }

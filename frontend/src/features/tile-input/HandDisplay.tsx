@@ -103,7 +103,6 @@ export const HandDisplay = ({
                       size={compactMode ? 'sm' : 'md'}
                       onClick={handleTileClick}
                       animateOnSelect={true}
-                      animateOnRecommendation={true}
                       context="selection"
                       recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
                     />
@@ -139,7 +138,6 @@ export const HandDisplay = ({
                 size={compactMode ? 'sm' : 'md'}
                 onClick={handleTileClick}
                 animateOnSelect={true}
-                animateOnRecommendation={true}
                 context="selection"
                 recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
               />

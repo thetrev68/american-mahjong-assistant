@@ -164,7 +164,7 @@ export function usePerformance(): UsePerformanceReturn {
   }, [metrics.fps])
   
   // Animation performance measurement
-  const measureAnimation = useCallback(async (name: string, fn: () => void | Promise<void>): Promise<number> => {
+  const measureAnimation = useCallback(async (_name: string, fn: () => void | Promise<void>): Promise<number> => {
     const startTime = performance.now()
     
     // Track frames during animation
