@@ -296,10 +296,7 @@ export const IntelligencePanelPage = () => {
                   } finally {
                     setIsPatternSwitching(false)
                     setPatternSwitchStartTime(null)
-                    // Clear intended pattern after switch is complete - increased timeout to ensure stability
-                    setTimeout(() => {
-                      setIntendedPrimaryPatternId(null)
-                    }, 1000)
+                    // Keep the intended pattern - don't clear it to prevent reversion
                   }
                 }}
                 onBrowseAllPatterns={() => {
@@ -317,15 +314,13 @@ export const IntelligencePanelPage = () => {
                 gamePhase="charleston" // TODO: Get actual game phase
                 onPatternSelect={async (patternId) => {
                   // Handle pattern selection from advanced analysis with pattern switching
+                  console.log('🔄 Pattern switch requested for ID:', patternId)
+                  
                   const switchStartTime = performance.now()
                   setIsPatternSwitching(true)
                   setPatternSwitchStartTime(switchStartTime)
                   
                   try {
-                    
-                    
-                    
-                    
                     // Find the pattern recommendation - try multiple ID formats
                     let patternRec = currentAnalysis.recommendedPatterns?.find(rec => rec.pattern.id === patternId)
                     
@@ -343,9 +338,11 @@ export const IntelligencePanelPage = () => {
                     }
                     
                     if (!patternRec) {
-                      
+                      console.error('❌ Pattern not found for ID:', patternId)
                       return
                     }
+                    
+                    console.log('✅ Found pattern:', patternRec.pattern.id)
                     
                     
                     
@@ -398,10 +395,7 @@ export const IntelligencePanelPage = () => {
                   
                     setIsPatternSwitching(false)
                     setPatternSwitchStartTime(null)
-                    // Clear intended pattern after switch is complete - increased timeout to ensure stability
-                    setTimeout(() => {
-                      setIntendedPrimaryPatternId(null)
-                    }, 1000)
+                    // Keep the intended pattern - don't clear it to prevent reversion
                   } catch (error) {
                     console.error('Pattern switch error:', error)
                     setIsPatternSwitching(false)

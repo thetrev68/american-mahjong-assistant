@@ -31,7 +31,7 @@ export const AdvancedPatternAnalysis = ({
   const getPatternVariationsFromAnalysis = () => {
     try {
       // Use the recommended patterns to find their corresponding Engine 1 facts
-      return topPatterns.map(patternRec => {
+      const patterns = topPatterns.map(patternRec => {
         // Find corresponding Engine 1 fact for this pattern
         const engine1Fact = analysis.engine1Facts?.find(fact => 
           fact.patternId === patternRec.pattern.id ||
@@ -41,14 +41,19 @@ export const AdvancedPatternAnalysis = ({
         
         const bestVariation = engine1Fact?.tileMatching?.bestVariation
         
-        return {
+        const pattern = {
           id: patternRec.pattern.id,
           name: `${patternRec.pattern.section} #${patternRec.pattern.line}`,
           tiles: bestVariation?.patternTiles || [],
           sequence: bestVariation?.sequence || 1,
           completionRatio: patternRec.completionPercentage / 100
         }
+        
+        
+        return pattern
       }).filter(p => p.tiles.length > 0) // Only include patterns with tile data
+      
+      return patterns
     } catch (error) {
       console.warn('Failed to extract pattern variations from recommended patterns:', error)
       return []

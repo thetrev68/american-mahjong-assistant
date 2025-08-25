@@ -46,12 +46,6 @@ export const PrimaryAnalysisCard = ({
   const normalizeId = (id: string): string => String(id).toLowerCase().trim()
   const playerTileSet = new Set(playerTileIds.map(normalizeId))
   
-  // Debug logging for development
-  if (process.env.NODE_ENV === 'development' && analysis.tileRecommendations.length > 0) {
-    console.log('🔍 Player hand tiles:', playerTileIds)
-    console.log('🔍 All recommendations:', analysis.tileRecommendations.map(rec => ({ tile: rec.tileId, action: rec.action })))
-    console.log('🎯 Primary pattern displayed:', primaryPattern.pattern.section, '#' + primaryPattern.pattern.line, 'ID:', primaryPattern.pattern.id)
-  }
   
   const passRecommendations = analysis.tileRecommendations.filter((rec: TileRecommendation) => {
     const isValidAction = rec.action === 'pass' || rec.action === 'discard'
@@ -136,11 +130,6 @@ export const PrimaryAnalysisCard = ({
     isMatched: true // All hand tiles are "matched" for display purposes
   }))
   
-  // Debug logging for hand display
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🎯 Hand display tiles (sorted):', sortedPlayerTileIds)
-    console.log('🎯 Hand display chars:', handTileChars.map(char => char.char))
-  }
 
   return (
     <Card variant="elevated" className="p-3">
