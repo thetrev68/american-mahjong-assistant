@@ -174,17 +174,17 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
       const halfScore = halfWallResults.rankings[0].components.availabilityScore
       const lowScore = lowWallResults.rankings[0].components.availabilityScore
 
-      // Scores should be within expected range
-      expect(fullScore).toBeLessThanOrEqual(30)
+      // Scores should be within expected range (updated to 50 for joker-integrated availability)
+      expect(fullScore).toBeLessThanOrEqual(50)
       expect(fullScore).toBeGreaterThanOrEqual(0)
-      expect(halfScore).toBeLessThanOrEqual(30)
+      expect(halfScore).toBeLessThanOrEqual(50)
       expect(halfScore).toBeGreaterThanOrEqual(0)
-      expect(lowScore).toBeLessThanOrEqual(30)
+      expect(lowScore).toBeLessThanOrEqual(50)
       expect(lowScore).toBeGreaterThanOrEqual(0)
     })
 
-    test('should calculate joker score (0-20 points)', async () => {
-      // Test with different joker counts - use facts directly
+    test('should integrate joker benefits into availability scoring', async () => {
+      // Test that joker integration improves availability scores rather than being separate
 
       // Update facts to reflect different joker scenarios
       const noJokersFactsUpdated = createMockFacts('2025-ANY_LIKE_NUMBERS-2-1', 3, 3/14)
@@ -204,11 +204,14 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
       const someJokersResults = await PatternRankingEngine.rankPatterns([someJokersFactsUpdated], selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
       const manyJokersResults = await PatternRankingEngine.rankPatterns([manyJokersFactsUpdated], selectedPatterns, { phase: 'gameplay', wallTilesRemaining: 84 })
 
-      // Joker scores should reflect joker availability and utility
+      // Joker component should always be 0 (eliminated - integrated into availability)
       expect(noJokersResults.rankings[0].components.jokerScore).toBe(0)
-      expect(someJokersResults.rankings[0].components.jokerScore).toBeGreaterThan(0)
-      expect(someJokersResults.rankings[0].components.jokerScore).toBeLessThanOrEqual(20)
-      expect(manyJokersResults.rankings[0].components.jokerScore).toBeGreaterThan(someJokersResults.rankings[0].components.jokerScore)
+      expect(someJokersResults.rankings[0].components.jokerScore).toBe(0)
+      expect(manyJokersResults.rankings[0].components.jokerScore).toBe(0)
+      
+      // But availability scores should improve with more jokers available
+      expect(someJokersResults.rankings[0].components.availabilityScore).toBeGreaterThanOrEqual(noJokersResults.rankings[0].components.availabilityScore)
+      expect(manyJokersResults.rankings[0].components.availabilityScore).toBeGreaterThanOrEqual(someJokersResults.rankings[0].components.availabilityScore)
     })
 
     test('should calculate priority score (0-10 points)', async () => {
@@ -480,10 +483,9 @@ describe('Pattern Ranking Engine (Engine 2)', () => {
       expect(components.currentTileScore).toBeLessThanOrEqual(40)
       
       expect(components.availabilityScore).toBeGreaterThanOrEqual(0)
-      expect(components.availabilityScore).toBeLessThanOrEqual(30)
+      expect(components.availabilityScore).toBeLessThanOrEqual(50) // Updated for joker integration
       
-      expect(components.jokerScore).toBeGreaterThanOrEqual(0)
-      expect(components.jokerScore).toBeLessThanOrEqual(20)
+      expect(components.jokerScore).toBe(0) // Always 0 - eliminated component
       
       expect(components.priorityScore).toBeGreaterThanOrEqual(0)
       expect(components.priorityScore).toBeLessThanOrEqual(10)

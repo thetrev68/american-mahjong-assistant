@@ -433,7 +433,7 @@ export class PatternAnalysisEngine {
 
   private static getOriginalTileCount(tileId: string): number {
     if (tileId === 'joker') return 8
-    if (tileId.startsWith('f')) return 1 // Flowers
+    if (tileId.startsWith('f')) return 8 // Flowers (all interchangeable: 2×f1, 2×f2, 2×f3, 2×f4)
     return 4 // Standard tiles
   }
 }

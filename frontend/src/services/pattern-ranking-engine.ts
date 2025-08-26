@@ -7,8 +7,8 @@ import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 
 export interface ScoringComponents {
   currentTileScore: number    // 0-40 points: (tilesMatched / 14) * 40
-  availabilityScore: number   // 0-30 points: tile availability in wall
-  jokerScore: number         // 0-20 points: joker balance
+  availabilityScore: number   // 0-50 points: tile availability with joker integration
+  jokerScore: number         // 0 points: eliminated - integrated into availability
   priorityScore: number      // 0-10 points: strategic pattern priority
 }
 
@@ -45,11 +45,10 @@ export interface RankedPatternResults {
 }
 
 export class PatternRankingEngine {
-  // Configuration (easily adjustable)
+  // Configuration (easily adjustable) - Updated to eliminate separate joker component
   private static readonly SCORING_WEIGHTS = {
     currentTile: { min: 0, max: 40 },
-    availability: { min: 0, max: 30 },
-    joker: { min: 0, max: 20 },
+    availability: { min: 0, max: 50 }, // Expanded to include joker integration
     priority: { min: 0, max: 10 }
   }
   
@@ -128,26 +127,23 @@ export class PatternRankingEngine {
       bestVariation.completionRatio * this.SCORING_WEIGHTS.currentTile.max
     )
     
-    // Component 2: Availability score (0-30 points)
+    // Component 2: Enhanced Availability score with joker integration (0-50 points)
     const availabilityScore = Math.min(
       this.SCORING_WEIGHTS.availability.max,
-      this.calculateAvailabilityScore(facts.tileAvailability)
+      this.calculateAvailabilityScore(facts.tileAvailability, facts.jokerAnalysis, facts.tileMatching.bestVariation)
     )
     
-    // Component 3: Joker score (0-20 points)
-    const jokerScore = this.calculateJokerScore(facts.jokerAnalysis)
-    
-    // Component 4: Priority score (0-10 points)
+    // Component 3: Priority score (0-10 points)
     const priorityScore = this.calculatePriorityScore(pattern, facts, gameContext)
     
     const components: ScoringComponents = {
       currentTileScore,
       availabilityScore,
-      jokerScore,
+      jokerScore: 0, // Eliminated - now integrated into availability score
       priorityScore
     }
     
-    const totalScore = currentTileScore + availabilityScore + jokerScore + priorityScore
+    const totalScore = currentTileScore + availabilityScore + priorityScore
     
     // Determine recommendation level
     const recommendation = this.getRecommendationLevel(totalScore)
@@ -178,45 +174,87 @@ export class PatternRankingEngine {
   }
 
   /**
-   * Calculate availability score (0-30 points)
+   * Calculate enhanced availability score with individual tile difficulty and joker integration (0-50 points)
    */
-  private static calculateAvailabilityScore(tileAvailability: PatternAnalysisFacts['tileAvailability']): number {
-    // Base score on availability ratio (tiles available vs needed)
-    const { availabilityRatio, totalMissingInWall } = tileAvailability
+  private static calculateAvailabilityScore(
+    tileAvailability: PatternAnalysisFacts['tileAvailability'], 
+    jokerAnalysis: PatternAnalysisFacts['jokerAnalysis'],
+    bestVariation: any
+  ): number {
+    const { missingTileCounts } = tileAvailability
+    const { jokersAvailable } = jokerAnalysis
     
-    // Score based on ratio, but cap at max points
-    let score = Math.min(availabilityRatio * 10, this.SCORING_WEIGHTS.availability.max)
+    if (!missingTileCounts || missingTileCounts.length === 0) {
+      return 50 // Perfect - no missing tiles
+    }
     
-    // Bonus for having many tiles available
-    if (totalMissingInWall >= 10) score += 5
-    else if (totalMissingInWall >= 5) score += 2
+    let totalDifficultyScore = 0
     
-    // Penalty for very few tiles available
-    if (totalMissingInWall <= 2) score *= 0.5
+    // Calculate difficulty for each missing tile individually
+    for (const tileAvailability of missingTileCounts) {
+      const effectiveAvailability = this.calculateEffectiveTileAvailability(
+        tileAvailability,
+        bestVariation,
+        jokersAvailable
+      )
+      
+      const difficulty = this.calculateTileDifficulty(tileAvailability.tileId, effectiveAvailability)
+      totalDifficultyScore += difficulty
+    }
     
-    return Math.min(this.SCORING_WEIGHTS.availability.max, Math.max(0, score))
+    // Use weighted average instead of simple average
+    const averageDifficulty = totalDifficultyScore / missingTileCounts.length
+    
+    // Convert to 50-point score (expanded from original 30 to include joker component)
+    return Math.min(50, Math.max(0, averageDifficulty * 50))
   }
 
   /**
-   * Calculate joker score (0-20 points)
+   * Calculate effective tile availability including joker substitution
    */
-  private static calculateJokerScore(jokerAnalysis: PatternAnalysisFacts['jokerAnalysis']): number {
-    const { jokersAvailable, jokersToComplete, maxJokersUseful } = jokerAnalysis
+  private static calculateEffectiveTileAvailability(
+    tileAvailability: any,
+    bestVariation: any,
+    jokersAvailable: number
+  ): number {
+    const baseTilesAvailable = tileAvailability.remainingAvailable
     
-    // Perfect joker situation: have exactly what you need
-    if (jokersToComplete <= jokersAvailable) {
-      return this.SCORING_WEIGHTS.joker.max
+    // Check if this tile can be substituted by jokers in the best variation
+    // This is a simplified check - in full implementation we'd check specific positions
+    const canUseJokers = bestVariation && jokersAvailable > 0
+    
+    if (canUseJokers) {
+      // Add available jokers to effective availability
+      return baseTilesAvailable + jokersAvailable
     }
     
-    // Good joker situation: jokers can help significantly
-    if (jokersAvailable > 0 && maxJokersUseful > 0) {
-      const jokerEffectiveness = jokersAvailable / Math.max(1, jokersToComplete)
-      return Math.min(this.SCORING_WEIGHTS.joker.max, jokerEffectiveness * 15)
-    }
-    
-    // No jokers or jokers can't help
-    return this.SCORING_WEIGHTS.joker.min
+    return baseTilesAvailable
   }
+
+  /**
+   * Calculate tile difficulty based on percentage of original tiles available
+   */
+  private static calculateTileDifficulty(tileId: string, availableCount: number): number {
+    const originalCount = this.getOriginalTileCount(tileId)
+    const availabilityRatio = availableCount / originalCount
+    
+    // Difficulty based on percentage of original tiles remaining
+    if (availabilityRatio >= 0.75) return 1.0    // Easy (75%+ available)
+    if (availabilityRatio >= 0.50) return 0.8    // Moderate (50-75% available)
+    if (availabilityRatio >= 0.25) return 0.5    // Hard (25-50% available)
+    if (availabilityRatio > 0.00) return 0.2     // Very Hard (1-25% available)
+    return 0.0                                    // Impossible (0% available)
+  }
+
+  /**
+   * Get original tile count in a standard Mahjong set
+   */
+  private static getOriginalTileCount(tileId: string): number {
+    if (tileId === 'joker') return 8        // 8 jokers total
+    if (tileId.startsWith('f')) return 8    // 8 flowers total (interchangeable)
+    return 4                                // 4 of each standard tile
+  }
+
 
   /**
    * Calculate priority score (0-10 points)
