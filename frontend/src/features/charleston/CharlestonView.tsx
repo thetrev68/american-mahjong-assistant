@@ -15,8 +15,7 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { tileService } from '../../services/tile-service'
-import { AnalysisEngine } from '../../services/analysis-engine'
-import type { Tile as TileType } from '../../types/tile-types'
+import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 
 interface TileSelectorProps {
   availableTiles: TileType[]
@@ -57,9 +56,15 @@ export function CharlestonView() {
   const navigate = useNavigate()
   const { currentAnalysis, isAnalyzing, analyzeHand } = useIntelligenceStore()
   const { getTargetPatterns } = usePatternStore()
-  const { playerHand = [], setPlayerHand } = useTileStore()
+  const { playerHand = [], clearHand, addTile } = useTileStore()
   const { coPilotMode } = useRoomStore()
   
+  // Helper function to replace the entire hand
+  const replacePlayerHand = useCallback((newTiles: PlayerTile[]) => {
+    clearHand()
+    newTiles.forEach(tile => addTile(tile.id))
+  }, [clearHand, addTile])
+
   // Sort tiles alphabetically like PrimaryAnalysisCard
   const sortTilesAlphabetically = (tiles: TileType[]): TileType[] => {
     return [...tiles].sort((a, b) => {
@@ -181,14 +186,14 @@ export function CharlestonView() {
       const storePlayerTiles = previousState.hand
         .map(tile => tileService.createPlayerTile(tile.id))
         .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
-      setPlayerHand(storePlayerTiles)
+      replacePlayerHand(storePlayerTiles)
       
       // Reset selection state
       setSelectedTilesToPass([])
       setIsReadyToPass(false)
       setAllPlayersReady(false)
     }
-  }, [gameStateHistory, setPlayerHand])
+  }, [gameStateHistory, replacePlayerHand])
 
   // Auto-select 3 tiles based on Engine 3 recommendations
   useEffect(() => {
@@ -244,7 +249,7 @@ export function CharlestonView() {
       const playerTilesRemaining = remainingTiles
         .map(tile => tileService.createPlayerTile(tile.id))
         .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
-      setPlayerHand(playerTilesRemaining)
+      replacePlayerHand(playerTilesRemaining)
       // Note: When multiplayer receives tiles, it should also trigger re-analysis and phase advancement
       // This will be handled by the websocket event listeners
     }
@@ -253,7 +258,7 @@ export function CharlestonView() {
     setSelectedTilesToPass([])
     setIsReadyToPass(false)
     setAllPlayersReady(false)
-  }, [currentHand, selectedTilesToPass, coPilotMode, charlestonPhase])
+  }, [currentHand, selectedTilesToPass, coPilotMode, charlestonPhase, replacePlayerHand])
 
   // Handle ready to pass
   const handleReadyToPass = useCallback(() => {
@@ -308,27 +313,16 @@ export function CharlestonView() {
     const storePlayerTiles = newHand
       .map(tile => tileService.createPlayerTile(tile.id))
       .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
-    setPlayerHand(storePlayerTiles)
+    replacePlayerHand(storePlayerTiles)
     
     // Re-run all 3 engines with the new hand and updated game context
     const selectedPatterns = getTargetPatterns()
     
-    // Create game context with tile tracking information
-    const gameContext = {
-      currentPhase: 'charleston' as const,
-      wallTilesRemaining: 152 - tilesPassedOut.length - 3, // Standard wall minus passed tiles minus received tiles
-      discardPile: [], // No discards yet in Charleston
-      exposedTiles: knownOpponentTiles, // Tiles we know are in opponent hands
-      playerHands: { 'current': newHand.length }
-    }
-    
-    // Use AnalysisEngine directly with game context instead of intelligence store
-    const analysisPlayerTiles = newHand.map(tile => tileService.createPlayerTile(tile.id)).filter(Boolean)
-    const analysis = await AnalysisEngine.analyzeHand(analysisPlayerTiles, selectedPatterns, gameContext)
-    
-    // Update intelligence store with the new analysis
-    // This is a bit of a hack but ensures the UI components get the updated data
-    await analyzeHand(newHand, selectedPatterns)
+    // Update intelligence store with analysis - this will trigger UI updates
+    const playerTilesForAnalysis = newHand
+      .map(tile => tileService.createPlayerTile(tile.id))
+      .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
+    await analyzeHand(playerTilesForAnalysis, selectedPatterns)
     
     // Advance Charleston phase
     const nextPhase = charlestonPhase === 'right' ? 'across' : charlestonPhase === 'across' ? 'left' : 'complete'
@@ -345,7 +339,7 @@ export function CharlestonView() {
     setTimeout(() => {
       setNewlyReceivedTiles([])
     }, 3000)
-  }, [currentHand, selectedTilesToPass, selectedReceivedTiles, getTargetPatterns, analyzeHand, charlestonPhase, navigate, tilesPassedOut, knownOpponentTiles, saveGameState])
+  }, [currentHand, selectedTilesToPass, selectedReceivedTiles, getTargetPatterns, analyzeHand, charlestonPhase, navigate, tilesPassedOut, knownOpponentTiles, saveGameState, replacePlayerHand])
 
   return (
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">

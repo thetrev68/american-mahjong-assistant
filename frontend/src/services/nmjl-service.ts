@@ -181,6 +181,15 @@ class NMJLService {
       sectionsUsed: new Set(this.patterns.map(p => p.Section)).size
     }
   }
+
+  /**
+   * Reset the service state - used for testing purposes only
+   * @internal
+   */
+  resetForTesting(): void {
+    this.loaded = false
+    this.patterns = []
+  }
 }
 
 export const nmjlService = new NMJLService()

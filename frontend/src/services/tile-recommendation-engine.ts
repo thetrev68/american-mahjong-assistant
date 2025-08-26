@@ -439,9 +439,10 @@ export class TileRecommendationEngine {
     }
   }
 
+
   /**
    * Analyze tile contributions using sophisticated tier-based priority system
-   * (1) Primary pattern, (2) Top variations, (3) Top alternate patterns
+   * (1) Primary pattern, (2) Primary pattern variations, (3) Top alternate patterns
    * Target: ~11 keep tiles for balanced recommendations
    */
   private static analyzeTileContributions(tileId: string, analysisFacts?: unknown[]) {
@@ -504,9 +505,33 @@ export class TileRecommendationEngine {
         }
       }
       
-      // TODO: Tier 2: Top variations of primary pattern (not implemented yet)
-      // This would require variation-level analysis to check alternate variations
-      // of the same pattern (e.g., SINGLES_AND_PAIRS-2-1 sequence 1 vs sequence 2)
+      // Tier 2: Top variations of primary pattern
+      // Check if tile helps alternate variations of the same high-priority pattern
+      if (priorityTier === 0 && allViablePatterns.length > 0) {
+        const primaryPattern = allViablePatterns[0]
+        
+        // Check if this tile appears in the pattern's other tile contributions
+        // This helps identify tiles that support the same pattern through different tile groups
+        const allTileContributions = primaryPattern?.tileMatching?.bestVariation?.tileContributions || []
+        const alternateContribution = allTileContributions.find(contrib => 
+          contrib.tileId === tileId && !contrib.isRequired && contrib.canBeReplaced === false
+        )
+        
+        // Also check if tile helps multiple groups within the same pattern
+        const sameBaseTiles = allTileContributions.filter(contrib => {
+          const baseType = contrib.tileId.replace(/[0-9]+$/, '') // Remove instance numbers  
+          const currentBaseType = tileId.replace(/[0-9]+$/, '')
+          return baseType === currentBaseType && contrib.isRequired
+        })
+        
+        if (alternateContribution || sameBaseTiles.length > 0) {
+          priorityTier = 2
+          tileValue += 0.75 // Medium-high value for same pattern variations
+          if (!topPattern) topPattern = primaryPattern.patternId
+          patterns.push(primaryPattern.patternId)
+          isCritical = alternateContribution?.isCritical || sameBaseTiles.some(t => t.isCritical) || false
+        }
+      }
       
       // Tier 3: Top alternate patterns
       if (priorityTier === 0) {

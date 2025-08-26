@@ -316,7 +316,7 @@ export const IntelligencePanelPage = () => {
               <AdvancedPatternAnalysis
                 analysis={currentAnalysis}
                 playerTiles={playerHand.map(t => t.id)}
-                gamePhase="charleston" // TODO: Get actual game phase
+                gamePhase={gamePhase === 'playing' ? 'gameplay' : gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
                 onPatternSelect={async (patternId) => {
                   // Handle pattern selection from advanced analysis with pattern switching
                   console.log('🔄 Pattern switch requested for ID:', patternId)

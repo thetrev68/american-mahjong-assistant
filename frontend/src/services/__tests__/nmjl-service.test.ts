@@ -136,12 +136,8 @@ describe('NMJL Service', () => {
       })
     ) as unknown as typeof fetch
     
-    // Reset the internal loaded state by creating a fresh instance
-    // This is a bit hacky but necessary for testing the singleton
-    // @ts-expect-error - accessing private properties for testing
-    nmjlService.loaded = false
-    // @ts-expect-error - accessing private properties for testing
-    nmjlService.patterns = []
+    // Reset the service state for clean testing
+    nmjlService.resetForTesting()
   })
 
   describe('Pattern Loading', () => {

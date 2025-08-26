@@ -306,7 +306,7 @@ export class AnalysisEngine {
           currentTiles: {
             count: Math.floor((ranking.components.currentTileScore / 40) * 14), // Calculate actual tiles matched
             percentage: actualCompletion,
-            matchingGroups: [] // TODO: populate from Engine 1 facts if needed
+            matchingGroups: this.extractMatchingGroups(ranking.patternId, analysisFacts)
           },
           missingTiles: {
             total: 14 - Math.floor((ranking.components.currentTileScore / 40) * 14),
@@ -324,8 +324,8 @@ export class AnalysisEngine {
             substitutionPlan: {}
           },
           strategicValue: {
-            tilePriorities: {}, // TODO: populate from Engine 1 facts if needed
-            groupPriorities: {}, // TODO: populate from Engine 1 facts if needed
+            tilePriorities: this.extractTilePriorities(ranking.patternId, analysisFacts),
+            groupPriorities: this.extractGroupPriorities(ranking.patternId, analysisFacts),
             overallPriority: ranking.components.priorityScore / 10, // Convert to 0-1 scale
             reasoning: [`Confidence: ${Math.round(ranking.confidence * 100)}%`, ...ranking.riskFactors]
           },
@@ -454,5 +454,102 @@ export class AnalysisEngine {
   }
 
   
+  /**
+   * Extract matching groups from Engine 1 facts for a specific pattern
+   */
+  private static extractMatchingGroups(patternId: string, analysisFacts: PatternAnalysisFacts[]): string[] {
+    const fact = analysisFacts.find(f => f.patternId === patternId)
+    if (!fact) return []
+    
+    // Extract unique tile groups that are contributing to the pattern
+    const groups = new Set<string>()
+    
+    // Add groups based on tile contributions from best variation
+    const bestVariation = fact.tileMatching.bestVariation
+    if (bestVariation?.tileContributions) {
+      bestVariation.tileContributions.forEach(contribution => {
+        if (contribution.isRequired || contribution.isCritical) {
+          // Group tiles by their base type (e.g., "1B", "2B", "F1")
+          const baseType = contribution.tileId.replace(/[0-9]+$/, '') // Remove instance numbers
+          groups.add(baseType)
+        }
+      })
+    }
+    
+    return Array.from(groups)
+  }
+
+  /**
+   * Extract tile priorities from Engine 1 facts for a specific pattern
+   */
+  private static extractTilePriorities(patternId: string, analysisFacts: PatternAnalysisFacts[]): { [tileId: string]: number } {
+    const fact = analysisFacts.find(f => f.patternId === patternId)
+    if (!fact) return {}
+    
+    const priorities: { [tileId: string]: number } = {}
+    const bestVariation = fact.tileMatching.bestVariation
+    
+    if (bestVariation?.tileContributions) {
+      bestVariation.tileContributions.forEach(contribution => {
+        let priority = 5 // Default medium priority
+        
+        // Higher priority for critical and required tiles
+        if (contribution.isCritical) priority = 9
+        else if (contribution.isRequired) priority = 7
+        else if (!contribution.canBeReplaced) priority = 6
+        
+        // Lower priority for easily replaceable tiles
+        if (contribution.canBeReplaced && !contribution.isRequired) priority = 3
+        
+        priorities[contribution.tileId] = priority
+      })
+    }
+    
+    return priorities
+  }
+
+  /**
+   * Extract group priorities from Engine 1 facts for a specific pattern
+   */
+  private static extractGroupPriorities(patternId: string, analysisFacts: PatternAnalysisFacts[]): { [groupId: string]: number } {
+    const fact = analysisFacts.find(f => f.patternId === patternId)
+    if (!fact) return {}
+    
+    const groupPriorities: { [groupId: string]: number } = {}
+    const bestVariation = fact.tileMatching.bestVariation
+    
+    if (bestVariation?.tileContributions) {
+      // Group contributions by tile base type
+      const groupContributions = new Map<string, { critical: number, required: number, total: number }>()
+      
+      bestVariation.tileContributions.forEach(contribution => {
+        const baseType = contribution.tileId.replace(/[0-9]+$/, '') // Remove instance numbers
+        const existing = groupContributions.get(baseType) || { critical: 0, required: 0, total: 0 }
+        
+        existing.total++
+        if (contribution.isCritical) existing.critical++
+        if (contribution.isRequired) existing.required++
+        
+        groupContributions.set(baseType, existing)
+      })
+      
+      // Convert to priorities (0-10 scale)
+      groupContributions.forEach((stats, groupId) => {
+        let priority = 5 // Default
+        
+        // Higher priority for groups with more critical/required tiles
+        if (stats.critical > 0) priority = Math.min(10, 7 + stats.critical)
+        else if (stats.required > 0) priority = Math.min(9, 5 + stats.required)
+        
+        // Boost priority for groups that contribute more tiles
+        if (stats.total > 1) priority = Math.min(10, priority + 1)
+        
+        groupPriorities[groupId] = priority
+      })
+    }
+    
+    return groupPriorities
+  }
+
   // No legacy helper methods needed - 3-engine system is self-contained
 }
