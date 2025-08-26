@@ -225,7 +225,7 @@ export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
                       )}
                     </div>
                   ) : (
-                    <div className="text-xs text-gray-500 font-medium">Available</div>
+                    <div className="text-xs text-gray-500 font-medium text-center">Available</div>
                   )}
                 </div>
               </button>

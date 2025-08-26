@@ -10,6 +10,8 @@ import { RoomJoining } from './RoomJoining'
 import { PlayerPositioning } from './PlayerPositioning'
 import { Button } from '../../ui-components/Button'
 import { ShareButton } from '../../ui-components/ShareButton'
+import { Container } from '../../ui-components/layout/Container'
+import { Card } from '../../ui-components/Card'
 
 type RoomMode = 'create' | 'join'
 
@@ -101,7 +103,7 @@ export const RoomSetupView: React.FC = () => {
   }, [forceStep, roomStore.currentRoomCode, roomStore.roomCreationStatus])
 
   const renderProgressIndicator = () => (
-    <div className="mb-8">
+    <Card variant="default" padding="sm" className="mb-8">
       <div className="flex items-center justify-center space-x-4">
         {steps.map((step, index) => {
           const isCompleted = index < roomSetup.setupProgress.completedSteps
@@ -147,7 +149,7 @@ export const RoomSetupView: React.FC = () => {
           Step {currentStepNumber} of {steps.length}
         </span>
       </div>
-    </div>
+    </Card>
   )
 
   const renderStepContent = () => {
@@ -226,16 +228,16 @@ export const RoomSetupView: React.FC = () => {
           <div className="space-y-6">
             {/* Room info */}
             {roomSetup.coPilotMode === 'solo' ? (
-              <div className="text-center bg-green-50 border border-green-200 rounded-lg p-4">
+              <Card variant="default" className="text-center mb-6 bg-green-50 border-green-200">
                 <div className="text-green-900 font-medium">
                   Solo Game Setup
                 </div>
                 <div className="text-sm text-green-600 mt-1">
                   Choose where you want to sit at the table
                 </div>
-              </div>
+              </Card>
             ) : (
-              <div className="text-center bg-primary-50 border border-primary-200 rounded-lg p-4">
+              <Card variant="default" className="text-center mb-6 bg-primary-50 border-primary-200">
                 <div className="text-primary-900 font-medium flex items-center justify-center space-x-3">
                   <span>Room Code: <span className="font-mono text-lg">{roomSetup.roomCode}</span></span>
                   {/* Show share button for host (multiple fallback conditions for reliability) */}
@@ -251,7 +253,7 @@ export const RoomSetupView: React.FC = () => {
                 <div className="text-sm text-primary-600 mt-1">
                   Share this code with other players to join
                 </div>
-              </div>
+              </Card>
             )}
 
             <PlayerPositioning
@@ -268,7 +270,7 @@ export const RoomSetupView: React.FC = () => {
       case 'ready':
         return (
           <div className="space-y-6 text-center">
-            <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+            <Card variant="default" className="p-8 bg-green-50 border-green-200">
               <div className="text-4xl mb-4">🎉</div>
               <h2 className="text-2xl font-bold text-green-900 mb-2">
                 Setup Complete!
@@ -276,7 +278,7 @@ export const RoomSetupView: React.FC = () => {
               <p className="text-green-700">
                 All players are positioned and ready to begin
               </p>
-            </div>
+            </Card>
 
             {roomSetup.isHost ? (
               <Button
@@ -288,11 +290,11 @@ export const RoomSetupView: React.FC = () => {
                 Start Game
               </Button>
             ) : (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <Card variant="default" className="bg-blue-50 border-blue-200">
                 <div className="text-blue-700">
                   Waiting for host to start the game...
                 </div>
-              </div>
+              </Card>
             )}
           </div>
         )
@@ -303,18 +305,29 @@ export const RoomSetupView: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Header with Start Over */}
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Room Setup</h1>
+    <div className="min-h-screen bg-gray-50">
+      <Container size="full" padding="sm" center={true}>
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Room Setup
+            <br />
+            <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Let's Play Together
+            </span>
+          </h1>
+          
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed mb-6">
+            Set up your American Mahjong game room for solo practice or multiplayer fun
+          </p>
+
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={() => {
               roomStore.resetToStart()
             }}
-            className="text-red-600 hover:bg-red-50"
+            className="text-red-600 hover:bg-red-50 border-red-200"
           >
             🔄 Start Over
           </Button>
@@ -322,7 +335,7 @@ export const RoomSetupView: React.FC = () => {
 
         {renderProgressIndicator()}
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <Card variant="default" padding="sm" className="mb-6">
           {/* Error display */}
           {roomSetup.error && (
             <div className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4">
@@ -366,8 +379,8 @@ export const RoomSetupView: React.FC = () => {
               {currentStep === 'ready' && 'All set! Ready to play Mahjong'}
             </div>
           </div>
-        </div>
-      </div>
+        </Card>
+      </Container>
     </div>
   )
 }
