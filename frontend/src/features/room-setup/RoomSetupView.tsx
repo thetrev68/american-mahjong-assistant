@@ -58,21 +58,13 @@ export const RoomSetupView: React.FC = () => {
   const currentStepNumber = steps.findIndex(s => s.title.toLowerCase().includes(currentStep.split('-')[0])) + 1
   
   const handleStartGame = () => {
-    // Starting game
+    // Starting game - first need to input tiles
     
     // Mark the game as started in game store for route guards
-    gameStore.setGamePhase('charleston') // Set to charleston first (or skip if needed)
+    gameStore.setGamePhase('tile-input')
     
-    // Navigate to charleston or directly to game
-    // Check if charleston should be skipped based on co-pilot mode or settings
-    if (roomSetup.coPilotMode === 'solo') {
-      // For solo mode, might skip charleston and go directly to game
-      gameStore.setGamePhase('playing')
-      navigate('/game')
-    } else {
-      // For multiplayer, start with charleston
-      navigate('/charleston')
-    }
+    // Always go to tile input first, then Charleston, then game
+    navigate('/tiles')
   }
 
   const handleBackStep = () => {

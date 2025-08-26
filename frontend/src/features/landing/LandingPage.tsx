@@ -4,11 +4,13 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { Container } from '../../ui-components/layout/Container'
 import { useRoomStore } from '../../stores/room-store'
+import { useGameStore } from '../../stores/game-store'
 
 export const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
   const navigate = useNavigate()
   const roomStore = useRoomStore()
+  const gameStore = useGameStore()
   
   const handleStartGame = () => {
     navigate('/room-setup')
@@ -156,9 +158,18 @@ export const LandingPage = () => {
                           size="sm"
                           onClick={(e) => {
                             e.stopPropagation()
-                            if (feature.id === 'pattern-selection') navigate('/pattern-selection')
-                            if (feature.id === 'tile-intelligence') navigate('/tiles')
-                            if (feature.id === 'charleston-ai') navigate('/tiles')
+                            if (feature.id === 'pattern-selection') {
+                              gameStore.setGamePhase('lobby')
+                              navigate('/pattern-selection')
+                            }
+                            if (feature.id === 'tile-intelligence') {
+                              gameStore.setGamePhase('lobby')
+                              navigate('/tiles')
+                            }
+                            if (feature.id === 'charleston-ai') {
+                              gameStore.setGamePhase('lobby')
+                              navigate('/tiles')
+                            }
                           }}
                         >
                           Try It Now

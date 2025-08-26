@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
+import { useGameStore } from '../../stores/game-store'
 import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 import { PrimaryAnalysisCard } from './PrimaryAnalysisCard'
 import { AdvancedPatternAnalysis } from './AdvancedPatternAnalysis'
@@ -25,6 +26,10 @@ export const IntelligencePanelPage = () => {
   const { getTargetPatterns, clearSelection, addTargetPattern } = usePatternStore()
   const selectedPatterns = getTargetPatterns()
   const { playerHand = [], handSize = 0 } = useTileStore()
+  const { gamePhase } = useGameStore()
+  
+  // Detect if we're in game flow (from Start Game) vs standalone analysis (from home page)
+  const isGameFlow = gamePhase !== 'lobby'
   
   // Removed hasTriggeredInitialAnalysis as it's no longer needed
   
@@ -403,6 +408,29 @@ export const IntelligencePanelPage = () => {
                   }
                 }}
               />
+            )}
+            
+            {/* Continue to Charleston - Only show in game flow */}
+            {currentAnalysis && isGameFlow && (
+              <div className="mt-8 text-center">
+                <div className="inline-flex flex-col items-center gap-4 p-6 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                  <div className="text-2xl">🎯</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-green-900 mb-1">
+                      Primary Pattern Set
+                    </h3>
+                    <p className="text-sm text-green-700 mb-4">
+                      Your primary pattern is selected. Ready to start Charleston!
+                    </p>
+                    <button
+                      onClick={() => navigate('/charleston')}
+                      className="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+                    >
+                      🔄 Begin Charleston
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}

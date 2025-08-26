@@ -225,7 +225,7 @@ export const TileInputPage = () => {
               onClick={() => navigate('/intelligence')}
               className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold"
             >
-              ✨ Submit & Analyze Hand
+              ✨ Analyze Hand & Set Primary
             </Button>
           ) : (
             <Button
