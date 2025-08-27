@@ -287,6 +287,15 @@ export const IntelligencePanelPage = () => {
                     // Trigger re-analysis with all patterns
                     await analyzeHand(playerHand, newPatterns)
                     
+                    // Update isPrimary flags to reflect the user's selection
+                    const updatedAnalysis = { ...currentAnalysis }
+                    if (updatedAnalysis.recommendedPatterns) {
+                      updatedAnalysis.recommendedPatterns = updatedAnalysis.recommendedPatterns.map(rec => ({
+                        ...rec,
+                        isPrimary: rec.pattern.id === pattern.pattern.id
+                      }))
+                    }
+                    
                     const switchEndTime = performance.now()
                     const switchDuration = switchEndTime - switchStartTime
                     // Track performance for development insights

@@ -13,9 +13,10 @@ interface TileSelectorProps {
   onTileSelect?: (tileId: string) => void
   compact?: boolean
   onCollapse?: () => void
+  modalMode?: boolean // If true, only call onTileSelect, don't add to store
 }
 
-export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: TileSelectorProps) => {
+export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalMode = false }: TileSelectorProps) => {
   const [selectedSuit, setSelectedSuit] = useState<TileSuit>('jokers')
   const { addTile, playerHand, dealerHand } = useTileStore()
   
@@ -40,19 +41,22 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
   const handleTileClick = (tile: BaseTile) => {
     const currentCount = tileCounts.get(tile.id) || 0
     
-    // Check if we're at max hand size
-    const maxHandSize = dealerHand ? 14 : 13
-    
-    if (playerHand.length >= maxHandSize) {
-      return
+    if (!modalMode) {
+      // Normal mode: check hand size and add to store
+      const maxHandSize = dealerHand ? 14 : 13
+      if (playerHand.length >= maxHandSize) {
+        return
+      }
+      
+      // Check if we've reached the limit of 4 for this tile
+      if (currentCount >= 4) {
+        return
+      }
+      
+      addTile(tile.id)
     }
     
-    if (currentCount >= 4) {
-      return
-    }
-    
-    addTile(tile.id)
-    
+    // Always call the callback (in modal mode, this is the only action)
     if (onTileSelect) {
       onTileSelect(tile.id)
     }
@@ -73,9 +77,14 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
             variant="outline"
             size="sm"
             onClick={() => {
-              const maxHandSize = dealerHand ? 14 : 13
-              if (playerHand.length < maxHandSize) {
-                addTile('joker')
+              if (!modalMode) {
+                const maxHandSize = dealerHand ? 14 : 13
+                if (playerHand.length < maxHandSize) {
+                  addTile('joker')
+                }
+              }
+              if (onTileSelect) {
+                onTileSelect('joker')
               }
             }}
             disabled={playerHand.length >= (dealerHand ? 14 : 13)}
@@ -212,7 +221,14 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
           <Button
             variant="outline"
             size="sm"
-            onClick={() => addTile('joker')}
+            onClick={() => {
+              if (!modalMode) {
+                addTile('joker')
+              }
+              if (onTileSelect) {
+                onTileSelect('joker')
+              }
+            }}
             disabled={(tileCounts.get('joker') || 0) >= 8}
           >
             🃏 Add Joker
@@ -224,7 +240,12 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
             onClick={() => {
               ['red', 'green', 'white'].forEach(dragonId => {
                 if ((tileCounts.get(dragonId) || 0) < 4) {
-                  addTile(dragonId)
+                  if (!modalMode) {
+                    addTile(dragonId)
+                  }
+                  if (onTileSelect) {
+                    onTileSelect(dragonId)
+                  }
                 }
               })
             }}
@@ -238,7 +259,12 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse }: Tile
             onClick={() => {
               ['east', 'south', 'west', 'north'].forEach(windId => {
                 if ((tileCounts.get(windId) || 0) < 4) {
-                  addTile(windId)
+                  if (!modalMode) {
+                    addTile(windId)
+                  }
+                  if (onTileSelect) {
+                    onTileSelect(windId)
+                  }
                 }
               })
             }}

@@ -94,6 +94,7 @@ interface PatternVariationGridProps {
     tiles: string[]
     sequence?: number
     completionRatio?: number
+    aiScore?: number // Total AI score for highlighting top recommendation
   }>
   playerTiles?: string[]
   maxPatterns?: number
@@ -122,23 +123,29 @@ export const PatternVariationGrid = ({
       </div>
       
       <div className="space-y-2">
-        {displayPatterns.map((pattern, index) => {
-          const isTopChoice = index === 0
+        {displayPatterns.map((pattern) => {
+          // Highlight pattern with highest AI score (original AI recommendation)
+          const maxAiScore = Math.max(...patterns.map(p => p.aiScore || 0))
+          const isAIRecommended = pattern.aiScore === maxAiScore && maxAiScore > 0
           
           return (
             <div
               key={pattern.id}
               className={`border rounded-lg p-3 transition-all ${
-                isTopChoice 
-                  ? 'border-indigo-300 bg-indigo-50' 
+                isAIRecommended 
+                  ? 'border-blue-400 bg-blue-50 shadow-md' 
                   : 'border-gray-200 bg-white hover:border-gray-300'
               }`}
             >
               <div className="space-y-2">
                 {/* Header */}
                 <div className="flex items-center justify-between">
+                  {isAIRecommended && (
+                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-md">
+                      🤖 AI Recommended
+                    </div>
+                  )}
                   <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
-                    {isTopChoice && <span className="text-indigo-600">👑</span>}
                     <span>{pattern.name}</span>
                     {pattern.sequence && (
                       <span className="text-xs text-gray-500">#{pattern.sequence}</span>

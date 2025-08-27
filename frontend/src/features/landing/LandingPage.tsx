@@ -5,19 +5,33 @@ import { Card } from '../../ui-components/Card'
 import { Container } from '../../ui-components/layout/Container'
 import { useRoomStore } from '../../stores/room-store'
 import { useGameStore } from '../../stores/game-store'
+import { usePatternStore } from '../../stores/pattern-store'
+import { useTileStore } from '../../stores/tile-store'
+import { useIntelligenceStore } from '../../stores/intelligence-store'
 
 export const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
   const navigate = useNavigate()
   const roomStore = useRoomStore()
   const gameStore = useGameStore()
+  const patternStore = usePatternStore()
+  const tileStore = useTileStore()
+  const intelligenceStore = useIntelligenceStore()
   
   const handleStartGame = () => {
     navigate('/room-setup')
   }
   
   const handleStartOver = () => {
+    // Clear ALL stores for a complete fresh start
     roomStore.resetToStart()
+    patternStore.clearSelection()
+    patternStore.clearAllFilters()
+    tileStore.clearHand()
+    tileStore.clearRecommendations()
+    intelligenceStore.clearAnalysis()
+    intelligenceStore.clearCache()
+    
     navigate('/room-setup')
   }
   

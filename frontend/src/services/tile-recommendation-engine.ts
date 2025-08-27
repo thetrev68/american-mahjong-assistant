@@ -460,6 +460,7 @@ export class TileRecommendationEngine {
       }
     }
     
+    
     try {
       // TIER-BASED PRIORITY SYSTEM: Sophisticated keep/discard recommendations
       
@@ -496,6 +497,7 @@ export class TileRecommendationEngine {
       if (allViablePatterns.length > 0) {
         const primaryPattern = allViablePatterns[0]
         const tileContribution = this.findTileInPattern(tileId, primaryPattern)
+        
         if (tileContribution?.isRequired) {
           priorityTier = 1
           tileValue += 1.0 // High value for primary pattern

@@ -25,7 +25,8 @@ export const AdvancedPatternAnalysis = ({
   // Use recommended patterns from analysis (the ones mentioned in "Found X recommended patterns")
   const recommendedPatterns = analysis.recommendedPatterns || []
   const viablePatterns = recommendedPatterns.filter(p => p.completionPercentage >= 15)
-  const topPatterns = viablePatterns.slice(1) // Skip first one as it's shown as primary
+  // Show patterns that are NOT marked as primary (so user can switch to them)
+  const topPatterns = viablePatterns.filter(p => !p.isPrimary)
   
   // Get real pattern variations from Engine 1 analysis data
   const getPatternVariationsFromAnalysis = () => {
@@ -41,12 +42,19 @@ export const AdvancedPatternAnalysis = ({
         
         const bestVariation = engine1Fact?.tileMatching?.bestVariation
         
+        // Calculate total AI score from breakdown
+        const scoreBreakdown = patternRec.scoreBreakdown
+        const totalAiScore = scoreBreakdown ? 
+          scoreBreakdown.currentTileScore + scoreBreakdown.availabilityScore + 
+          scoreBreakdown.jokerScore + scoreBreakdown.priorityScore : 0
+        
         const pattern = {
           id: patternRec.pattern.id,
           name: `${patternRec.pattern.section} #${patternRec.pattern.line}`,
           tiles: bestVariation?.patternTiles || [],
           sequence: bestVariation?.sequence || 1,
-          completionRatio: patternRec.completionPercentage / 100
+          completionRatio: patternRec.completionPercentage / 100,
+          aiScore: totalAiScore
         }
         
         

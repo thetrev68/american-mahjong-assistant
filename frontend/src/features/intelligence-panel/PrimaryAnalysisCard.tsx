@@ -237,20 +237,11 @@ export const PrimaryAnalysisCard = ({
                   </div>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-700">{Math.round(availabilityScore)} / 30 points for difficulty of remaining tiles</span>
+                  <span className="text-gray-700">{Math.round(availabilityScore)} / 50 points for difficulty of remaining tiles</span>
                   <div className="w-16 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-blue-500 h-2 rounded-full" 
-                      style={{ width: `${(availabilityScore / 30) * 100}%` }}
-                    ></div>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-700">{Math.round(jokerScore)} / 20 points for joker substitution availability</span>
-                  <div className="w-16 bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-purple-500 h-2 rounded-full" 
-                      style={{ width: `${(jokerScore / 20) * 100}%` }}
+                      style={{ width: `${(availabilityScore / 50) * 100}%` }}
                     ></div>
                   </div>
                 </div>
@@ -298,7 +289,7 @@ export const PrimaryAnalysisCard = ({
           <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
             <div className="text-sm font-semibold text-blue-800 mb-1">💡 Strategy:</div>
             <div className="text-sm text-blue-700 leading-relaxed">
-              {analysis.strategicAdvice[0]}
+              Focus on {primaryPattern.pattern.section} #{primaryPattern.pattern.line} ({primaryPattern.difficulty} difficulty)
             </div>
           </div>
         )}

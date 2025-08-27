@@ -14,43 +14,10 @@ import { Container } from '../../ui-components/layout/Container'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
+import { TileInputModal } from '../shared/TileInputModal'
 import { tileService } from '../../services/tile-service'
 import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 
-interface TileSelectorProps {
-  availableTiles: TileType[]
-  selectedTiles: string[]
-  onTileSelect: (tileId: string) => void
-}
-
-const TileSelector: React.FC<TileSelectorProps> = ({ availableTiles, selectedTiles, onTileSelect }) => {
-  return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Select 3 tiles you received:</h3>
-      <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-9 gap-4">
-        {availableTiles.map((tile, index) => (
-          <div key={`${tile.id}-selector-${index}`} style={{ width: '52px', height: '69px', position: 'relative' }}>
-            <AnimatedTile
-              tile={{...tile, instanceId: `${tile.id}-selector-${index}`, isSelected: selectedTiles.includes(tile.id)}}
-              size="md"
-              onClick={() => onTileSelect(tile.id)}
-              className={`cursor-pointer transition-transform duration-200 ${
-                selectedTiles.includes(tile.id) 
-                  ? 'ring-2 ring-blue-500 scale-105' 
-                  : 'hover:scale-110'
-              }`}
-              animateOnSelect={true}
-              context="selection"
-            />
-          </div>
-        ))}
-      </div>
-      <p className="text-sm text-gray-600">
-        Selected: {selectedTiles.length}/3 tiles
-      </p>
-    </div>
-  )
-}
 
 export function CharlestonView() {
   const navigate = useNavigate()
@@ -104,8 +71,8 @@ export function CharlestonView() {
   const [isReadyToPass, setIsReadyToPass] = useState(false)
   const [allPlayersReady, setAllPlayersReady] = useState(false)
   const [newlyReceivedTiles, setNewlyReceivedTiles] = useState<string[]>([])
-  const [showTileSelector, setShowTileSelector] = useState(false)
-  const [selectedReceivedTiles, setSelectedReceivedTiles] = useState<string[]>([])
+  const [showTileModal, setShowTileModal] = useState(false)
+  const [tileModalMode, setTileModalMode] = useState<'receive' | 'edit'>('receive')
   const [currentHand, setCurrentHand] = useState<TileType[]>(() => 
     sortTilesAlphabetically(playerHand)
   )
@@ -240,8 +207,7 @@ export function CharlestonView() {
     }))
     
     if (coPilotMode === 'solo') {
-      // In solo mode, show tile selector for received tiles
-      setShowTileSelector(true)
+      // In solo mode, modal will be shown in handleReadyToPass
     } else {
       // In multiplayer mode, tiles will be received from other players via websockets
       setCurrentHand(remainingTiles)
@@ -269,77 +235,19 @@ export function CharlestonView() {
     // Mock: simulate all players becoming ready after a delay
     setTimeout(() => {
       setAllPlayersReady(true)
-      // Simulate tile passing
-      setTimeout(() => {
-        handleTilePassing()
-      }, 1000)
-    }, 2000)
-  }, [selectedTilesToPass.length, handleTilePassing])
-
-  // Handle tile selector for solo mode
-  const handleReceivedTileSelect = useCallback((tileId: string) => {
-    setSelectedReceivedTiles(current => {
-      if (current.includes(tileId)) {
-        return current.filter(id => id !== tileId)
-      } else if (current.length < 3) {
-        return [...current, tileId]
+      // In solo mode, show tile modal for receiving tiles
+      if (coPilotMode === 'solo') {
+        setShowTileModal(true)
+        setTileModalMode('receive')
       } else {
-        return [tileId, ...current.slice(1)]
+        // In multiplayer, continue with tile passing
+        setTimeout(() => {
+          handleTilePassing()
+        }, 1000)
       }
-    })
-  }, [])
+    }, 2000)
+  }, [selectedTilesToPass.length, handleTilePassing, coPilotMode])
 
-  const handleConfirmReceivedTiles = useCallback(async () => {
-    if (selectedReceivedTiles.length !== 3) return
-    
-    // Save state before making changes (for undo)
-    saveGameState()
-    
-    // Remove passed tiles and add selected received tiles using tile service
-    const remainingTiles = currentHand.filter(tile => !selectedTilesToPass.includes(tile.id))
-    const receivedTiles = selectedReceivedTiles
-      .map(tileId => tileService.getTileById(tileId))
-      .filter(tile => tile !== undefined) as TileType[]
-    
-    const unsortedNewHand = [...remainingTiles, ...receivedTiles]
-    const newHand = sortTilesAlphabetically(unsortedNewHand)
-    
-    setNewlyReceivedTiles(selectedReceivedTiles)
-    setCurrentHand(newHand)
-    setShowTileSelector(false)
-    setSelectedReceivedTiles([])
-    
-    // Update the tile store so PrimaryAnalysisCard gets the correct tiles
-    const storePlayerTiles = newHand
-      .map(tile => tileService.createPlayerTile(tile.id))
-      .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
-    replacePlayerHand(storePlayerTiles)
-    
-    // Re-run all 3 engines with the new hand and updated game context
-    const selectedPatterns = getTargetPatterns()
-    
-    // Update intelligence store with analysis - this will trigger UI updates
-    const playerTilesForAnalysis = newHand
-      .map(tile => tileService.createPlayerTile(tile.id))
-      .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
-    await analyzeHand(playerTilesForAnalysis, selectedPatterns)
-    
-    // Advance Charleston phase
-    const nextPhase = charlestonPhase === 'right' ? 'across' : charlestonPhase === 'across' ? 'left' : 'complete'
-    setCharlestonPhase(nextPhase)
-    
-    // If Charleston is complete, navigate to game mode
-    if (nextPhase === 'complete') {
-      setTimeout(() => {
-        navigate('/game')
-      }, 2000)
-    }
-    
-    // Clear rings after a few seconds
-    setTimeout(() => {
-      setNewlyReceivedTiles([])
-    }, 3000)
-  }, [currentHand, selectedTilesToPass, selectedReceivedTiles, getTargetPatterns, analyzeHand, charlestonPhase, navigate, tilesPassedOut, knownOpponentTiles, saveGameState, replacePlayerHand])
 
   return (
     <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
@@ -459,6 +367,31 @@ export function CharlestonView() {
             />
           )}
 
+          {/* Edit Received Tiles Section */}
+          {newlyReceivedTiles.length > 0 && (
+            <Card variant="default" className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-700 mb-1">Recently Received Tiles</h3>
+                  <p className="text-xs text-gray-500">
+                    {newlyReceivedTiles.length} tiles received - marked with ★ in your hand
+                  </p>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setTileModalMode('edit')
+                    setShowTileModal(true)
+                  }}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                >
+                  ✏️ Edit Received Tiles
+                </Button>
+              </div>
+            </Card>
+          )}
+
           {/* Advanced Pattern Analysis */}
           {currentAnalysis && (
             <AdvancedPatternAnalysis
@@ -521,39 +454,107 @@ export function CharlestonView() {
         </div>
       </Container>
 
-      {/* Solo Mode Tile Selector Modal */}
-      {showTileSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="p-6 max-w-2xl w-full max-h-96 overflow-y-auto">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">Select Tiles You Received</h3>
+      {/* Universal Tile Input Modal */}
+      <TileInputModal
+        isOpen={showTileModal}
+        onClose={() => {
+          setShowTileModal(false)
+          setTileModalMode('receive')
+        }}
+        onConfirm={(tileIds) => {
+          if (tileModalMode === 'receive') {
+            // Save state before making changes (for undo)
+            saveGameState()
             
-            <TileSelector
-              availableTiles={tileService.getAllTiles()}
-              selectedTiles={selectedReceivedTiles}
-              onTileSelect={handleReceivedTileSelect}
-            />
-
-            <div className="flex items-center justify-between mt-6 pt-4 border-t">
-              <Button 
-                variant="outline"
-                onClick={() => {
-                  setShowTileSelector(false)
-                  setSelectedReceivedTiles([])
-                }}
-              >
-                Cancel
-              </Button>
-              <Button 
-                variant="primary"
-                onClick={handleConfirmReceivedTiles}
-                disabled={selectedReceivedTiles.length !== 3}
-              >
-                Confirm Received Tiles
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+            // Remove passed tiles and add received tiles
+            const remainingTiles = currentHand.filter(tile => !selectedTilesToPass.includes(tile.id))
+            const receivedTiles = tileIds
+              .map(tileId => tileService.getTileById(tileId))
+              .filter(tile => tile !== undefined) as TileType[]
+              
+            const unsortedNewHand = [...remainingTiles, ...receivedTiles]
+            const newHand = sortTilesAlphabetically(unsortedNewHand)
+            
+            setNewlyReceivedTiles(tileIds)
+            setCurrentHand(newHand)
+            
+            // Update the tile store
+            const storePlayerTiles = newHand
+              .map(tile => tileService.createPlayerTile(tile.id))
+              .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
+            replacePlayerHand(storePlayerTiles)
+            
+            // Re-run analysis with new hand
+            const targetPatterns = getTargetPatterns()
+            if (targetPatterns.length > 0) {
+              analyzeHand(storePlayerTiles, targetPatterns)
+            }
+            
+            // Advance to next phase
+            const nextPhase = charlestonPhase === 'right' ? 'across' 
+                           : charlestonPhase === 'across' ? 'left' 
+                           : 'complete'
+            setCharlestonPhase(nextPhase)
+            
+            if (nextPhase === 'complete') {
+              setTimeout(() => {
+                navigate('/gameplay')
+              }, 2000)
+            }
+            
+            // Clear selection and receiving state
+            setSelectedTilesToPass([])
+            setIsReadyToPass(false)
+            setAllPlayersReady(false)
+            
+            // Auto-hide newly received tiles after 3 seconds
+            setTimeout(() => {
+              setNewlyReceivedTiles([])
+            }, 3000)
+          } else if (tileModalMode === 'edit') {
+            // Edit flow: replace the previously received tiles
+            saveGameState()
+            
+            // Remove the old received tiles from hand
+            const handWithoutOldReceived = currentHand.filter(tile => !newlyReceivedTiles.includes(tile.id))
+            
+            // Add the new selected tiles
+            const newReceivedTiles = tileIds
+              .map(tileId => tileService.getTileById(tileId))
+              .filter(tile => tile !== undefined) as TileType[]
+              
+            const updatedHand = sortTilesAlphabetically([...handWithoutOldReceived, ...newReceivedTiles])
+            
+            // Update state
+            setNewlyReceivedTiles(tileIds)
+            setCurrentHand(updatedHand)
+            
+            // Update the tile store
+            const storePlayerTiles = updatedHand
+              .map(tile => tileService.createPlayerTile(tile.id))
+              .filter((tile): tile is NonNullable<typeof tile> => tile !== null)
+            replacePlayerHand(storePlayerTiles)
+            
+            // Re-run analysis with updated hand
+            const targetPatterns = getTargetPatterns()
+            if (targetPatterns.length > 0) {
+              analyzeHand(storePlayerTiles, targetPatterns)
+            }
+            
+            // Auto-hide the edit markers after 3 seconds
+            setTimeout(() => {
+              setNewlyReceivedTiles([])
+            }, 3000)
+          }
+          
+          setShowTileModal(false)
+          setTileModalMode('receive')
+        }}
+        mode={tileModalMode}
+        requiredCount={3}
+        context="charleston"
+        initialTiles={tileModalMode === 'edit' ? newlyReceivedTiles : []}
+      />
     </div>
   )
 }
