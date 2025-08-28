@@ -153,6 +153,10 @@
   .animate-pop-in {
     animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   }
+
+  .animate-slide-in-right {
+    animation: slideInRight 0.3s ease-out;
+  }
 }
 
 /* Custom Keyframes */
@@ -205,6 +209,17 @@
   }
   100% { 
     transform: scale(1) translateY(0); 
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  0% {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(0);
     opacity: 1;
   }
 }

@@ -1,4 +1,4 @@
-Refer to GAME_SCREEN_VISION.md for context. Tickets 1-2 completed.
+Refer to GAME_SCREEN_VISION.md for context. Tickets 1, 2, and 4 completed.
 
 Add background hand display and improved feedback to tile input modal.
 

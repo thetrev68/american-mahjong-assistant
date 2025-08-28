@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
+import type { GameAlert } from '../features/gameplay/AlertSystem'
 
 export interface Player {
   id: string
@@ -22,6 +23,9 @@ export interface GameState {
   // Timer State
   turnStartTime: Date | null
   
+  // Alert System
+  alerts: GameAlert[]
+  
   // Actions
   setRoomCode: (code: string | null) => void
   addPlayer: (player: Player) => void
@@ -31,6 +35,8 @@ export interface GameState {
   setCoPilotMode: (mode: GameState['coPilotMode']) => void
   startTurn: () => void
   resetGame: () => void
+  addAlert: (alert: Omit<GameAlert, 'id' | 'createdAt'>) => void
+  removeAlert: (alertId: string) => void
 }
 
 const initialState = {
@@ -40,6 +46,7 @@ const initialState = {
   gamePhase: 'lobby' as const,
   coPilotMode: null,
   turnStartTime: null,
+  alerts: [],
 }
 
 export const useGameStore = create<GameState>()(
@@ -82,6 +89,28 @@ export const useGameStore = create<GameState>()(
       
       resetGame: () =>
         set(initialState, false, 'resetGame'),
+
+      addAlert: (alertData) => 
+        set(
+          (state) => ({
+            alerts: [...state.alerts, {
+              ...alertData,
+              id: `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              createdAt: new Date()
+            }]
+          }),
+          false,
+          'addAlert'
+        ),
+
+      removeAlert: (alertId) =>
+        set(
+          (state) => ({
+            alerts: state.alerts.filter(alert => alert.id !== alertId)
+          }),
+          false,
+          'removeAlert'
+        ),
     }),
     {
       name: 'game-store', // DevTools name

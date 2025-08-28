@@ -7,14 +7,10 @@ import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { useRoomStore } from '../../stores/room-store'
-import { PrimaryAnalysisCard } from '../intelligence-panel/PrimaryAnalysisCard'
-import { AdvancedPatternAnalysis } from '../intelligence-panel/AdvancedPatternAnalysis'
-import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
-import { Container } from '../../ui-components/layout/Container'
-import { Card } from '../../ui-components/Card'
-import { Button } from '../../ui-components/Button'
-import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
+import { useGameStore } from '../../stores/game-store'
+import GameScreenLayout from '../gameplay/GameScreenLayout'
 import { TileInputModal } from '../shared/TileInputModal'
+import { SelectionArea } from '../gameplay/SelectionArea'
 import { tileService } from '../../services/tile-service'
 import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 
@@ -249,210 +245,144 @@ export function CharlestonView() {
   }, [selectedTilesToPass.length, handleTilePassing, coPilotMode])
 
 
-  return (
-    <div className="min-h-screen bg-gray-50 w-full overflow-x-hidden">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <Container size="full" padding="sm" center={true}>
-          <div className="flex items-center justify-between w-full">
-            <div>
-              <h1 className="text-lg sm:text-2xl font-bold text-gray-900 mb-1 sm:mb-2">
-                🔄 Charleston - Pass {charlestonPhase === 'right' ? 'Right' : charlestonPhase === 'across' ? 'Across' : charlestonPhase === 'left' ? 'Left' : 'Complete'}
-              </h1>
-              <p className="text-gray-600 text-xs sm:text-sm">
-                {charlestonPhase === 'complete' 
-                  ? 'Charleston complete! Proceeding to game...' 
-                  : `Pass 3 tiles ${charlestonPhase} based on AI recommendations`}
-              </p>
-            </div>
-            
-            {/* Undo Button */}
-            {gameStateHistory.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleUndo}
-                className="flex items-center gap-2"
-              >
-                ↶ Undo
-              </Button>
-            )}
-          </div>
-        </Container>
-      </div>
+  const { turnStartTime } = useGameStore()
 
-      {/* Main Content */}
-      <Container size="full" padding="sm" center={true}>
-        <div className="space-y-6">
-          
-          {/* Your Hand Section - Same as tile input page */}
-          <Card variant="elevated" className="p-3 space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="text-lg font-semibold text-gray-900">Your Hand</h3>
-                <p className="text-sm text-gray-600">
-                  {currentHand.length} tiles • Selected to pass: {selectedTilesToPass.length}/3
-                </p>
-                <p className="text-xs text-gray-500">
-                  💡 Click tiles to select for passing
-                </p>
-              </div>
-              {isAnalyzing && <LoadingSpinner size="sm" />}
-            </div>
-            
-            <div className="flex flex-wrap gap-4">
-              {currentHand.length > 0 ? currentHand.map((tile, index) => {
-                if (!tile || !tile.id) return null;
-                
-                return (
-                  <div key={`${tile.id}-${index}`} className="relative group">
-                    <AnimatedTile
-                      tile={{
-                        ...tile, 
-                        instanceId: `${tile.id}-${index}`, 
-                        isSelected: selectedTilesToPass.includes(tile.id)
-                      }}
-                      size="md"
-                      onClick={() => handleTileSelect(tile.id)}
-                      className={`transition-all ${
-                        isReadyToPass 
-                          ? 'opacity-75 cursor-not-allowed'
-                          : 'hover:scale-110 cursor-pointer'
-                      }`}
-                      animateOnSelect={true}
-                      context="selection"
-                    />
-                    {selectedTilesToPass.includes(tile.id) && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center">
-                        <span className="text-white text-xs font-bold">✕</span>
-                      </div>
-                    )}
-                    {newlyReceivedTiles.includes(tile.id) && (
-                      <div className="absolute -top-2 -right-2 w-5 h-5 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
-                        <span className="text-white text-xs font-bold">★</span>
-                      </div>
+  // Convert current hand to PlayerTile format for GameScreenLayout
+  const playerTiles: PlayerTile[] = currentHand.map((tile, index) => ({
+    ...tile,
+    instanceId: `${tile.id}-${index}`,
+    isSelected: selectedTilesToPass.includes(tile.id)
+  }))
+
+  // Mock data for GameScreenLayout
+  const mockDiscardPile: Array<{
+    tile: TileType
+    playerId: string
+    timestamp: Date
+  }> = []
+
+  const mockGameHistory: Array<{
+    playerId: string
+    action: string
+    tile?: TileType
+    timestamp: Date
+  }> = []
+
+  const handleSelectTile = (tile: TileType) => {
+    handleTileSelect(tile.id)
+  }
+
+  const findAlternativePatterns = () => {
+    navigate('/patterns')
+  }
+
+  return (
+    <div>
+      <GameScreenLayout
+        gamePhase="charleston"
+        currentPlayer={`Pass ${charlestonPhase === 'right' ? 'Right' : charlestonPhase === 'across' ? 'Across' : charlestonPhase === 'left' ? 'Left' : 'Complete'}`}
+        timeElapsed={turnStartTime ? Math.floor((Date.now() - turnStartTime.getTime()) / 1000) : 0}
+        playerNames={['You', 'Player 2', 'Player 3', 'Player 4']}
+        windRound="east"
+        gameRound={1}
+        selectedPatternsCount={getTargetPatterns().length}
+        findAlternativePatterns={findAlternativePatterns}
+        onNavigateToCharleston={() => {}}
+        currentHand={playerTiles}
+        lastDrawnTile={null}
+        exposedTiles={[]}
+        selectedDiscardTile={null}
+        isMyTurn={true}
+        isAnalyzing={isAnalyzing}
+        handleDrawTile={() => {}}
+        handleDiscardTile={handleSelectTile}
+        discardPile={mockDiscardPile}
+        currentPlayerIndex={0}
+        playerExposedCount={{}}
+        gameHistory={mockGameHistory}
+        currentAnalysis={currentAnalysis}
+      />
+
+      {/* Selection Area for Charleston tile passing */}
+      <SelectionArea />
+
+      {/* Charleston Action Panel */}
+      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200 shadow-lg p-4 min-w-80">
+          <div className="text-center space-y-3">
+            <div className="text-2xl">🔄</div>
+            <div>
+              {!isReadyToPass ? (
+                <>
+                  <h3 className="text-lg font-semibold text-blue-900 mb-1">
+                    Pass Selection
+                  </h3>
+                  <p className="text-sm text-blue-700 mb-4">
+                    {selectedTilesToPass.length === 3 
+                      ? 'Ready to pass your tiles!'
+                      : `Select ${3 - selectedTilesToPass.length} more tile${3 - selectedTilesToPass.length !== 1 ? 's' : ''} to pass`
+                    }
+                  </p>
+                  <div className="flex gap-2 justify-center">
+                    <button
+                      onClick={handleReadyToPass}
+                      disabled={selectedTilesToPass.length !== 3}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
+                    >
+                      Ready to Pass ({selectedTilesToPass.length}/3)
+                    </button>
+                    {gameStateHistory.length > 0 && (
+                      <button
+                        onClick={handleUndo}
+                        className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+                      >
+                        ↶ Undo
+                      </button>
                     )}
                   </div>
-                )
-              }).filter(Boolean) : (
-                <div className="text-gray-400 text-sm flex items-center justify-center w-full py-8">
-                  No tiles available for Charleston
-                </div>
-              )}
-            </div>
-            
-            <div className="flex justify-between items-center pt-3 border-t border-gray-200 text-sm text-gray-600">
-              <span>Selected to pass: {selectedTilesToPass.length}/3 tiles</span>
-              {selectedTilesToPass.length === 3 && !isReadyToPass && (
-                <span className="text-green-600 font-medium">✓ Ready to confirm</span>
-              )}
-              {isReadyToPass && (
-                <span className="text-blue-600 font-medium">⏳ Waiting for other players...</span>
-              )}
-            </div>
-          </Card>
-
-          {/* Primary Analysis Card */}
-          {currentAnalysis && (
-            <PrimaryAnalysisCard 
-              analysis={currentAnalysis}
-              currentPattern={currentAnalysis.recommendedPatterns[0] || null}
-              onPatternSwitch={async (pattern) => {
-                // Pattern switching logic (same as intelligence panel)
-                console.log('Pattern switch:', pattern)
-              }}
-              onBrowseAllPatterns={() => {
-                navigate('/patterns')
-              }}
-            />
-          )}
-
-          {/* Edit Received Tiles Section */}
-          {newlyReceivedTiles.length > 0 && (
-            <Card variant="default" className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-1">Recently Received Tiles</h3>
-                  <p className="text-xs text-gray-500">
-                    {newlyReceivedTiles.length} tiles received - marked with ★ in your hand
+                </>
+              ) : allPlayersReady ? (
+                <>
+                  <h3 className="text-lg font-semibold text-green-900 mb-1">
+                    Passing Tiles...
+                  </h3>
+                  <p className="text-sm text-green-700 mb-4">
+                    All players ready - tiles are being exchanged
                   </p>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
+                  <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-semibold text-orange-900 mb-1">
+                    Tiles Locked
+                  </h3>
+                  <p className="text-sm text-orange-700">
+                    Waiting for other players to confirm their passes...
+                  </p>
+                </>
+              )}
+            </div>
+
+            {/* Edit Received Tiles */}
+            {newlyReceivedTiles.length > 0 && (
+              <div className="border-t pt-3">
+                <p className="text-xs text-gray-500 mb-2">
+                  {newlyReceivedTiles.length} tiles received - marked with ★
+                </p>
+                <button
                   onClick={() => {
                     setTileModalMode('edit')
                     setShowTileModal(true)
                   }}
-                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  className="text-xs px-3 py-1 border border-blue-200 text-blue-600 rounded hover:bg-blue-50"
                 >
                   ✏️ Edit Received Tiles
-                </Button>
+                </button>
               </div>
-            </Card>
-          )}
-
-          {/* Advanced Pattern Analysis */}
-          {currentAnalysis && (
-            <AdvancedPatternAnalysis
-              analysis={currentAnalysis}
-              playerTiles={currentHand.map(t => t.id)}
-              gamePhase="charleston"
-              onPatternSelect={async (patternId) => {
-                console.log('Pattern select:', patternId)
-              }}
-            />
-          )}
-
-          {/* Action Button */}
-          <div className="text-center">
-            <div className="inline-flex flex-col items-center gap-4 p-6 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-xl">
-              <div className="text-2xl">🔄</div>
-              <div>
-                {!isReadyToPass ? (
-                  <>
-                    <h3 className="text-lg font-semibold text-blue-900 mb-1">
-                      Pass Selection
-                    </h3>
-                    <p className="text-sm text-blue-700 mb-4">
-                      {selectedTilesToPass.length === 3 
-                        ? 'Ready to pass your tiles!'
-                        : `Select ${3 - selectedTilesToPass.length} more tile${3 - selectedTilesToPass.length !== 1 ? 's' : ''} to pass`
-                      }
-                    </p>
-                    <Button
-                      onClick={handleReadyToPass}
-                      disabled={selectedTilesToPass.length !== 3}
-                      variant="primary"
-                    >
-                      Ready to Pass
-                    </Button>
-                  </>
-                ) : allPlayersReady ? (
-                  <>
-                    <h3 className="text-lg font-semibold text-green-900 mb-1">
-                      Passing Tiles...
-                    </h3>
-                    <p className="text-sm text-green-700 mb-4">
-                      All players ready - tiles are being exchanged
-                    </p>
-                    <LoadingSpinner size="sm" />
-                  </>
-                ) : (
-                  <>
-                    <h3 className="text-lg font-semibold text-orange-900 mb-1">
-                      Tiles Locked
-                    </h3>
-                    <p className="text-sm text-orange-700">
-                      Waiting for other players to confirm their passes...
-                    </p>
-                  </>
-                )}
-              </div>
-            </div>
+            )}
           </div>
         </div>
-      </Container>
+      </div>
 
       {/* Universal Tile Input Modal */}
       <TileInputModal
