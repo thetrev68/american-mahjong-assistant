@@ -12,6 +12,7 @@ import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { Tile as TileType } from '../../types/tile-types'
 import type { PatternGroup } from '../../../../shared/nmjl-types'
+import GameScreenLayout from './GameScreenLayout'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -99,6 +100,13 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [playerNames] = useState(['You', 'Right', 'Across', 'Left'])
   const [gameRound] = useState(1)
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
+  const [discardPile, setDiscardPile] = useState<Array<{
+    tile: TileType
+    playerId: string
+    timestamp: Date
+  }>>([])
+  const [gameStartTime] = useState(new Date())
+  const [elapsedTime, setElapsedTime] = useState(0)
   const [showPatternSwitcher, setShowPatternSwitcher] = useState(false)
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
@@ -152,6 +160,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     // GameModeView initialized
     setIsMyTurn(true)
   }, [])
+
+  // Timer effect
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const elapsed = Math.floor((Date.now() - gameStartTime.getTime()) / 1000)
+      setElapsedTime(elapsed)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [gameStartTime])
 
   // Auto-analyze hand when it changes
   useEffect(() => {
@@ -247,6 +265,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       timestamp: new Date()
     }
     setGameHistory(prev => [turn, ...prev])
+    setDiscardPile(prev => [...prev, {
+      tile,
+      playerId: gameStore.currentPlayerId || 'player-1',
+      timestamp: new Date()
+    }])
 
     setIsMyTurn(false)
     setSelectedDiscardTile(null)
@@ -419,221 +442,31 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }
 
   return (
-    <div className="max-w-full mx-auto p-2 sm:p-4 md:p-6 md:max-w-4xl">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">Game Mode</h1>
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
-              <p className="text-sm md:text-base text-gray-600">
-                {isMyTurn ? '🟢 Your turn' : `🔄 ${playerNames[currentPlayerIndex]}'s turn`} • 
-                Playing {selectedPatterns.length} pattern{selectedPatterns.length !== 1 ? 's' : ''}
-              </p>
-              <div className="text-xs md:text-sm text-gray-500">
-                {windRound.charAt(0).toUpperCase() + windRound.slice(1)} Round #{gameRound}
-              </div>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-1 sm:gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={findAlternativePatterns}
-              disabled={!currentAnalysis || selectedPatterns.length === 0}
-              className="text-purple-600 border-purple-300 hover:bg-purple-50"
-            >
-              🔄 Switch Strategy
-            </Button>
-            <Button variant="outline" size="sm" onClick={onNavigateToCharleston}>
-              Back to Charleston
-            </Button>
-            <Button variant="ghost" size="sm">
-              Pause Game
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Player Order Display */}
-      <Card className="p-3 sm:p-4 mb-4 sm:mb-6 bg-gradient-to-r from-purple-50 to-blue-50">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium text-gray-700">Player Order</h3>
-          <div className="text-xs text-gray-500">Turn {gameHistory.length + 1}</div>
-        </div>
-        <div className="flex items-center justify-center gap-2 sm:gap-4 mt-2 sm:mt-3">
-          {playerNames.map((name, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <div className={`w-3 h-3 rounded-full ${
-                currentPlayerIndex === index ? 'bg-green-500 animate-pulse' : 
-                index === 0 ? 'bg-blue-500' : 'bg-gray-300'
-              }`} />
-              <span className={`text-xs sm:text-sm font-medium ${
-                currentPlayerIndex === index ? 'text-green-600' : 
-                index === 0 ? 'text-blue-600' : 'text-gray-500'
-              }`}>
-                {name}
-              </span>
-              {playerExposedCount[`player-${index + 1}`] > 0 && (
-                <span className="text-xs bg-purple-100 text-purple-600 px-1 rounded">
-                  {playerExposedCount[`player-${index + 1}`]} sets
-                </span>
-              )}
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* Main Game Area */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 mb-6">
-        {/* Current Hand */}
-        <Card className="p-4 md:col-span-2 xl:col-span-2">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">Your Hand</h3>
-            <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                onClick={handleDrawTile}
-                disabled={!isMyTurn || !!lastDrawnTile}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                🎲 Draw Tile
-              </Button>
-              {isAnalyzing && <LoadingSpinner size="sm" />}
-            </div>
-          </div>
-          
-          <div className="space-y-4">
-            {/* Concealed Hand */}
-            <div>
-              <div className="text-sm text-gray-600 mb-2">Concealed ({currentHand.length} tiles)</div>
-              <div className="flex flex-wrap gap-1 sm:gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
-                {currentHand.length > 0 ? currentHand.map((tile) => (
-                  <AnimatedTile
-                    key={tile.id}
-                    tile={{...tile, instanceId: tile.id, isSelected: selectedDiscardTile?.id === tile.id}}
-                    size="sm"
-                    onClick={() => isMyTurn && handleDiscardTile(tile)}
-                    className={`cursor-pointer hover:scale-105 transition-transform ${
-                      selectedDiscardTile?.id === tile.id ? 'ring-2 ring-red-400' : ''
-                    }`}
-                    context="gameplay"
-                  />
-                )) : (
-                  <div className="text-gray-400 text-sm flex items-center justify-center w-full py-4">
-                    No tiles in hand - click "Draw Tile" to start
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Drawn Tile */}
-            {lastDrawnTile && (
-              <div>
-                <div className="text-sm text-gray-600 mb-2">Just Drawn</div>
-                <div className="flex gap-2 p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
-                  <AnimatedTile
-                    tile={{...lastDrawnTile, instanceId: lastDrawnTile.id, isSelected: false}}
-                    size="sm"
-                    onClick={() => isMyTurn && handleDiscardTile(lastDrawnTile)}
-                    className="cursor-pointer hover:scale-105 transition-transform ring-2 ring-blue-400"
-                    context="gameplay"
-                  />
-                  <div className="text-sm text-blue-600 flex items-center">
-                    Click to discard or keep in hand
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Exposed Sets */}
-            {exposedTiles.length > 0 && (
-              <div>
-                <div className="text-sm text-gray-600 mb-2">Exposed Sets ({exposedTiles.length})</div>
-                <div className="space-y-2">
-                  {exposedTiles.map((set, index) => (
-                    <div key={index} className="flex gap-1 p-2 bg-purple-50 rounded border-l-4 border-purple-400">
-                      <span className="text-xs text-purple-600 font-medium mr-2">
-                        {set.type.toUpperCase()}:
-                      </span>
-                      {set.tiles.map((tile, tileIndex) => (
-                        <AnimatedTile
-                          key={tileIndex}
-                          tile={{...tile, instanceId: tile.id, isSelected: false}}
-                          size="sm"
-                          className="pointer-events-none"
-                          context="gameplay"
-                        />
-                      ))}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </Card>
-
-        {/* AI Co-Pilot Panel */}
-        <Card className="p-4">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-gray-800">🧠 AI Co-Pilot</h3>
-            {isAnalyzing && <LoadingSpinner size="sm" />}
-          </div>
-          
-          <div className="space-y-4">
-            {currentAnalysis ? (
-              <>
-                {/* Primary Recommendation */}
-                <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-                  <div className="text-sm font-medium text-blue-800 mb-2">💡 Recommendation</div>
-                  <div className="text-sm text-gray-700">
-                    {recommendedDiscard()?.reasoning || 'Analyzing your hand...'}
-                  </div>
-                </div>
-
-                {/* Pattern Progress */}
-                <div className="space-y-2">
-                  <div className="text-sm font-medium text-gray-700">🎯 Pattern Progress</div>
-                  {currentAnalysis.recommendedPatterns?.slice(0, 2).map((patternRec, index) => {
-                    const completionPercentage = patternRec.completionPercentage || 0
-                    return (
-                      <div key={index} className="p-2 bg-gray-50 rounded">
-                        <div className="flex justify-between items-center mb-1">
-                          <span className="text-xs font-medium">{patternRec.pattern.displayName}</span>
-                          <span className="text-xs text-gray-500">{Math.round(completionPercentage)}%</span>
-                        </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                            style={{ width: `${Math.max(5, completionPercentage)}%` }} 
-                          />
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                {/* Quick Actions */}
-                <div className="space-y-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full text-purple-600 border-purple-300"
-                    onClick={findAlternativePatterns}
-                  >
-                    🔄 Switch Pattern
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="text-center text-gray-500 py-8">
-                <div className="text-2xl mb-2">🤔</div>
-                <p className="text-sm">Draw tiles to see AI recommendations</p>
-              </div>
-            )}
-          </div>
-        </Card>
-      </div>
+    <>
+      <GameScreenLayout
+        gamePhase="gameplay"
+        currentPlayer={playerNames[currentPlayerIndex]}
+        timeElapsed={elapsedTime}
+        playerNames={playerNames}
+        windRound={windRound}
+        gameRound={gameRound}
+        selectedPatternsCount={selectedPatterns.length}
+        findAlternativePatterns={findAlternativePatterns}
+        onNavigateToCharleston={onNavigateToCharleston}
+        currentHand={currentHand}
+        lastDrawnTile={lastDrawnTile}
+        exposedTiles={exposedTiles}
+        selectedDiscardTile={selectedDiscardTile}
+        isMyTurn={isMyTurn}
+        isAnalyzing={isAnalyzing}
+        handleDrawTile={handleDrawTile}
+        handleDiscardTile={handleDiscardTile}
+        discardPile={discardPile}
+        currentPlayerIndex={currentPlayerIndex}
+        playerExposedCount={playerExposedCount}
+        gameHistory={gameHistory}
+        currentAnalysis={currentAnalysis}
+      />
 
       {/* Call Dialog */}
       {showCallDialog && callOpportunities.length > 0 && (

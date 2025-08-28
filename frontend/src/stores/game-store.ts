@@ -19,6 +19,9 @@ export interface GameState {
   // Game Configuration  
   coPilotMode: 'everyone' | 'solo' | null
   
+  // Timer State
+  turnStartTime: Date | null
+  
   // Actions
   setRoomCode: (code: string | null) => void
   addPlayer: (player: Player) => void
@@ -26,6 +29,7 @@ export interface GameState {
   setCurrentPlayer: (playerId: string) => void
   setGamePhase: (phase: GameState['gamePhase']) => void
   setCoPilotMode: (mode: GameState['coPilotMode']) => void
+  startTurn: () => void
   resetGame: () => void
 }
 
@@ -35,6 +39,7 @@ const initialState = {
   currentPlayerId: null,
   gamePhase: 'lobby' as const,
   coPilotMode: null,
+  turnStartTime: null,
 }
 
 export const useGameStore = create<GameState>()(
@@ -71,6 +76,9 @@ export const useGameStore = create<GameState>()(
         
       setCoPilotMode: (mode) =>
         set({ coPilotMode: mode }, false, 'setCoPilotMode'),
+
+      startTurn: () =>
+        set({ turnStartTime: new Date() }, false, 'startTurn'),
       
       resetGame: () =>
         set(initialState, false, 'resetGame'),

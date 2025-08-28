@@ -1,0 +1,129 @@
+import React from 'react'
+import TopZone from './TopZone'
+import YourHandZone from './YourHandZone'
+import DiscardPileZone from './DiscardPileZone'
+import OpponentExposedZone from './OpponentExposedZone'
+import IntelligencePanel from './IntelligencePanel'
+import type { Tile as TileType } from '../../types/tile-types'
+
+interface GameScreenLayoutProps {
+  gamePhase: 'charleston' | 'gameplay'
+  currentPlayer: string
+  timeElapsed: number
+  playerNames: string[]
+  windRound: 'east' | 'south' | 'west' | 'north'
+  gameRound: number
+  selectedPatternsCount: number
+  findAlternativePatterns: () => void
+  onNavigateToCharleston?: () => void
+  currentHand: TileType[]
+  lastDrawnTile: TileType | null
+  exposedTiles: Array<{
+    type: 'pung' | 'kong' | 'quint' | 'sextet'
+    tiles: TileType[]
+    timestamp: Date
+  }>
+  selectedDiscardTile: TileType | null
+  isMyTurn: boolean
+  isAnalyzing: boolean
+  handleDrawTile: () => void
+  handleDiscardTile: (tile: TileType) => void
+  discardPile: Array<{
+    tile: TileType
+    playerId: string
+    timestamp: Date
+  }>
+  currentPlayerIndex: number
+  playerExposedCount: Record<string, number>
+  gameHistory: Array<{
+    playerId: string
+    action: string
+    tile?: TileType
+    timestamp: Date
+  }>
+  currentAnalysis: {
+    recommendations?: {
+      discard?: {
+        reasoning: string
+      }
+    }
+    recommendedPatterns?: Array<{
+      pattern: { displayName: string }
+      completionPercentage: number
+    }>
+  } | null
+}
+
+const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
+  gamePhase,
+  currentPlayer,
+  timeElapsed,
+  playerNames,
+  windRound,
+  gameRound,
+  selectedPatternsCount,
+  findAlternativePatterns,
+  onNavigateToCharleston,
+  currentHand,
+  lastDrawnTile,
+  exposedTiles,
+  selectedDiscardTile,
+  isMyTurn,
+  isAnalyzing,
+  handleDrawTile,
+  handleDiscardTile,
+  discardPile,
+  currentPlayerIndex,
+  playerExposedCount,
+  gameHistory,
+  currentAnalysis,
+}) => {
+  return (
+    <div className="max-w-full mx-auto p-2 sm:p-4 md:p-6 md:max-w-4xl">
+      {/* TOP ZONE: Game phase, elapsed timer, current player, action buttons */}
+      <TopZone 
+        gamePhase={gamePhase}
+        currentPlayer={currentPlayer}
+        timeElapsed={timeElapsed}
+        playerNames={playerNames}
+        windRound={windRound}
+        gameRound={gameRound}
+        selectedPatternsCount={selectedPatternsCount}
+        findAlternativePatterns={findAlternativePatterns}
+        onNavigateToCharleston={onNavigateToCharleston}
+      />
+
+      {/* ZONE 1: YOUR HAND */}
+      <YourHandZone
+        currentHand={currentHand}
+        lastDrawnTile={lastDrawnTile}
+        exposedTiles={exposedTiles}
+        selectedDiscardTile={selectedDiscardTile}
+        isMyTurn={isMyTurn}
+        isAnalyzing={isAnalyzing}
+        handleDrawTile={handleDrawTile}
+        handleDiscardTile={handleDiscardTile}
+      />
+
+      {/* ZONE 2: DISCARD PILE */}
+      <DiscardPileZone discardPile={discardPile} />
+
+      {/* ZONE 3: OPPONENT EXPOSED TILES */}
+      <OpponentExposedZone
+        playerNames={playerNames}
+        currentPlayerIndex={currentPlayerIndex}
+        playerExposedCount={playerExposedCount}
+        gameHistory={gameHistory}
+      />
+
+      {/* ZONES 4-5: AI INTELLIGENCE PANEL */}
+      <IntelligencePanel
+        isAnalyzing={isAnalyzing}
+        currentAnalysis={currentAnalysis}
+        findAlternativePatterns={findAlternativePatterns}
+      />
+    </div>
+  )
+}
+
+export default GameScreenLayout
