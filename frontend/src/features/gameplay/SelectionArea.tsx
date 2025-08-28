@@ -20,8 +20,7 @@ export const SelectionArea = () => {
   const [actionType, setActionType] = useState<'pass' | 'discard' | null>(null)
 
   // Show during tile input, charleston, and gameplay phases when tiles are selected
-  if (gamePhase !== 'playing' && gamePhase !== 'charleston' && gamePhase !== 'setup') return null
-  if (selectedForAction.length === 0) return null
+  const shouldShow = (gamePhase === 'playing' || gamePhase === 'charleston' || gamePhase === 'tile-input') && selectedForAction.length > 0
 
   const handleAction = (action: 'pass' | 'discard') => {
     setActionType(action)
@@ -56,7 +55,7 @@ export const SelectionArea = () => {
   }
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
+    <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 transition-opacity duration-200 ${shouldShow ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
       <Card variant="elevated" className="p-4 bg-white/95 backdrop-blur-sm border-2 border-purple-200 min-w-80">
         <div className="space-y-3">
           {/* Title */}

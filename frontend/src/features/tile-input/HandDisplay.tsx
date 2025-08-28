@@ -123,7 +123,7 @@ export const HandDisplay = ({
                   <div key={tile.instanceId} className="relative group">
                     {tileStates[tile.instanceId] === 'placeholder' ? (
                       // Show placeholder with tile ID
-                      <div className={`w-16 h-20 ${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`}>
+                      <div className={`${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`} style={{ width: '52px', height: '69px' }}>
                         <div className="text-[10px] opacity-75">Tile</div>
                         <div className="font-bold">{tile.id}</div>
                         <div className="text-[8px] opacity-50">Selected</div>
@@ -158,7 +158,7 @@ export const HandDisplay = ({
             <div key={tile.instanceId} className="relative group">
               {tileStates[tile.instanceId] === 'placeholder' ? (
                 // Show placeholder with tile ID
-                <div className={`w-16 h-20 ${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`}>
+                <div className={`${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`} style={{ width: '52px', height: '69px' }}>
                   <div className="text-[10px] opacity-75">Tile</div>
                   <div className="font-bold">{tile.id}</div>
                   <div className="text-[8px] opacity-50">Selected</div>
@@ -222,7 +222,7 @@ export const HandDisplay = ({
                 onClick={clearSelection}
                 className="text-gray-600"
               >
-                Clear Selection ({selectedForAction.length})
+                Clear ({selectedForAction.length})
               </Button>
             </div>
           )}

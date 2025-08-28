@@ -9,7 +9,7 @@ import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { SelectionArea } from '../gameplay/SelectionArea'
-import { useTileStore } from '../../stores'
+import { useTileStore, useGameStore } from '../../stores'
 
 export const TileInputPage = () => {
   const navigate = useNavigate()
@@ -25,6 +25,8 @@ export const TileInputPage = () => {
     importTilesFromString
   } = useTileStore()
   
+  const { setGamePhase } = useGameStore()
+  
   // Calculate hand completion status
   const requiredTiles = dealerHand ? 14 : 13
   const currentTiles = playerHand.length
@@ -35,6 +37,11 @@ export const TileInputPage = () => {
   // Debug removed to prevent console spam
   
   const hasInitializedRef = useRef(false)
+  
+  // Set game phase for tile input
+  useEffect(() => {
+    setGamePhase('tile-input')
+  }, [setGamePhase])
   
   useEffect(() => {
     // Only run once on initial mount to prevent clearing hand on subsequent navigation
@@ -92,6 +99,7 @@ export const TileInputPage = () => {
   
   
   return (
+    <>
     <Container size="full" padding="sm" center={true}>
       <div className="space-y-6">
         {/* Header */}
@@ -237,9 +245,10 @@ export const TileInputPage = () => {
           )}
         </div>
       </div>
-      
-      {/* Selection Area - appears when tiles are selected */}
-      <SelectionArea />
     </Container>
+    
+    {/* Selection Area - appears when tiles are selected */}
+    <SelectionArea />
+    </>
   )
 }

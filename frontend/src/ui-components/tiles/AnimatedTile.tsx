@@ -129,13 +129,14 @@ export const AnimatedTile = ({
   // Recommendation animations handled by parent components
   
   // Handle click with animations
-  const handleClick = useCallback(async (clickedTile: PlayerTile) => {
-    // Play flip animation on click if not already selected
-    if (!clickedTile.isSelected && !isAnimating) {
-      await tileAnimations.flipTile()
-    }
-    
+  const handleClick = useCallback((clickedTile: PlayerTile) => {
+    // Call onClick immediately to prevent delays
     onClick?.(clickedTile)
+    
+    // Play flip animation on click if not already selected (non-blocking)
+    if (!clickedTile.isSelected && !isAnimating) {
+      tileAnimations.flipTile()
+    }
   }, [onClick, tileAnimations, isAnimating])
   
   // Handle double click with special animation
