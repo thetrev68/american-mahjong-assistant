@@ -3,7 +3,7 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
-import type { Tile as TileType } from '../../types/tile-types'
+import type { PlayerTile, Tile as TileType } from '../../types/tile-types'
 
 interface YourHandZoneProps {
   currentHand: TileType[]
@@ -53,18 +53,25 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         <div>
           <div className="text-sm text-gray-600 mb-2">Concealed ({currentHand.length} tiles)</div>
           <div className="flex flex-wrap gap-1 sm:gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
-            {currentHand.length > 0 ? currentHand.map((tile, index) => (
-              <AnimatedTile
-                key={tile.instanceId || `${tile.id}-${index}`}
-                tile={{...tile, instanceId: tile.instanceId || `${tile.id}-${index}`, isSelected: selectedDiscardTile?.instanceId === tile.instanceId}}
-                size="sm"
-                onClick={() => isMyTurn && handleDiscardTile(tile)}
-                className={`cursor-pointer hover:scale-105 transition-transform ${
-                  selectedDiscardTile?.instanceId === tile.instanceId ? 'ring-2 ring-red-400' : ''
-                }`}
-                context="gameplay"
-              />
-            )) : (
+            {currentHand.length > 0 ? currentHand.map((tile, index) => {
+              const playerTile: PlayerTile = {
+                ...tile,
+                instanceId: `${tile.id}-${index}`,
+                isSelected: selectedDiscardTile?.id === tile.id
+              }
+              return (
+                <AnimatedTile
+                  key={playerTile.instanceId}
+                  tile={playerTile}
+                  size="sm"
+                  onClick={() => isMyTurn && handleDiscardTile(tile)}
+                  className={`cursor-pointer hover:scale-105 transition-transform ${
+                    selectedDiscardTile?.id === tile.id ? 'ring-2 ring-red-400' : ''
+                  }`}
+                  context="gameplay"
+                />
+              )
+            }) : (
               <div className="text-gray-400 text-sm flex items-center justify-center w-full py-4">
                 No tiles in hand - click "Draw Tile" to start
               </div>
