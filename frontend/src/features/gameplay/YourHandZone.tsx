@@ -53,14 +53,14 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         <div>
           <div className="text-sm text-gray-600 mb-2">Concealed ({currentHand.length} tiles)</div>
           <div className="flex flex-wrap gap-1 sm:gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
-            {currentHand.length > 0 ? currentHand.map((tile) => (
+            {currentHand.length > 0 ? currentHand.map((tile, index) => (
               <AnimatedTile
-                key={tile.id}
-                tile={{...tile, instanceId: tile.id, isSelected: selectedDiscardTile?.id === tile.id}}
+                key={tile.instanceId || `${tile.id}-${index}`}
+                tile={{...tile, instanceId: tile.instanceId || `${tile.id}-${index}`, isSelected: selectedDiscardTile?.instanceId === tile.instanceId}}
                 size="sm"
                 onClick={() => isMyTurn && handleDiscardTile(tile)}
                 className={`cursor-pointer hover:scale-105 transition-transform ${
-                  selectedDiscardTile?.id === tile.id ? 'ring-2 ring-red-400' : ''
+                  selectedDiscardTile?.instanceId === tile.instanceId ? 'ring-2 ring-red-400' : ''
                 }`}
                 context="gameplay"
               />
