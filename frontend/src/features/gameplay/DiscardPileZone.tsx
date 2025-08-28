@@ -35,7 +35,7 @@ const DiscardPileZone: React.FC<DiscardPileZoneProps> = ({ discardPile }) => {
               }}
               size="sm"
               className="pointer-events-none opacity-80"
-              context="discard"
+              context="gameplay"
             />
             {index === recentDiscards.length - 1 && (
               <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse" />
