@@ -5,6 +5,7 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore, useIntelligenceStore } from '../../stores'
+import { getTileStateClass } from '../gameplay/TileStates'
 import type { PlayerTile, TileRecommendation } from '../../types/tile-types'
 
 interface HandDisplayProps {
@@ -24,12 +25,13 @@ export const HandDisplay = ({
     validation,
     sortBy,
     dealerHand,
-    toggleTileSelection,
     removeTile,
     selectAll,
     deselectAll,
     setSortBy,
-    getTileGroups
+    getTileGroups,
+    moveToSelection,
+    tileStates
   } = useTileStore()
   
   // Get AI recommendations for highlighting
@@ -69,7 +71,11 @@ export const HandDisplay = ({
   }
   
   const handleTileClick = (tile: PlayerTile) => {
-    toggleTileSelection(tile.instanceId)
+    // If tile is locked, don't allow interaction
+    if (tileStates[tile.instanceId] === 'locked') return
+    
+    // Move tile to selection area instead of toggling selection
+    moveToSelection(tile.instanceId)
   }
   
   
@@ -98,24 +104,23 @@ export const HandDisplay = ({
                 const recommendation = getTileHighlighting(tile)
                 return (
                   <div key={tile.instanceId} className="relative group">
-                    <AnimatedTile
-                      tile={{ ...tile, recommendation }}
-                      size={compactMode ? 'sm' : 'md'}
-                      onClick={handleTileClick}
-                      animateOnSelect={true}
-                      context="selection"
-                      recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
-                    />
-                    {/* Remove button that appears on selection */}
-                    {(tile.isSelected || false) && (
-                      <button
-                        onClick={() => removeTile(tile.instanceId)}
-                        className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-20 border border-white transform translate-x-1/2 -translate-y-1/2"
-                        title="Remove tile"
-                        style={{ pointerEvents: 'auto' }}
-                      >
-                        ×
-                      </button>
+                    {tileStates[tile.instanceId] === 'placeholder' ? (
+                      // Show placeholder with tile ID
+                      <div className={`w-16 h-20 ${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`}>
+                        <div className="text-[10px] opacity-75">Tile</div>
+                        <div className="font-bold">{tile.id}</div>
+                        <div className="text-[8px] opacity-50">Selected</div>
+                      </div>
+                    ) : (
+                      <AnimatedTile
+                        tile={{ ...tile, recommendation }}
+                        size={compactMode ? 'sm' : 'md'}
+                        onClick={handleTileClick}
+                        animateOnSelect={true}
+                        context="selection"
+                        recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
+                        className={`${getTileStateClass((tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') || 'primary')} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                      />
                     )}
                   </div>
                 )
@@ -134,24 +139,23 @@ export const HandDisplay = ({
           const recommendation = getTileHighlighting(tile)
           return (
             <div key={tile.instanceId} className="relative group">
-              <AnimatedTile
-                tile={{ ...tile, recommendation }}
-                size={compactMode ? 'sm' : 'md'}
-                onClick={handleTileClick}
-                animateOnSelect={true}
-                context="selection"
-                recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
-              />
-              {/* Remove button that appears on selection */}
-              {(tile.isSelected || false) && (
-                <button
-                  onClick={() => removeTile(tile.instanceId)}
-                  className="absolute top-0 right-0 w-5 h-5 bg-red-500 text-white rounded-full text-xs font-bold hover:bg-red-600 transition-all duration-200 flex items-center justify-center shadow-lg z-20 border border-white transform translate-x-1/2 -translate-y-1/2"
-                  title="Remove tile"
-                  style={{ pointerEvents: 'auto' }}
-                >
-                  ×
-                </button>
+              {tileStates[tile.instanceId] === 'placeholder' ? (
+                // Show placeholder with tile ID
+                <div className={`w-16 h-20 ${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`}>
+                  <div className="text-[10px] opacity-75">Tile</div>
+                  <div className="font-bold">{tile.id}</div>
+                  <div className="text-[8px] opacity-50">Selected</div>
+                </div>
+              ) : (
+                <AnimatedTile
+                  tile={{ ...tile, recommendation }}
+                  size={compactMode ? 'sm' : 'md'}
+                  onClick={handleTileClick}
+                  animateOnSelect={true}
+                  context="selection"
+                  recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
+                  className={`${getTileStateClass((tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') || 'primary')} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                />
               )}
             </div>
           )
@@ -188,7 +192,7 @@ export const HandDisplay = ({
             </p>
             {playerHand.length > 0 && (
               <p className="text-xs text-gray-500">
-                💡 Click to select, click ✕ to remove
+                💡 Click tiles to move to selection area
               </p>
             )}
           </div>

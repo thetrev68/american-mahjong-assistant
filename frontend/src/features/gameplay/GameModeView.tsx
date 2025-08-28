@@ -8,11 +8,11 @@ import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { useTileStore } from '../../stores/tile-store'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
-import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { Tile as TileType } from '../../types/tile-types'
 import type { PatternGroup } from '../../../../shared/nmjl-types'
 import GameScreenLayout from './GameScreenLayout'
+import { SelectionArea } from './SelectionArea'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -378,15 +378,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }, 1500)
   }, [currentPlayerIndex, playerNames, showCallDialog, gameEnded, onNavigateToPostGame])
 
-  // Mock functions for pattern analysis
-  const recommendedDiscard = useCallback(() => {
-    if (!currentAnalysis || !fullHand || fullHand.length === 0) return null
-    
-    // Find tiles to pass/discard (analysis engine uses 'pass' and 'discard')
-    return currentAnalysis.tileRecommendations?.find(rec => 
-      rec.action === 'discard' || rec.action === 'pass'
-    )
-  }, [currentAnalysis, fullHand])
 
   const findAlternativePatterns = useCallback(() => {
     if (!currentAnalysis || !currentAnalysis.bestPatterns) return
@@ -559,6 +550,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           </Card>
         </div>
       )}
-    </div>
+      
+      {/* Selection Area - Fixed overlay for tile actions */}
+      <SelectionArea />
+    </>
   )
 }

@@ -13,6 +13,10 @@ interface TileState extends TileInputState {
   handSize: number
   dealerHand: boolean // True if dealer (14 tiles), false if player (13)
   
+  // Selection Area State
+  selectedForAction: PlayerTile[]
+  tileStates: Record<string, string>
+  
   // UI State
   selectedCount: number
   showAnimations: boolean
@@ -35,6 +39,12 @@ interface TileState extends TileInputState {
   deselectTile: (instanceId: string) => void
   selectAll: () => void
   deselectAll: () => void
+  
+  // Actions - Selection Area
+  moveToSelection: (instanceId: string) => void
+  returnFromSelection: (instanceId: string) => void
+  lockTile: (instanceId: string) => void
+  clearSelection: () => void
   
   // Actions - UI Controls
   setInputMode: (mode: TileInputMode) => void
@@ -89,6 +99,10 @@ export const useTileStore = create<TileState>()(
         recommendations: {},
         analysisInProgress: false,
         lastAnalysis: null,
+        
+        // Selection Area State
+        selectedForAction: [],
+        tileStates: {},
         
         // Hand Management Actions
         addTile: (tileId: string) => {
@@ -157,6 +171,8 @@ export const useTileStore = create<TileState>()(
               selectedCount: 0,
               recommendations: {},
               lastAnalysis: null, // Clear analysis timestamp
+              selectedForAction: [],
+              tileStates: {},
               validation: {
                 isValid: false,
                 errors: [],
@@ -371,7 +387,9 @@ export const useTileStore = create<TileState>()(
               validation,
               selectedTiles: [],
               selectedCount: 0,
-              lastAnalysis: null
+              lastAnalysis: null,
+              selectedForAction: [],
+              tileStates: {}
             }
             
             console.log('🔧 importTilesFromString: New hand size:', newState.handSize)
@@ -440,6 +458,60 @@ export const useTileStore = create<TileState>()(
             selected: selectedCount,
             valid: validation.isValid
           }
+        },
+        
+        // Selection Area Actions
+        moveToSelection: (instanceId: string) => {
+          set((state) => {
+            const tile = state.playerHand.find(t => t.instanceId === instanceId)
+            if (!tile || state.tileStates[instanceId] === 'locked') return state
+            
+            // Create placeholder in hand
+            const newTileStates = {
+              ...state.tileStates,
+              [instanceId]: 'placeholder'
+            }
+            
+            // Add to selection area if not already there
+            const isAlreadyInSelection = state.selectedForAction.some(t => t.instanceId === instanceId)
+            const newSelectedForAction = isAlreadyInSelection 
+              ? state.selectedForAction
+              : [...state.selectedForAction, tile]
+            
+            return {
+              selectedForAction: newSelectedForAction,
+              tileStates: newTileStates
+            }
+          })
+        },
+        
+        returnFromSelection: (instanceId: string) => {
+          set((state) => {
+            const newSelectedForAction = state.selectedForAction.filter(t => t.instanceId !== instanceId)
+            const newTileStates = { ...state.tileStates }
+            delete newTileStates[instanceId]
+            
+            return {
+              selectedForAction: newSelectedForAction,
+              tileStates: newTileStates
+            }
+          })
+        },
+        
+        lockTile: (instanceId: string) => {
+          set((state) => ({
+            tileStates: {
+              ...state.tileStates,
+              [instanceId]: 'locked'
+            }
+          }))
+        },
+        
+        clearSelection: () => {
+          set({
+            selectedForAction: [],
+            tileStates: {}
+          })
         }
       }),
       {
