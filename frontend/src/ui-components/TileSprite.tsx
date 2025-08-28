@@ -123,7 +123,8 @@ export const TileSprite = forwardRef<HTMLDivElement, TileSpriteProps>(({
     
     // Interactive states
     interactive && !disabled && 'cursor-pointer hover:shadow-md',
-    selected && 'ring-3 ring-primary ring-offset-1 shadow-lg',
+    // Only apply built-in ring if no external className with ring styling is provided
+    selected && !className.includes('ring') && 'ring-2 ring-primary ring-inset shadow-lg',
     disabled && 'opacity-50 cursor-not-allowed',
     
     className

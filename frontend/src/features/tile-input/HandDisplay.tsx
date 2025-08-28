@@ -21,16 +21,16 @@ export const HandDisplay = ({
 }: HandDisplayProps) => {
   const {
     playerHand,
-    selectedCount,
     validation,
     sortBy,
     dealerHand,
     removeTile,
-    selectAll,
-    deselectAll,
     setSortBy,
     getTileGroups,
     moveToSelection,
+    returnFromSelection,
+    clearSelection,
+    selectedForAction,
     tileStates
   } = useTileStore()
   
@@ -74,8 +74,25 @@ export const HandDisplay = ({
     // If tile is locked, don't allow interaction
     if (tileStates[tile.instanceId] === 'locked') return
     
-    // Move tile to selection area instead of toggling selection
-    moveToSelection(tile.instanceId)
+    const currentState = tileStates[tile.instanceId]
+    
+    if (currentState === 'placeholder') {
+      // Placeholder clicked - return tile from selection area
+      returnFromSelection(tile.instanceId)
+    } else {
+      // Normal tile clicked - move to selection area (creates placeholder)
+      moveToSelection(tile.instanceId)
+    }
+  }
+  
+  const handleSelectionAreaTileClick = (tile: PlayerTile) => {
+    // Selection area tile clicked - return to original position
+    returnFromSelection(tile.instanceId)
+  }
+  
+  const handleDeleteTile = (tile: PlayerTile) => {
+    // Remove from both selection area and hand completely
+    removeTile(tile.instanceId)
   }
   
   
@@ -84,7 +101,7 @@ export const HandDisplay = ({
     const current = playerHand.length
     const status = validation.isValid ? '✅' : '❌'
     
-    return `${status} ${current}/${expected} tiles${selectedCount > 0 ? ` (${selectedCount} selected)` : ''}`
+    return `${status} ${current}/${expected} tiles${selectedForAction.length > 0 ? ` (${selectedForAction.length} in selection)` : ''}`
   }
   
   const renderTileGroups = () => {
@@ -119,7 +136,7 @@ export const HandDisplay = ({
                         animateOnSelect={true}
                         context="selection"
                         recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
-                        className={`${getTileStateClass((tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') || 'primary')} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                        className={`${tileStates[tile.instanceId] ? getTileStateClass(tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') : 'hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer'} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : ''}`}
                       />
                     )}
                   </div>
@@ -154,7 +171,7 @@ export const HandDisplay = ({
                   animateOnSelect={true}
                   context="selection"
                   recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
-                  className={`${getTileStateClass((tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') || 'primary')} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : 'cursor-pointer'}`}
+                  className={`${tileStates[tile.instanceId] ? getTileStateClass(tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') : 'hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer'} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : ''}`}
                 />
               )}
             </div>
@@ -197,44 +214,18 @@ export const HandDisplay = ({
             )}
           </div>
           
-          <div className="flex gap-2">
-            {/* Selection Controls */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={selectAll}
-            >
-              Select All
-            </Button>
-            
-            {selectedCount > 0 && (
-              <Button
-                variant="outline" 
-                size="sm" 
-                onClick={deselectAll}
-              >
-                Clear Selection
-              </Button>
-            )}
-            
-            {selectedCount > 0 && (
+          {selectedForAction.length > 0 && (
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  // Remove all selected tiles
-                  playerHand.forEach(tile => {
-                    if (tile.isSelected) {
-                      removeTile(tile.instanceId)
-                    }
-                  })
-                }}
-                className="text-red-600 hover:bg-red-50 border-red-200"
+                onClick={clearSelection}
+                className="text-gray-600"
               >
-                Delete Selection
+                Clear Selection ({selectedForAction.length})
               </Button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
         
         {/* Sort Controls */}

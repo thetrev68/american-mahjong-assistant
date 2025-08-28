@@ -8,6 +8,7 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
+import { SelectionArea } from '../gameplay/SelectionArea'
 import { useTileStore } from '../../stores'
 
 export const TileInputPage = () => {
@@ -214,21 +215,13 @@ export const TileInputPage = () => {
         </Card>
         
         {/* Action Buttons */}
-        <div className="flex justify-center gap-4">
-          <Button
-            variant="outline"
-            size="lg"
-            onClick={() => navigate('/pattern-selection')}
-          >
-            🎯 Browse Patterns
-          </Button>
-          
+        <div className="flex justify-center">
           {isHandComplete ? (
             <Button
               variant="primary"
               size="lg"
               onClick={() => navigate('/intelligence')}
-              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold"
+              className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold w-full max-w-md"
             >
               ✨ Analyze Hand & Set Primary
             </Button>
@@ -237,13 +230,16 @@ export const TileInputPage = () => {
               variant="outline"
               size="lg"
               disabled
-              className="text-gray-400 border-gray-200 cursor-not-allowed"
+              className="text-gray-400 border-gray-200 cursor-not-allowed w-full max-w-md"
             >
               Add {missingTiles} more tile{missingTiles !== 1 ? 's' : ''}
             </Button>
           )}
         </div>
       </div>
+      
+      {/* Selection Area - appears when tiles are selected */}
+      <SelectionArea />
     </Container>
   )
 }

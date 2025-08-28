@@ -72,28 +72,6 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
     return (
       <Card variant="default" className="p-4">
         <div className="space-y-4">
-          {/* Quick Add Joker */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (!modalMode) {
-                const maxHandSize = dealerHand ? 14 : 13
-                if (playerHand.length < maxHandSize) {
-                  addTile('joker')
-                }
-              }
-              if (onTileSelect) {
-                onTileSelect('joker')
-              }
-            }}
-            disabled={playerHand.length >= (dealerHand ? 14 : 13)}
-            className="w-full"
-            icon="🃏"
-          >
-            Add Joker
-          </Button>
-          
           {/* Suit Selection */}
           <div className="grid grid-cols-4 gap-2">
             {suits.slice(0, 4).map(({ suit, emoji }) => (
@@ -216,62 +194,6 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
           })}
         </div>
         
-        {/* Quick Actions */}
-        <div className="flex flex-wrap gap-2 pt-3 border-t border-gray-200">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (!modalMode) {
-                addTile('joker')
-              }
-              if (onTileSelect) {
-                onTileSelect('joker')
-              }
-            }}
-            disabled={(tileCounts.get('joker') || 0) >= 8}
-          >
-            🃏 Add Joker
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              ['red', 'green', 'white'].forEach(dragonId => {
-                if ((tileCounts.get(dragonId) || 0) < 4) {
-                  if (!modalMode) {
-                    addTile(dragonId)
-                  }
-                  if (onTileSelect) {
-                    onTileSelect(dragonId)
-                  }
-                }
-              })
-            }}
-          >
-            🐉 Add All Dragons
-          </Button>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              ['east', 'south', 'west', 'north'].forEach(windId => {
-                if ((tileCounts.get(windId) || 0) < 4) {
-                  if (!modalMode) {
-                    addTile(windId)
-                  }
-                  if (onTileSelect) {
-                    onTileSelect(windId)
-                  }
-                }
-              })
-            }}
-          >
-            💨 Add All Winds
-          </Button>
-        </div>
       </div>
     </Card>
   )

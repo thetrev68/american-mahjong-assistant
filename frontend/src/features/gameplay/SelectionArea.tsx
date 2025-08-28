@@ -12,14 +12,15 @@ export const SelectionArea = () => {
     selectedForAction, 
     returnFromSelection, 
     lockTile, 
-    clearSelection
+    clearSelection,
+    removeTile
   } = useTileStore()
   const { gamePhase } = useGameStore()
   
   const [actionType, setActionType] = useState<'pass' | 'discard' | null>(null)
 
-  // Only show during gameplay phases and when tiles are selected
-  if (gamePhase !== 'playing' && gamePhase !== 'charleston') return null
+  // Show during tile input, charleston, and gameplay phases when tiles are selected
+  if (gamePhase !== 'playing' && gamePhase !== 'charleston' && gamePhase !== 'setup') return null
   if (selectedForAction.length === 0) return null
 
   const handleAction = (action: 'pass' | 'discard') => {
@@ -47,8 +48,10 @@ export const SelectionArea = () => {
   }
 
   const handleDelete = () => {
-    // This would remove tiles from the hand entirely
-    // For now, just clear the selection
+    // Remove tiles from both selection area and hand entirely
+    selectedForAction.forEach(tile => {
+      removeTile(tile.instanceId)
+    })
     clearSelection()
   }
 
