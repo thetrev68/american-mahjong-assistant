@@ -6,6 +6,8 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { TileSelector } from '../tile-input/TileSelector'
 import { tileService } from '../../services/tile-service'
+import { useTileStore } from '../../stores/tile-store'
+import { useCharlestonStore } from '../../stores/charleston-store'
 import type { PlayerTile } from '../../types/tile-types'
 
 interface TileInputModalProps {
@@ -28,6 +30,10 @@ export const TileInputModal = ({
   initialTiles = []
 }: TileInputModalProps) => {
   const [modalHand, setModalHand] = useState<PlayerTile[]>([])
+  
+  // Store integration for current hand display
+  const { playerHand } = useTileStore()
+  const { currentPhase, isActive: charlestonActive } = useCharlestonStore()
 
   // Initialize modal hand with provided tiles
   useEffect(() => {
@@ -38,6 +44,16 @@ export const TileInputModal = ({
       setModalHand([])
     }
   }, [isOpen, initialTiles])
+
+  // Get current hand as sorted tile abbreviations
+  const getCurrentHandDisplay = () => {
+    const sortedTiles = tileService.sortTiles([...playerHand])
+    return sortedTiles.map(tile => tile.id).join(' ')
+  }
+
+  // Progress calculation
+  const progress = requiredCount > 0 ? (modalHand.length / requiredCount) * 100 : 0
+  const progressColor = progress === 100 ? 'bg-green-500' : progress > 66 ? 'bg-blue-500' : progress > 33 ? 'bg-yellow-500' : 'bg-gray-300'
 
   const handleTileAdd = (tileId: string) => {
     if (modalHand.length >= requiredCount) return
@@ -147,23 +163,91 @@ export const TileInputModal = ({
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Selected Tiles Display */}
+          {/* Your Current Hand Display */}
+          {playerHand.length > 0 && (
+            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <span className="mr-2">🀄</span>
+                Your Current Hand 
+                <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+                  {playerHand.length} tiles
+                </span>
+                {context === 'charleston' && charlestonActive && (
+                  <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                    {currentPhase} pass
+                  </span>
+                )}
+              </h3>
+              <div className="font-mono text-sm text-gray-800 bg-white p-3 rounded border break-all">
+                {getCurrentHandDisplay() || 'No tiles in hand'}
+              </div>
+            </div>
+          )}
+
+          {/* Progress Indicator */}
+          <div className="bg-gray-50 p-4 rounded-lg border">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold text-gray-700">Selection Progress</h3>
+              <span className="text-xs text-gray-500">
+                {modalHand.length}/{requiredCount}
+              </span>
+            </div>
+            
+            <div className="w-full bg-gray-200 rounded-full h-3 mb-2">
+              <div 
+                className={`h-3 rounded-full transition-all duration-300 ${progressColor}`}
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              />
+            </div>
+            
+            <div className="text-center">
+              {modalHand.length < requiredCount && (
+                <p className="text-sm text-gray-600">
+                  Need {requiredCount - modalHand.length} more {requiredCount - modalHand.length === 1 ? 'tile' : 'tiles'}
+                </p>
+              )}
+              {modalHand.length === requiredCount && (
+                <p className="text-sm text-green-600 font-medium flex items-center justify-center">
+                  <span className="mr-1">✅</span>
+                  Ready to confirm!
+                </p>
+              )}
+              {modalHand.length > requiredCount && (
+                <p className="text-sm text-yellow-600 font-medium flex items-center justify-center">
+                  <span className="mr-1">⚠️</span>
+                  Too many tiles selected
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Enhanced Selected Tiles Display */}
           {modalHand.length > 0 && (
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 mb-3">
-                Selected {requiredCount === 1 ? 'Tile' : 'Tiles'}:
+              <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
+                Selected {requiredCount === 1 ? 'Tile' : 'Tiles'}
+                <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                  {modalHand.length}
+                </span>
               </h3>
-              <div className="flex flex-wrap gap-2">
-                {modalHand.map((tile) => (
+              <div className="flex flex-wrap gap-3">
+                {modalHand.map((tile, index) => (
                   <button
                     key={tile.instanceId}
                     onClick={() => handleTileRemove(tile.instanceId)}
-                    className="relative"
+                    className="relative group"
                   >
-                    <span className="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded font-mono text-sm border border-blue-200 hover:bg-red-100 hover:text-red-800 hover:border-red-200">
-                      {tile.id}
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">×</span>
-                    </span>
+                    <div className="relative">
+                      <span className="inline-block px-3 py-2 bg-blue-50 text-blue-800 rounded-lg font-mono text-base border-2 border-blue-300 hover:bg-red-50 hover:text-red-800 hover:border-red-300 transition-all duration-200 shadow-sm">
+                        {tile.id}
+                      </span>
+                      <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md">
+                        {index + 1}
+                      </span>
+                      <span className="absolute -bottom-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        ×
+                      </span>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -186,13 +270,17 @@ export const TileInputModal = ({
         {/* Footer */}
         <div className="p-6 border-t border-gray-200 flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            {modalHand.length < requiredCount && (
-              <>
-                Need {requiredCount - modalHand.length} more {requiredCount - modalHand.length === 1 ? 'tile' : 'tiles'}
-              </>
+            {context === 'charleston' && charlestonActive && (
+              <span className="flex items-center">
+                <span className="mr-2">📋</span>
+                Charleston {currentPhase} pass
+              </span>
             )}
-            {modalHand.length === requiredCount && (
-              <span className="text-green-600 font-medium">✅ Ready to confirm</span>
+            {context === 'gameplay' && (
+              <span className="flex items-center">
+                <span className="mr-2">🎯</span>
+                Game mode selection
+              </span>
             )}
           </div>
           
@@ -208,6 +296,7 @@ export const TileInputModal = ({
               variant="primary"
               onClick={handleConfirm}
               disabled={!isComplete}
+              className={isComplete ? 'animate-pulse' : ''}
             >
               {getButtonText()}
             </Button>
