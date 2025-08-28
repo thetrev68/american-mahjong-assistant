@@ -246,8 +246,8 @@ export class AnalysisEngine {
       console.error('🚨 ANALYSIS ENGINE ERROR:', error)
       console.error('Stack trace:', error instanceof Error ? error.stack : 'No stack trace')
       
-      // Fallback to basic analysis
-      return this.generateFallbackAnalysis(playerTiles, selectedPatterns)
+      // Re-throw error to stop the game and alert the player
+      throw new Error(`Analysis engine failure: ${error instanceof Error ? error.message : 'Unknown error'}`)
     }
 
   }
@@ -406,37 +406,6 @@ export class AnalysisEngine {
     return 'neutral'
   }
 
-  /**
-   * Generate fallback analysis if 3-engine system fails
-   */
-  private static generateFallbackAnalysis(
-    playerTiles: PlayerTile[],
-    selectedPatterns: PatternSelectionOption[]
-  ): HandAnalysis {
-    return {
-      overallScore: 30,
-      recommendedPatterns: [{
-        pattern: selectedPatterns[0] || { id: 'fallback', displayName: 'Pattern Analysis' } as PatternSelectionOption,
-        confidence: 50,
-        completionPercentage: 30,
-        reasoning: 'Analysis engine temporarily unavailable',
-        difficulty: 'medium',
-        isPrimary: true
-      }],
-      bestPatterns: [],
-      tileRecommendations: playerTiles.map(tile => ({
-        tileId: tile.id,
-        action: 'neutral' as const,
-        confidence: 50,
-        reasoning: 'Fallback recommendation',
-        priority: 5
-      })),
-      strategicAdvice: ['Pattern analysis temporarily unavailable'],
-      threats: [],
-      lastUpdated: Date.now(),
-      analysisVersion: 'AV3-Fallback'
-    }
-  }
 
   /**
    * Generate pattern reasoning text

@@ -195,8 +195,7 @@ export function useSocket() {
     return () => {
       disconnect()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [connect, disconnect])
 
   return {
     isConnected,

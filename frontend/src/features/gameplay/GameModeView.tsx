@@ -131,28 +131,23 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (fullHand.length === 0) return
 
     setIsAnalyzing(true)
-    try {
-      const handForAnalysis = fullHand.map((tile, index) => {
-        if ('instanceId' in tile) {
-          return tile as TileType & { instanceId: string; isSelected: boolean }
-        }
-        return {
-          ...tile,
-          instanceId: `${tile.id}-${index}`,
-          isSelected: false
-        } as TileType & { instanceId: string; isSelected: boolean }
-      })
-      
-      // Hand analysis initiated
-      
-      // Trigger intelligence analysis with enhanced context
-      await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns)
-    } catch (error) {
-      console.error('Failed to analyze hand:', error)
-    } finally {
-      setIsAnalyzing(false)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    
+    const handForAnalysis = fullHand.map((tile, index) => {
+      if ('instanceId' in tile) {
+        return tile as TileType & { instanceId: string; isSelected: boolean }
+      }
+      return {
+        ...tile,
+        instanceId: `${tile.id}-${index}`,
+        isSelected: false
+      } as TileType & { instanceId: string; isSelected: boolean }
+    })
+    
+    // Hand analysis initiated
+    
+    // Trigger intelligence analysis - errors are handled by intelligence store
+    await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns)
+    setIsAnalyzing(false)
   }, [fullHand, selectedPatterns, exposedTiles, intelligenceStore])
 
   // Initialize game mode

@@ -1,7 +1,7 @@
 // Tile Input Page
 // Complete interface for inputting and managing player tiles
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Container } from '../../ui-components/layout/Container'
 import { Button } from '../../ui-components/Button'
@@ -33,15 +33,20 @@ export const TileInputPage = () => {
   
   // Debug removed to prevent console spam
   
+  const hasInitializedRef = useRef(false)
+  
   useEffect(() => {
+    // Only run once on initial mount to prevent clearing hand on subsequent navigation
+    if (hasInitializedRef.current) return
+    hasInitializedRef.current = true
+    
     // Clear hand when starting fresh (check if we came from home)
     const referrer = document.referrer
     const isFromHome = referrer.includes('/') && !referrer.includes('/patterns') && !referrer.includes('/tiles')
     if (isFromHome && playerHand.length > 0) {
       clearHand()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // Run only on mount - clearHand and playerHand.length intentionally excluded to prevent loops
+  }, [clearHand, playerHand.length])
   
   useEffect(() => {
     // Validate hand whenever it changes
