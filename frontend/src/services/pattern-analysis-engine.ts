@@ -228,12 +228,6 @@ export class PatternAnalysisEngine {
     const missingTiles: string[] = []
     const tileContributions: TileContribution[] = []
     
-    // Debug for SINGLES AND PAIRS pattern - show ALL sequences
-    if (variation.handKey.includes('SINGLES_AND_PAIRS-1-1')) {
-      // console.log(`=== DEBUG: SINGLES AND PAIRS-1-1 Sequence ${variation.sequence} ===`)
-      // console.log('Player tiles:', playerTiles)
-      // console.log('Required tiles:', variation.tiles)
-    }
     
     // Analyze each required tile type
     for (const [requiredTileId, requiredCount] of Object.entries(requiredTileCounts)) {

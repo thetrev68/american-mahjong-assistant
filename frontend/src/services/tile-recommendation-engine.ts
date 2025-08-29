@@ -649,17 +649,91 @@ export class TileRecommendationEngine {
       }
     }
     
-    // Check for sequence patterns (simplified)
+    // Check for sequence patterns - analyze actual number tiles
     const numbers = exposed.filter(t => t.match(/^[1-9][BCD]$/))
     if (numbers.length >= 2) {
-      // Could be building sequences - adjust probability based on discards
-      const sequenceProbability = discardPile.length > 5 ? 0.4 : 0.6
-      needs.push({
-        tileId: '5B', // Placeholder
-        probability: sequenceProbability,
-        reasoning: ['Building number sequences']
-      })
+      // Group by suit and analyze potential sequences
+      const suits = ['B', 'C', 'D']
+      
+      for (const suit of suits) {
+        const suitTiles = numbers
+          .filter(t => t.endsWith(suit))
+          .map(t => parseInt(t.charAt(0)))
+          .sort((a, b) => a - b)
+        
+        if (suitTiles.length >= 2) {
+          // Look for potential sequence completion tiles
+          const sequenceNeeds = this.findSequenceNeeds(suitTiles, suit, discardedTypes)
+          
+          // Adjust probability based on discard pile size (more discards = less likely to get needed tiles)
+          const baseProbability = discardPile.length > 5 ? 0.4 : 0.6
+          
+          sequenceNeeds.forEach(need => {
+            needs.push({
+              tileId: need,
+              probability: baseProbability,
+              reasoning: [`Building ${suit} sequences with ${suitTiles.join(', ')}`]
+            })
+          })
+        }
+      }
     }
+    
+    return needs
+  }
+
+  /**
+   * Find tiles needed to complete sequences from a set of number tiles
+   */
+  private static findSequenceNeeds(suitTiles: number[], suit: string, discardedTypes: Set<string>): string[] {
+    const needs: string[] = []
+    
+    // Look for consecutive runs and identify missing tiles
+    for (let i = 0; i < suitTiles.length - 1; i++) {
+      const current = suitTiles[i]
+      const next = suitTiles[i + 1]
+      
+      // If there's a gap of 1, they might need the middle tile
+      if (next - current === 2) {
+        const middleTile = `${current + 1}${suit}`
+        if (!discardedTypes.has(suit)) {
+          needs.push(middleTile)
+        }
+      }
+      
+      // If consecutive, they might want to extend the sequence
+      if (next - current === 1) {
+        // Add tiles to extend the sequence (if valid numbers)
+        if (current > 1) {
+          const lowerTile = `${current - 1}${suit}`
+          if (!discardedTypes.has(suit)) {
+            needs.push(lowerTile)
+          }
+        }
+        if (next < 9) {
+          const higherTile = `${next + 1}${suit}`
+          if (!discardedTypes.has(suit)) {
+            needs.push(higherTile)
+          }
+        }
+      }
+    }
+    
+    // For isolated tiles, check for adjacent tiles
+    suitTiles.forEach(num => {
+      if (num > 1) {
+        const lowerTile = `${num - 1}${suit}`
+        if (!discardedTypes.has(suit) && !needs.includes(lowerTile)) {
+          needs.push(lowerTile)
+        }
+      }
+      if (num < 9) {
+        const higherTile = `${num + 1}${suit}`
+        if (!discardedTypes.has(suit) && !needs.includes(higherTile)) {
+          needs.push(higherTile)
+        }
+      }
+    })
     
     return needs
   }

@@ -221,8 +221,24 @@ export function useTutorial() {
     
     // Check validation requirements
     if (currentStep.validationRequired) {
-      // Add specific validation logic here
-      return true // Placeholder
+      // Step-specific validation logic
+      switch (currentStep.id) {
+        case 'pattern-selection':
+          // Check if user has progressed beyond pattern selection
+          return progress.completedSteps.includes('pattern-selection') || progress.currentStepId !== 'pattern-selection'
+        case 'tile-input':
+          // Check if tile input step is completed
+          return progress.completedSteps.includes('tile-input')
+        case 'charleston-demo':
+          // Check if charleston demo step is completed
+          return progress.completedSteps.includes('charleston-demo')
+        case 'skill-assessment':
+          // Check if skill assessment is completed
+          return progress.assessmentCompleted
+        default:
+          // For other steps, check if they are in completed steps or if we've moved past them
+          return progress.completedSteps.includes(currentStep.id) || progress.currentStepId !== currentStep.id
+      }
     }
 
     // Check step dependencies
@@ -233,7 +249,13 @@ export function useTutorial() {
     }
 
     return canProceed
-  }, [currentStep, progress.completedSteps, canProceed])
+  }, [
+    currentStep, 
+    progress.completedSteps, 
+    progress.currentStepId,
+    progress.assessmentCompleted,
+    canProceed
+  ])
 
   const canNavigateBack = useMemo(() => {
     if (!currentStep) return false
@@ -316,29 +338,73 @@ export function useTutorial() {
 
   // Skill level assessment
   const assessSkillLevel = useCallback((answers: Record<string, unknown>) => {
-    // Simple skill assessment logic
-    // In a real implementation, this would be more sophisticated
     let score = 0
     
-    // Example assessment logic (placeholder)
+    // Experience-based scoring
     if (answers.experienceYears && typeof answers.experienceYears === 'number') {
-      if (answers.experienceYears >= 5) score += 2
+      if (answers.experienceYears >= 10) score += 3
+      else if (answers.experienceYears >= 5) score += 2
       else if (answers.experienceYears >= 2) score += 1
     }
     
+    // Game frequency scoring
     if (answers.gamesPerMonth && typeof answers.gamesPerMonth === 'number') {
-      if (answers.gamesPerMonth >= 8) score += 2
-      else if (answers.gamesPerMonth >= 4) score += 1
+      if (answers.gamesPerMonth >= 12) score += 3 // Weekly+
+      else if (answers.gamesPerMonth >= 8) score += 2 // 2+ per week
+      else if (answers.gamesPerMonth >= 4) score += 1 // Weekly
+    }
+    
+    // Pattern knowledge scoring
+    if (answers.patternsKnown && typeof answers.patternsKnown === 'number') {
+      if (answers.patternsKnown >= 50) score += 3 // Most patterns
+      else if (answers.patternsKnown >= 25) score += 2 // Many patterns
+      else if (answers.patternsKnown >= 10) score += 1 // Some patterns
+    }
+    
+    // Charleston confidence scoring
+    if (answers.charlestonConfidence && typeof answers.charlestonConfidence === 'number') {
+      if (answers.charlestonConfidence >= 8) score += 2 // Very confident
+      else if (answers.charlestonConfidence >= 5) score += 1 // Somewhat confident
+    }
+    
+    // Strategy understanding scoring
+    if (answers.strategyUnderstanding && typeof answers.strategyUnderstanding === 'string') {
+      switch (answers.strategyUnderstanding) {
+        case 'advanced':
+          score += 3
+          break
+        case 'intermediate':
+          score += 2
+          break
+        case 'basic':
+          score += 1
+          break
+      }
+    }
+    
+    // Competitive experience scoring
+    if (answers.competitiveExperience === true) {
+      score += 2
+    } else if (answers.competitiveExperience === 'some') {
+      score += 1
     }
 
-    // Determine skill level
+    // Determine skill level based on weighted scoring
     let skillLevel: SkillLevel = 'beginner'
-    if (score >= 4) skillLevel = 'expert'
-    else if (score >= 2) skillLevel = 'intermediate'
+    if (score >= 12) skillLevel = 'expert' // 12+ out of 16 possible points
+    else if (score >= 6) skillLevel = 'intermediate' // 6-11 points
+    // 0-5 points = beginner
 
     setSkillLevel(skillLevel)
+    
+    // Mark assessment as completed
+    updateProgress({
+      assessmentCompleted: true,
+      skillLevel
+    })
+    
     return skillLevel
-  }, [setSkillLevel])
+  }, [setSkillLevel, updateProgress])
 
   // Auto-save progress
   useEffect(() => {

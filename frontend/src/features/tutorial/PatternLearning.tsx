@@ -1,9 +1,10 @@
 // Pattern Learning Component
 // Interactive NMJL pattern education and tutorial
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
+import { usePatternStore } from '../../stores/pattern-store'
 import type { PatternLearningProps } from './types'
 
 export const PatternLearning: React.FC<PatternLearningProps> = ({
@@ -11,6 +12,8 @@ export const PatternLearning: React.FC<PatternLearningProps> = ({
   onPatternSelect,
   interactiveMode = true,
 }) => {
+  const { addTargetPattern } = usePatternStore()
+  const [hasSelectedPattern, setHasSelectedPattern] = useState(false)
   return (
     <div className="space-y-6">
       {/* Pattern Learning Header */}
@@ -89,12 +92,14 @@ export const PatternLearning: React.FC<PatternLearningProps> = ({
               <Button
                 variant="primary"
                 onClick={() => {
+                  // Add pattern to the user's target patterns (this is the real functionality)
+                  addTargetPattern('23')
+                  setHasSelectedPattern(true)
                   onPatternSelect?.('pattern-23')
-                  // Show a little feedback
-                  alert('Great! In the real app, this would add Pattern #23 to your selected patterns. For now, let\'s continue with the tutorial.')
                 }}
+                className={hasSelectedPattern ? 'bg-green-600 hover:bg-green-700' : ''}
               >
-                Try This Pattern
+                {hasSelectedPattern ? '✓ Pattern Added!' : 'Try This Pattern'}
               </Button>
             </div>
           </div>
