@@ -63,9 +63,9 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                 <AnimatedTile
                   key={playerTile.instanceId}
                   tile={playerTile}
-                  size="sm"
+                  size="md"
                   onClick={() => isMyTurn && handleDiscardTile(tile)}
-                  className={`cursor-pointer hover:scale-105 transition-transform ${
+                  className={`cursor-pointer hover:scale-105 transition-transform min-w-12 min-h-16 ${
                     selectedDiscardTile?.id === tile.id ? 'ring-2 ring-red-400' : ''
                   }`}
                   context="gameplay"
@@ -86,9 +86,9 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
             <div className="flex gap-2 p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
               <AnimatedTile
                 tile={{...lastDrawnTile, instanceId: lastDrawnTile.id, isSelected: false}}
-                size="sm"
+                size="md"
                 onClick={() => isMyTurn && handleDiscardTile(lastDrawnTile)}
-                className="cursor-pointer hover:scale-105 transition-transform ring-2 ring-blue-400"
+                className="cursor-pointer hover:scale-105 transition-transform ring-2 ring-blue-400 min-w-12 min-h-16"
                 context="gameplay"
               />
               <div className="text-sm text-blue-600 flex items-center">
@@ -112,8 +112,8 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                     <AnimatedTile
                       key={tileIndex}
                       tile={{...tile, instanceId: tile.id, isSelected: false}}
-                      size="sm"
-                      className="pointer-events-none"
+                      size="md"
+                      className="pointer-events-none min-w-12 min-h-16"
                       context="gameplay"
                     />
                   ))}

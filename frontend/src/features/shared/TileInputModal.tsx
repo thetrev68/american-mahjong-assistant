@@ -137,13 +137,13 @@ export const TileInputModal = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <Card className="max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-        {/* Header */}
-        <div className="p-6 border-b border-gray-200">
+    <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+      <Card className="max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-pop-in">
+        {/* Header with Hand Preview */}
+        <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-bold text-gray-900">{getTitle()}</h2>
+              <h2 className="text-lg font-bold text-gray-900">{getTitle()}</h2>
               <p className="text-sm text-gray-600 mt-1">
                 {getInstructions()}
               </p>
@@ -159,30 +159,22 @@ export const TileInputModal = ({
               ✕
             </Button>
           </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* Your Current Hand Display */}
+          
+          {/* Contextual Hand Preview */}
           {playerHand.length > 0 && (
-            <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-200">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                <span className="mr-2">🀄</span>
-                Your Current Hand 
-                <span className="ml-2 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
-                  {playerHand.length} tiles
-                </span>
-                {context === 'charleston' && charlestonActive && (
-                  <span className="ml-2 text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                    {currentPhase} pass
-                  </span>
-                )}
-              </h3>
-              <div className="font-mono text-sm text-gray-800 bg-white p-3 rounded border break-all">
+            <div className="mt-3 p-2 bg-white/80 rounded border">
+              <div className="text-xs font-medium text-gray-600 mb-1">
+                Current Hand ({playerHand.length} tiles):
+              </div>
+              <div className="font-mono text-xs text-gray-800 truncate">
                 {getCurrentHandDisplay() || 'No tiles in hand'}
               </div>
             </div>
           )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 space-y-4">
 
           {/* Progress Indicator */}
           <div className="bg-gray-50 p-4 rounded-lg border">

@@ -55,8 +55,8 @@ export const SelectionArea = () => {
   }
 
   return (
-    <div className={`fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 transition-opacity duration-200 ${shouldShow ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
-      <Card variant="elevated" className="p-4 bg-white/95 backdrop-blur-sm border-2 border-purple-200 min-w-80">
+    <div className={`fixed bottom-16 left-4 right-4 z-50 transition-opacity duration-200 ${shouldShow ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
+      <Card variant="elevated" className="p-4 bg-white/95 backdrop-blur-sm border-2 border-purple-200 w-full max-w-2xl mx-auto">
         <div className="space-y-3">
           {/* Title */}
           <div className="text-center">

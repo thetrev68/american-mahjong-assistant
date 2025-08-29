@@ -20,18 +20,30 @@ const formatTimer = (timeInSeconds: number): string => {
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 }
 
-const DramaticTimer: React.FC<{ timeElapsed: number }> = ({ timeElapsed }) => {
+const DramaticTimer: React.FC<{ 
+  timeElapsed: number
+  gamePhase: 'charleston' | 'gameplay'
+}> = ({ timeElapsed, gamePhase }) => {
   const isUrgent = timeElapsed >= 30
   const minutes = Math.floor(timeElapsed / 60)
   const seconds = timeElapsed % 60
   
+  // Phase-aware positioning and styling
+  const position = gamePhase === 'charleston' ? 'top-4 left-4' : 'top-4 right-4'
+  const priority = gamePhase === 'charleston' ? 'low' : 'high'
+  const size = priority === 'low' ? 'text-base px-3 py-2' : 'text-lg px-4 py-3'
+  
   return (
     <div 
       className={`
-        fixed top-4 right-4 z-50 px-4 py-3 rounded-full font-bold text-lg shadow-lg transition-all duration-500
-        ${isUrgent 
+        fixed ${position} z-40 ${size} rounded-full font-bold shadow-lg transition-all duration-500
+        ${isUrgent && priority === 'high'
           ? 'bg-red-500 text-white animate-pulse border-2 border-red-300' 
-          : 'bg-blue-500 text-white border-2 border-blue-300'
+          : isUrgent && priority === 'low'
+          ? 'bg-yellow-500 text-white border-2 border-yellow-300'
+          : priority === 'high'
+          ? 'bg-blue-500 text-white border-2 border-blue-300'
+          : 'bg-gray-500 text-white border-2 border-gray-300'
         }
       `}
     >
@@ -78,7 +90,7 @@ const TopZone: React.FC<TopZoneProps> = ({
 
   return (
     <>
-      <DramaticTimer timeElapsed={timeElapsed} />
+      <DramaticTimer timeElapsed={timeElapsed} gamePhase={gamePhase} />
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
