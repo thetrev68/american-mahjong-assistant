@@ -1,6 +1,6 @@
 // usePerformance Hook Test Suite
 
-import { renderHook, act, waitFor } from '@testing-library/react'
+import { renderHook, act } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { 
   usePerformance, 
@@ -505,7 +505,7 @@ describe('Error Handling', () => {
     await act(async () => {
       try {
         result.current.startMonitoring()
-      } catch (error) {
+      } catch {
         // Expected to potentially throw, but hook should handle it
       }
     })

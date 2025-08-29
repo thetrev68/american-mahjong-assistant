@@ -169,7 +169,7 @@ describe('3-Engine Intelligence System Integration', () => {
       // Verify pattern ID consistency
       const analysisPatternIds = new Set(analysisFacts.map(f => f.patternId))
       const rankingPatternIds = new Set(rankings.rankings.map(r => r.patternId))
-      const recommendationPatternIds = new Set(recommendations.tileActions.flatMap(a => a.patternsHelped))
+      // Note: Pattern consistency could be verified across engines in future tests
 
       // All engines should reference the same pattern IDs
       expect(analysisPatternIds.size).toBe(patternIds.length)

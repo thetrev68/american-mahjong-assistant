@@ -24,7 +24,6 @@ export const HandDisplay = ({
     validation,
     sortBy,
     dealerHand,
-    removeTile,
     setSortBy,
     getTileGroups,
     moveToSelection,
@@ -85,15 +84,6 @@ export const HandDisplay = ({
     }
   }
   
-  const handleSelectionAreaTileClick = (tile: PlayerTile) => {
-    // Selection area tile clicked - return to original position
-    returnFromSelection(tile.instanceId)
-  }
-  
-  const handleDeleteTile = (tile: PlayerTile) => {
-    // Remove from both selection area and hand completely
-    removeTile(tile.instanceId)
-  }
   
   
   const getHandSummary = () => {

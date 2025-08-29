@@ -4,7 +4,7 @@
 import { PatternRankingEngine } from '../pattern-ranking-engine'
 
 // Mock pattern analysis facts creator
-function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck' | 'joker_helps'): any {
+function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck' | 'joker_helps'): Record<string, unknown> {
   const baseFacts = {
     patternId: '2025-SINGLES_AND_PAIRS-4-1',
     tileMatching: {

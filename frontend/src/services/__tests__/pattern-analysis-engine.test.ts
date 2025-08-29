@@ -2,7 +2,7 @@
 // Tests pure mathematical pattern matching against 1,002 variations
 
 import { describe, test, expect, beforeAll, vi } from 'vitest'
-import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from '../pattern-analysis-engine'
+import { PatternAnalysisEngine, type GameContext } from '../pattern-analysis-engine'
 import { PatternVariationLoader } from '../pattern-variation-loader'
 
 // Sample game context for testing
@@ -398,15 +398,15 @@ describe('Pattern Analysis Engine (Engine 1)', () => {
 
       // Test null/undefined inputs
       await expect(async () => {
-        await PatternAnalysisEngine.analyzePatterns(null as any, ['2025-SINGLES_AND_PAIRS-3-1'], gameContext)
+        await PatternAnalysisEngine.analyzePatterns(null as unknown as string[], ['2025-SINGLES_AND_PAIRS-3-1'], gameContext)
       }).not.toThrow()
 
       await expect(async () => {
-        await PatternAnalysisEngine.analyzePatterns(['1B'], null as any, gameContext)
+        await PatternAnalysisEngine.analyzePatterns(['1B'], null as unknown as string[], gameContext)
       }).not.toThrow()
 
       await expect(async () => {
-        await PatternAnalysisEngine.analyzePatterns(['1B'], ['2025-SINGLES_AND_PAIRS-3-1'], null as any)
+        await PatternAnalysisEngine.analyzePatterns(['1B'], ['2025-SINGLES_AND_PAIRS-3-1'], null as unknown as GameContext)
       }).not.toThrow()
     })
 

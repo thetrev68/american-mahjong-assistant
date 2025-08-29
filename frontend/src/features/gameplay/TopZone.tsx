@@ -14,11 +14,6 @@ interface TopZoneProps {
   nextPlayer?: string
 }
 
-const formatTimer = (timeInSeconds: number): string => {
-  const minutes = Math.floor(timeInSeconds / 60)
-  const seconds = timeInSeconds % 60
-  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-}
 
 const DramaticTimer: React.FC<{ 
   timeElapsed: number

@@ -7,7 +7,14 @@ import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore, useGameStore } from '../../stores'
 
-export const SelectionArea = () => {
+interface SelectionAreaProps {
+  onPass?: () => void
+  onDiscard?: () => void
+  isReadyToPass?: boolean
+  allPlayersReady?: boolean
+}
+
+export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady }: SelectionAreaProps = {}) => {
   const { 
     selectedForAction, 
     returnFromSelection, 
@@ -24,8 +31,15 @@ export const SelectionArea = () => {
 
   const handleAction = (action: 'pass' | 'discard') => {
     setActionType(action)
-    // Here you would typically trigger the actual game action
-    // For now, we'll just clear the selection after a brief delay
+    
+    // Call parent callback for game logic
+    if (action === 'pass' && onPass) {
+      onPass()
+    } else if (action === 'discard' && onDiscard) {
+      onDiscard()
+    }
+    
+    // Clear the selection after a brief delay for visual feedback
     setTimeout(() => {
       clearSelection()
       setActionType(null)
@@ -97,10 +111,12 @@ export const SelectionArea = () => {
                 variant="primary"
                 size="sm"
                 onClick={() => handleAction('pass')}
-                disabled={actionType !== null}
-                className="bg-blue-600 hover:bg-blue-700"
+                disabled={actionType !== null || isReadyToPass}
+                className={allPlayersReady ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
               >
-                {actionType === 'pass' ? 'Passing...' : 'Pass'}
+                {actionType === 'pass' ? 'Passing...' : 
+                 allPlayersReady ? 'All Ready!' :
+                 isReadyToPass ? 'Ready - Waiting...' : 'Pass'}
               </Button>
             )}
             

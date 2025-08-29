@@ -373,7 +373,7 @@ describe('Error Handling', () => {
 
     // Start animation with invalid name
     act(() => {
-      result.current.playAnimation('nonexistent' as any)
+      result.current.playAnimation('nonexistent' as unknown as keyof typeof import('../../ui-components/tiles/tile-animation-constants').ANIMATION_CONFIGS)
     })
 
     // Advance timers

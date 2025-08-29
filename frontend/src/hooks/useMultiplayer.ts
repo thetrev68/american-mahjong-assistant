@@ -241,7 +241,7 @@ export function useMultiplayer() {
     })
   }, [socket, currentRoom])
 
-  const updateSharedState = useCallback(async (sharedState: Partial<any>): Promise<void> => {
+  const updateSharedState = useCallback(async (sharedState: Partial<Record<string, unknown>>): Promise<void> => {
     if (!socket.isConnected) {
       throw new Error('Not connected to server')
     }

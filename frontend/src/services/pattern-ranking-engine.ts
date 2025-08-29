@@ -179,7 +179,7 @@ export class PatternRankingEngine {
   private static calculateAvailabilityScore(
     tileAvailability: PatternAnalysisFacts['tileAvailability'], 
     jokerAnalysis: PatternAnalysisFacts['jokerAnalysis'],
-    bestVariation: any
+    bestVariation: Record<string, unknown>
   ): number {
     const { missingTileCounts } = tileAvailability
     const { jokersAvailable } = jokerAnalysis
@@ -213,8 +213,8 @@ export class PatternRankingEngine {
    * Calculate effective tile availability including joker substitution
    */
   private static calculateEffectiveTileAvailability(
-    tileAvailability: any,
-    bestVariation: any,
+    tileAvailability: Record<string, unknown>,
+    bestVariation: Record<string, unknown>,
     jokersAvailable: number
   ): number {
     const baseTilesAvailable = tileAvailability.remainingAvailable

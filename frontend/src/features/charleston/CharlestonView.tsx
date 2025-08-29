@@ -11,6 +11,7 @@ import { useGameStore } from '../../stores/game-store'
 import GameScreenLayout from '../gameplay/GameScreenLayout'
 import { TileInputModal } from '../shared/TileInputModal'
 import { SelectionArea } from '../gameplay/SelectionArea'
+import { Button } from '../../ui-components/Button'
 import { tileService } from '../../services/tile-service'
 import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 
@@ -62,7 +63,7 @@ export function CharlestonView() {
     })
   }
   
-  // Charleston state
+  // Charleston state  
   const [selectedTilesToPass, setSelectedTilesToPass] = useState<string[]>([])
   const [isReadyToPass, setIsReadyToPass] = useState(false)
   const [allPlayersReady, setAllPlayersReady] = useState(false)
@@ -135,7 +136,24 @@ export function CharlestonView() {
     setGameStateHistory(prev => [...prev.slice(-9), newState]) // Keep last 10 states
   }, [currentHand, charlestonPhase, tilesPassedOut, knownOpponentTiles])
 
-  // Undo function
+
+  // Auto-select 3 tiles based on Engine 3 recommendations
+  useEffect(() => {
+    if (currentAnalysis?.tileRecommendations && selectedTilesToPass.length === 0) {
+      const tilesToDiscard = currentAnalysis.tileRecommendations
+        .filter(rec => rec && rec.tileId && (rec.action === 'pass' || rec.action === 'discard'))
+        .slice(0, 3)
+        .map(rec => rec.tileId)
+      
+      setSelectedTilesToPass(tilesToDiscard)
+    }
+  }, [currentAnalysis, selectedTilesToPass.length])
+
+
+
+
+
+  // Undo function for Charleston moves
   const handleUndo = useCallback(() => {
     if (gameStateHistory.length > 0) {
       const previousState = gameStateHistory[gameStateHistory.length - 1]
@@ -157,19 +175,6 @@ export function CharlestonView() {
       setAllPlayersReady(false)
     }
   }, [gameStateHistory, replacePlayerHand])
-
-  // Auto-select 3 tiles based on Engine 3 recommendations
-  useEffect(() => {
-    if (currentAnalysis?.tileRecommendations && selectedTilesToPass.length === 0) {
-      const tilesToDiscard = currentAnalysis.tileRecommendations
-        .filter(rec => rec && rec.tileId && (rec.action === 'pass' || rec.action === 'discard'))
-        .slice(0, 3)
-        .map(rec => rec.tileId)
-      
-      setSelectedTilesToPass(tilesToDiscard)
-    }
-  }, [currentAnalysis, selectedTilesToPass.length])
-
 
   // Handle tile passing logic
   const handleTilePassing = useCallback(async () => {
@@ -207,7 +212,7 @@ export function CharlestonView() {
     setAllPlayersReady(false)
   }, [currentHand, selectedTilesToPass, coPilotMode, charlestonPhase, replacePlayerHand])
 
-  // Handle ready to pass
+  // Handle ready to pass - triggers tile modal for receiving tiles
   const handleReadyToPass = useCallback(() => {
     if (selectedTilesToPass.length !== 3) return
     
@@ -228,7 +233,6 @@ export function CharlestonView() {
       }
     }, 2000)
   }, [selectedTilesToPass.length, handleTilePassing, coPilotMode])
-
 
   const { turnStartTime } = useGameStore()
 
@@ -282,13 +286,40 @@ export function CharlestonView() {
   }
 
   const handleDrawTile = () => {
-    setTileModalMode('receive')
+    // In Charleston, clicking tiles should open modal to pass tiles
+    setTileModalMode('receive') 
     setShowTileModal(true)
   }
 
   const findAlternativePatterns = () => {
     navigate('/patterns')
   }
+
+  // Charleston Progress Component
+  const CharlestonProgress = () => (
+    <div className="fixed bottom-32 left-4 right-4 bg-white/90 backdrop-blur p-3 rounded-lg z-40">
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-sm font-medium">Charleston Progress</span>
+        <Button size="sm" variant="ghost" onClick={handleUndo} disabled={gameStateHistory.length === 0}>
+          ↶ Undo
+        </Button>
+      </div>
+      <div className="flex gap-2">
+        {(['right', 'across', 'left'] as const).map((phase, idx) => {
+          const currentPhaseIndex = ['right', 'across', 'left'].indexOf(charlestonPhase)
+          return (
+            <div 
+              key={phase}
+              className={`flex-1 h-2 rounded ${
+                idx < currentPhaseIndex ? 'bg-green-500' : 
+                idx === currentPhaseIndex ? 'bg-blue-500' : 'bg-gray-300'
+              }`}
+            />
+          )
+        })}
+      </div>
+    </div>
+  )
 
   return (
     <div>
@@ -319,8 +350,14 @@ export function CharlestonView() {
       />
 
       {/* Selection Area for Charleston tile passing */}
-      <SelectionArea />
+      <SelectionArea 
+        onPass={handleReadyToPass} 
+        isReadyToPass={isReadyToPass}
+        allPlayersReady={allPlayersReady}
+      />
 
+      {/* Charleston Progress with Undo functionality */}
+      {charlestonPhase !== 'complete' && <CharlestonProgress />}
 
       {/* Universal Tile Input Modal */}
       <TileInputModal

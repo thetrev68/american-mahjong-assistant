@@ -119,7 +119,7 @@ export const TileEffectsController = React.memo(({
         setTimeout(processEffectQueue, 16) // Next frame
       }
     }
-  }, [effectQuality.concurrentLimit])
+  }, [effectQuality.concurrentLimit, processEffect])
   
   // Process individual effect
   const processEffect = useCallback(async (trigger: TileEffectTrigger) => {
@@ -146,7 +146,7 @@ export const TileEffectsController = React.memo(({
       // Tile effect processing failed silently
       onEffectComplete?.(trigger) // Still call completion callback
     }
-  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete])
+  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete, executeAnimation, executeHaptic])
   
   // Execute animation based on tile and action
   const executeAnimation = useCallback(async (tile: PlayerTile, action: string) => {
