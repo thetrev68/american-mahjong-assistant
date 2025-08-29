@@ -19,8 +19,8 @@ export function CharlestonView() {
   const navigate = useNavigate()
   const { currentAnalysis, isAnalyzing, analyzeHand } = useIntelligenceStore()
   const { getTargetPatterns } = usePatternStore()
-  const { playerHand = [], clearHand, addTile } = useTileStore()
-  const { coPilotMode } = useRoomStore()
+  const { playerHand = [], clearHand, addTile, moveToSelection, selectedForAction } = useTileStore()
+  const { coPilotMode, otherPlayerNames } = useRoomStore()
   
   // Helper function to replace the entire hand
   const replacePlayerHand = useCallback((newTiles: PlayerTile[]) => {
@@ -170,21 +170,6 @@ export function CharlestonView() {
     }
   }, [currentAnalysis, selectedTilesToPass.length])
 
-  // Handle tile selection for passing
-  const handleTileSelect = useCallback((tileId: string) => {
-    if (isReadyToPass) return // Can't change selection when ready
-    
-    setSelectedTilesToPass(current => {
-      if (current.includes(tileId)) {
-        return current.filter(id => id !== tileId)
-      } else if (current.length < 3) {
-        return [...current, tileId]
-      } else {
-        // Replace the first selected tile
-        return [tileId, ...current.slice(1)]
-      }
-    })
-  }, [isReadyToPass])
 
   // Handle tile passing logic
   const handleTilePassing = useCallback(async () => {
@@ -247,12 +232,32 @@ export function CharlestonView() {
 
   const { turnStartTime } = useGameStore()
 
+  // Create complete player names array - You + other players
+  const allPlayerNames = ['You', ...otherPlayerNames.filter(name => name.trim().length > 0)]
+  
+  // Charleston turn order: right -> across -> left (clockwise from your perspective)
+  const getCurrentPlayerName = () => {
+    // In Charleston, it's always the current player's turn (you're passing tiles)
+    return 'You'
+  }
+  
+  // Get next player based on Charleston phase
+  const getNextPlayerName = () => {
+    if (charlestonPhase === 'right') return allPlayerNames[1] || 'Player 2' // Right player
+    if (charlestonPhase === 'across') return allPlayerNames[2] || 'Player 3' // Across player  
+    if (charlestonPhase === 'left') return allPlayerNames[3] || 'Player 4' // Left player
+    return 'Complete'
+  }
+
   // Convert current hand to PlayerTile format for GameScreenLayout
-  const playerTiles: PlayerTile[] = currentHand.map((tile, index) => ({
-    ...tile,
-    instanceId: `${tile.id}-${index}`,
-    isSelected: selectedTilesToPass.includes(tile.id)
-  }))
+  const playerTiles: PlayerTile[] = currentHand.map((tile, index) => {
+    const instanceId = `${tile.id}-${index}`
+    return {
+      ...tile,
+      instanceId,
+      isSelected: selectedForAction.some(selected => selected.instanceId === instanceId)
+    }
+  })
 
   // Mock data for GameScreenLayout
   const mockDiscardPile: Array<{
@@ -269,7 +274,16 @@ export function CharlestonView() {
   }> = []
 
   const handleSelectTile = (tile: TileType) => {
-    handleTileSelect(tile.id)
+    // Find the PlayerTile with matching id to get instanceId
+    const playerTile = playerTiles.find(pt => pt.id === tile.id)
+    if (playerTile) {
+      moveToSelection(playerTile.instanceId)
+    }
+  }
+
+  const handleDrawTile = () => {
+    setTileModalMode('receive')
+    setShowTileModal(true)
   }
 
   const findAlternativePatterns = () => {
@@ -280,21 +294,22 @@ export function CharlestonView() {
     <div>
       <GameScreenLayout
         gamePhase="charleston"
-        currentPlayer={`Pass ${charlestonPhase === 'right' ? 'Right' : charlestonPhase === 'across' ? 'Across' : charlestonPhase === 'left' ? 'Left' : 'Complete'}`}
+        currentPlayer={getCurrentPlayerName()}
         timeElapsed={turnStartTime ? Math.floor((Date.now() - turnStartTime.getTime()) / 1000) : 0}
-        playerNames={['You', 'Player 2', 'Player 3', 'Player 4']}
+        playerNames={allPlayerNames}
         windRound="east"
         gameRound={1}
-        selectedPatternsCount={getTargetPatterns().length}
+        selectedPatternsCount={0}
         findAlternativePatterns={findAlternativePatterns}
         onNavigateToCharleston={() => {}}
+        nextPlayer={getNextPlayerName()}
         currentHand={playerTiles}
         lastDrawnTile={null}
         exposedTiles={[]}
         selectedDiscardTile={null}
         isMyTurn={true}
         isAnalyzing={isAnalyzing}
-        handleDrawTile={() => {}}
+        handleDrawTile={handleDrawTile}
         handleDiscardTile={handleSelectTile}
         discardPile={mockDiscardPile}
         currentPlayerIndex={0}
@@ -306,83 +321,6 @@ export function CharlestonView() {
       {/* Selection Area for Charleston tile passing */}
       <SelectionArea />
 
-      {/* Charleston Action Panel */}
-      <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40">
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl border border-gray-200 shadow-lg p-4 min-w-80">
-          <div className="text-center space-y-3">
-            <div className="text-2xl">🔄</div>
-            <div>
-              {!isReadyToPass ? (
-                <>
-                  <h3 className="text-lg font-semibold text-blue-900 mb-1">
-                    Pass Selection
-                  </h3>
-                  <p className="text-sm text-blue-700 mb-4">
-                    {selectedTilesToPass.length === 3 
-                      ? 'Ready to pass your tiles!'
-                      : `Select ${3 - selectedTilesToPass.length} more tile${3 - selectedTilesToPass.length !== 1 ? 's' : ''} to pass`
-                    }
-                  </p>
-                  <div className="flex gap-2 justify-center">
-                    <button
-                      onClick={handleReadyToPass}
-                      disabled={selectedTilesToPass.length !== 3}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-700"
-                    >
-                      Ready to Pass ({selectedTilesToPass.length}/3)
-                    </button>
-                    {gameStateHistory.length > 0 && (
-                      <button
-                        onClick={handleUndo}
-                        className="px-3 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
-                      >
-                        ↶ Undo
-                      </button>
-                    )}
-                  </div>
-                </>
-              ) : allPlayersReady ? (
-                <>
-                  <h3 className="text-lg font-semibold text-green-900 mb-1">
-                    Passing Tiles...
-                  </h3>
-                  <p className="text-sm text-green-700 mb-4">
-                    All players ready - tiles are being exchanged
-                  </p>
-                  <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-                </>
-              ) : (
-                <>
-                  <h3 className="text-lg font-semibold text-orange-900 mb-1">
-                    Tiles Locked
-                  </h3>
-                  <p className="text-sm text-orange-700">
-                    Waiting for other players to confirm their passes...
-                  </p>
-                </>
-              )}
-            </div>
-
-            {/* Edit Received Tiles */}
-            {newlyReceivedTiles.length > 0 && (
-              <div className="border-t pt-3">
-                <p className="text-xs text-gray-500 mb-2">
-                  {newlyReceivedTiles.length} tiles received - marked with ★
-                </p>
-                <button
-                  onClick={() => {
-                    setTileModalMode('edit')
-                    setShowTileModal(true)
-                  }}
-                  className="text-xs px-3 py-1 border border-blue-200 text-blue-600 rounded hover:bg-blue-50"
-                >
-                  ✏️ Edit Received Tiles
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
 
       {/* Universal Tile Input Modal */}
       <TileInputModal
@@ -481,8 +419,8 @@ export function CharlestonView() {
           setTileModalMode('receive')
         }}
         mode={tileModalMode}
-        requiredCount={3}
-        context="charleston"
+        requiredCount={charlestonPhase === 'complete' ? 1 : 3}
+        context={charlestonPhase === 'complete' ? "gameplay" : "charleston"}
         initialTiles={tileModalMode === 'edit' ? newlyReceivedTiles : []}
       />
     </div>

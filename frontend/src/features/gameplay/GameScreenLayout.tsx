@@ -16,6 +16,7 @@ interface GameScreenLayoutProps {
   selectedPatternsCount: number
   findAlternativePatterns: () => void
   onNavigateToCharleston?: () => void
+  nextPlayer?: string
   currentHand: TileType[]
   lastDrawnTile: TileType | null
   exposedTiles: Array<{
@@ -64,6 +65,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   selectedPatternsCount,
   findAlternativePatterns,
   onNavigateToCharleston,
+  nextPlayer,
   currentHand,
   lastDrawnTile,
   exposedTiles,
@@ -91,6 +93,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         selectedPatternsCount={selectedPatternsCount}
         findAlternativePatterns={findAlternativePatterns}
         onNavigateToCharleston={onNavigateToCharleston}
+        nextPlayer={nextPlayer}
       />
 
       {/* ZONE 1: YOUR HAND */}
