@@ -5,6 +5,7 @@ import DiscardPileZone from './DiscardPileZone'
 import OpponentExposedZone from './OpponentExposedZone'
 import IntelligencePanel from './IntelligencePanel'
 import type { Tile as TileType } from '../../types/tile-types'
+import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 
 interface GameScreenLayoutProps {
   gamePhase: 'charleston' | 'gameplay'
@@ -49,9 +50,14 @@ interface GameScreenLayoutProps {
       }
     }
     recommendedPatterns?: Array<{
-      pattern: { displayName: string }
+      pattern: PatternSelectionOption
       completionPercentage: number
+      isPrimary: boolean
+      confidence: number
+      reasoning: string
+      difficulty: 'easy' | 'medium' | 'hard'
     }>
+    overallScore?: number
   } | null
 }
 
@@ -124,6 +130,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         isAnalyzing={isAnalyzing}
         currentAnalysis={currentAnalysis}
         findAlternativePatterns={findAlternativePatterns}
+        gamePhase={gamePhase}
       />
     </div>
   )

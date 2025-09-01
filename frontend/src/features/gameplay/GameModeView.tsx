@@ -50,6 +50,25 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
   
+  // Initialize game phase - start with Charleston when first entering from tile input
+  useEffect(() => {
+    if (gameStore.gamePhase === 'tile-input') {
+      gameStore.setGamePhase('charleston')
+    }
+  }, [gameStore])
+
+  // Auto-analyze hand when entering the game for pattern recommendations
+  useEffect(() => {
+    const playerHand = tileStore.playerHand
+    const hasEnoughTiles = playerHand.length >= 10
+    const hasNoAnalysis = !intelligenceStore.currentAnalysis
+    
+    if (hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
+      // Auto-analyze with empty patterns to get AI pattern recommendations
+      intelligenceStore.analyzeHand(playerHand, [])
+    }
+  }, [tileStore.playerHand, intelligenceStore])
+  
   // Get selected patterns properly
   const selectedPatterns = useMemo(() => {
     return patternStore.getTargetPatterns()
@@ -430,7 +449,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   return (
     <>
       <GameScreenLayout
-        gamePhase="gameplay"
+        gamePhase={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         currentPlayer={playerNames[currentPlayerIndex]}
         timeElapsed={elapsedTime}
         playerNames={playerNames}

@@ -1,7 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
+import { useIntelligenceStore } from '../../stores/intelligence-store'
+import { usePatternStore } from '../../stores/pattern-store'
+import { useTileStore } from '../../stores/tile-store'
+import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 
 interface IntelligencePanelProps {
   isAnalyzing: boolean
@@ -12,57 +16,179 @@ interface IntelligencePanelProps {
       }
     }
     recommendedPatterns?: Array<{
-      pattern: { displayName: string }
+      pattern: PatternSelectionOption
       completionPercentage: number
+      isPrimary: boolean
+      confidence: number
+      reasoning: string
+      difficulty: 'easy' | 'medium' | 'hard'
     }>
+    overallScore?: number
   } | null
   findAlternativePatterns: () => void
+  gamePhase: 'charleston' | 'gameplay'
 }
 
 const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
   isAnalyzing,
   currentAnalysis,
   findAlternativePatterns,
+  gamePhase
 }) => {
+  const [showAllPatterns, setShowAllPatterns] = useState(false)
+  const { analyzeHand } = useIntelligenceStore()
+  const { getTargetPatterns, addTargetPattern, clearSelection } = usePatternStore()
+  const { playerHand } = useTileStore()
+  
+  const selectedPatterns = getTargetPatterns()
+  const hasPatternSelected = selectedPatterns.length > 0
 
-  const recommendedDiscard = () => {
-    if (!currentAnalysis?.recommendations?.discard) return null
-    return currentAnalysis.recommendations.discard
+  const handlePatternSelect = async (patternId: string) => {
+    if (selectedPatterns.some(p => p.id === patternId)) return // Already selected
+    
+    // Add as primary pattern
+    clearSelection()
+    addTargetPattern(patternId)
+    
+    // Re-analyze with new pattern
+    const pattern = currentAnalysis?.recommendedPatterns?.find(rec => rec.pattern.id === patternId)?.pattern
+    if (pattern) {
+      await analyzeHand(playerHand, [pattern])
+    }
+  }
+
+  const getPhaseTitle = () => {
+    if (gamePhase === 'charleston') {
+      return hasPatternSelected ? '🎯 Charleston Strategy' : '🤔 Choose Your Target Pattern'
+    }
+    return '🧠 AI Co-Pilot'
+  }
+
+  const getPhaseInstructions = () => {
+    if (gamePhase === 'charleston' && !hasPatternSelected) {
+      return 'Select your primary pattern to get strategic Charleston recommendations'
+    }
+    return null
   }
 
   return (
     <Card className="p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-800">🧠 AI Co-Pilot</h3>
+        <h3 className="text-lg font-semibold text-gray-800">{getPhaseTitle()}</h3>
         {isAnalyzing && <LoadingSpinner size="sm" />}
       </div>
       
       <div className="space-y-4">
+        {/* Phase Instructions */}
+        {getPhaseInstructions() && (
+          <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+            <div className="text-sm text-yellow-800">{getPhaseInstructions()}</div>
+          </div>
+        )}
+
+        {/* Analysis Loading */}
+        {isAnalyzing && (
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-center gap-3">
+              <LoadingSpinner size="sm" />
+              <div className="text-sm text-blue-800">Analyzing all 71 NMJL patterns...</div>
+            </div>
+          </div>
+        )}
+
         {currentAnalysis ? (
           <>
-            {/* Primary Recommendation */}
-            <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-2">💡 Recommendation</div>
-              <div className="text-sm text-gray-700">
-                {recommendedDiscard()?.reasoning || 'Analyzing your hand...'}
+            {/* Overall Analysis Score */}
+            {currentAnalysis.overallScore && (
+              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-medium text-green-800">Overall Hand Score</div>
+                  <div className="text-xl font-bold text-green-600">
+                    {Math.round(currentAnalysis.overallScore)}/100
+                  </div>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* Pattern Progress */}
-            <div className="space-y-2">
-              <div className="text-sm font-medium text-gray-700">🎯 Pattern Progress</div>
-              {currentAnalysis.recommendedPatterns?.slice(0, 2).map((patternRec, index) => {
+            {/* Primary Recommendation */}
+            {currentAnalysis.recommendations?.discard && (
+              <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                <div className="text-sm font-medium text-blue-800 mb-2">💡 AI Recommendation</div>
+                <div className="text-sm text-gray-700">
+                  {currentAnalysis.recommendations.discard.reasoning}
+                </div>
+              </div>
+            )}
+
+            {/* Pattern Selection & Progress */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="text-sm font-medium text-gray-700">
+                  {hasPatternSelected ? '🎯 Your Patterns' : '📋 Recommended Patterns'}
+                </div>
+                {currentAnalysis.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 3 && (
+                  <Button
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setShowAllPatterns(!showAllPatterns)}
+                    className="text-xs"
+                  >
+                    {showAllPatterns ? 'Show Less' : `+${currentAnalysis.recommendedPatterns.length - 3} More`}
+                  </Button>
+                )}
+              </div>
+              
+              {currentAnalysis.recommendedPatterns?.slice(0, showAllPatterns ? undefined : 3).map((patternRec, index) => {
                 const completionPercentage = patternRec.completionPercentage || 0
+                const isSelected = selectedPatterns.some(p => p.id === patternRec.pattern.id)
+                const isPrimary = patternRec.isPrimary || index === 0
+                
                 return (
-                  <div key={index} className="p-2 bg-gray-50 rounded">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs font-medium">{patternRec.pattern.displayName}</span>
-                      <span className="text-xs text-gray-500">{Math.round(completionPercentage)}%</span>
+                  <div 
+                    key={patternRec.pattern.id} 
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      isSelected 
+                        ? 'bg-purple-50 border-purple-300' 
+                        : 'bg-gray-50 border-gray-200 hover:bg-blue-50 hover:border-blue-300'
+                    }`}
+                    onClick={() => !isSelected && handlePatternSelect(patternRec.pattern.id)}
+                  >
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">
+                            {patternRec.pattern.pattern}
+                          </span>
+                          {isPrimary && isSelected && (
+                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                              Primary
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-gray-500">
+                            {patternRec.pattern.points || 0} pts
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {patternRec.difficulty}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {Math.round(completionPercentage)}% complete
+                          </span>
+                        </div>
+                      </div>
+                      {isSelected && (
+                        <div className="text-purple-600">✓</div>
+                      )}
                     </div>
+                    
+                    {/* Progress bar */}
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
-                        style={{ width: `${Math.max(5, completionPercentage)}%` }} 
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          isSelected ? 'bg-purple-500' : 'bg-blue-500'
+                        }`}
+                        style={{ width: `${Math.min(completionPercentage, 100)}%` }}
                       />
                     </div>
                   </div>

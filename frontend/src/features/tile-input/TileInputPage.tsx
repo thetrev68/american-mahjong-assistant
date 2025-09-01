@@ -228,10 +228,10 @@ export const TileInputPage = () => {
             <Button
               variant="primary"
               size="lg"
-              onClick={() => navigate('/intelligence')}
+              onClick={() => navigate('/game')}
               className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold w-full max-w-md"
             >
-              ✨ Analyze Hand & Set Primary
+              🎯 Start Game
             </Button>
           ) : (
             <Button
