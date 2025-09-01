@@ -2,7 +2,7 @@
 // Applies 4-component mathematical scoring system and strategic assessment
 // Determines viable patterns and calculates switch recommendations
 
-import type { PatternAnalysisFacts } from './pattern-analysis-engine'
+import type { PatternAnalysisFacts, TileAvailability, TileMatchResult } from './pattern-analysis-engine'
 import type { PatternSelectionOption } from '../../../shared/nmjl-types'
 
 export interface ScoringComponents {
@@ -179,7 +179,7 @@ export class PatternRankingEngine {
   private static calculateAvailabilityScore(
     tileAvailability: PatternAnalysisFacts['tileAvailability'], 
     jokerAnalysis: PatternAnalysisFacts['jokerAnalysis'],
-    bestVariation: Record<string, unknown>
+    bestVariation: TileMatchResult
   ): number {
     const { missingTileCounts } = tileAvailability
     const { jokersAvailable } = jokerAnalysis
@@ -213,11 +213,11 @@ export class PatternRankingEngine {
    * Calculate effective tile availability including joker substitution
    */
   private static calculateEffectiveTileAvailability(
-    tileAvailability: Record<string, unknown>,
-    bestVariation: Record<string, unknown>,
+    tileAvailability: TileAvailability,
+    bestVariation: TileMatchResult,
     jokersAvailable: number
   ): number {
-    const baseTilesAvailable = tileAvailability.remainingAvailable
+    const baseTilesAvailable = tileAvailability.remainingAvailable as number
     
     // Check if this tile can be substituted by jokers in the best variation
     // This is a simplified check - in full implementation we'd check specific positions
@@ -228,7 +228,7 @@ export class PatternRankingEngine {
       return baseTilesAvailable + jokersAvailable
     }
     
-    return baseTilesAvailable
+    return baseTilesAvailable as number
   }
 
   /**

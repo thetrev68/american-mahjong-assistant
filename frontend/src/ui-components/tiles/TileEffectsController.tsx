@@ -87,67 +87,6 @@ export const TileEffectsController = React.memo(({
   
   // Effects are automatically handled by the processing system
   
-  // Process queued effects with concurrency control
-  const processEffectQueue = useCallback(async () => {
-    if (processingRef.current || effectQueueRef.current.length === 0) return
-    
-    processingRef.current = true
-    
-    try {
-      // Process effects up to concurrent limit
-      const currentBatch = effectQueueRef.current.splice(0, effectQuality.concurrentLimit)
-      
-      // Group by priority
-      const highPriority = currentBatch.filter(t => t.priority === 'high')
-      const normalPriority = currentBatch.filter(t => t.priority === 'normal' || !t.priority)
-      const lowPriority = currentBatch.filter(t => t.priority === 'low')
-      
-      // Process in priority order
-      for (const priorityGroup of [highPriority, normalPriority, lowPriority]) {
-        if (priorityGroup.length === 0) continue
-        
-        // Process group concurrently
-        await Promise.allSettled(
-          priorityGroup.map(trigger => processEffect(trigger))
-        )
-      }
-    } finally {
-      processingRef.current = false
-      
-      // Continue processing if more effects are queued
-      if (effectQueueRef.current.length > 0) {
-        setTimeout(processEffectQueue, 16) // Next frame
-      }
-    }
-  }, [effectQuality.concurrentLimit, processEffect])
-  
-  // Process individual effect
-  const processEffect = useCallback(async (trigger: TileEffectTrigger) => {
-    const { tile, action, intensity = 'medium' } = trigger
-    
-    try {
-      // Parallel execution of animation and haptic feedback
-      const promises: Promise<unknown>[] = []
-      
-      // Animation
-      if (config.enableAnimations && !performance.shouldReduceAnimations) {
-        promises.push(executeAnimation(tile, action))
-      }
-      
-      // Haptic feedback
-      if (config.enableHaptics) {
-        promises.push(executeHaptic(action, intensity))
-      }
-      
-      await Promise.allSettled(promises)
-      onEffectComplete?.(trigger)
-      
-    } catch {
-      // Tile effect processing failed silently
-      onEffectComplete?.(trigger) // Still call completion callback
-    }
-  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete, executeAnimation, executeHaptic])
-  
   // Execute animation based on tile and action
   const executeAnimation = useCallback(async (tile: PlayerTile, action: string) => {
     // Determine if special tile
@@ -225,6 +164,67 @@ export const TileEffectsController = React.memo(({
         }
     }
   }, [haptics])
+  
+  // Process individual effect
+  const processEffect = useCallback(async (trigger: TileEffectTrigger) => {
+    const { tile, action, intensity = 'medium' } = trigger
+    
+    try {
+      // Parallel execution of animation and haptic feedback
+      const promises: Promise<unknown>[] = []
+      
+      // Animation
+      if (config.enableAnimations && !performance.shouldReduceAnimations) {
+        promises.push(executeAnimation(tile, action))
+      }
+      
+      // Haptic feedback
+      if (config.enableHaptics) {
+        promises.push(executeHaptic(action, intensity))
+      }
+      
+      await Promise.allSettled(promises)
+      onEffectComplete?.(trigger)
+      
+    } catch {
+      // Tile effect processing failed silently
+      onEffectComplete?.(trigger) // Still call completion callback
+    }
+  }, [config.enableAnimations, config.enableHaptics, performance.shouldReduceAnimations, onEffectComplete, executeAnimation, executeHaptic])
+  
+  // Process queued effects with concurrency control
+  const processEffectQueue = useCallback(async () => {
+    if (processingRef.current || effectQueueRef.current.length === 0) return
+    
+    processingRef.current = true
+    
+    try {
+      // Process effects up to concurrent limit
+      const currentBatch = effectQueueRef.current.splice(0, effectQuality.concurrentLimit)
+      
+      // Group by priority
+      const highPriority = currentBatch.filter(t => t.priority === 'high')
+      const normalPriority = currentBatch.filter(t => t.priority === 'normal' || !t.priority)
+      const lowPriority = currentBatch.filter(t => t.priority === 'low')
+      
+      // Process in priority order
+      for (const priorityGroup of [highPriority, normalPriority, lowPriority]) {
+        if (priorityGroup.length === 0) continue
+        
+        // Process group concurrently
+        await Promise.allSettled(
+          priorityGroup.map(trigger => processEffect(trigger))
+        )
+      }
+    } finally {
+      processingRef.current = false
+      
+      // Continue processing if more effects are queued
+      if (effectQueueRef.current.length > 0) {
+        setTimeout(processEffectQueue, 16) // Next frame
+      }
+    }
+  }, [effectQuality.concurrentLimit, processEffect])
   
   // Report performance changes
   React.useEffect(() => {
