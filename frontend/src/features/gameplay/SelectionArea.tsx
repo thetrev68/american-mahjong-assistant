@@ -12,9 +12,11 @@ interface SelectionAreaProps {
   onDiscard?: () => void
   isReadyToPass?: boolean
   allPlayersReady?: boolean
+  onAdvanceToGameplay?: () => void
+  onCharlestonPass?: () => void
 }
 
-export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady }: SelectionAreaProps = {}) => {
+export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady, onAdvanceToGameplay, onCharlestonPass }: SelectionAreaProps = {}) => {
   const { 
     selectedForAction, 
     returnFromSelection, 
@@ -110,13 +112,21 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
               <Button
                 variant="primary"
                 size="sm"
-                onClick={() => handleAction('pass')}
-                disabled={actionType !== null || isReadyToPass}
+                onClick={() => {
+                  if (selectedForAction.length === 3) {
+                    handleAction('pass')
+                    if (onCharlestonPass) {
+                      setTimeout(() => onCharlestonPass(), 1000)
+                    }
+                  }
+                }}
+                disabled={actionType !== null || isReadyToPass || selectedForAction.length !== 3}
                 className={allPlayersReady ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
               >
                 {actionType === 'pass' ? 'Passing...' : 
                  allPlayersReady ? 'All Ready!' :
-                 isReadyToPass ? 'Ready - Waiting...' : 'Pass'}
+                 isReadyToPass ? 'Ready - Waiting...' : 
+                 selectedForAction.length === 3 ? 'Pass 3 Tiles' : `Select ${3 - selectedForAction.length} more tiles`}
               </Button>
             )}
             

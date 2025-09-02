@@ -4,7 +4,7 @@ import YourHandZone from './YourHandZone'
 import DiscardPileZone from './DiscardPileZone'
 import OpponentExposedZone from './OpponentExposedZone'
 import IntelligencePanel from './IntelligencePanel'
-import type { Tile as TileType } from '../../types/tile-types'
+import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 import type { PatternSelectionOption } from '../../../../shared/nmjl-types'
 
 interface GameScreenLayoutProps {
@@ -17,8 +17,10 @@ interface GameScreenLayoutProps {
   selectedPatternsCount: number
   findAlternativePatterns: () => void
   onNavigateToCharleston?: () => void
+  onPauseGame?: () => void
+  isPaused?: boolean
   nextPlayer?: string
-  currentHand: TileType[]
+  currentHand: PlayerTile[]
   lastDrawnTile: TileType | null
   exposedTiles: Array<{
     type: 'pung' | 'kong' | 'quint' | 'sextet'
@@ -30,6 +32,7 @@ interface GameScreenLayoutProps {
   isAnalyzing: boolean
   handleDrawTile: () => void
   handleDiscardTile: (tile: TileType) => void
+  onAdvanceToGameplay?: () => void
   discardPile: Array<{
     tile: TileType
     playerId: string
@@ -71,6 +74,8 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   selectedPatternsCount,
   findAlternativePatterns,
   onNavigateToCharleston,
+  onPauseGame,
+  isPaused,
   nextPlayer,
   currentHand,
   lastDrawnTile,
@@ -80,6 +85,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   isAnalyzing,
   handleDrawTile,
   handleDiscardTile,
+  onAdvanceToGameplay,
   discardPile,
   currentPlayerIndex,
   playerExposedCount,
@@ -99,6 +105,8 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         selectedPatternsCount={selectedPatternsCount}
         findAlternativePatterns={findAlternativePatterns}
         onNavigateToCharleston={onNavigateToCharleston}
+        onPauseGame={onPauseGame}
+        isPaused={isPaused}
         nextPlayer={nextPlayer}
       />
 
@@ -112,6 +120,8 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         isAnalyzing={isAnalyzing}
         handleDrawTile={handleDrawTile}
         handleDiscardTile={handleDiscardTile}
+        gamePhase={gamePhase}
+        onAdvanceToGameplay={onAdvanceToGameplay}
       />
 
       {/* ZONE 2: DISCARD PILE */}

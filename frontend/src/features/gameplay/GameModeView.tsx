@@ -3,6 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useGameStore } from '../../stores/game-store'
+import { useRoomStore } from '../../stores/room-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { useTileStore } from '../../stores/tile-store'
@@ -13,6 +14,7 @@ import type { Tile as TileType } from '../../types/tile-types'
 import type { PatternGroup } from '../../../../shared/nmjl-types'
 import GameScreenLayout from './GameScreenLayout'
 import { SelectionArea } from './SelectionArea'
+import { TileInputModal } from '../shared/TileInputModal'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -46,6 +48,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 }) => {
   // Store state
   const gameStore = useGameStore()
+  const roomStore = useRoomStore()
   const intelligenceStore = useIntelligenceStore()
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
@@ -55,7 +58,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (gameStore.gamePhase === 'tile-input') {
       gameStore.setGamePhase('charleston')
     }
-  }, [gameStore])
+  }, [gameStore.gamePhase, gameStore.setGamePhase])
 
   // Auto-analyze hand when entering the game for pattern recommendations
   useEffect(() => {
@@ -64,7 +67,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
     
     if (hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
-      // Auto-analyze with empty patterns to get AI pattern recommendations
       intelligenceStore.analyzeHand(playerHand, [])
     }
   }, [tileStore.playerHand, intelligenceStore])
@@ -116,7 +118,31 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     'player-4': 0
   })
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
-  const [playerNames] = useState(['You', 'Right', 'Across', 'Left'])
+  // Get player names from game store, fallback to positions if not available
+  const playerNames = useMemo(() => {
+    // For multiplayer games, use game store players
+    if (gameStore.players.length > 0) {
+      return gameStore.players.map(p => p.name)
+    }
+    
+    // For solo games, use room store other player names with "You" as the first player
+    if (roomStore.coPilotMode === 'solo' && roomStore.otherPlayerNames.length > 0) {
+      return ['You', ...roomStore.otherPlayerNames]
+    }
+    
+    // Fallback to generic names
+    return ['You', 'Right', 'Across', 'Left']
+  }, [gameStore.players, roomStore.coPilotMode, roomStore.otherPlayerNames])
+
+  // Get current player info from game store
+  const currentPlayer = useMemo(() => {
+    const currentPlayerId = gameStore.currentPlayerId
+    if (currentPlayerId && gameStore.players.length > 0) {
+      const player = gameStore.players.find(p => p.id === currentPlayerId)
+      return player?.name || 'You'
+    }
+    return playerNames[currentPlayerIndex]
+  }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames])
   const [gameRound] = useState(1)
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
   const [discardPile, setDiscardPile] = useState<Array<{
@@ -126,7 +152,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }>>([])
   const [gameStartTime] = useState(new Date())
   const [elapsedTime, setElapsedTime] = useState(0)
+  const [isPaused, setIsPaused] = useState(false)
   const [showPatternSwitcher, setShowPatternSwitcher] = useState(false)
+  const [showTileModal, setShowTileModal] = useState(false)
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
     completionPercentage: number; 
@@ -177,13 +205,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Timer effect
   useEffect(() => {
+    if (isPaused) return
+
     const interval = setInterval(() => {
       const elapsed = Math.floor((Date.now() - gameStartTime.getTime()) / 1000)
       setElapsedTime(elapsed)
     }, 1000)
 
     return () => clearInterval(interval)
-  }, [gameStartTime])
+  }, [gameStartTime, isPaused])
 
   // Auto-analyze hand when it changes
   useEffect(() => {
@@ -393,6 +423,20 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [currentPlayerIndex, playerNames, showCallDialog, gameEnded, onNavigateToPostGame])
 
 
+  const handlePauseGame = useCallback(() => {
+    setIsPaused(!isPaused)
+  }, [isPaused])
+
+  // Handle Charleston pass - show tile modal for receiving tiles
+  const handleCharlestonPass = useCallback(() => {
+    setShowTileModal(true)
+  }, [])
+  
+  // Advance from Charleston to Gameplay phase
+  const handleAdvanceToGameplay = useCallback(() => {
+    gameStore.setGamePhase('playing')
+  }, [gameStore])
+
   const findAlternativePatterns = useCallback(() => {
     if (!currentAnalysis || !currentAnalysis.bestPatterns) return
 
@@ -450,7 +494,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     <>
       <GameScreenLayout
         gamePhase={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
-        currentPlayer={playerNames[currentPlayerIndex]}
+        currentPlayer={currentPlayer}
         timeElapsed={elapsedTime}
         playerNames={playerNames}
         windRound={windRound}
@@ -458,6 +502,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         selectedPatternsCount={selectedPatterns.length}
         findAlternativePatterns={findAlternativePatterns}
         onNavigateToCharleston={onNavigateToCharleston}
+        onPauseGame={handlePauseGame}
+        isPaused={isPaused}
         currentHand={currentHand}
         lastDrawnTile={lastDrawnTile}
         exposedTiles={exposedTiles}
@@ -466,6 +512,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         isAnalyzing={isAnalyzing}
         handleDrawTile={handleDrawTile}
         handleDiscardTile={handleDiscardTile}
+        onAdvanceToGameplay={handleAdvanceToGameplay}
         discardPile={discardPile}
         currentPlayerIndex={currentPlayerIndex}
         playerExposedCount={playerExposedCount}
@@ -566,7 +613,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       )}
       
       {/* Selection Area - Fixed overlay for tile actions */}
-      <SelectionArea />
+      <SelectionArea onAdvanceToGameplay={handleAdvanceToGameplay} onCharlestonPass={handleCharlestonPass} />
     </>
   )
 }

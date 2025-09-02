@@ -11,6 +11,8 @@ interface TopZoneProps {
   selectedPatternsCount: number
   findAlternativePatterns: () => void
   onNavigateToCharleston?: () => void
+  onPauseGame?: () => void
+  isPaused?: boolean
   nextPlayer?: string
 }
 
@@ -23,8 +25,8 @@ const DramaticTimer: React.FC<{
   const minutes = Math.floor(timeElapsed / 60)
   const seconds = timeElapsed % 60
   
-  // Phase-aware positioning and styling
-  const position = gamePhase === 'charleston' ? 'top-4 left-4' : 'top-4 right-4'
+  // Phase-aware positioning and styling - moved to avoid header overlap
+  const position = gamePhase === 'charleston' ? 'top-20 right-4' : 'top-20 right-4'
   const priority = gamePhase === 'charleston' ? 'low' : 'high'
   const size = priority === 'low' ? 'text-base px-3 py-2' : 'text-lg px-4 py-3'
   
@@ -77,6 +79,8 @@ const TopZone: React.FC<TopZoneProps> = ({
   selectedPatternsCount,
   findAlternativePatterns,
   onNavigateToCharleston,
+  onPauseGame,
+  isPaused,
   nextPlayer: providedNextPlayer,
 }) => {
 
@@ -122,8 +126,13 @@ const TopZone: React.FC<TopZoneProps> = ({
               </Button>
             </>
           )}
-          <Button variant="ghost" size="sm">
-            Pause Game
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onPauseGame}
+            className={isPaused ? "bg-yellow-100 text-yellow-700" : ""}
+          >
+            {isPaused ? 'Resume Game' : 'Pause Game'}
           </Button>
         </div>
       </div>

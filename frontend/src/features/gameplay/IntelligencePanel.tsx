@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
@@ -42,6 +42,17 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
   
   const selectedPatterns = getTargetPatterns()
   const hasPatternSelected = selectedPatterns.length > 0
+  
+  // Auto-select the top recommended pattern if none is selected
+  useEffect(() => {
+    if (!hasPatternSelected && currentAnalysis?.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 0) {
+      const topPattern = currentAnalysis.recommendedPatterns[0]
+      // Add as primary pattern without re-analyzing
+      clearSelection()
+      addTargetPattern(topPattern.pattern.id)
+    }
+  }, [hasPatternSelected, currentAnalysis, clearSelection, addTargetPattern])
+  
 
   const handlePatternSelect = async (patternId: string) => {
     if (selectedPatterns.some(p => p.id === patternId)) return // Already selected
@@ -98,8 +109,52 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
 
         {currentAnalysis ? (
           <>
-            {/* Overall Analysis Score */}
-            {currentAnalysis.overallScore && (
+            {/* PRIMARY PATTERN DETAILS - Zone 4 from design */}
+            {currentAnalysis.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 0 && (
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+                <div className="space-y-3">
+                  <div>
+                    <h4 className="text-lg font-bold text-purple-800 mb-1">PRIMARY PATTERN</h4>
+                    <div className="text-xl font-bold text-gray-900">
+                      {currentAnalysis.recommendedPatterns[0]?.pattern.pattern || 'Selected Pattern'}
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <div className="text-2xl font-bold text-green-600">
+                        {Math.round(currentAnalysis.recommendedPatterns[0]?.completionPercentage || 0)}%
+                      </div>
+                      <div className="text-sm text-gray-600">complete</div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-lg font-bold text-blue-600">
+                        AI Score: {Math.round(currentAnalysis.overallScore || 0)}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Progress:</span>
+                    <div className="flex-1 bg-gray-200 rounded-full h-3">
+                      <div 
+                        className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                        style={{ width: `${Math.min(currentAnalysis.recommendedPatterns[0]?.completionPercentage || 0, 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  
+                  {currentAnalysis.recommendedPatterns[0]?.reasoning && (
+                    <div className="text-sm text-gray-700 bg-white/80 p-2 rounded">
+                      <span className="font-medium">Strategy:</span> {currentAnalysis.recommendedPatterns[0].reasoning}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Overall Analysis Score - when no primary pattern */}
+            {!hasPatternSelected && currentAnalysis.overallScore && (
               <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
                 <div className="flex items-center justify-between">
                   <div className="text-sm font-medium text-green-800">Overall Hand Score</div>
@@ -151,7 +206,7 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                         ? 'bg-purple-50 border-purple-300' 
                         : 'bg-gray-50 border-gray-200 hover:bg-blue-50 hover:border-blue-300'
                     }`}
-                    onClick={() => !isSelected && handlePatternSelect(patternRec.pattern.id)}
+                    onClick={() => handlePatternSelect(patternRec.pattern.id)}
                   >
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">

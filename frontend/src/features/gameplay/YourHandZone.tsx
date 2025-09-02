@@ -4,9 +4,10 @@ import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { PlayerTile, Tile as TileType } from '../../types/tile-types'
+import { useTileStore } from '../../stores/tile-store'
 
 interface YourHandZoneProps {
-  currentHand: TileType[]
+  currentHand: PlayerTile[]
   lastDrawnTile: TileType | null
   exposedTiles: Array<{
     type: 'pung' | 'kong' | 'quint' | 'sextet'
@@ -18,6 +19,8 @@ interface YourHandZoneProps {
   isAnalyzing: boolean
   handleDrawTile: () => void
   handleDiscardTile: (tile: TileType) => void
+  gamePhase: 'charleston' | 'gameplay'
+  onAdvanceToGameplay?: () => void
 }
 
 const YourHandZone: React.FC<YourHandZoneProps> = ({
@@ -29,7 +32,37 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   isAnalyzing,
   handleDrawTile,
   handleDiscardTile,
+  gamePhase,
+  onAdvanceToGameplay,
 }) => {
+  const { selectedForAction, moveToSelection, returnFromSelection, clearSelection } = useTileStore()
+  const isCharleston = gamePhase === 'charleston'
+  
+  
+  const handleTileClick = (tile: PlayerTile) => {
+    const instanceId = tile.instanceId
+    
+    if (isCharleston) {
+      // Charleston mode: toggle selection for passing
+      const isSelected = selectedForAction.some(t => t.instanceId === instanceId)
+      
+      if (isSelected) {
+        returnFromSelection(instanceId)
+      } else if (selectedForAction.length < 3) {
+        moveToSelection(instanceId)
+      }
+    } else {
+      // Gameplay mode: discard tile - convert PlayerTile to TileType
+      const tileForDiscard: TileType = {
+        id: tile.id,
+        suit: tile.suit,
+        value: tile.value,
+        displayName: tile.displayName,
+        unicodeSymbol: tile.unicodeSymbol
+      }
+      handleDiscardTile(tileForDiscard)
+    }
+  }
 
   return (
     <Card className="p-4 mb-4 md:col-span-2 xl:col-span-2">
@@ -39,7 +72,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
           <Button 
             size="sm" 
             onClick={handleDrawTile}
-            disabled={!isMyTurn || !!lastDrawnTile}
+            disabled={gamePhase === 'charleston' || !isMyTurn || !!lastDrawnTile}
             className="bg-green-600 hover:bg-green-700"
           >
             🎲 Draw Tile
@@ -53,22 +86,24 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         <div>
           <div className="text-sm text-gray-600 mb-2">Concealed ({currentHand.length} tiles)</div>
           <div className="flex flex-wrap gap-1 sm:gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
-            {currentHand.length > 0 ? currentHand.map((tile, index) => {
-              const playerTile: PlayerTile = {
+            {currentHand.length > 0 ? currentHand.map((tile) => {
+              const isSelected = isCharleston 
+                ? selectedForAction.some(t => t.instanceId === tile.instanceId)
+                : selectedDiscardTile?.id === tile.id
+              
+              const updatedTile: PlayerTile = {
                 ...tile,
-                instanceId: `${tile.id}-${index}`,
-                isSelected: selectedDiscardTile?.id === tile.id
+                isSelected
               }
+              
               return (
                 <AnimatedTile
-                  key={playerTile.instanceId}
-                  tile={playerTile}
+                  key={tile.instanceId}
+                  tile={updatedTile}
                   size="md"
-                  onClick={() => isMyTurn && handleDiscardTile(tile)}
-                  className={`cursor-pointer hover:scale-105 transition-transform min-w-12 min-h-16 ${
-                    selectedDiscardTile?.id === tile.id ? 'ring-2 ring-red-400' : ''
-                  }`}
-                  context="gameplay"
+                  onClick={() => isMyTurn && handleTileClick(tile)}
+                  className="cursor-pointer hover:scale-105 transition-transform min-w-12 min-h-16"
+                  context={isCharleston ? "charleston" : "gameplay"}
                 />
               )
             }) : (
@@ -78,6 +113,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
             )}
           </div>
         </div>
+
 
         {/* Drawn Tile */}
         {lastDrawnTile && (
