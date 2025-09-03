@@ -87,6 +87,15 @@ export interface SocketEvents {
   // Room list events
   'room-list-updated': (data: { rooms: Room[] }) => void
   
+  // Charleston events
+  'charleston-player-ready': (data: { roomId: string; playerId: string; selectedTiles: any[]; phase: string }) => void
+  'charleston-player-ready-confirmed': (data: { success: boolean; playerId: string; phase: string }) => void
+  'charleston-player-ready-update': (data: { playerId: string; isReady: boolean; phase: string }) => void
+  'charleston-tile-exchange': (data: { roomId: string; phase: string; tilesReceived: any[]; nextPhase: string }) => void
+  'charleston-request-status': (data: { roomId: string }) => void
+  'charleston-status': (data: { success: boolean; playerReadiness?: Record<string, boolean>; roomId?: string; error?: string }) => void
+  'charleston-error': (data: { success: boolean; error: string }) => void
+  
   // Connection events
   'ping': (data: { timestamp: number }) => void
   'pong': (data: { timestamp: number }) => void

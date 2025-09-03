@@ -8,11 +8,14 @@ import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { useRoomStore } from '../../stores/room-store'
 import { useGameStore } from '../../stores/game-store'
+import { useCharlestonStore, useCharlestonSelectors } from '../../stores/charleston-store'
+import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import GameScreenLayout from '../gameplay/GameScreenLayout'
 import { TileInputModal } from '../shared/TileInputModal'
 import { SelectionArea } from '../gameplay/SelectionArea'
 import { Button } from '../../ui-components/Button'
 import { tileService } from '../../services/tile-service'
+import { useCharlestonMultiplayer } from '../../services/charleston-multiplayer'
 import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 
 
@@ -21,7 +24,25 @@ export function CharlestonView() {
   const { currentAnalysis, isAnalyzing, analyzeHand } = useIntelligenceStore()
   const { getTargetPatterns } = usePatternStore()
   const { playerHand = [], clearHand, addTile, moveToSelection, selectedForAction } = useTileStore()
-  const { coPilotMode, otherPlayerNames } = useRoomStore()
+  const { coPilotMode, otherPlayerNames, currentRoomCode } = useRoomStore()
+  
+  // Charleston state management
+  const charlestonStore = useCharlestonStore()
+  const charlestonSelectors = useCharlestonSelectors()
+  const multiplayerStore = useMultiplayerStore()
+  const charlestonMultiplayer = useCharlestonMultiplayer()
+  
+  // Initialize Charleston for multiplayer if we're in a room
+  useEffect(() => {
+    const isMultiplayer = !!currentRoomCode && coPilotMode === 'everyone'
+    const playerId = multiplayerStore.currentPlayerId
+    
+    if (isMultiplayer && playerId && currentRoomCode) {
+      charlestonStore.setMultiplayerMode(true, currentRoomCode, playerId)
+    } else {
+      charlestonStore.setMultiplayerMode(false)
+    }
+  }, [currentRoomCode, coPilotMode, multiplayerStore.currentPlayerId, charlestonStore])
   
   // Helper function to replace the entire hand
   const replacePlayerHand = useCallback((newTiles: PlayerTile[]) => {
@@ -65,15 +86,81 @@ export function CharlestonView() {
   
   // Charleston state  
   const [selectedTilesToPass, setSelectedTilesToPass] = useState<string[]>([])
-  const [isReadyToPass, setIsReadyToPass] = useState(false)
-  const [allPlayersReady, setAllPlayersReady] = useState(false)
-  const [newlyReceivedTiles, setNewlyReceivedTiles] = useState<string[]>([])
   const [showTileModal, setShowTileModal] = useState(false)
   const [tileModalMode, setTileModalMode] = useState<'receive' | 'edit'>('receive')
   const [currentHand, setCurrentHand] = useState<TileType[]>(() => 
     sortTilesAlphabetically(playerHand)
   )
-  const [charlestonPhase, setCharlestonPhase] = useState<'right' | 'across' | 'left' | 'complete'>('right')
+  const [newlyReceivedTiles, setNewlyReceivedTiles] = useState<string[]>([])
+  
+  // State variables needed for compatibility with existing code
+  const [isReadyToPassLocal, setIsReadyToPass] = useState(false)
+  const [allPlayersReadyLocal, setAllPlayersReady] = useState(false)
+  const [charlestonPhaseLocal, setCharlestonPhase] = useState<'right' | 'across' | 'left' | 'complete' | 'optional'>('right')
+  
+  // Multiplayer Charleston state - use Charleston store values
+  const isReadyToPass = charlestonSelectors.isCurrentPlayerReady || isReadyToPassLocal
+  const allPlayersReady = charlestonSelectors.allPlayersReady || allPlayersReadyLocal
+  const charlestonPhase = charlestonSelectors.isMultiplayerMode ? charlestonSelectors.currentPhase : charlestonPhaseLocal
+  const isMultiplayerMode = charlestonSelectors.isMultiplayerMode
+  
+  // Handle multiplayer ready action
+  const handleMarkReady = useCallback(async () => {
+    if (selectedTilesToPass.length !== 3) {
+      alert('You must select exactly 3 tiles to pass')
+      return
+    }
+    
+    if (isMultiplayerMode) {
+      // Convert selected tiles to Tile objects for multiplayer service
+      const tilesToPass = selectedTilesToPass.map(tileId => {
+        const tile = currentHand.find(t => t.id === tileId)
+        return tile ? {
+          id: tile.id,
+          suit: tile.suit || 'unknown',
+          value: tile.value || tile.id,
+          displayName: tile.displayName || tile.id
+        } : null
+      }).filter((tile): tile is NonNullable<typeof tile> => tile !== null)
+      
+      // Update Charleston store with selected tiles
+      charlestonStore.clearSelection()
+      tilesToPass.forEach(tile => charlestonStore.selectTile(tile))
+      
+      // Mark player as ready through Charleston store
+      charlestonStore.markPlayerReady()
+      
+      // Also call the multiplayer service
+      const success = await charlestonMultiplayer.markPlayerReady(tilesToPass, charlestonPhase)
+      if (!success) {
+        alert('Failed to mark ready. Please try again.')
+      }
+    } else {
+      // Single-player mode - handle locally
+      setTimeout(() => {
+        handleReceiveTiles(['1B', '2C', '3D']) // Mock received tiles
+      }, 1000)
+    }
+  }, [selectedTilesToPass, currentHand, isMultiplayerMode, charlestonMultiplayer, charlestonPhase, charlestonStore])
+  
+  // Handle receiving tiles (from multiplayer or single-player simulation)
+  const handleReceiveTiles = useCallback((receivedTileIds: string[]) => {
+    const newTiles: TileType[] = receivedTileIds.map(id => ({ 
+      id, 
+      suit: 'dots' as const, 
+      value: '1' as const,
+      displayName: id
+    }))
+    // Update hand: remove passed tiles, add received tiles
+    const remainingTiles = currentHand.filter(tile => !selectedTilesToPass.includes(tile.id))
+    const updatedHand = [...remainingTiles, ...newTiles]
+    
+    setCurrentHand(sortTilesAlphabetically(updatedHand))
+    setSelectedTilesToPass([])
+    
+    // For single-player mode, these state setters don't exist anymore since we use Charleston store
+    // The Charleston store will handle phase transitions
+  }, [currentHand, selectedTilesToPass])
   
   // Game context tracking for AI engines
   const [tilesPassedOut, setTilesPassedOut] = useState<string[]>([]) // Tiles we passed to others
@@ -82,7 +169,7 @@ export function CharlestonView() {
   // Undo functionality
   const [gameStateHistory, setGameStateHistory] = useState<Array<{
     hand: TileType[]
-    phase: 'right' | 'across' | 'left' | 'complete'
+    phase: 'right' | 'across' | 'left' | 'complete' | 'optional'
     tilesPassedOut: string[]
     knownOpponentTiles: { [playerId: string]: string[] }
     timestamp: number
@@ -177,7 +264,7 @@ export function CharlestonView() {
   }, [gameStateHistory, replacePlayerHand])
 
   // Handle tile passing logic
-  const handleTilePassing = useCallback(async () => {
+  /*const handleTilePassing = useCallback(async () => {
     // Remove passed tiles from hand
     const remainingTiles = currentHand.filter(tile => !selectedTilesToPass.includes(tile.id))
     
@@ -210,29 +297,10 @@ export function CharlestonView() {
     setSelectedTilesToPass([])
     setIsReadyToPass(false)
     setAllPlayersReady(false)
-  }, [currentHand, selectedTilesToPass, coPilotMode, charlestonPhase, replacePlayerHand])
+  }, [currentHand, selectedTilesToPass, coPilotMode, charlestonPhase, replacePlayerHand])*/
 
   // Handle ready to pass - triggers tile modal for receiving tiles
-  const handleReadyToPass = useCallback(() => {
-    if (selectedTilesToPass.length !== 3) return
-    
-    setIsReadyToPass(true)
-    
-    // Mock: simulate all players becoming ready after a delay
-    setTimeout(() => {
-      setAllPlayersReady(true)
-      // In solo mode, show tile modal for receiving tiles
-      if (coPilotMode === 'solo') {
-        setShowTileModal(true)
-        setTileModalMode('receive')
-      } else {
-        // In multiplayer, continue with tile passing
-        setTimeout(() => {
-          handleTilePassing()
-        }, 1000)
-      }
-    }, 2000)
-  }, [selectedTilesToPass.length, handleTilePassing, coPilotMode])
+  // Removed unused handleReadyToPass - using handleMarkReady instead
 
   const { turnStartTime } = useGameStore()
 
@@ -349,9 +417,67 @@ export function CharlestonView() {
         currentAnalysis={currentAnalysis}
       />
 
+      {/* Multiplayer Status Display */}
+      {isMultiplayerMode && (
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-semibold text-blue-900">
+              {charlestonSelectors.phaseDisplayName}
+            </h3>
+            <div className="text-sm text-blue-700">
+              {charlestonSelectors.readyPlayerCount} / {charlestonSelectors.totalPlayers} Ready
+            </div>
+          </div>
+          
+          {/* Player readiness indicators */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {Array.from({ length: charlestonSelectors.totalPlayers }, (_, index) => {
+              const playerId = `player-${index}`
+              const isReady = charlestonStore.playerReadiness[playerId] || false
+              const isCurrentPlayer = playerId === multiplayerStore.currentPlayerId
+              
+              return (
+                <div
+                  key={playerId}
+                  className={`p-2 rounded text-center text-sm ${
+                    isReady 
+                      ? 'bg-green-100 text-green-800 border border-green-300' 
+                      : 'bg-gray-100 text-gray-600 border border-gray-300'
+                  } ${
+                    isCurrentPlayer ? 'ring-2 ring-blue-400' : ''
+                  }`}
+                >
+                  <div className="font-medium">
+                    {isCurrentPlayer ? 'You' : `Player ${index + 1}`}
+                  </div>
+                  <div className="text-xs mt-1">
+                    {isReady ? '✓ Ready' : 'Selecting...'}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          
+          {/* Status message */}
+          {allPlayersReady ? (
+            <div className="text-center text-green-700 font-medium">
+              🎉 All players ready! Exchanging tiles...
+            </div>
+          ) : isReadyToPass ? (
+            <div className="text-center text-blue-700">
+              ⏳ Waiting for other players to select their tiles...
+            </div>
+          ) : (
+            <div className="text-center text-gray-700">
+              Select 3 tiles to pass, then click "Mark Ready"
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Selection Area for Charleston tile passing */}
       <SelectionArea 
-        onPass={handleReadyToPass} 
+        onPass={handleMarkReady} 
         isReadyToPass={isReadyToPass}
         allPlayersReady={allPlayersReady}
       />

@@ -31,6 +31,13 @@ interface CharlestonState {
     timestamp: number
   }>
   
+  // Multiplayer coordination
+  isMultiplayerMode: boolean
+  playerReadiness: Record<string, boolean> // playerId -> ready status
+  waitingForPlayers: string[] // playerIds we're waiting for
+  currentPlayerId: string | null
+  roomId: string | null
+  
   // UI state
   showStrategy: boolean
   analysisError: string | null
@@ -64,6 +71,14 @@ interface CharlestonActions {
   // Phase completion
   completePhase: (tilesReceived?: Tile[]) => void
   
+  // Multiplayer coordination
+  setMultiplayerMode: (isMultiplayer: boolean, roomId?: string, playerId?: string) => void
+  setPlayerReady: (playerId: string, isReady: boolean) => void
+  resetPlayerReadiness: () => void
+  updateWaitingForPlayers: (playerIds: string[]) => void
+  markPlayerReady: () => void // Mark current player as ready
+  handleTileExchange: (tilesReceived: Tile[]) => void // Handle receiving tiles from other players
+  
   // UI actions
   toggleStrategy: () => void
   clearError: () => void
@@ -84,6 +99,11 @@ const initialState: CharlestonState = {
   isAnalyzing: false,
   targetPatterns: [],
   phaseHistory: [],
+  isMultiplayerMode: false,
+  playerReadiness: {},
+  waitingForPlayers: [],
+  currentPlayerId: null,
+  roomId: null,
   showStrategy: false,
   analysisError: null
 }
@@ -283,6 +303,100 @@ export const useCharlestonStore = create<CharlestonStore>()(
           set({ analysisError: null }, false, 'charleston/clearError')
         },
         
+        // Multiplayer coordination
+        setMultiplayerMode: (isMultiplayer, roomId, playerId) => {
+          set({ 
+            isMultiplayerMode: isMultiplayer,
+            roomId: roomId || null,
+            currentPlayerId: playerId || null,
+            playerReadiness: isMultiplayer ? {} : initialState.playerReadiness,
+            waitingForPlayers: isMultiplayer ? [] : initialState.waitingForPlayers
+          }, false, 'charleston/setMultiplayerMode')
+        },
+        
+        setPlayerReady: (playerId, isReady) => {
+          set(state => ({
+            playerReadiness: {
+              ...state.playerReadiness,
+              [playerId]: isReady
+            }
+          }), false, 'charleston/setPlayerReady')
+        },
+        
+        resetPlayerReadiness: () => {
+          set({ playerReadiness: {} }, false, 'charleston/resetPlayerReadiness')
+        },
+        
+        updateWaitingForPlayers: (playerIds) => {
+          set({ waitingForPlayers: playerIds }, false, 'charleston/updateWaitingForPlayers')
+        },
+        
+        markPlayerReady: () => {
+          const state = get()
+          const { currentPlayerId, selectedTiles, isMultiplayerMode } = state
+          
+          // Validate selection
+          if (selectedTiles.length !== 3) {
+            set({ analysisError: 'You must select exactly 3 tiles to pass' }, false, 'charleston/validationError')
+            return
+          }
+          
+          if (!isMultiplayerMode || !currentPlayerId) {
+            // Single-player mode - complete phase immediately
+            get().completePhase()
+            return
+          }
+          
+          // Mark this player as ready
+          set(state => ({
+            playerReadiness: {
+              ...state.playerReadiness,
+              [currentPlayerId]: true
+            }
+          }), false, 'charleston/markReady')
+          
+          // TODO: Emit socket event for multiplayer coordination
+          // This will be handled by the multiplayer service
+        },
+        
+        handleTileExchange: (tilesReceived) => {
+          const state = get()
+          
+          // Update tiles: remove passed, add received
+          const remainingTiles = state.playerTiles.filter(tile =>
+            !state.selectedTiles.some(selected => selected.id === tile.id)
+          )
+          const newTiles = [...remainingTiles, ...tilesReceived]
+          
+          // Record phase in history
+          const phaseRecord = {
+            phase: state.currentPhase,
+            tilesPassed: [...state.selectedTiles],
+            tilesReceived: [...tilesReceived],
+            timestamp: Date.now()
+          }
+          
+          // Determine next phase
+          const nextPhase = getNextPhase(state.currentPhase, state.playerCount)
+          
+          set({
+            phaseHistory: [...state.phaseHistory, phaseRecord],
+            playerTiles: newTiles,
+            selectedTiles: [],
+            currentPhase: nextPhase,
+            recommendations: null,
+            playerReadiness: {}, // Reset readiness for next phase
+            waitingForPlayers: []
+          }, false, 'charleston/tileExchange')
+          
+          // Generate recommendations for next phase
+          if (nextPhase !== 'complete') {
+            setTimeout(() => get().generateRecommendations(), 100)
+          } else {
+            get().endCharleston()
+          }
+        },
+        
         // Reset
         reset: () => {
           set(initialState, false, 'charleston/reset')
@@ -335,10 +449,24 @@ export type CharlestonSelectorState = {
   hasError: boolean;
   hasTargets: boolean;
   targetCount: number;
+  
+  // Multiplayer state
+  isMultiplayerMode: boolean;
+  isCurrentPlayerReady: boolean;
+  readyPlayerCount: number;
+  totalPlayers: number;
+  waitingForPlayerCount: number;
+  allPlayersReady: boolean;
+  canMarkReady: boolean;
 };
 
 export const useCharlestonSelectors = (): CharlestonSelectorState => {
   const store = useCharlestonStore()
+  
+  const readyPlayers = Object.values(store.playerReadiness).filter(Boolean)
+  const readyPlayerCount = readyPlayers.length
+  const totalPlayers = store.playerCount
+  const currentPlayerReady = store.currentPlayerId ? (store.playerReadiness[store.currentPlayerId] || false) : false
   
   return {
     // Status checks
@@ -364,7 +492,16 @@ export const useCharlestonSelectors = (): CharlestonSelectorState => {
     
     // Pattern info
     hasTargets: store.targetPatterns.length > 0,
-    targetCount: store.targetPatterns.length
+    targetCount: store.targetPatterns.length,
+    
+    // Multiplayer state
+    isMultiplayerMode: store.isMultiplayerMode,
+    isCurrentPlayerReady: currentPlayerReady,
+    readyPlayerCount,
+    totalPlayers,
+    waitingForPlayerCount: store.waitingForPlayers.length,
+    allPlayersReady: store.isMultiplayerMode ? readyPlayerCount === totalPlayers : true,
+    canMarkReady: store.selectedTiles.length === 3 && !currentPlayerReady
   }
 }
 
