@@ -52,7 +52,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
   }
 
   // Get player position color
-  const getPositionColor = (position: string) => {
+  const getPositionColor = (position: string): string => {
     const colors = {
       east: 'bg-red-100 text-red-800',
       north: 'bg-blue-100 text-blue-800',
@@ -62,8 +62,8 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
     return colors[position as keyof typeof colors] || 'bg-gray-100 text-gray-800'
   }
 
-  // Get connection status indicator
-  const getConnectionStatus = (player: any) => {
+  // Get connection status indicator  
+  const getConnectionStatus = (player: { isConnected: boolean }) => {
     if (player.isConnected) {
       return <div className="w-2 h-2 bg-green-500 rounded-full" title="Connected" />
     } else {

@@ -1,16 +1,19 @@
 // Charleston Multiplayer Service
 // Handles WebSocket communication for Charleston phase coordination
 
-import { useSocket } from '../hooks/useSocket'
+import type { Socket } from 'socket.io-client'
 import { useCharlestonStore } from '../stores/charleston-store'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
 import type { Tile } from '../utils/charleston-adapter'
 
+type CharlestonStore = ReturnType<typeof useCharlestonStore.getState>
+type MultiplayerStore = ReturnType<typeof useMultiplayerStore.getState>
+
 export class CharlestonMultiplayerService {
   private static instance: CharlestonMultiplayerService | null = null
-  private socket: any = null
-  private charlestonStore: any = null
-  private multiplayerStore: any = null
+  private socket: Socket | null = null
+  private charlestonStore: CharlestonStore | null = null
+  private multiplayerStore: MultiplayerStore | null = null
 
   static getInstance(): CharlestonMultiplayerService {
     if (!CharlestonMultiplayerService.instance) {
@@ -20,9 +23,9 @@ export class CharlestonMultiplayerService {
   }
 
   initialize(
-    socket: any,
-    charlestonStore: any,
-    multiplayerStore: any
+    socket: Socket,
+    charlestonStore: CharlestonStore,
+    multiplayerStore: MultiplayerStore
   ) {
     this.socket = socket
     this.charlestonStore = charlestonStore
@@ -34,29 +37,29 @@ export class CharlestonMultiplayerService {
     if (!this.socket || !this.charlestonStore) return
 
     // Player readiness updates
-    this.socket.on('charleston-player-ready-update', (data: any) => {
+    this.socket.on('charleston-player-ready-update', (data: { playerId: string; isReady: boolean; phase: string }) => {
       const { playerId, isReady } = data
       this.charlestonStore?.setPlayerReady(playerId, isReady)
     })
 
     // Confirmation that our readiness was received
-    this.socket.on('charleston-player-ready-confirmed', (data: any) => {
+    this.socket.on('charleston-player-ready-confirmed', (data: { success: boolean; playerId: string; phase: string }) => {
       if (data.success) {
         console.log('Charleston readiness confirmed for phase:', data.phase)
       }
     })
 
     // Tile exchange - receive tiles from other players
-    this.socket.on('charleston-tile-exchange', (data: any) => {
+    this.socket.on('charleston-tile-exchange', (data: { tilesReceived: unknown[]; phase: string; nextPhase: string }) => {
       const { tilesReceived } = data
       
       // Convert received tiles to proper Tile objects
-      const tiles: Tile[] = tilesReceived.map((tile: any) => ({
-        id: tile.id,
-        suit: tile.suit || 'unknown',
-        value: tile.value || tile.id,
-        display: tile.display || tile.id,
-        isJoker: tile.isJoker || false
+      const tiles: Tile[] = tilesReceived.map((tile: Record<string, unknown>) => ({
+        id: String(tile.id),
+        suit: String(tile.suit || 'unknown'),
+        value: String(tile.value || tile.id),
+        display: String(tile.display || tile.id),
+        isJoker: Boolean(tile.isJoker || false)
       }))
 
       // Handle tile exchange in Charleston store
@@ -64,7 +67,7 @@ export class CharlestonMultiplayerService {
     })
 
     // Charleston status updates
-    this.socket.on('charleston-status', (data: any) => {
+    this.socket.on('charleston-status', (data: { success: boolean; playerReadiness?: Record<string, boolean>; roomId?: string; error?: string }) => {
       if (data.success && data.playerReadiness) {
         // Update player readiness states
         Object.entries(data.playerReadiness).forEach(([playerId, isReady]) => {
@@ -74,7 +77,7 @@ export class CharlestonMultiplayerService {
     })
 
     // Charleston errors
-    this.socket.on('charleston-error', (data: any) => {
+    this.socket.on('charleston-error', (data: { success: boolean; error: string }) => {
       console.error('Charleston error:', data.error)
       // Update Charleston store with error
       this.charlestonStore?.clearError()
@@ -104,7 +107,7 @@ export class CharlestonMultiplayerService {
       }, 5000) // 5-second timeout
 
       // Listen for confirmation
-      const confirmHandler = (data: any) => {
+      const confirmHandler = (data: { success: boolean; playerId: string; phase: string }) => {
         if (data.success) {
           clearTimeout(timeout)
           this.socket?.off('charleston-player-ready-confirmed', confirmHandler)
@@ -112,7 +115,7 @@ export class CharlestonMultiplayerService {
         }
       }
 
-      const errorHandler = (data: any) => {
+      const errorHandler = (data: { success: boolean; error: string }) => {
         clearTimeout(timeout)
         this.socket?.off('charleston-player-ready-confirmed', confirmHandler)
         this.socket?.off('charleston-error', errorHandler)

@@ -54,7 +54,7 @@ export class PhaseTransitionManager {
             
             players.forEach((player, index) => {
               if (!player.position && index < positions.length) {
-                roomStore.updatePlayerState(player.id, { position: positions[index] as any })
+                roomStore.updatePlayerState(player.id, { position: positions[index] as 'east' | 'north' | 'west' | 'south' })
               }
             })
           }
@@ -241,8 +241,8 @@ export class PhaseTransitionManager {
       for (const action of config.setupActions) {
         try {
           await action()
-        } catch (error) {
-          console.error('Setup action error:', error)
+        } catch (setupError) {
+          console.error('Setup action error:', setupError)
           return { success: false, error: 'Failed to execute setup actions' }
         }
       }
@@ -309,6 +309,7 @@ export class PhaseTransitionManager {
         return { canTransition: false, reason: 'Validation requirements not met' }
       }
     } catch (error) {
+      console.error('Validation rule error:', error)
       return { canTransition: false, reason: 'Validation error' }
     }
 

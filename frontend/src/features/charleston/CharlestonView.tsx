@@ -104,6 +104,25 @@ export function CharlestonView() {
   const charlestonPhase = charlestonSelectors.isMultiplayerMode ? charlestonSelectors.currentPhase : charlestonPhaseLocal
   const isMultiplayerMode = charlestonSelectors.isMultiplayerMode
   
+  // Handle receiving tiles (from multiplayer or single-player simulation)
+  const handleReceiveTiles = useCallback((receivedTileIds: string[]) => {
+    const newTiles: TileType[] = receivedTileIds.map(id => ({ 
+      id, 
+      suit: 'dots' as const, 
+      value: '1' as const,
+      displayName: id
+    }))
+    // Update hand: remove passed tiles, add received tiles
+    const remainingTiles = currentHand.filter(tile => !selectedTilesToPass.includes(tile.id))
+    const updatedHand = [...remainingTiles, ...newTiles]
+    
+    setCurrentHand(sortTilesAlphabetically(updatedHand))
+    setSelectedTilesToPass([])
+    
+    // For single-player mode, these state setters don't exist anymore since we use Charleston store
+    // The Charleston store will handle phase transitions
+  }, [currentHand, selectedTilesToPass])
+
   // Handle multiplayer ready action
   const handleMarkReady = useCallback(async () => {
     if (selectedTilesToPass.length !== 3) {
@@ -141,26 +160,7 @@ export function CharlestonView() {
         handleReceiveTiles(['1B', '2C', '3D']) // Mock received tiles
       }, 1000)
     }
-  }, [selectedTilesToPass, currentHand, isMultiplayerMode, charlestonMultiplayer, charlestonPhase, charlestonStore])
-  
-  // Handle receiving tiles (from multiplayer or single-player simulation)
-  const handleReceiveTiles = useCallback((receivedTileIds: string[]) => {
-    const newTiles: TileType[] = receivedTileIds.map(id => ({ 
-      id, 
-      suit: 'dots' as const, 
-      value: '1' as const,
-      displayName: id
-    }))
-    // Update hand: remove passed tiles, add received tiles
-    const remainingTiles = currentHand.filter(tile => !selectedTilesToPass.includes(tile.id))
-    const updatedHand = [...remainingTiles, ...newTiles]
-    
-    setCurrentHand(sortTilesAlphabetically(updatedHand))
-    setSelectedTilesToPass([])
-    
-    // For single-player mode, these state setters don't exist anymore since we use Charleston store
-    // The Charleston store will handle phase transitions
-  }, [currentHand, selectedTilesToPass])
+  }, [selectedTilesToPass, currentHand, isMultiplayerMode, charlestonMultiplayer, charlestonPhase, charlestonStore, handleReceiveTiles])
   
   // Game context tracking for AI engines
   const [tilesPassedOut, setTilesPassedOut] = useState<string[]>([]) // Tiles we passed to others

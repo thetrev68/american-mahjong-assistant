@@ -195,7 +195,7 @@ export class RoomMultiplayerService {
       })
       
       if (data.isReady !== undefined) {
-        roomStore.setPlayerReadiness(data.playerId, data.phase as any, data.isReady)
+        roomStore.setPlayerReadiness(data.playerId, data.phase as 'room' | 'charleston' | 'gameplay', data.isReady)
       }
     })
 

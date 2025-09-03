@@ -16,7 +16,7 @@ interface SelectionAreaProps {
   onCharlestonPass?: () => void
 }
 
-export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady, onAdvanceToGameplay: _onAdvanceToGameplay, onCharlestonPass }: SelectionAreaProps = {}) => {
+export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady, onCharlestonPass }: SelectionAreaProps = {}) => {
   const { 
     selectedForAction, 
     returnFromSelection, 

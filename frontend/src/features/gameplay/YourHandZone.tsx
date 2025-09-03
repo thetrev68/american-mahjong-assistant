@@ -33,9 +33,8 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   handleDrawTile,
   handleDiscardTile,
   gamePhase,
-  onAdvanceToGameplay: _onAdvanceToGameplay,
 }) => {
-  const { selectedForAction, moveToSelection, returnFromSelection, clearSelection: _clearSelection } = useTileStore()
+  const { selectedForAction, moveToSelection, returnFromSelection } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
   
   

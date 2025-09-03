@@ -42,7 +42,7 @@ describe('useMultiplayer Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     ;(useSocket as vi.MockedFunction<typeof useSocket>).mockReturnValue(mockSocketHook)
-    ;(useMultiplayerStore as vi.MockedFunction<typeof useMultiplayerStore>).mockReturnValue(mockStore)
+    ;(useMultiplayerStore as vi.MockedFunction<typeof useMultiplayerStore>).mockReturnValue(mockMultiplayerStore)
   })
 
   describe('Room Management', () => {
