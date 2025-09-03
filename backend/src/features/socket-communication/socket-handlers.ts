@@ -14,6 +14,7 @@ export class SocketHandlers {
     this.registerRoomHandlers(socket)
     this.registerGameStateHandlers(socket)
     this.registerCharlestonHandlers(socket)
+    this.registerTurnHandlers(socket)
     this.registerConnectionHandlers(socket)
   }
 
@@ -404,6 +405,188 @@ export class SocketHandlers {
       default:
         return 'complete'
     }
+  }
+
+  private registerTurnHandlers(socket: Socket): void {
+    socket.on('turn-start-game', async (data) => {
+      try {
+        const { roomId, firstPlayer, turnOrder } = data
+        
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          socket.emit('turn-start-game-response', {
+            success: false,
+            error: 'Room not found'
+          })
+          return
+        }
+
+        // Validate first player is in room
+        if (!room.players.find(p => p.id === firstPlayer)) {
+          socket.emit('turn-start-game-response', {
+            success: false,
+            error: 'First player not in room'
+          })
+          return
+        }
+
+        // Validate all turn order players are in room
+        const invalidPlayers = turnOrder.filter((playerId: string) => 
+          !room.players.find(p => p.id === playerId)
+        )
+        if (invalidPlayers.length > 0) {
+          socket.emit('turn-start-game-response', {
+            success: false,
+            error: `Players not in room: ${invalidPlayers.join(', ')}`
+          })
+          return
+        }
+
+        // Initialize game state with turn information
+        const gameState = this.stateSyncManager.getGameState(roomId) || this.stateSyncManager.initializeGameState(roomId)
+        
+        // Update shared state with turn information
+        gameState.sharedState.currentPlayer = firstPlayer
+        gameState.phase = 'playing'
+
+        // Store turn order in player states
+        turnOrder.forEach((playerId: string, index: number) => {
+          if (!gameState.playerStates[playerId]) {
+            gameState.playerStates[playerId] = {}
+          }
+          gameState.playerStates[playerId].position = index
+        })
+
+        this.stateSyncManager.updateSharedState(roomId, {
+          currentPlayer: firstPlayer
+        })
+
+        // Broadcast turn start to all players in room
+        this.io.to(roomId).emit('turn-update', {
+          roomId,
+          currentPlayer: firstPlayer,
+          turnNumber: 1,
+          roundNumber: 1,
+          currentWind: 'east'
+        })
+
+        socket.emit('turn-start-game-response', {
+          success: true,
+          gameState
+        })
+
+        this.roomManager.updateRoomActivity(roomId)
+
+      } catch (error) {
+        socket.emit('turn-start-game-response', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to start turn-based game'
+        })
+      }
+    })
+
+    socket.on('turn-advance', async (data) => {
+      try {
+        const { roomId, currentPlayerId, nextPlayerId, turnNumber } = data
+        
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          socket.emit('turn-advance-response', {
+            success: false,
+            error: 'Room not found'
+          })
+          return
+        }
+
+        // Validate current player is actually current
+        const gameState = this.stateSyncManager.getGameState(roomId)
+        if (!gameState || gameState.sharedState.currentPlayer !== currentPlayerId) {
+          socket.emit('turn-advance-response', {
+            success: false,
+            error: 'Not current player turn'
+          })
+          return
+        }
+
+        // Validate next player is in room
+        if (!room.players.find(p => p.id === nextPlayerId)) {
+          socket.emit('turn-advance-response', {
+            success: false,
+            error: 'Next player not in room'
+          })
+          return
+        }
+
+        // Update game state with new current player
+        this.stateSyncManager.updateSharedState(roomId, {
+          currentPlayer: nextPlayerId
+        })
+
+        // Calculate round and wind information
+        const roundNumber = Math.floor((turnNumber - 1) / 4) + 1
+        const windOrder = ['east', 'south', 'west', 'north']
+        const currentWind = windOrder[(roundNumber - 1) % 4]
+
+        // Broadcast turn change to all players
+        this.io.to(roomId).emit('turn-update', {
+          roomId,
+          currentPlayer: nextPlayerId,
+          turnNumber,
+          roundNumber,
+          currentWind
+        })
+
+        socket.emit('turn-advance-response', {
+          success: true
+        })
+
+        this.roomManager.updateRoomActivity(roomId)
+
+      } catch (error) {
+        socket.emit('turn-advance-response', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to advance turn'
+        })
+      }
+    })
+
+    socket.on('turn-request-status', (data) => {
+      try {
+        const { roomId } = data
+        const room = this.roomManager.getRoom(roomId)
+        const gameState = this.stateSyncManager.getGameState(roomId)
+
+        if (!room || !gameState) {
+          socket.emit('turn-status', {
+            success: false,
+            error: 'Room or game state not found'
+          })
+          return
+        }
+
+        // Calculate current turn information from game state
+        const currentPlayer = gameState.sharedState.currentPlayer
+        
+        // Simple turn/round calculation based on when game started
+        const turnNumber = 1 // This could be enhanced to track actual turns
+        const roundNumber = 1 // This could be enhanced to track actual rounds
+        const currentWind = gameState.currentWind
+
+        socket.emit('turn-status', {
+          success: true,
+          currentPlayer,
+          turnNumber,
+          roundNumber,
+          currentWind
+        })
+
+      } catch (error) {
+        socket.emit('turn-status', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to get turn status'
+        })
+      }
+    })
   }
 
   private registerConnectionHandlers(socket: Socket): void {

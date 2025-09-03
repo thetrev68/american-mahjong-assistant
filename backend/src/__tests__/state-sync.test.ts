@@ -100,8 +100,9 @@ describe('StateSyncManager', () => {
     })
 
     it('should process valid state update', async () => {
-      const update = {
+      const update: StateUpdate = {
         type: 'phase-change' as const,
+        playerId: 'host',
         data: { phase: 'charleston' },
         timestamp: new Date()
       }
@@ -149,14 +150,16 @@ describe('StateSyncManager', () => {
     })
 
     it('should maintain update history', async () => {
-      const update1 = {
+      const update1: StateUpdate = {
         type: 'phase-change' as const,
+        playerId: 'host',
         data: { phase: 'charleston' },
         timestamp: new Date(Date.now() - 1000)
       }
 
-      const update2 = {
+      const update2: StateUpdate = {
         type: 'player-state' as const,
+        playerId: 'player1',
         data: { isReady: true },
         timestamp: new Date()
       }
@@ -175,6 +178,7 @@ describe('StateSyncManager', () => {
       for (let i = 0; i < 105; i++) {
         await stateSyncManager.processUpdate(roomId, 'host', {
           type: 'player-state' as const,
+          playerId: 'host',
           data: { score: i },
           timestamp: new Date()
         })
@@ -199,6 +203,7 @@ describe('StateSyncManager', () => {
       await expect(
         stateSyncManager.processUpdate(roomId, 'host', {
           type: 'phase-change',
+          playerId: 'host',
           data: { phase: 'charleston' },
           timestamp: new Date()
         })
@@ -208,6 +213,7 @@ describe('StateSyncManager', () => {
       await expect(
         stateSyncManager.processUpdate(roomId, 'host', {
           type: 'phase-change',
+          playerId: 'host',
           data: { phase: 'setup' },
           timestamp: new Date()
         })
@@ -219,6 +225,7 @@ describe('StateSyncManager', () => {
       await expect(
         stateSyncManager.processUpdate(roomId, 'host', {
           type: 'player-state',
+          playerId: 'host',
           data: { handTileCount: 13, isReady: true },
           timestamp: new Date()
         })
@@ -228,6 +235,7 @@ describe('StateSyncManager', () => {
       await expect(
         stateSyncManager.processUpdate(roomId, 'host', {
           type: 'player-state',
+          playerId: 'host',
           data: { handTileCount: 20 },
           timestamp: new Date()
         })
@@ -239,6 +247,7 @@ describe('StateSyncManager', () => {
       await expect(
         stateSyncManager.processUpdate(roomId, 'host', {
           type: 'shared-state',
+          playerId: 'host',
           data: { wallTilesRemaining: 143 },
           timestamp: new Date()
         })
@@ -248,6 +257,7 @@ describe('StateSyncManager', () => {
       await expect(
         stateSyncManager.processUpdate(roomId, 'host', {
           type: 'shared-state',
+          playerId: 'host',
           data: { wallTilesRemaining: 200 },
           timestamp: new Date()
         })

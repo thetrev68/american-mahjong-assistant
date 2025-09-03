@@ -35,6 +35,7 @@ export interface PlayerGameState {
   handTileCount?: number
   isReady?: boolean
   selectedPatterns?: string[]
+  selectedTiles?: any[]
   position?: number
   score?: number
   isDealer?: boolean
@@ -95,6 +96,16 @@ export interface SocketEvents {
   'charleston-request-status': (data: { roomId: string }) => void
   'charleston-status': (data: { success: boolean; playerReadiness?: Record<string, boolean>; roomId?: string; error?: string }) => void
   'charleston-error': (data: { success: boolean; error: string }) => void
+  
+  // Turn management events
+  'turn-start-game': (data: { roomId: string; firstPlayer: string; turnOrder: string[] }) => void
+  'turn-start-game-response': (data: { success: boolean; gameState?: any; error?: string }) => void
+  'turn-advance': (data: { roomId: string; currentPlayerId: string; nextPlayerId: string; turnNumber: number }) => void
+  'turn-advance-response': (data: { success: boolean; error?: string }) => void
+  'turn-update': (data: { roomId: string; currentPlayer: string; turnNumber: number; roundNumber: number; currentWind: string }) => void
+  'turn-request-status': (data: { roomId: string }) => void
+  'turn-status': (data: { success: boolean; currentPlayer?: string; turnNumber?: number; roundNumber?: number; currentWind?: string; error?: string }) => void
+  'turn-error': (data: { success: boolean; error: string }) => void
   
   // Connection events
   'ping': (data: { timestamp: number }) => void

@@ -19,23 +19,24 @@ const mockSocketHook = {
   connectionError: null as string | null
 }
 
-const mockStore = {
-  currentRoom: null as Record<string, unknown> | null,
-  gameState: null as Record<string, unknown> | null,
+const mockMultiplayerStore = {
+  currentRoom: null,
+  gameState: null,
   isHost: false,
   availableRooms: [],
+  getCurrentPlayer: vi.fn(),
+  getRoomStats: vi.fn(),
+  areAllPlayersReady: vi.fn(),
+  setConnectionState: vi.fn(),
+  setConnectionError: vi.fn(),
   setCurrentRoom: vi.fn(),
   setCurrentPlayerId: vi.fn(),
   clearCurrentRoom: vi.fn(),
-  setConnectionState: vi.fn(),
-  setConnectionError: vi.fn(),
+  setGameState: vi.fn(),
   addPlayerToRoom: vi.fn(),
   removePlayerFromRoom: vi.fn(),
-  setGameState: vi.fn(),
-  getCurrentPlayer: vi.fn(),
-  getRoomStats: vi.fn(),
-  areAllPlayersReady: vi.fn()
-}
+  updateAvailableRooms: vi.fn(),
+};
 
 describe('useMultiplayer Hook', () => {
   beforeEach(() => {

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { GameAlert } from '../features/gameplay/AlertSystem'
+import { getTurnMultiplayerService, destroyTurnMultiplayerService } from '../services/turn-multiplayer'
 
 export interface Player {
   id: string
@@ -37,6 +38,11 @@ export interface GameState {
   resetGame: () => void
   addAlert: (alert: Omit<GameAlert, 'id' | 'createdAt'>) => void
   removeAlert: (alertId: string) => void
+  
+  // Turn management integration
+  advanceGameTurn: () => void
+  isCurrentPlayerTurn: (playerId: string) => boolean
+  getCurrentTurnInfo: () => unknown
 }
 
 const initialState = {
@@ -87,8 +93,11 @@ export const useGameStore = create<GameState>()(
       startTurn: () =>
         set({ turnStartTime: new Date() }, false, 'startTurn'),
       
-      resetGame: () =>
-        set(initialState, false, 'resetGame'),
+      resetGame: () => {
+        // Clean up turn multiplayer service
+        destroyTurnMultiplayerService()
+        set(initialState, false, 'resetGame')
+      },
 
       addAlert: (alertData) => 
         set(
@@ -111,6 +120,29 @@ export const useGameStore = create<GameState>()(
           false,
           'removeAlert'
         ),
+
+      // Turn management integration
+      advanceGameTurn: () => {
+        const turnService = getTurnMultiplayerService()
+        if (turnService) {
+          turnService.advanceTurn()
+        } else {
+          console.warn('Turn service not initialized - cannot advance turn')
+        }
+      },
+
+      isCurrentPlayerTurn: (playerId: string) => {
+        const turnService = getTurnMultiplayerService()
+        if (turnService) {
+          return turnService.isMyTurn() && turnService.getCurrentTurnInfo().currentPlayer === playerId
+        }
+        return false
+      },
+
+      getCurrentTurnInfo: () => {
+        const turnService = getTurnMultiplayerService()
+        return turnService ? turnService.getCurrentTurnInfo() : null
+      },
     }),
     {
       name: 'game-store', // DevTools name

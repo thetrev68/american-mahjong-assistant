@@ -74,6 +74,8 @@ const mockMultiplayerStore: MockMultiplayerStore = {
   currentPlayerId: 'player-1'
 }
 
+import { MemoryRouter } from 'react-router-dom';
+
 describe('RoomSetupView Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -84,20 +86,20 @@ describe('RoomSetupView Component', () => {
 
   describe('Step 1: Co-Pilot Mode Selection', () => {
     it('should render co-pilot mode selector initially', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Choose Co-Pilot Mode')).toBeInTheDocument()
     })
 
     it('should show progress indicator for mode selection', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Step 1 of 3')).toBeInTheDocument()
       expect(screen.getByText('Co-Pilot Mode')).toBeInTheDocument()
     })
 
     it('should call setCoPilotMode when mode is changed', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const soloModeButton = screen.getByRole('button', { name: /solo ai mode/i })
       fireEvent.click(soloModeButton)
@@ -116,21 +118,21 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should show room creation and joining options', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Create New Room')).toBeInTheDocument()
       expect(screen.getByText('Join Existing Room')).toBeInTheDocument()
     })
 
     it('should show progress indicator for room creation', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Step 2 of 3')).toBeInTheDocument()
       expect(screen.getByText('Room Setup')).toBeInTheDocument()
     })
 
     it('should toggle between create and join modes', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const joinTab = screen.getByRole('button', { name: /join room/i })
       fireEvent.click(joinTab)
@@ -139,7 +141,7 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should call createRoom with host name', async () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       // Fill in host name
       const nameInput = screen.getByLabelText(/your name/i)
@@ -155,7 +157,7 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should call joinRoom with room code and player name', async () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       // Switch to join mode
       const joinTab = screen.getByRole('button', { name: /join room/i })
@@ -197,26 +199,26 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should show player positioning interface', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Choose Your Position')).toBeInTheDocument()
     })
 
     it('should show progress indicator for positioning', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Step 3 of 3')).toBeInTheDocument()
       expect(screen.getByText('Player Positions')).toBeInTheDocument()
     })
 
     it('should show room code', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Room Code: ABCD')).toBeInTheDocument()
     })
 
     it('should call setPlayerPosition when position is selected', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const northPosition = screen.getByRole('button', { name: /north.*available/i })
       fireEvent.click(northPosition)
@@ -241,20 +243,20 @@ describe('RoomSetupView Component', () => {
     })
 
     it('should show ready state when setup is complete', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText(/setup complete/i)).toBeInTheDocument()
     })
 
     it('should show start game button for host', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByRole('button', { name: /start game/i })).toBeInTheDocument()
     })
 
     it('should show waiting message for non-host', () => {
       mockRoomSetup.isHost = false
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText(/waiting for host to start/i)).toBeInTheDocument()
     })
@@ -263,14 +265,14 @@ describe('RoomSetupView Component', () => {
   describe('Error Handling', () => {
     it('should display error messages', () => {
       mockRoomSetup.error = 'Failed to create room'
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Failed to create room')).toBeInTheDocument()
     })
 
     it('should show error dismiss button', () => {
       mockRoomSetup.error = 'Test error'
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const dismissButton = screen.getByRole('button', { name: /dismiss/i })
       fireEvent.click(dismissButton)
@@ -282,21 +284,21 @@ describe('RoomSetupView Component', () => {
   describe('Loading States', () => {
     it('should show loading state when creating room', () => {
       mockRoomSetup.isCreatingRoom = true
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText(/creating/i)).toBeInTheDocument()
     })
 
     it('should show loading state when joining room', () => {
       mockRoomSetup.isJoiningRoom = true
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText(/joining/i)).toBeInTheDocument()
     })
 
     it('should disable forms during loading', () => {
       mockRoomSetup.isCreatingRoom = true
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const nameInput = screen.getByLabelText(/your name/i)
       expect(nameInput).toBeDisabled()
@@ -305,19 +307,19 @@ describe('RoomSetupView Component', () => {
 
   describe('Progress Indicator', () => {
     it('should show correct step numbers', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Step 1 of 3')).toBeInTheDocument()
     })
 
     it('should show step titles', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByText('Co-Pilot Mode')).toBeInTheDocument()
     })
 
     it('should highlight current step', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const currentStepIndicator = screen.getByText('1')
       expect(currentStepIndicator).toHaveClass('bg-primary-500')
@@ -329,7 +331,7 @@ describe('RoomSetupView Component', () => {
         completedSteps: 1,
         totalSteps: 3
       }
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const completedStepIndicator = screen.getByText('✓')
       expect(completedStepIndicator).toBeInTheDocument()
@@ -343,13 +345,13 @@ describe('RoomSetupView Component', () => {
         completedSteps: 1,
         totalSteps: 3
       }
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.getByRole('button', { name: /back/i })).toBeInTheDocument()
     })
 
     it('should not show back button on first step', () => {
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       expect(screen.queryByRole('button', { name: /back/i })).not.toBeInTheDocument()
     })
@@ -360,7 +362,7 @@ describe('RoomSetupView Component', () => {
         completedSteps: 1,
         totalSteps: 3
       }
-      render(<RoomSetupView />)
+      render(<MemoryRouter><RoomSetupView /></MemoryRouter>)
       
       const backButton = screen.getByRole('button', { name: /back/i })
       fireEvent.click(backButton)

@@ -208,15 +208,20 @@ describe('RoomManager', () => {
       expect(updatedRoom!.lastActivity).toBeInstanceOf(Date)
     })
 
-    it('should update room activity', () => {
-      const originalActivity = room.lastActivity
-      
-      setTimeout(() => {
-        roomManager.updateRoomActivity(room.id)
-        const updatedRoom = roomManager.getRoom(room.id)!
-        expect(updatedRoom.lastActivity!.getTime()).toBeGreaterThan(originalActivity!.getTime())
-      }, 10)
-    })
+    it('should update room activity', async () => {
+      const originalActivity = room.lastActivity;
+      expect(originalActivity).not.toBeNull();
+
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      roomManager.updateRoomActivity(room.id);
+      const updatedRoom = roomManager.getRoom(room.id);
+
+      expect(updatedRoom).not.toBeNull();
+      if (updatedRoom && updatedRoom.lastActivity && originalActivity) {
+        expect(updatedRoom.lastActivity.getTime()).toBeGreaterThan(originalActivity.getTime());
+      }
+    });
 
     it('should delete room completely', () => {
       roomManager.joinRoom(room.id, { id: 'player2', name: 'Player 2', isHost: false })

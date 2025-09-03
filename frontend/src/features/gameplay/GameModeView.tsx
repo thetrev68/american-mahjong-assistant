@@ -14,7 +14,7 @@ import type { Tile as TileType } from '../../types/tile-types'
 import type { PatternGroup } from '../../../../shared/nmjl-types'
 import GameScreenLayout from './GameScreenLayout'
 import { SelectionArea } from './SelectionArea'
-import { TileInputModal } from '../shared/TileInputModal'
+// import { TileInputModal } from '../shared/TileInputModal' // Unused for now
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -154,7 +154,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [elapsedTime, setElapsedTime] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [showPatternSwitcher, setShowPatternSwitcher] = useState(false)
-  const [showTileModal, setShowTileModal] = useState(false)
+  // const [showTileModal, setShowTileModal] = useState(false) // Unused for now
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
     completionPercentage: number; 
@@ -429,7 +429,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Handle Charleston pass - show tile modal for receiving tiles
   const handleCharlestonPass = useCallback(() => {
-    setShowTileModal(true)
+    // setShowTileModal(true) // Commented out - unused for now
   }, [])
   
   // Advance from Charleston to Gameplay phase

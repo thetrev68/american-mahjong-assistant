@@ -51,7 +51,7 @@
 
 ### **Physical Setup**
 - Players arrange physical tiles at the table
-- Everyone inputs their starting hand on their phone
+- Everyone inputs their starting hand on their phone (mulitplayer) or only the host inputs their hand in solo mode.
 
 ### **App Experience**
 1. **Tile Input Interface**
