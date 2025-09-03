@@ -1,9 +1,14 @@
 import { Server as SocketIOServer, Socket } from 'socket.io'
 import { RoomManager } from '../room-lifecycle/room-manager'
 import { StateSyncManager } from '../state-sync/state-sync-manager'
+import { RoomLifecycleManager } from '../room-management/room-lifecycle-manager'
+import { PlayerCoordinationManager } from '../room-management/player-coordination-manager'
 import type { SocketEvents } from '@shared/multiplayer-types'
 
 export class SocketHandlers {
+  private roomLifecycleManager = new RoomLifecycleManager()
+  private playerCoordinationManager = new PlayerCoordinationManager()
+  
   constructor(
     private io: SocketIOServer,
     private roomManager: RoomManager,
@@ -118,6 +123,285 @@ export class SocketHandlers {
         socket.emit('room-left', {
           success: false,
           roomId: data.roomId
+        })
+      }
+    })
+
+    // Enhanced Room Management Events
+
+    // Update room settings (host only)
+    socket.on('room-update-settings', (data) => {
+      try {
+        const { roomId, settings } = data
+        const result = this.roomLifecycleManager.updateRoomSettings(roomId, socket.id, settings)
+        
+        socket.emit('room-settings-updated', result)
+        
+        if (result.success) {
+          const room = this.roomLifecycleManager.getRoom(roomId)
+          socket.to(roomId).emit('room-settings-changed', { room, settings })
+          this.broadcastRoomListUpdate()
+        }
+      } catch (error) {
+        socket.emit('room-settings-updated', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to update room settings'
+        })
+      }
+    })
+
+    // Transfer host role
+    socket.on('room-transfer-host', (data) => {
+      try {
+        const { roomId, newHostId } = data
+        const result = this.roomLifecycleManager.transferHost(roomId, socket.id, newHostId)
+        
+        socket.emit('room-host-transferred', result)
+        
+        if (result.success) {
+          const room = this.roomLifecycleManager.getRoom(roomId)
+          this.io.to(roomId).emit('room-host-changed', { room, newHostId })
+        }
+      } catch (error) {
+        socket.emit('room-host-transferred', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to transfer host'
+        })
+      }
+    })
+
+    // Kick player (host only)
+    socket.on('room-kick-player', (data) => {
+      try {
+        const { roomId, playerId } = data
+        const result = this.roomLifecycleManager.kickPlayer(roomId, socket.id, playerId)
+        
+        socket.emit('room-player-kicked', result)
+        
+        if (result.success) {
+          // Find the kicked player's socket and disconnect them
+          const kickedSocket = this.io.sockets.sockets.get(playerId)
+          if (kickedSocket) {
+            kickedSocket.leave(roomId)
+            kickedSocket.emit('room-kicked', { roomId, kickedBy: socket.id })
+          }
+          
+          socket.to(roomId).emit('player-left', { playerId, roomId, kicked: true })
+          this.broadcastRoomListUpdate()
+        }
+      } catch (error) {
+        socket.emit('room-player-kicked', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to kick player'
+        })
+      }
+    })
+
+    // Reconnect to room with state recovery
+    socket.on('room-reconnect', async (data) => {
+      try {
+        const { roomId, playerId, playerName } = data
+        const room = this.roomLifecycleManager.getRoom(roomId)
+        
+        if (!room) {
+          socket.emit('room-reconnect-response', {
+            success: false,
+            error: 'Room not found'
+          })
+          return
+        }
+
+        // Check if player was in room
+        const existingPlayer = room.players.find(p => p.id === playerId)
+        if (!existingPlayer) {
+          socket.emit('room-reconnect-response', {
+            success: false,
+            error: 'Player was not in this room'
+          })
+          return
+        }
+
+        // Rejoin room
+        await socket.join(roomId)
+        
+        // Update player connection status
+        this.playerCoordinationManager.updatePlayerConnection(roomId, playerId, true, socket.id)
+        
+        // Get current player states for recovery
+        const playerStates = this.playerCoordinationManager.getRoomPlayerStates(roomId)
+        const gameState = this.stateSyncManager.getGameState(roomId)
+        
+        socket.emit('room-reconnect-response', {
+          success: true,
+          room,
+          playerStates,
+          gameState
+        })
+        
+        // Notify other players of reconnection
+        socket.to(roomId).emit('player-reconnected', { playerId, playerName })
+        
+      } catch (error) {
+        socket.emit('room-reconnect-response', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to reconnect'
+        })
+      }
+    })
+
+    // Phase transition coordination
+    socket.on('phase-transition', (data) => {
+      try {
+        const { roomId, fromPhase, toPhase } = data
+        
+        // Record the transition
+        this.playerCoordinationManager.recordPhaseTransition(roomId, fromPhase, toPhase, socket.id)
+        
+        // Check if all players are ready for this phase
+        const phaseReadiness = (() => {
+          switch (toPhase) {
+            case 'charleston': return 'charleston'
+            case 'playing': return 'gameplay'
+            default: return 'room'
+          }
+        })() as 'room' | 'charleston' | 'gameplay'
+        
+        const allReady = this.playerCoordinationManager.areAllPlayersReady(roomId, phaseReadiness)
+        
+        socket.emit('phase-transition-response', {
+          success: true,
+          allReady,
+          readinessSummary: this.playerCoordinationManager.getReadinessSummary(roomId, phaseReadiness)
+        })
+        
+        // If all ready, broadcast phase change
+        if (allReady) {
+          this.io.to(roomId).emit('phase-changed', { fromPhase, toPhase, triggeredBy: socket.id })
+        }
+        
+      } catch (error) {
+        socket.emit('phase-transition-response', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to process phase transition'
+        })
+      }
+    })
+
+    // Player state synchronization across phases
+    socket.on('player-state-sync', (data) => {
+      try {
+        const { roomId, phase, state } = data
+        const playerId = socket.id
+        
+        // Update player readiness
+        if (state.isReady !== undefined) {
+          this.playerCoordinationManager.setPlayerReadiness(roomId, playerId, phase, state.isReady)
+        }
+        
+        // Update phase-specific state
+        switch (phase) {
+          case 'charleston':
+            if (state.charlestonTiles && state.charlestonPhase) {
+              this.playerCoordinationManager.updateCharlestonState(
+                roomId, playerId, state.charlestonTiles, state.charlestonPhase
+              )
+            }
+            break
+          case 'gameplay':
+            this.playerCoordinationManager.updateGameplayState(roomId, playerId, state)
+            break
+          case 'turn':
+            if (state.position && state.isCurrentTurn !== undefined) {
+              this.playerCoordinationManager.updateTurnState(
+                roomId, playerId, state.position, state.isCurrentTurn
+              )
+            }
+            break
+        }
+        
+        socket.emit('player-state-sync-response', { success: true })
+        
+        // Broadcast state change to other players (without sensitive data)
+        const publicState = {
+          playerId,
+          phase,
+          isReady: state.isReady,
+          isConnected: true
+        }
+        socket.to(roomId).emit('player-state-updated', publicState)
+        
+      } catch (error) {
+        socket.emit('player-state-sync-response', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to sync player state'
+        })
+      }
+    })
+
+    // Game state recovery for disconnected players
+    socket.on('game-state-recovery', (data) => {
+      try {
+        const { roomId } = data
+        const playerId = socket.id
+        
+        const room = this.roomLifecycleManager.getRoom(roomId)
+        const playerStates = this.playerCoordinationManager.getRoomPlayerStates(roomId)
+        const gameState = this.stateSyncManager.getGameState(roomId)
+        const readinessSummary = {
+          room: this.playerCoordinationManager.getReadinessSummary(roomId, 'room'),
+          charleston: this.playerCoordinationManager.getReadinessSummary(roomId, 'charleston'),
+          gameplay: this.playerCoordinationManager.getReadinessSummary(roomId, 'gameplay')
+        }
+        
+        socket.emit('game-state-recovery-response', {
+          success: true,
+          room,
+          playerStates,
+          gameState,
+          readinessSummary,
+          recoveredAt: new Date()
+        })
+        
+      } catch (error) {
+        socket.emit('game-state-recovery-response', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to recover game state'
+        })
+      }
+    })
+
+    // Spectator join
+    socket.on('room-spectator-join', async (data) => {
+      try {
+        const { roomId, spectatorName } = data
+        const result = this.roomLifecycleManager.joinRoom(roomId, socket.id, spectatorName)
+        
+        if (result.success && result.room) {
+          await socket.join(roomId)
+          
+          socket.emit('room-spectator-joined', {
+            success: true,
+            room: result.room,
+            isSpectator: true
+          })
+          
+          // Notify players of new spectator
+          socket.to(roomId).emit('spectator-joined', {
+            spectatorId: socket.id,
+            spectatorName
+          })
+          
+        } else {
+          socket.emit('room-spectator-joined', {
+            success: false,
+            error: result.error || 'Failed to join as spectator'
+          })
+        }
+        
+      } catch (error) {
+        socket.emit('room-spectator-joined', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to join as spectator'
         })
       }
     })

@@ -77,6 +77,38 @@ export interface SocketEvents {
   'player-left': (data: { playerId: string; roomId: string }) => void
   'room-deleted': (data: { roomId: string }) => void
   
+  // Enhanced room management events
+  'room-update-settings': (data: { roomId: string; settings: any }) => void
+  'room-settings-updated': (data: { success: boolean; error?: string }) => void
+  'room-settings-changed': (data: { room: Room; settings: any }) => void
+  
+  'room-transfer-host': (data: { roomId: string; newHostId: string }) => void
+  'room-host-transferred': (data: { success: boolean; error?: string }) => void
+  'room-host-changed': (data: { room: Room; newHostId: string }) => void
+  
+  'room-kick-player': (data: { roomId: string; playerId: string }) => void
+  'room-player-kicked': (data: { success: boolean; error?: string }) => void
+  'room-kicked': (data: { roomId: string; kickedBy: string }) => void
+  
+  'room-reconnect': (data: { roomId: string; playerId: string; playerName: string }) => void
+  'room-reconnect-response': (data: { success: boolean; room?: Room; playerStates?: any[]; gameState?: GameState; error?: string }) => void
+  'player-reconnected': (data: { playerId: string; playerName: string }) => void
+  
+  'phase-transition': (data: { roomId: string; fromPhase: string; toPhase: string }) => void
+  'phase-transition-response': (data: { success: boolean; allReady?: boolean; readinessSummary?: any; error?: string }) => void
+  'phase-changed': (data: { fromPhase: string; toPhase: string; triggeredBy: string }) => void
+  
+  'player-state-sync': (data: { roomId: string; phase: string; state: any }) => void
+  'player-state-sync-response': (data: { success: boolean; error?: string }) => void
+  'player-state-updated': (data: { playerId: string; phase: string; isReady?: boolean; isConnected: boolean }) => void
+  
+  'game-state-recovery': (data: { roomId: string }) => void
+  'game-state-recovery-response': (data: { success: boolean; room?: Room; playerStates?: any[]; gameState?: GameState; readinessSummary?: any; recoveredAt?: Date; error?: string }) => void
+  
+  'room-spectator-join': (data: { roomId: string; spectatorName: string }) => void
+  'room-spectator-joined': (data: { success: boolean; room?: Room; isSpectator?: boolean; error?: string }) => void
+  'spectator-joined': (data: { spectatorId: string; spectatorName: string }) => void
+  
   // Game state events
   'state-update': (data: { roomId: string; update: any }) => void
   'state-updated': (data: { success: boolean; gameState?: GameState; error?: string }) => void

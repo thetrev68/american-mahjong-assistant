@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
+import type { Room, Player } from '../../../shared/multiplayer-types'
 
 export type CoPilotMode = 'everyone' | 'solo'
 export type PlayerPosition = 'north' | 'east' | 'south' | 'west'
@@ -11,6 +12,46 @@ interface RoomSetupProgress {
   totalSteps: number
 }
 
+interface HostPermissions {
+  canKickPlayers: boolean
+  canTransferHost: boolean
+  canChangeSettings: boolean
+  canStartGame: boolean
+  canPauseGame: boolean
+}
+
+interface RoomSettings {
+  maxPlayers: number
+  isPrivate: boolean
+  roomName?: string
+  gameMode: 'nmjl-2025' | 'custom'
+  allowSpectators: boolean
+  spectatorMode: boolean
+  autoAdvanceTurns: boolean
+  turnTimeLimit: number
+  allowReconnection: boolean
+}
+
+interface CrossPhasePlayerState {
+  id: string
+  name: string
+  isHost: boolean
+  isConnected: boolean
+  lastSeen: Date
+  roomReadiness: boolean
+  charlestonReadiness: boolean
+  gameplayReadiness: boolean
+  position?: PlayerPosition
+  isCurrentTurn?: boolean
+}
+
+interface ConnectionStatus {
+  isConnected: boolean
+  connectionId?: string
+  lastPing?: Date
+  reconnectionAttempts: number
+}
+
 interface RoomState {
   // Room state
   currentRoomCode: string | null
@@ -19,6 +60,19 @@ interface RoomState {
   coPilotModeSelected: boolean // Track if mode was explicitly selected
   playerPositions: Record<string, PlayerPosition>
   otherPlayerNames: string[] // For solo mode - names of other players at the table
+  
+  // Enhanced multiplayer state
+  room: Room | null
+  players: CrossPhasePlayerState[]
+  hostPermissions: HostPermissions
+  roomSettings: RoomSettings
+  connectionStatus: ConnectionStatus
+  spectators: Player[]
+  
+  // Phase and readiness tracking
+  currentPhase: 'waiting' | 'setup' | 'charleston' | 'playing' | 'scoring' | 'finished'
+  phaseReadiness: Record<string, { room: boolean; charleston: boolean; gameplay: boolean }>
+  allPlayersReady: Record<string, boolean> // phase -> ready status
   
   // Status tracking
   roomCreationStatus: RoomStatus
@@ -54,10 +108,42 @@ interface RoomState {
   clearAll: () => void
   resetToStart: () => void
 
+  // Enhanced multiplayer actions
+  updateRoom: (room: Room) => void
+  updatePlayers: (players: CrossPhasePlayerState[]) => void
+  updatePlayerState: (playerId: string, updates: Partial<CrossPhasePlayerState>) => void
+  removePlayer: (playerId: string) => void
+  
+  // Host management
+  updateHostPermissions: (permissions: HostPermissions) => void
+  transferHost: (newHostId: string) => void
+  kickPlayer: (playerId: string) => void
+  
+  // Room settings
+  updateRoomSettings: (settings: Partial<RoomSettings>) => void
+  
+  // Phase management
+  setCurrentPhase: (phase: 'waiting' | 'setup' | 'charleston' | 'playing' | 'scoring' | 'finished') => void
+  setPlayerReadiness: (playerId: string, phase: 'room' | 'charleston' | 'gameplay', ready: boolean) => void
+  setPhaseReadiness: (phase: string, ready: boolean) => void
+  
+  // Connection management
+  updateConnectionStatus: (status: Partial<ConnectionStatus>) => void
+  setPlayerConnection: (playerId: string, connected: boolean) => void
+  
+  // Spectator management
+  addSpectator: (spectator: Player) => void
+  removeSpectator: (spectatorId: string) => void
+
   // Computed properties
   isHost: (playerId: string) => boolean
   isRoomReadyForGame: () => boolean
   getRoomSetupProgress: () => RoomSetupProgress
+  isCurrentPlayerHost: () => boolean
+  getConnectedPlayers: () => CrossPhasePlayerState[]
+  getDisconnectedPlayers: () => CrossPhasePlayerState[]
+  getPlayerByPosition: (position: PlayerPosition) => CrossPhasePlayerState | null
+  getReadinessSummary: (phase: 'room' | 'charleston' | 'gameplay') => { ready: string[]; notReady: string[]; total: number }
 }
 
 const ALL_POSITIONS: PlayerPosition[] = ['north', 'east', 'south', 'west']
@@ -76,6 +162,35 @@ export const useRoomStore = create<RoomState>()(
         roomCreationStatus: 'idle',
         joinRoomStatus: 'idle',
         error: null,
+
+        // Enhanced multiplayer initial state
+        room: null,
+        players: [],
+        hostPermissions: {
+          canKickPlayers: false,
+          canTransferHost: false,
+          canChangeSettings: false,
+          canStartGame: false,
+          canPauseGame: false
+        },
+        roomSettings: {
+          maxPlayers: 4,
+          isPrivate: false,
+          gameMode: 'nmjl-2025',
+          allowSpectators: false,
+          spectatorMode: false,
+          autoAdvanceTurns: false,
+          turnTimeLimit: 0,
+          allowReconnection: true
+        },
+        connectionStatus: {
+          isConnected: false,
+          reconnectionAttempts: 0
+        },
+        spectators: [],
+        currentPhase: 'waiting',
+        phaseReadiness: {},
+        allPlayersReady: {},
 
         // Co-pilot mode actions
         setCoPilotMode: (mode) => {
@@ -227,6 +342,148 @@ export const useRoomStore = create<RoomState>()(
             // Everyone mode: minimum 2 players for game
             return positionedPlayers >= 2
           }
+        },
+
+        // Enhanced multiplayer actions
+        updateRoom: (room) => {
+          set({ 
+            room, 
+            currentRoomCode: room.id,
+            hostPlayerId: room.hostId 
+          }, false, 'updateRoom')
+        },
+
+        updatePlayers: (players) => {
+          set({ players }, false, 'updatePlayers')
+        },
+
+        updatePlayerState: (playerId, updates) => {
+          set((state) => ({
+            players: state.players.map(p => 
+              p.id === playerId ? { ...p, ...updates } : p
+            )
+          }), false, 'updatePlayerState')
+        },
+
+        removePlayer: (playerId) => {
+          set((state) => ({
+            players: state.players.filter(p => p.id !== playerId)
+          }), false, 'removePlayer')
+        },
+
+        // Host management
+        updateHostPermissions: (permissions) => {
+          set({ hostPermissions: permissions }, false, 'updateHostPermissions')
+        },
+
+        transferHost: (newHostId) => {
+          set((state) => ({
+            hostPlayerId: newHostId,
+            players: state.players.map(p => ({
+              ...p,
+              isHost: p.id === newHostId
+            }))
+          }), false, 'transferHost')
+        },
+
+        kickPlayer: (playerId) => {
+          const state = get()
+          state.removePlayer(playerId)
+        },
+
+        // Room settings
+        updateRoomSettings: (settings) => {
+          set((state) => ({
+            roomSettings: { ...state.roomSettings, ...settings }
+          }), false, 'updateRoomSettings')
+        },
+
+        // Phase management
+        setCurrentPhase: (phase) => {
+          set({ currentPhase: phase }, false, 'setCurrentPhase')
+        },
+
+        setPlayerReadiness: (playerId, phase, ready) => {
+          set((state) => {
+            const newReadiness = { ...state.phaseReadiness }
+            if (!newReadiness[playerId]) {
+              newReadiness[playerId] = { room: false, charleston: false, gameplay: false }
+            }
+            newReadiness[playerId][phase] = ready
+            return { phaseReadiness: newReadiness }
+          }, false, 'setPlayerReadiness')
+        },
+
+        setPhaseReadiness: (phase, ready) => {
+          set((state) => ({
+            allPlayersReady: { ...state.allPlayersReady, [phase]: ready }
+          }), false, 'setPhaseReadiness')
+        },
+
+        // Connection management
+        updateConnectionStatus: (status) => {
+          set((state) => ({
+            connectionStatus: { ...state.connectionStatus, ...status }
+          }), false, 'updateConnectionStatus')
+        },
+
+        setPlayerConnection: (playerId, connected) => {
+          const state = get()
+          state.updatePlayerState(playerId, { isConnected: connected, lastSeen: new Date() })
+        },
+
+        // Spectator management
+        addSpectator: (spectator) => {
+          set((state) => ({
+            spectators: [...state.spectators, spectator]
+          }), false, 'addSpectator')
+        },
+
+        removeSpectator: (spectatorId) => {
+          set((state) => ({
+            spectators: state.spectators.filter(s => s.id !== spectatorId)
+          }), false, 'removeSpectator')
+        },
+
+        // Enhanced computed properties
+        isCurrentPlayerHost: () => {
+          const state = get()
+          return state.hostPlayerId === state.connectionStatus.connectionId
+        },
+
+        getConnectedPlayers: () => {
+          const state = get()
+          return state.players.filter(p => p.isConnected)
+        },
+
+        getDisconnectedPlayers: () => {
+          const state = get()
+          return state.players.filter(p => !p.isConnected)
+        },
+
+        getPlayerByPosition: (position) => {
+          const state = get()
+          return state.players.find(p => p.position === position) || null
+        },
+
+        getReadinessSummary: (phase) => {
+          const state = get()
+          const connectedPlayers = state.players.filter(p => p.isConnected)
+          const ready: string[] = []
+          const notReady: string[] = []
+
+          connectedPlayers.forEach(player => {
+            const playerReadiness = state.phaseReadiness[player.id]
+            const isReady = playerReadiness ? playerReadiness[phase] : false
+            
+            if (isReady) {
+              ready.push(player.name)
+            } else {
+              notReady.push(player.name)
+            }
+          })
+
+          return { ready, notReady, total: connectedPlayers.length }
         },
 
         getRoomSetupProgress: () => {
