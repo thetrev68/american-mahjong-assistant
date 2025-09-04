@@ -8,6 +8,17 @@ import { getEventQueueManager } from './event-queue-manager'
 import { getCharlestonResilientService } from './charleston-resilient'
 import type { Socket } from 'socket.io-client'
 
+interface MockSocket {
+  id: string
+  connected: boolean
+  emit: (event: string, data: unknown) => unknown
+  on: (event: string, handler: (...args: unknown[]) => void) => MockSocket
+  off: (event: string, handler?: (...args: unknown[]) => void) => MockSocket
+  _triggerEvent: (event: string, ...args: unknown[]) => void
+  _setConnected: (connected: boolean) => void
+  _setSocketId: (id: string) => void
+}
+
 export interface TestResult {
   testName: string
   passed: boolean
@@ -26,12 +37,12 @@ export interface TestSuiteResult {
 }
 
 export class ConnectionResilienceTestSuite {
-  private mockSocket: any = null
+  private mockSocket: MockSocket | null = null
   private testResults: TestResult[] = []
   private startTime: number = 0
 
   // Initialize mock socket for testing
-  private initializeMockSocket(): any {
+  private initializeMockSocket(): MockSocket {
     const eventHandlers = new Map<string, ((...args: unknown[]) => void)[]>()
     let isConnected = true
     let socketId = 'test-socket-id'
@@ -43,14 +54,14 @@ export class ConnectionResilienceTestSuite {
         console.log(`Mock socket emit: ${event}`, data)
         return true as unknown as Socket
       },
-      on: (event: string, handler: (...args: any[]) => void) => {
+      on: (event: string, handler: (...args: unknown[]) => void) => {
         if (!eventHandlers.has(event)) {
           eventHandlers.set(event, [])
         }
         eventHandlers.get(event)!.push(handler)
         return mockSocket
       },
-      off: (event: string, handler?: (...args: any[]) => void) => {
+      off: (event: string, handler?: (...args: unknown[]) => void) => {
         if (handler) {
           const handlers = eventHandlers.get(event) || []
           const index = handlers.indexOf(handler)
@@ -135,7 +146,7 @@ export class ConnectionResilienceTestSuite {
     
     // Test unified multiplayer manager initialization
     const manager = await initializeUnifiedMultiplayerManager(
-      this.mockSocket as Socket,
+      this.mockSocket as unknown as Socket,
       'test-player-id',
       'Test Player'
     )
@@ -468,8 +479,8 @@ export const runConnectionResilienceTestCategory = async (
 
 // Development helper - allows running tests from browser console
 if (typeof window !== 'undefined') {
-  (window as any).__runConnectionResilienceTests = runConnectionResilienceTests;
-  (window as any).__runConnectionResilienceTestCategory = runConnectionResilienceTestCategory;
+  (window as unknown as Record<string, unknown>).__runConnectionResilienceTests = runConnectionResilienceTests;
+  (window as unknown as Record<string, unknown>).__runConnectionResilienceTestCategory = runConnectionResilienceTestCategory;
   console.log('Connection resilience test functions available:', {
     runAll: '__runConnectionResilienceTests()',
     runCategory: '__runConnectionResilienceTestCategory(category)'

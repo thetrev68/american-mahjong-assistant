@@ -150,7 +150,7 @@ export function CharlestonView() {
       charlestonStore.markPlayerReady()
       
       // Also call the multiplayer service
-      const success = await charlestonMultiplayer.markPlayerReady(tilesToPass, charlestonPhase)
+      const success = await charlestonMultiplayer.markPlayerReady()
       if (!success) {
         alert('Failed to mark ready. Please try again.')
       }

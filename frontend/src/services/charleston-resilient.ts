@@ -195,11 +195,11 @@ export class CharlestonResilientService {
     this.eventListeners.set(event, resilientHandler)
     
     // Register with socket when available
-    this.registerSocketListener(event, resilientHandler)
+    this.registerSocketListener(event)
   }
 
   // Register listener with socket (will retry if socket not available)
-  private registerSocketListener(event: string, _handler: (...args: unknown[]) => void): void {
+  private registerSocketListener(event: string): void {
     const connectionService = getConnectionResilienceService()
     
     if (connectionService) {

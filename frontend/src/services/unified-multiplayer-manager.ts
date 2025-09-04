@@ -246,21 +246,23 @@ export class UnifiedMultiplayerManager {
     for (const serviceName of this.activeServices) {
       try {
         switch (serviceName) {
-          case 'room-multiplayer':
+          case 'room-multiplayer': {
             const roomService = getRoomMultiplayerService()
             if (roomService && roomStore.currentRoomCode) {
               console.log('Resyncing room service')
               roomService.requestGameStateRecovery()
             }
             break
+          }
             
-          case 'charleston-resilient':
+          case 'charleston-resilient': {
             const charlestonService = getCharlestonResilientService()
             if (charlestonService) {
               console.log('Replaying Charleston queue')
               await charlestonService.replayQueuedOperations()
             }
             break
+          }
             
           default:
             console.log('Unknown service for resync:', serviceName)
@@ -279,17 +281,19 @@ export class UnifiedMultiplayerManager {
     for (const serviceName of this.activeServices) {
       try {
         switch (serviceName) {
-          case 'charleston-resilient':
+          case 'charleston-resilient': {
             const charlestonService = getCharlestonResilientService()
             const queueStatus = charlestonService?.getQueueStatus()
             console.log(`Charleston service queue status:`, queueStatus)
             break
+          }
             
-          case 'room-multiplayer':
+          case 'room-multiplayer': {
             const roomService = getRoomMultiplayerService()
             const roomStatus = roomService?.getCurrentRoomStatus()
             console.log('Room service status:', roomStatus)
             break
+          }
         }
       } catch (error) {
         console.error(`Failed to prepare recovery for ${serviceName}:`, error)

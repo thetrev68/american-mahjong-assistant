@@ -175,7 +175,27 @@ export class CharlestonMultiplayerService {
 export const useCharlestonMultiplayer = () => {
   console.warn('useCharlestonMultiplayer is deprecated. Use useCharlestonResilience from charleston-resilient.ts')
   
-  // Fallback to resilient service
-  const { useCharlestonResilience } = require('./charleston-resilient')
-  return useCharlestonResilience()
+  // Fallback to resilient service - dynamic import would be needed for proper implementation
+  // For now, return a placeholder that guides users to the correct service
+  return {
+    markPlayerReady: () => {
+      console.error('useCharlestonMultiplayer is deprecated. Please use useCharlestonResilience from charleston-resilient.ts')
+      return Promise.resolve(false)
+    },
+    requestStatus: () => {
+      console.error('useCharlestonMultiplayer is deprecated. Please use useCharlestonResilience from charleston-resilient.ts')
+      return Promise.resolve(false)
+    },
+    replayQueue: () => {
+      console.error('useCharlestonMultiplayer is deprecated. Please use useCharlestonResilience from charleston-resilient.ts')
+      return Promise.resolve()
+    },
+    getQueueStatus: () => {
+      console.error('useCharlestonMultiplayer is deprecated. Please use useCharlestonResilience from charleston-resilient.ts')
+      return { size: 0, operations: [] }
+    },
+    cleanup: () => {
+      console.error('useCharlestonMultiplayer is deprecated. Please use useCharlestonResilience from charleston-resilient.ts')
+    }
+  }
 }

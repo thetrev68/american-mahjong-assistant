@@ -145,7 +145,7 @@ export function useMultiplayer() {
 
       socket.on('room-created', handleResponse)
     })
-  }, [socket, clearError, handleError, setCurrentRoom, setCurrentPlayerId])
+  }, [socket, clearError, handleError, setCurrentRoom, setCurrentPlayerId, connectionResilience])
 
   // Room joining with connection resilience
   const joinRoom = useCallback(async (roomId: string, playerName: string): Promise<Room> => {
@@ -182,7 +182,7 @@ export function useMultiplayer() {
 
       socket.on('room-joined', handleResponse)
     })
-  }, [socket, clearError, handleError, setCurrentRoom, setCurrentPlayerId])
+  }, [socket, clearError, handleError, setCurrentRoom, setCurrentPlayerId, connectionResilience])
 
   // Room leaving
   const leaveRoom = useCallback(async (): Promise<void> => {
