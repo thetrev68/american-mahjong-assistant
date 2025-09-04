@@ -4,6 +4,7 @@
 import type { Socket } from 'socket.io-client'
 import { useCharlestonStore } from '../stores/charleston-store'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
+// import { useSocket } from '../hooks/useSocket' // Unused until service refactor
 import type { Tile } from '../utils/charleston-adapter'
 
 type CharlestonStore = ReturnType<typeof useCharlestonStore.getState>
@@ -54,7 +55,7 @@ export class CharlestonMultiplayerService {
       const { tilesReceived } = data
       
       // Convert received tiles to proper Tile objects
-      const tiles: Tile[] = tilesReceived.map((tile: Record<string, unknown>) => ({
+      const tiles: Tile[] = (tilesReceived as Record<string, unknown>[]).map((tile: Record<string, unknown>) => ({
         id: String(tile.id),
         suit: String(tile.suit || 'unknown'),
         value: String(tile.value || tile.id),
@@ -123,11 +124,11 @@ export class CharlestonMultiplayerService {
         resolve(false)
       }
 
-      this.socket.on('charleston-player-ready-confirmed', confirmHandler)
-      this.socket.on('charleston-error', errorHandler)
+      this.socket?.on('charleston-player-ready-confirmed', confirmHandler)
+      this.socket?.on('charleston-error', errorHandler)
 
       // Emit readiness with selected tiles
-      this.socket.emit('charleston-player-ready', {
+      this.socket?.emit('charleston-player-ready', {
         roomId: currentRoom.id,
         playerId: currentPlayerId,
         selectedTiles: selectedTiles.map(tile => ({
@@ -170,23 +171,11 @@ export class CharlestonMultiplayerService {
   }
 }
 
-// Hook for using Charleston multiplayer service
+// Hook for using Charleston multiplayer service (LEGACY - use useCharlestonResilience instead)
 export const useCharlestonMultiplayer = () => {
-  const socket = useSocket()
-  const charlestonStore = useCharlestonStore()
-  const multiplayerStore = useMultiplayerStore()
+  console.warn('useCharlestonMultiplayer is deprecated. Use useCharlestonResilience from charleston-resilient.ts')
   
-  const service = CharlestonMultiplayerService.getInstance()
-  
-  // Initialize service with current stores
-  if (socket && charlestonStore && multiplayerStore) {
-    service.initialize(socket, charlestonStore, multiplayerStore)
-  }
-
-  return {
-    markPlayerReady: (selectedTiles: Tile[], phase: string) => 
-      service.markPlayerReady(selectedTiles, phase),
-    requestStatus: () => service.requestCharlestonStatus(),
-    cleanup: () => service.cleanup()
-  }
+  // Fallback to resilient service
+  const { useCharlestonResilience } = require('./charleston-resilient')
+  return useCharlestonResilience()
 }

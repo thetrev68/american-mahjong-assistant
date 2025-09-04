@@ -209,6 +209,7 @@ export function useSocket() {
     emit,
     on,
     off,
-    retry
+    retry,
+    rawSocket: socketRef.current
   }
 }

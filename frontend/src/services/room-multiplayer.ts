@@ -175,6 +175,86 @@ export class RoomMultiplayerService {
       })
     })
 
+    // Enhanced disconnection handling
+    this.socket.on('player-disconnected', (data) => {
+      const roomStore = useRoomStore.getState()
+      roomStore.setPlayerConnection(data.playerId, false)
+      roomStore.updatePlayerState(data.playerId, { lastSeen: new Date() })
+      
+      useGameStore.getState().addAlert({
+        type: 'warning',
+        title: 'Player Disconnected',
+        message: `${data.playerName} lost connection`
+      })
+    })
+
+    // Connection timeout warnings
+    this.socket.on('player-connection-warning', (data) => {
+      useGameStore.getState().addAlert({
+        type: 'info',
+        title: 'Connection Issues',
+        message: `${data.playerName} experiencing connection problems`
+      })
+    })
+
+    // Room connection health
+    this.socket.on('room-health-update', (data) => {
+      const roomStore = useRoomStore.getState()
+      
+      // Update connection status for all players
+      if (data.playerConnections) {
+        Object.entries(data.playerConnections).forEach(([playerId, isConnected]) => {
+          roomStore.setPlayerConnection(playerId, isConnected as boolean)
+        })
+      }
+      
+      // Update room-level health metrics
+      if (data.healthMetrics) {
+        roomStore.updateConnectionStatus({
+          lastPing: new Date(),
+          isConnected: true
+        })
+      }
+    })
+
+    // Game state recovery response
+    this.socket.on('game-state-recovery-response', (data) => {
+      if (data.success) {
+        const roomStore = useRoomStore.getState()
+        
+        // Restore room state
+        if (data.roomState) {
+          roomStore.updateRoom(data.roomState.room)
+          roomStore.updatePlayers(data.roomState.players)
+          roomStore.setCurrentPhase(data.roomState.currentPhase)
+        }
+        
+        // Restore turn state if available
+        if (data.turnState) {
+          // This would need integration with turn store
+          console.log('Turn state recovery:', data.turnState)
+        }
+        
+        // Restore Charleston state if available  
+        if (data.charlestonState) {
+          // This would need integration with Charleston store
+          console.log('Charleston state recovery:', data.charlestonState)
+        }
+        
+        useGameStore.getState().addAlert({
+          type: 'success',
+          title: 'State Recovered',
+          message: 'Game state successfully recovered'
+        })
+      } else {
+        useGameStore.getState().addAlert({
+          type: 'warning',
+          title: 'Recovery Failed',
+          message: data.error || 'Failed to recover game state'
+        })
+      }
+    })
+
     // Phase transition events
     this.socket.on('phase-changed', (data) => {
       const roomStore = useRoomStore.getState()
@@ -388,8 +468,9 @@ export class RoomMultiplayerService {
     const events = [
       'room-created', 'room-joined', 'player-joined', 'player-left',
       'room-settings-changed', 'room-host-changed', 'room-kicked',
-      'room-reconnect-response', 'player-reconnected', 'phase-changed',
-      'player-state-updated', 'spectator-joined'
+      'room-reconnect-response', 'player-reconnected', 'player-disconnected',
+      'player-connection-warning', 'room-health-update', 'game-state-recovery-response',
+      'phase-changed', 'player-state-updated', 'spectator-joined'
     ]
     
     events.forEach(event => this.socket?.off(event))

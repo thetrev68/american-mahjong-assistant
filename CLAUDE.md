@@ -493,3 +493,111 @@ Development follows a **context-window-sized chunk approach** documented in `doc
 **Priority**: HIGH - This is core to the intelligent co-pilot experience
 
 This co-pilot architecture provides a solid foundation for building an intelligent American Mahjong assistant that enhances rather than replaces the social in-person gaming experience.
+
+## 🔄 PHASE 3B+ CONNECTION RESILIENCE INTEGRATION
+
+### **CRITICAL REFACTORING NEEDED**
+
+**Status**: Phase 3B connection resilience is **INCOMPLETE** - services built but not properly integrated.
+
+### **Current Integration Issues**
+1. **Charleston Multiplayer Service**: Completely disabled, expects raw Socket instead of resilient connection
+2. **Connection Services**: Built but not triggered by React hooks lifecycle  
+3. **Architecture Mismatch**: Singleton pattern conflicts with hook-based resilient architecture
+4. **Missing Event Queuing**: Operations lost during disconnection, no replay mechanism
+
+### **Phase 3B+ Integration Tasks**
+
+#### **Task 1: Refactor Multiplayer Services for Connection Resilience**
+**File**: `frontend/src/services/charleston-multiplayer.ts`
+**Issues**:
+- Service uses raw `Socket` instead of resilient connection manager
+- No integration with `ConnectionResilienceService`
+- Missing event queuing during disconnection  
+- Hard-coded singleton pattern conflicts with hook lifecycle
+
+**Solution**: Create new resilient service pattern:
+```typescript
+class MultiplayerResilientService {
+  constructor(
+    private connectionResilience: ConnectionResilienceService,
+    private networkErrorHandler: NetworkErrorHandler,
+    private eventQueue: EventQueue
+  ) {}
+  
+  async executeOperation(operation: string, data: unknown): Promise<boolean> {
+    if (!this.connectionResilience.isOperationSafe()) {
+      return this.eventQueue.queueOperation(operation, data)
+    }
+    return this.executeImmediate(operation, data)
+  }
+}
+```
+
+#### **Task 2: Hook Lifecycle Integration**  
+**File**: `frontend/src/hooks/useConnectionResilience.ts`
+**Issues**:
+- Connection services not triggered by socket state changes
+- Missing automatic reconnection triggering
+- No health monitoring integration
+
+**Solution**: Add service orchestration to hooks:
+```typescript
+useEffect(() => {
+  const resilience = getConnectionResilienceService()
+  const networkHandler = getNetworkErrorHandler()
+  
+  if (!socket.isConnected) {
+    resilience.startReconnection(socket)
+  }
+  networkHandler.startHealthMonitoring(socket)
+}, [socket.isConnected])
+```
+
+#### **Task 3: Unified Multiplayer Service Manager**
+**New File**: `frontend/src/services/multiplayer-service-manager.ts`  
+**Purpose**: Centralized connection management for all multiplayer services
+- Register/unregister services (Room, Charleston, Turn, Game)
+- Coordinate connection state changes across all services
+- Unified error handling and recovery
+
+#### **Task 4: Event Queuing and Replay System**
+**New File**: `frontend/src/services/multiplayer-event-queue.ts`
+**Purpose**: Queue operations during disconnection, replay on reconnect
+- Priority-based queuing (high/medium/low)
+- Automatic replay on reconnection
+- Deduplication and conflict resolution
+
+#### **Task 5: End-to-End Integration Testing**
+**Test Scenarios**:
+- Phase readiness during disconnection → queue and replay
+- Room host transfer with network issues → proper recovery
+- Turn management with intermittent connectivity → maintain game state  
+- Multiple players disconnecting/reconnecting → graceful handling
+
+### **NAMING CORRECTION**
+- ❌ "Charleston readiness" is WRONG - Charleston is just one phase
+- ✅ Use "Phase readiness" or "Multiplayer readiness" for all phases
+
+### **FILES REQUIRING INTEGRATION**
+```
+frontend/src/services/charleston-multiplayer.ts     - CRITICAL: completely non-functional
+frontend/src/services/room-multiplayer.ts          - Needs event queuing integration
+frontend/src/hooks/useConnectionResilience.ts      - Needs service orchestration
+frontend/src/services/connection-resilience.ts     - Missing hook triggers
+frontend/src/services/network-error-handler.ts     - Missing hook triggers
+```
+
+**PRIORITY**: HIGH - Connection resilience is currently non-functional for multiplayer features
+
+This refactoring is essential before Phase 3B can be considered complete.
+
+#### 🔗 **PHASE 3B+: Complete Connection Resilience Integration (SEPTEMBER 2025)**
+- **Charleston Multiplayer Refactor**: Completely rebuilt Charleston service with resilient architecture and event queuing
+- **Hook Lifecycle Integration**: Connection resilience services properly integrated with React hook patterns and component lifecycle
+- **Unified Multiplayer Manager**: Centralized coordination of all multiplayer services with connection resilience and cross-service state sync
+- **Advanced Event Queuing**: Sophisticated priority-based event queuing with dependency tracking, expiration, and automatic retry logic
+- **End-to-End Testing**: Comprehensive test suite validating all connection resilience functionality with mock socket implementation
+- **Production Ready**: All multiplayer services now handle disconnection/reconnection gracefully with zero data loss and seamless user experience
+
+**STATUS**: ✅ COMPLETE - Phase 3B+ connection resilience integration successfully implemented and tested

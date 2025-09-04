@@ -1,6 +1,9 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSocket } from './useSocket'
+import { useConnectionResilience } from './useConnectionResilience'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
+import { getNetworkErrorHandler } from '../services/network-error-handler'
+import { getRoomMultiplayerService, initializeRoomMultiplayerService } from '../services/room-multiplayer'
 import type { Room, Player, GameState, PlayerGameState, RoomConfig } from '@shared/multiplayer-types'
 
 interface CreateRoomData {
@@ -19,6 +22,7 @@ interface PendingUpdate {
 
 export function useMultiplayer() {
   const socket = useSocket()
+  const connectionResilience = useConnectionResilience()
   
   // Use proper Zustand selectors instead of the whole store
   const currentRoom = useMultiplayerStore(state => state.currentRoom)
@@ -45,12 +49,27 @@ export function useMultiplayer() {
   const [retryAttempts, setRetryAttempts] = useState(0)
 
   const retryTimeoutsRef = useRef<NodeJS.Timeout[]>([])
+  const roomServiceRef = useRef<ReturnType<typeof getRoomMultiplayerService>>(null)
 
-  // Sync connection state with store
+  // Initialize room multiplayer service with connection resilience
   useEffect(() => {
-    setConnectionState(socket.isConnected, socket.socketId || undefined)
-    setConnectionError(socket.connectionError)
-  }, [socket.isConnected, socket.socketId, socket.connectionError, setConnectionState, setConnectionError])
+    if (socket.isConnected && socket.socketId && socket.rawSocket && !roomServiceRef.current) {
+      const playerName = 'Player' // This should come from user context
+      roomServiceRef.current = initializeRoomMultiplayerService(socket.rawSocket, socket.socketId, playerName)
+    }
+    
+    return () => {
+      if (!socket.isConnected) {
+        roomServiceRef.current = null
+      }
+    }
+  }, [socket.isConnected, socket.socketId, socket.rawSocket])
+
+  // Sync connection state with store using resilience service
+  useEffect(() => {
+    setConnectionState(connectionResilience.isConnected, socket.socketId || undefined)
+    setConnectionError(connectionResilience.lastError)
+  }, [connectionResilience.isConnected, socket.socketId, connectionResilience.lastError, setConnectionState, setConnectionError])
 
   // Clear error on successful operations
   const clearError = useCallback(() => {
@@ -58,16 +77,22 @@ export function useMultiplayer() {
     setRetryAttempts(0)
   }, [])
 
-  // Error handler with exponential backoff retry
+  // Error handler using connection resilience service
   const handleError = useCallback((error: string, operation?: () => Promise<void>) => {
     setLastError(error)
     
-    if (operation && retryAttempts < 3) {
+    const networkHandler = getNetworkErrorHandler()
+    networkHandler.handleError(new Error(error), 'multiplayer-operation')
+    
+    // Only retry if network is healthy and operation is safe
+    if (operation && connectionResilience.isOperationSafe() && retryAttempts < 3) {
       const delay = Math.pow(2, retryAttempts) * 1000 // 1s, 2s, 4s
       const timeoutId = setTimeout(async () => {
         try {
-          await operation()
-          clearError()
+          if (connectionResilience.isOperationSafe()) {
+            await operation()
+            clearError()
+          }
         } catch {
           setRetryAttempts(prev => prev + 1)
         }
@@ -75,12 +100,12 @@ export function useMultiplayer() {
       
       retryTimeoutsRef.current.push(timeoutId)
     }
-  }, [retryAttempts, clearError])
+  }, [retryAttempts, clearError, connectionResilience])
 
-  // Room creation
+  // Room creation with connection resilience
   const createRoom = useCallback(async (roomData: CreateRoomData): Promise<Room> => {
-    if (!socket.isConnected) {
-      throw new Error('Not connected to server')
+    if (!connectionResilience.isOperationSafe()) {
+      throw new Error('Network connection is not stable for this operation')
     }
 
     setIsCreatingRoom(true)
@@ -122,10 +147,10 @@ export function useMultiplayer() {
     })
   }, [socket, clearError, handleError, setCurrentRoom, setCurrentPlayerId])
 
-  // Room joining
+  // Room joining with connection resilience
   const joinRoom = useCallback(async (roomId: string, playerName: string): Promise<Room> => {
-    if (!socket.isConnected) {
-      throw new Error('Not connected to server')
+    if (!connectionResilience.isOperationSafe()) {
+      throw new Error('Network connection is not stable for this operation')
     }
 
     setIsJoiningRoom(true)
@@ -186,12 +211,8 @@ export function useMultiplayer() {
     })
   }, [socket, currentRoom, clearCurrentRoom])
 
-  // Game state updates
+  // Game state updates with resilient queueing
   const updateGamePhase = useCallback(async (phase: GameState['phase']): Promise<void> => {
-    if (!socket.isConnected) {
-      throw new Error('Not connected to server')
-    }
-
     if (!currentRoom) {
       throw new Error('Not in a room')
     }
@@ -202,8 +223,8 @@ export function useMultiplayer() {
       timestamp: new Date()
     }
 
-    if (!socket.isConnected) {
-      // Queue for later if disconnected
+    if (!connectionResilience.isOperationSafe()) {
+      // Queue for later if connection is not stable
       setPendingUpdates(prev => [...prev, update])
       return
     }
@@ -212,13 +233,9 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket, currentRoom])
+  }, [socket, currentRoom, connectionResilience])
 
   const updatePlayerState = useCallback(async (playerState: Partial<PlayerGameState>): Promise<void> => {
-    if (!socket.isConnected) {
-      throw new Error('Not connected to server')
-    }
-
     if (!currentRoom) {
       throw new Error('Not in a room')
     }
@@ -229,8 +246,8 @@ export function useMultiplayer() {
       timestamp: new Date()
     }
 
-    if (!socket.isConnected) {
-      // Queue for later if disconnected
+    if (!connectionResilience.isOperationSafe()) {
+      // Queue for later if connection is not stable
       setPendingUpdates(prev => [...prev, update])
       return
     }
@@ -239,13 +256,9 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket, currentRoom])
+  }, [socket, currentRoom, connectionResilience])
 
   const updateSharedState = useCallback(async (sharedState: Partial<Record<string, unknown>>): Promise<void> => {
-    if (!socket.isConnected) {
-      throw new Error('Not connected to server')
-    }
-
     if (!currentRoom) {
       throw new Error('Not in a room')
     }
@@ -256,8 +269,8 @@ export function useMultiplayer() {
       timestamp: new Date()
     }
 
-    if (!socket.isConnected) {
-      // Queue for later if disconnected
+    if (!connectionResilience.isOperationSafe()) {
+      // Queue for later if connection is not stable
       setPendingUpdates(prev => [...prev, update])
       return
     }
@@ -266,7 +279,7 @@ export function useMultiplayer() {
       roomId: currentRoom.id,
       update
     })
-  }, [socket, currentRoom])
+  }, [socket, currentRoom, connectionResilience])
 
   const requestGameState = useCallback(async (): Promise<GameState | null> => {
     if (!currentRoom) {
@@ -345,9 +358,11 @@ export function useMultiplayer() {
     }
   }, [socket, addPlayerToRoom, removePlayerFromRoom, setGameState, currentRoom, clearCurrentRoom, updateAvailableRooms])
 
-  // Process pending updates when reconnected
+  // Process pending updates when connection is resilient
   useEffect(() => {
-    if (socket.isConnected && pendingUpdates.length > 0) {
+    if (connectionResilience.isOperationSafe() && pendingUpdates.length > 0) {
+      console.log(`Processing ${pendingUpdates.length} queued multiplayer updates`)
+      
       pendingUpdates.forEach(update => {
         if (currentRoom) {
           socket.emit('state-update', {
@@ -358,7 +373,7 @@ export function useMultiplayer() {
       })
       setPendingUpdates([])
     }
-  }, [socket.isConnected, pendingUpdates, socket, currentRoom])
+  }, [connectionResilience.isOperationSafe, pendingUpdates, socket, currentRoom, connectionResilience])
 
   // Cleanup timeouts on unmount
   useEffect(() => {
@@ -369,9 +384,11 @@ export function useMultiplayer() {
   }, [])
 
   return {
-    // Connection state
-    isConnected: socket.isConnected,
-    connectionError: socket.connectionError,
+    // Connection state from resilience service
+    isConnected: connectionResilience.isConnected,
+    connectionError: connectionResilience.lastError,
+    connectionHealth: connectionResilience.connectionHealth,
+    isReconnecting: connectionResilience.isReconnecting,
     
     // Room operations
     createRoom,
@@ -392,11 +409,17 @@ export function useMultiplayer() {
     isHost,
     availableRooms,
     
-    // Error handling
+    // Error handling with resilience
     lastError,
     retryAttempts,
     pendingUpdates,
     setError, // For testing
+    canRecover: connectionResilience.canRecover,
+    isOperationSafe: connectionResilience.isOperationSafe,
+    retryConnection: connectionResilience.retryConnection,
+    
+    // Network quality info
+    getNetworkQuality: connectionResilience.getNetworkQuality,
     
     // Utility
     getCurrentPlayer,
