@@ -241,28 +241,91 @@ export class MultiplayerGameEndService {
   }
 
   private async collectAllPlayerHands(): Promise<Record<string, PlayerTile[]>> {
-    // In a real implementation, this would request hands from all connected players
-    // For now, use the context data and extend with mock data for other players
     const allHands: Record<string, PlayerTile[]> = { ...this.context.playerHands }
     
-    // Fill in missing player hands with empty arrays (they would be collected via socket)
-    for (const player of this.context.players) {
-      if (!allHands[player.id]) {
-        allHands[player.id] = [] // Would be populated from socket request
+    // Request hands from all other players via socket
+    const handRequests = this.context.players.map(async (player) => {
+      if (allHands[player.id]) {
+        return { playerId: player.id, hand: allHands[player.id] }
       }
-    }
+      
+      try {
+        // Request player's final hand via socket
+        const response = await this.multiplayerManager.emitWithResponse(
+          'request-final-hand',
+          { 
+            requestingPlayerId: 'game-coordinator',
+            targetPlayerId: player.id,
+            gameId: this.context.gameId 
+          },
+          { timeout: 5000, priority: 'high' }
+        )
+        
+        return { 
+          playerId: player.id, 
+          hand: response?.hand || [] as PlayerTile[]
+        }
+      } catch (error) {
+        console.warn(`Failed to collect hand from player ${player.id}:`, error)
+        return { 
+          playerId: player.id, 
+          hand: [] as PlayerTile[]
+        }
+      }
+    })
+    
+    // Wait for all hand requests to complete
+    const handResults = await Promise.allSettled(handRequests)
+    
+    // Process results
+    handResults.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        allHands[result.value.playerId] = result.value.hand
+      }
+    })
     
     return allHands
   }
 
   private async collectAllPlayerPatterns(): Promise<Record<string, NMJL2025Pattern[]>> {
-    // Similar to hands, this would collect all player patterns via socket
     const allPatterns: Record<string, NMJL2025Pattern[]> = {}
     
-    for (const player of this.context.players) {
-      // For now, use the same patterns for all players (would be individual in real implementation)
-      allPatterns[player.id] = this.context.selectedPatterns
-    }
+    // Request patterns from all players via socket
+    const patternRequests = this.context.players.map(async (player) => {
+      try {
+        // Request player's selected patterns via socket
+        const response = await this.multiplayerManager.emitWithResponse(
+          'request-selected-patterns',
+          { 
+            requestingPlayerId: 'game-coordinator',
+            targetPlayerId: player.id,
+            gameId: this.context.gameId 
+          },
+          { timeout: 3000, priority: 'high' }
+        )
+        
+        return { 
+          playerId: player.id, 
+          patterns: response?.patterns || this.context.selectedPatterns
+        }
+      } catch (error) {
+        console.warn(`Failed to collect patterns from player ${player.id}:`, error)
+        return { 
+          playerId: player.id, 
+          patterns: this.context.selectedPatterns // Fallback to context patterns
+        }
+      }
+    })
+    
+    // Wait for all pattern requests to complete
+    const patternResults = await Promise.allSettled(patternRequests)
+    
+    // Process results
+    patternResults.forEach((result) => {
+      if (result.status === 'fulfilled') {
+        allPatterns[result.value.playerId] = result.value.patterns
+      }
+    })
     
     return allPatterns
   }
@@ -271,22 +334,77 @@ export class MultiplayerGameEndService {
     multiplayerData: MultiplayerGameEndData, 
     endType: 'mahjong' | 'wall_exhausted' | 'all_passed_out'
   ): Promise<void> {
-    const { gameEndResult } = multiplayerData
+    const { gameEndResult, allPlayerHands, allPlayerPatterns } = multiplayerData
     
-    // Broadcast to all players in room
+    // Calculate comprehensive final scores for all players
+    const finalScores = this.calculateGroupScores(gameEndResult, allPlayerPatterns, endType)
+    
+    // Broadcast to all players in room with complete game end data
     await this.multiplayerManager.emitToRoom(this.context.roomId || '', 'multiplayer-game-ended', {
       endType,
       winner: gameEndResult.scenario.winner,
       winningPattern: gameEndResult.scenario.winningPattern,
-      finalScores: gameEndResult.statistics.finalScores,
+      finalScores,
+      allPlayerHands,
+      allPlayerPatterns,
       gameStats: {
         duration: gameEndResult.statistics.duration,
         totalTurns: gameEndResult.statistics.totalTurns,
-        charlestonPasses: gameEndResult.statistics.charlestonRounds
+        charlestonPasses: gameEndResult.statistics.charlestonRounds || 0,
+        wallTilesRemaining: this.context.wallTilesRemaining,
+        gameStartTime: this.context.gameStartTime,
+        playerCount: this.context.players.length
       },
       reason: gameEndResult.scenario.reason,
       timestamp: multiplayerData.timestamp
     })
+  }
+
+  private calculateGroupScores(
+    gameEndResult: GameEndResult,
+    allPlayerPatterns: Record<string, NMJL2025Pattern[]>,
+    endType: string
+  ): Array<{ playerId: string; playerName: string; score: number; pattern?: string; rank: number }> {
+    const scores: Array<{ playerId: string; playerName: string; score: number; pattern?: string; rank: number }> = []
+    
+    for (const player of this.context.players) {
+      const isWinner = gameEndResult.scenario.winner === player.id
+      let score = 0
+      let pattern: string | undefined
+      
+      if (isWinner && gameEndResult.scenario.winningPattern) {
+        // Winner gets the pattern points
+        score = gameEndResult.scenario.winningPattern.Hand_Points || 25
+        pattern = gameEndResult.scenario.winningPattern.Hand_Description
+      } else if (endType === 'wall_exhausted' || endType === 'all_passed_out') {
+        // In draw games, calculate partial scores based on pattern progress
+        const playerPatterns = allPlayerPatterns[player.id] || []
+        if (playerPatterns.length > 0) {
+          // Use the highest-value pattern they were working on
+          const highestPattern = playerPatterns.reduce((max, current) => 
+            current.Hand_Points > max.Hand_Points ? current : max
+          )
+          score = Math.floor(highestPattern.Hand_Points * 0.25) // 25% of pattern value for progress
+          pattern = highestPattern.Hand_Description
+        }
+      }
+      
+      scores.push({
+        playerId: player.id,
+        playerName: player.name,
+        score,
+        pattern,
+        rank: 0 // Will be calculated below
+      })
+    }
+    
+    // Calculate ranks based on scores
+    scores.sort((a, b) => b.score - a.score)
+    scores.forEach((score, index) => {
+      score.rank = index + 1
+    })
+    
+    return scores
   }
 
   private analyzeWinner(scenario: any, statistics: any): MultiplayerGameEndAnalytics['winnerAnalysis'] {

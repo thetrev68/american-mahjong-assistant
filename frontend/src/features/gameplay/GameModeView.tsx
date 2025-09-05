@@ -23,6 +23,7 @@ import { SelectionArea } from './SelectionArea'
 import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
 import { CallOpportunityOverlay } from './components/CallOpportunityOverlay'
 import { useGameIntelligence } from '../../hooks/useGameIntelligence'
+import { useGameEndCoordination } from '../../hooks/useGameEndCoordination'
 import type { GameState } from '../../services/turn-intelligence-engine'
 import type { CallOpportunity as CallOpportunityType } from '../../services/call-opportunity-analyzer'
 import type { MahjongValidationResult } from '../../services/mahjong-validator'
@@ -242,6 +243,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Use enhanced intelligence hook
   const { analysis: enhancedAnalysis } = useGameIntelligence(mockGameState, currentPlayerId)
+  
+  // Use game end coordination hook for multiplayer synchronization
+  const gameEndCoordination = useGameEndCoordination()
 
   // Action recommendation handler
   const handleActionRecommendation = useCallback((action: string, data: any) => {
@@ -441,6 +445,41 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       }
     }
   }, [gameEndCoordinator, gameEnded, historyStore, gameStore, onNavigateToPostGame])
+
+  // Handle multiplayer game end coordination
+  useEffect(() => {
+    if (gameEndCoordination.isMultiplayerSession && gameEndCoordination.shouldNavigateToPostGame) {
+      // In multiplayer, wait for all hands to be collected before showing final reveal
+      if (gameEndCoordination.gameEndData && gameEndCoordination.allPlayerHands) {
+        // Create final hand reveal data with multiplayer data
+        const playerNames = gameStore.players.reduce((names, player) => {
+          names[player.id] = player.name
+          return names
+        }, {} as Record<string, string>)
+
+        const finalHandData: FinalHandRevealData = {
+          allPlayerHands: gameEndCoordination.allPlayerHands,
+          playerNames,
+          winnerDetails: gameEndCoordination.gameEndData.winner ? {
+            playerId: gameEndCoordination.gameEndData.winner,
+            winningPattern: undefined, // Will be filled from game end data
+            score: gameEndCoordination.finalScores?.find(s => s.playerId === gameEndCoordination.gameEndData.winner)?.score || 0
+          } : undefined,
+          gameStatistics: {
+            totalTurns: gameStore.currentTurn,
+            gameDuration: gameStore.gameStartTime ? 
+              Math.round((Date.now() - gameStore.gameStartTime.getTime()) / 1000 / 60) + ' min' : 
+              'Unknown',
+            wallTilesRemaining: gameStore.wallTilesRemaining
+          }
+        }
+
+        setFinalHandRevealData(finalHandData)
+        setShowFinalHandReveal(true)
+        gameEndCoordination.clearGameEndState()
+      }
+    }
+  }, [gameEndCoordination, gameStore])
 
   // Wall exhaustion warning
   const wallExhaustionWarning = useMemo(() => {

@@ -444,6 +444,63 @@ export class UnifiedMultiplayerManager {
     }
   }
 
+  // Emit event and wait for response with timeout
+  async emitWithResponse(
+    event: string,
+    data: unknown,
+    options?: {
+      timeout?: number
+      priority?: 'critical' | 'high' | 'medium' | 'low'
+    }
+  ): Promise<any> {
+    if (!this.socket?.connected) {
+      throw new Error('Socket not connected')
+    }
+
+    const timeout = options?.timeout || 5000
+    
+    return new Promise((resolve, reject) => {
+      const timeoutId = setTimeout(() => {
+        reject(new Error(`Request timeout after ${timeout}ms`))
+      }, timeout)
+
+      // Create response event name
+      const responseEvent = event.replace('request-', '') + '-response'
+      
+      const responseHandler = (responseData: any) => {
+        clearTimeout(timeoutId)
+        this.socket?.off(responseEvent, responseHandler)
+        resolve(responseData)
+      }
+
+      // Listen for response
+      this.socket.on(responseEvent, responseHandler)
+      
+      // Emit the request
+      this.socket.emit(event, data)
+    })
+  }
+
+  // Emit to room (for broadcasting)
+  async emitToRoom(
+    roomId: string,
+    event: string,
+    data: unknown
+  ): Promise<boolean> {
+    if (!this.socket?.connected) {
+      console.log('Queueing room event - connection not available')
+      return false
+    }
+
+    try {
+      this.socket.emit(event, { ...data, roomId })
+      return true
+    } catch (error) {
+      console.error(`Failed to emit event to room ${roomId}:`, error)
+      return false
+    }
+  }
+
   // Request full state recovery for all services
   async requestFullStateRecovery(): Promise<void> {
     console.log('Requesting full state recovery for all services')
@@ -545,6 +602,8 @@ export const useUnifiedMultiplayer = () => {
     manager,
     status: manager.getServiceStatus(),
     emitToService: manager.emitToService.bind(manager),
+    emitWithResponse: manager.emitWithResponse.bind(manager),
+    emitToRoom: manager.emitToRoom.bind(manager),
     requestFullRecovery: manager.requestFullStateRecovery.bind(manager),
     processEventQueue: manager['processEventQueue'].bind(manager),
     getEventQueueStatus: () => manager.getServiceStatus().eventQueueDetails,

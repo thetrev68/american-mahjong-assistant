@@ -141,6 +141,27 @@ export interface SocketEvents {
   'turn-status': (data: { success: boolean; currentPlayer?: string; turnNumber?: number; roundNumber?: number; currentWind?: string; error?: string }) => void
   'turn-error': (data: { success: boolean; error: string }) => void
   
+  // Game End events
+  'declare-mahjong': (data: { playerId: string; roomId: string; hand: any[]; pattern: any }) => void
+  'mahjong-declared': (data: { success: boolean; isValid: boolean; winner?: string; score?: number; validationDetails?: string; error?: string }) => void
+  'game-ended': (data: { endReason: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'; winner?: string; scores?: any[]; gameStats?: any; timestamp?: Date }) => void
+  
+  // Multiplayer Game End Coordination
+  'request-final-hand': (data: { requestingPlayerId: string; targetPlayerId: string; gameId: string }) => void
+  'final-hand-response': (data: { playerId: string; hand: any[]; success: boolean; error?: string }) => void
+  'provide-final-hand': (data: { requestingPlayerId: string; gameId: string; responseId: string }) => void
+  'provide-final-hand-response': (data: { hand: any[]; responseId: string }) => void
+  'final-hand-provided': (data: { playerId: string; hand: any[]; responseId: string }) => void
+  
+  'request-selected-patterns': (data: { requestingPlayerId: string; targetPlayerId: string; gameId: string }) => void
+  'selected-patterns-response': (data: { playerId: string; patterns: any[]; success: boolean; error?: string }) => void
+  'provide-selected-patterns': (data: { requestingPlayerId: string; gameId: string; responseId: string }) => void
+  'provide-patterns-response': (data: { patterns: any[]; responseId: string }) => void
+  'selected-patterns-provided': (data: { playerId: string; patterns: any[]; responseId: string }) => void
+  
+  'multiplayer-game-ended': (data: { roomId: string; endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date }) => void
+  'game-end-coordinated': (data: { endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date }) => void
+  
   // Connection events
   'ping': (data: { timestamp: number }) => void
   'pong': (data: { timestamp: number }) => void

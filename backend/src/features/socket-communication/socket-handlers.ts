@@ -20,6 +20,7 @@ export class SocketHandlers {
     this.registerGameStateHandlers(socket)
     this.registerCharlestonHandlers(socket)
     this.registerTurnHandlers(socket)
+    this.registerGameEndHandlers(socket)
     this.registerConnectionHandlers(socket)
   }
 
@@ -1481,5 +1482,131 @@ export class SocketHandlers {
     }
 
     return scores
+  }
+
+  private registerGameEndHandlers(socket: Socket): void {
+    // Handle request for player's final hand
+    socket.on('request-final-hand', async (data) => {
+      try {
+        const { requestingPlayerId, targetPlayerId, gameId } = data
+        
+        // Forward request to target player
+        socket.to(targetPlayerId).emit('provide-final-hand', {
+          requestingPlayerId,
+          gameId,
+          responseId: `hand-${socket.id}-${Date.now()}`
+        })
+        
+        // Set up response handler
+        const responseHandler = (responseData: any) => {
+          if (responseData.responseId === `hand-${socket.id}-${Date.now()}`) {
+            socket.emit('final-hand-response', {
+              playerId: targetPlayerId,
+              hand: responseData.hand,
+              success: true
+            })
+            socket.off('final-hand-provided', responseHandler)
+          }
+        }
+        
+        socket.on('final-hand-provided', responseHandler)
+        
+        // Timeout after 5 seconds
+        setTimeout(() => {
+          socket.emit('final-hand-response', {
+            playerId: targetPlayerId,
+            hand: [],
+            success: false,
+            error: 'Timeout'
+          })
+          socket.off('final-hand-provided', responseHandler)
+        }, 5000)
+        
+      } catch (error) {
+        socket.emit('final-hand-response', {
+          playerId: data.targetPlayerId,
+          hand: [],
+          success: false,
+          error: 'Failed to request hand'
+        })
+      }
+    })
+
+    // Handle player providing their final hand
+    socket.on('provide-final-hand-response', (data) => {
+      this.io.emit('final-hand-provided', {
+        playerId: socket.id,
+        hand: data.hand,
+        responseId: data.responseId
+      })
+    })
+
+    // Handle request for player's selected patterns
+    socket.on('request-selected-patterns', async (data) => {
+      try {
+        const { requestingPlayerId, targetPlayerId, gameId } = data
+        
+        // Forward request to target player
+        socket.to(targetPlayerId).emit('provide-selected-patterns', {
+          requestingPlayerId,
+          gameId,
+          responseId: `patterns-${socket.id}-${Date.now()}`
+        })
+        
+        // Set up response handler
+        const responseHandler = (responseData: any) => {
+          if (responseData.responseId === `patterns-${socket.id}-${Date.now()}`) {
+            socket.emit('selected-patterns-response', {
+              playerId: targetPlayerId,
+              patterns: responseData.patterns,
+              success: true
+            })
+            socket.off('selected-patterns-provided', responseHandler)
+          }
+        }
+        
+        socket.on('selected-patterns-provided', responseHandler)
+        
+        // Timeout after 3 seconds
+        setTimeout(() => {
+          socket.emit('selected-patterns-response', {
+            playerId: targetPlayerId,
+            patterns: [],
+            success: false,
+            error: 'Timeout'
+          })
+          socket.off('selected-patterns-provided', responseHandler)
+        }, 3000)
+        
+      } catch (error) {
+        socket.emit('selected-patterns-response', {
+          playerId: data.targetPlayerId,
+          patterns: [],
+          success: false,
+          error: 'Failed to request patterns'
+        })
+      }
+    })
+
+    // Handle player providing their selected patterns
+    socket.on('provide-patterns-response', (data) => {
+      this.io.emit('selected-patterns-provided', {
+        playerId: socket.id,
+        patterns: data.patterns,
+        responseId: data.responseId
+      })
+    })
+
+    // Handle multiplayer game end broadcast
+    socket.on('multiplayer-game-ended', (data) => {
+      const { roomId } = data
+      if (roomId) {
+        // Broadcast to all players in the room
+        this.io.to(roomId).emit('game-end-coordinated', {
+          ...data,
+          timestamp: new Date()
+        })
+      }
+    })
   }
 }
