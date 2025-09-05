@@ -3,6 +3,7 @@
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
+import { useRoomStore } from './room-store'
 import type { GameAction, CallType } from '../services/game-actions'
 import type { Tile } from '../types/tile-types'
 import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
@@ -349,8 +350,32 @@ export const useTurnStore = create<TurnStore>()(
 
         executeAction: async (playerId: string, action: GameAction, data?: unknown) => {
           const { gameActions } = await import('../services/game-actions')
+          const { turnRealtime } = await import('../services/turn-realtime')
+          const roomStore = useRoomStore.getState()
           
           try {
+            // Phase 4B: Check if multiplayer mode - broadcast to server first
+            if (roomStore.coPilotMode === 'everyone' && roomStore.currentRoomCode) {
+              const broadcastSuccess = await turnRealtime.broadcastTurnAction({
+                playerId,
+                roomId: roomStore.currentRoomCode,
+                action,
+                data,
+                timestamp: new Date(),
+                turnNumber: get().turnNumber
+              })
+
+              if (!broadcastSuccess) {
+                // Action was queued due to connection issues
+                return false
+              }
+
+              // Server will handle the action and broadcast results
+              // The handleTurnActionSuccess event will update local state
+              return true
+            }
+
+            // Solo mode - execute locally
             let success = false
 
             switch (action) {

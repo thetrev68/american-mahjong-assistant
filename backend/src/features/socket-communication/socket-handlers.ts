@@ -871,6 +871,120 @@ export class SocketHandlers {
         })
       }
     })
+
+    // Phase 4B: Real-Time Turn Action Broadcasting
+    socket.on('turn-action-request', async (data) => {
+      try {
+        const { roomId, playerId, action, actionData } = data
+        
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          socket.emit('turn-action-rejected', { 
+            reason: 'Room not found' 
+          })
+          return
+        }
+
+        const gameState = this.stateSyncManager.getGameState(roomId)
+        if (!gameState) {
+          socket.emit('turn-action-rejected', { 
+            reason: 'Game state not found' 
+          })
+          return
+        }
+
+        // Validate it's the player's turn
+        if (gameState.sharedState.currentPlayer !== playerId) {
+          socket.emit('turn-action-rejected', { 
+            reason: 'Not your turn' 
+          })
+          return
+        }
+
+        // Validate action is allowed for current game state
+        const isValidAction = this.validateTurnAction(action, gameState, playerId)
+        if (!isValidAction) {
+          socket.emit('turn-action-rejected', { 
+            reason: 'Invalid action for current game state' 
+          })
+          return
+        }
+
+        // Execute the action and update game state
+        const actionResult = await this.executeTurnAction(roomId, playerId, action, actionData)
+        
+        if (actionResult.success) {
+          // Determine next player based on action
+          const nextPlayerId = this.determineNextPlayer(roomId, action, actionResult)
+          
+          // Update game state with new current player
+          await this.stateSyncManager.updateSharedState(roomId, {
+            currentPlayer: nextPlayerId
+          })
+
+          // Broadcast successful action to all players in room
+          this.io.to(roomId).emit('turn-action-broadcast', {
+            playerId,
+            action,
+            result: actionResult,
+            nextPlayer: nextPlayerId,
+            turnNumber: gameState.currentRound + 1,
+            timestamp: new Date().toISOString()
+          })
+
+          // Confirm success to the acting player
+          socket.emit('turn-action-success', {
+            action,
+            result: actionResult,
+            nextPlayer: nextPlayerId
+          })
+
+        } else {
+          socket.emit('turn-action-rejected', { 
+            reason: actionResult.error || 'Action failed to execute' 
+          })
+        }
+
+      } catch (error) {
+        socket.emit('turn-action-rejected', {
+          reason: error instanceof Error ? error.message : 'Internal server error'
+        })
+      }
+    })
+
+    // Phase 4B: Call Opportunity Broadcasting
+    socket.on('call-opportunity-response', async (data) => {
+      try {
+        const { roomId, playerId, response, callType, tiles } = data
+        
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          socket.emit('call-response-rejected', { 
+            reason: 'Room not found' 
+          })
+          return
+        }
+
+        // Broadcast the response to all players
+        this.io.to(roomId).emit('call-response-broadcast', {
+          playerId,
+          response,
+          callType,
+          tiles,
+          timestamp: new Date().toISOString()
+        })
+
+        // If someone called, interrupt turn order
+        if (response === 'call' && callType && tiles) {
+          await this.handleCallInterruption(roomId, playerId, callType, tiles)
+        }
+
+      } catch (error) {
+        socket.emit('call-response-rejected', {
+          reason: error instanceof Error ? error.message : 'Failed to process call response'
+        })
+      }
+    })
   }
 
   private registerConnectionHandlers(socket: Socket): void {
@@ -926,5 +1040,121 @@ export class SocketHandlers {
         this.broadcastRoomListUpdate()
       }
     }, 5 * 60 * 1000) // Every 5 minutes
+  }
+
+  // Phase 4B: Turn Action Validation and Execution Methods
+
+  private validateTurnAction(action: string, gameState: any, playerId: string): boolean {
+    // Basic validation - TODO: Enhance with proper game rule validation
+    const validActions = ['draw', 'discard', 'call', 'joker-swap', 'mahjong', 'pass-out']
+    
+    if (!validActions.includes(action)) {
+      return false
+    }
+
+    // Player must be in the current turn
+    if (gameState.sharedState.currentPlayer !== playerId) {
+      return false
+    }
+
+    // TODO: Add more sophisticated validation based on game state
+    // - Has player already drawn this turn?
+    // - Is the action valid for the current phase?
+    // - Are required parameters present?
+
+    return true
+  }
+
+  private async executeTurnAction(roomId: string, playerId: string, action: string, actionData: any): Promise<any> {
+    try {
+      // Simulate action execution - TODO: Integrate with actual game logic
+      const result = {
+        success: true,
+        action,
+        playerId,
+        timestamp: new Date().toISOString(),
+        data: actionData
+      }
+
+      switch (action) {
+        case 'draw':
+          // TODO: Draw a tile from wall, add to player's hand
+          result.data = { tileDrawn: true }
+          break
+          
+        case 'discard':
+          // TODO: Remove tile from hand, add to discard pile
+          result.data = { tileDiscarded: actionData.tile }
+          break
+          
+        case 'call':
+          // TODO: Handle pung/kong calls
+          result.data = { callType: actionData.callType, tiles: actionData.tiles }
+          break
+          
+        case 'mahjong':
+          // TODO: Validate winning hand
+          result.data = { winner: playerId, pattern: actionData.pattern }
+          break
+          
+        case 'pass-out':
+          // TODO: Remove player from active play
+          result.data = { reason: actionData.reason }
+          break
+      }
+
+      return result
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Action execution failed'
+      }
+    }
+  }
+
+  private determineNextPlayer(roomId: string, action: string, actionResult: any): string {
+    const gameState = this.stateSyncManager.getGameState(roomId)
+    const room = this.roomManager.getRoom(roomId)
+    
+    if (!gameState || !room) {
+      return gameState?.sharedState.currentPlayer || ''
+    }
+
+    // If someone called, they get the next turn
+    if (action === 'call') {
+      return actionResult.playerId
+    }
+
+    // If someone won, game is over
+    if (action === 'mahjong') {
+      return gameState.sharedState.currentPlayer || '' // Keep current player as winner
+    }
+
+    // Normal turn advancement - find next player in turn order
+    const currentPlayerIndex = room.players.findIndex(p => p.id === gameState.sharedState.currentPlayer)
+    const nextPlayerIndex = (currentPlayerIndex + 1) % room.players.length
+    
+    return room.players[nextPlayerIndex].id
+  }
+
+  private async handleCallInterruption(roomId: string, callingPlayerId: string, callType: string, tiles: any[]): Promise<void> {
+    try {
+      // Update game state to give turn to calling player
+      await this.stateSyncManager.updateSharedState(roomId, {
+        currentPlayer: callingPlayerId
+      })
+
+      // Broadcast turn interruption to all players
+      this.io.to(roomId).emit('turn-interrupted', {
+        newCurrentPlayer: callingPlayerId,
+        reason: 'call',
+        callType,
+        tiles,
+        timestamp: new Date().toISOString()
+      })
+
+    } catch (error) {
+      console.error('Failed to handle call interruption:', error)
+    }
   }
 }

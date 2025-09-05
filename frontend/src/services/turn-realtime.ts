@@ -87,6 +87,11 @@ export class TurnRealtimeService {
 
     // Listen for game state synchronization
     this.addEventListener('game-state-sync', this.handleGameStateSync.bind(this))
+
+    // Phase 4B: Listen for new backend events
+    this.addEventListener('turn-action-success', this.handleTurnActionSuccess.bind(this))
+    this.addEventListener('call-response-broadcast', this.handleCallResponseBroadcast.bind(this))
+    this.addEventListener('turn-interrupted', this.handleTurnInterruption.bind(this))
   }
 
   private addEventListener(event: string, handler: (data: unknown) => void): void {
@@ -446,6 +451,87 @@ export class TurnRealtimeService {
       type: 'warning',
       title: 'Action Rejected',
       message: rejectionData.reason
+    })
+  }
+
+  // Phase 4B: New Event Handlers
+
+  private handleTurnActionSuccess(data: unknown): void {
+    const successData = data as {
+      action: GameAction
+      result: Record<string, unknown>
+      nextPlayer: string
+    }
+
+    console.log('Turn action confirmed successful:', successData)
+
+    const gameStore = useGameStore.getState()
+    const turnStore = useTurnStore.getState()
+
+    // Update turn to next player
+    turnStore.setCurrentPlayer(successData.nextPlayer)
+
+    // Show success feedback
+    gameStore.addAlert({
+      type: 'success',
+      title: 'Action Completed',
+      message: `${successData.action} completed successfully`
+    })
+  }
+
+  private handleCallResponseBroadcast(data: unknown): void {
+    const responseData = data as {
+      playerId: string
+      response: 'call' | 'pass'
+      callType?: CallType
+      tiles?: Tile[]
+      timestamp: string
+    }
+
+    console.log('Call response broadcast received:', responseData)
+
+    const gameStore = useGameStore.getState()
+
+    if (responseData.response === 'call') {
+      gameStore.addAlert({
+        type: 'info',
+        title: 'Player Called',
+        message: `${responseData.playerId} called ${responseData.callType}`
+      })
+    }
+
+    // Update call responses for resolution
+    this.callResponses.set(responseData.playerId, {
+      playerId: responseData.playerId,
+      response: responseData.response,
+      callType: responseData.callType,
+      tiles: responseData.tiles || [],
+      priority: 0
+    })
+  }
+
+  private handleTurnInterruption(data: unknown): void {
+    const interruptData = data as {
+      newCurrentPlayer: string
+      reason: string
+      callType?: string
+      tiles?: Tile[]
+      timestamp: string
+    }
+
+    console.log('Turn interrupted:', interruptData)
+
+    const gameStore = useGameStore.getState()
+    const turnStore = useTurnStore.getState()
+
+    // Update turn to interrupting player
+    turnStore.setCurrentPlayer(interruptData.newCurrentPlayer)
+
+    // Show interruption notification
+    gameStore.addAlert({
+      type: 'warning',
+      title: 'Turn Interrupted',
+      message: `${interruptData.newCurrentPlayer} interrupted with ${interruptData.reason}`
     })
   }
 
