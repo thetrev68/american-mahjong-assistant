@@ -4,6 +4,7 @@
 import { GameStatisticsEngine, type GameEndScenario, type GameStatistics } from './game-statistics'
 import type { PlayerTile } from '../types/tile-types'
 import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
+import type { TileSuit } from '../../../shared/tile-utils'
 import type { CompletedGame } from '../stores/history-store'
 
 export interface GameEndResult {
@@ -231,6 +232,7 @@ export class GameEndCoordinator {
     // Create completed game data
     const completedGameData: Omit<CompletedGame, 'id'> = {
       timestamp: statistics.startTime,
+      createdAt: statistics.startTime,
       duration: statistics.duration,
       outcome: this.determineOutcome(endScenario),
       finalScore: this.getFinalScore(endScenario),
@@ -238,7 +240,7 @@ export class GameEndCoordinator {
       selectedPatterns: this.context.selectedPatterns,
       finalHand: winnerData.finalHand.map(tile => ({
         id: tile.id,
-        suit: tile.suit as any, // Type conversion needed
+        suit: tile.suit as TileSuit, // Type conversion needed
         value: tile.value,
         displayName: tile.displayName
       })),

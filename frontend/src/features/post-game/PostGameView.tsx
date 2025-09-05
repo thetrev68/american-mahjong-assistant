@@ -14,12 +14,14 @@ interface PostGameViewProps {
   gameId?: string
   onClose?: () => void
   onNavigateToHistory?: () => void
+  onPlayAgain?: (gameSettings?: { coPilotMode?: 'everyone' | 'solo'; selectedPatterns?: unknown[] }) => void
 }
 
 export const PostGameView: React.FC<PostGameViewProps> = ({
   gameId,
   onClose,
-  onNavigateToHistory
+  onNavigateToHistory,
+  onPlayAgain
 }) => {
   const {
     selectedGame,
@@ -57,6 +59,19 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
     } finally {
       setIsSharing(false)
     }
+  }
+
+  // Handle play again
+  const handlePlayAgain = () => {
+    if (!selectedGame || !onPlayAgain) return
+    
+    // Pass the game settings to create a similar game
+    const gameSettings = {
+      coPilotMode: selectedGame.coPilotMode,
+      selectedPatterns: selectedGame.selectedPatterns
+    }
+    
+    onPlayAgain(gameSettings)
   }
 
   // Handle navigation
@@ -157,11 +172,17 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
             </div>
             <div>
               <h2 className="text-2xl font-bold">
-                {selectedGame.outcome === 'won' ? 'Victory!' : 
-                 selectedGame.outcome === 'lost' ? 'Learning Experience' : 'Draw Game'}
+                {selectedGame.coPilotMode === 'solo' ? (
+                  selectedGame.outcome === 'won' ? 'Mahjong Achieved!' : 
+                  selectedGame.outcome === 'lost' ? 'Co-Pilot Analysis Complete' : 'Game Tracked'
+                ) : (
+                  selectedGame.outcome === 'won' ? 'Victory!' : 
+                  selectedGame.outcome === 'lost' ? 'Learning Experience' : 'Draw Game'
+                )}
               </h2>
               <p className="text-lg">
-                Final Score: <span className="font-bold">{selectedGame.finalScore}</span>
+                {selectedGame.coPilotMode === 'solo' ? 'Your Performance' : 'Final Score'}: 
+                <span className="font-bold"> {selectedGame.finalScore}</span>
                 {selectedGame.winningPattern && (
                   <span className="ml-4">
                     Pattern: <span className="font-semibold">{selectedGame.winningPattern.Hand_Description}</span>
@@ -274,7 +295,7 @@ export const PostGameView: React.FC<PostGameViewProps> = ({
             <Button variant="outline">
               Compare Games
             </Button>
-            <Button>
+            <Button onClick={handlePlayAgain}>
               Play Again
             </Button>
           </div>
@@ -456,35 +477,94 @@ const LearningInsightsTab: React.FC<{
     (rec as { relatedGames: string[] }).relatedGames.includes(game.id)
   )
 
+  const isSoloMode = game.coPilotMode === 'solo'
+
   return (
     <div className="space-y-6">
+      {/* Solo-specific performance insights */}
+      {isSoloMode && (
+        <Card className="p-6 bg-gradient-to-r from-purple-50 to-blue-50">
+          <h3 className="text-lg font-semibold mb-4 text-purple-800">Personal Performance Analysis</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
+              <div className="text-2xl font-bold text-purple-600">
+                {game.selectedPatterns?.length || 0}
+              </div>
+              <div className="text-sm text-gray-600">Patterns Targeted</div>
+            </div>
+            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
+              <div className="text-2xl font-bold text-blue-600">
+                {game.turns?.length || 0}
+              </div>
+              <div className="text-sm text-gray-600">Turns Played</div>
+            </div>
+            <div className="text-center p-3 bg-white rounded-lg shadow-sm">
+              <div className="text-2xl font-bold text-green-600">
+                {Math.round((game.insights.patternProgress?.[0]?.completionPercentage || 0) * 100)}%
+              </div>
+              <div className="text-sm text-gray-600">Best Pattern Progress</div>
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 italic">
+            Solo mode analysis focuses on your personal strategic decisions and pattern development during this physical game.
+          </p>
+        </Card>
+      )}
+
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Learning Opportunities</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          {isSoloMode ? 'Your Strategic Insights' : 'Learning Opportunities'}
+        </h3>
         <div className="space-y-3">
           {game.insights.learningOpportunities.map((opportunity, index) => (
             <div key={index} className="flex items-start space-x-3">
               <span className="text-blue-500 mt-1">💡</span>
-              <span className="text-gray-700">{opportunity}</span>
+              <span className="text-gray-700">
+                {isSoloMode && opportunity.includes('compared to') 
+                  ? opportunity.replace(/compared to.*?\./, 'for your strategic development.')
+                  : opportunity}
+              </span>
             </div>
           ))}
+          {isSoloMode && (
+            <div className="flex items-start space-x-3 mt-4 p-3 bg-blue-50 rounded-lg">
+              <span className="text-purple-500 mt-1">🎯</span>
+              <span className="text-gray-700">
+                Your co-pilot assistance helped track {game.turns?.filter(turn => turn.action?.includes('recommended')).length || 0} AI-guided decisions during this game.
+              </span>
+            </div>
+          )}
         </div>
       </Card>
 
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Recommended Patterns</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          {isSoloMode ? 'Patterns for Next Game' : 'Recommended Patterns'}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           {game.insights.recommendedPatterns.map((pattern, index) => (
             <div key={index} className="p-3 bg-blue-50 rounded-lg border border-blue-200">
               <div className="font-medium text-blue-800">{pattern}</div>
-              <div className="text-sm text-blue-600">Practice this pattern next</div>
+              <div className="text-sm text-blue-600">
+                {isSoloMode ? 'Consider targeting in your next physical game' : 'Practice this pattern next'}
+              </div>
             </div>
           ))}
+          {isSoloMode && game.insights.recommendedPatterns.length === 0 && (
+            <div className="col-span-full p-3 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="text-sm text-gray-600 text-center">
+                Pattern recommendations will appear here based on your game performance
+              </div>
+            </div>
+          )}
         </div>
       </Card>
 
       {gameRecommendations.length > 0 && (
         <Card className="p-6">
-          <h3 className="text-lg font-semibold mb-4">Personalized Recommendations</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {isSoloMode ? 'Personal Strategy Tips' : 'Personalized Recommendations'}
+          </h3>
           <div className="space-y-4">
             {gameRecommendations.map((rec) => (
               <div key={rec.id} className="border rounded-lg p-4">
@@ -498,7 +578,11 @@ const LearningInsightsTab: React.FC<{
                     {rec.priority} priority
                   </span>
                 </div>
-                <p className="text-gray-600 text-sm mb-2">{rec.description}</p>
+                <p className="text-gray-600 text-sm mb-2">
+                  {isSoloMode && rec.description.includes('other players')
+                    ? rec.description.replace(/other players/g, 'opponents in future games')
+                    : rec.description}
+                </p>
                 <p className="text-blue-600 text-sm font-medium mb-2">{rec.actionable}</p>
                 <p className="text-gray-500 text-xs">{rec.estimatedImpact}</p>
               </div>
@@ -512,41 +596,186 @@ const LearningInsightsTab: React.FC<{
 
 // Social Tab Component
 const SocialTab: React.FC<{ game: CompletedGame }> = ({ game }) => {
+  const isSoloMode = game.coPilotMode === 'solo'
+
+  const handleExportAnalysis = () => {
+    const exportData = {
+      gameId: game.id,
+      date: game.createdAt,
+      mode: game.coPilotMode,
+      outcome: game.outcome,
+      playerData: {
+        selectedPatterns: game.selectedPatterns,
+        turns: game.turns?.length || 0,
+        patternProgress: game.insights.patternProgress,
+        learningOpportunities: game.insights.learningOpportunities,
+        recommendedPatterns: game.insights.recommendedPatterns
+      },
+      ...(isSoloMode ? {
+        personalAnalytics: {
+          aiRecommendationsFollowed: game.turns?.filter(turn => turn.action?.includes('recommended')).length || 0,
+          bestPatternCompletion: Math.round((game.insights.patternProgress?.[0]?.completionPercentage || 0) * 100),
+          strategicDecisions: game.turns?.length || 0,
+          gameType: 'Physical 4-player game with app assistance'
+        }
+      } : {
+        multiplayerData: {
+          playerCount: game.players?.length || 0,
+          sharedInsights: game.shared
+        }
+      })
+    }
+
+    const dataStr = JSON.stringify(exportData, null, 2)
+    const dataBlob = new Blob([dataStr], { type: 'application/json' })
+    const url = URL.createObjectURL(dataBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `mahjong-game-${game.id}-${new Date().toISOString().split('T')[0]}.json`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleExportSummary = () => {
+    const summary = `AMERICAN MAHJONG GAME ANALYSIS
+${isSoloMode ? 'Solo Co-Pilot Mode' : 'Multiplayer Mode'}
+Date: ${new Date(game.createdAt).toLocaleDateString()}
+Game ID: ${game.id}
+
+GAME OUTCOME: ${game.outcome === 'mahjong' ? '🏆 Mahjong!' : 
+             game.outcome === 'wall' ? '🧱 Wall Game' : 
+             game.outcome === 'pass-out' ? '🤝 Pass Out' : game.outcome}
+
+${isSoloMode ? `PERSONAL PERFORMANCE:
+• Patterns Targeted: ${game.selectedPatterns?.length || 0}
+• Strategic Decisions: ${game.turns?.length || 0} turns
+• AI Recommendations Followed: ${game.turns?.filter(turn => turn.action?.includes('recommended')).length || 0}
+• Best Pattern Progress: ${Math.round((game.insights.patternProgress?.[0]?.completionPercentage || 0) * 100)}%
+
+LEARNING INSIGHTS:
+${game.insights.learningOpportunities.map((insight, index) => `${index + 1}. ${insight}`).join('\n')}
+
+RECOMMENDED PATTERNS FOR NEXT GAME:
+${game.insights.recommendedPatterns.map(pattern => `• ${pattern}`).join('\n')}
+
+Note: This was a physical 4-player game where you used the app as an intelligent co-pilot assistant.
+` : `MULTIPLAYER ANALYSIS:
+• Players: ${game.players?.length || 0}
+• Community Shared: ${game.shared ? 'Yes' : 'No'}
+
+INSIGHTS:
+${game.insights.learningOpportunities.map((insight, index) => `${index + 1}. ${insight}`).join('\n')}
+
+RECOMMENDED PATTERNS:
+${game.insights.recommendedPatterns.map(pattern => `• ${pattern}`).join('\n')}
+`}
+
+Generated by American Mahjong Assistant - ${new Date().toLocaleDateString()}`
+
+    const summaryBlob = new Blob([summary], { type: 'text/plain' })
+    const url = URL.createObjectURL(summaryBlob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `mahjong-summary-${game.id}-${new Date().toISOString().split('T')[0]}.txt`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="space-y-6">
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Share This Game</h3>
+        <h3 className="text-lg font-semibold mb-4">
+          {isSoloMode ? 'Export Your Game Data' : 'Share This Game'}
+        </h3>
         <div className="space-y-4">
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span>Share with community</span>
-            <Button size="sm" disabled={game.shared}>
-              {game.shared ? 'Shared ✓' : 'Share'}
+          {!isSoloMode && (
+            <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+              <span>Share with community</span>
+              <Button size="sm" disabled={game.shared}>
+                {game.shared ? 'Shared ✓' : 'Share'}
+              </Button>
+            </div>
+          )}
+          
+          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
+            <div className="flex flex-col">
+              <span className="font-medium">
+                {isSoloMode ? 'Export detailed analysis' : 'Export analysis'}
+              </span>
+              {isSoloMode && (
+                <span className="text-sm text-gray-600">JSON format with personal analytics</span>
+              )}
+            </div>
+            <Button size="sm" variant="outline" onClick={handleExportAnalysis}>
+              Export Data
             </Button>
           </div>
-          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-            <span>Export analysis</span>
-            <Button size="sm" variant="outline">
-              Export
+
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+            <div className="flex flex-col">
+              <span className="font-medium">Export game summary</span>
+              <span className="text-sm text-gray-600">
+                {isSoloMode ? 'Text summary for your game journal' : 'Human-readable summary'}
+              </span>
+            </div>
+            <Button size="sm" variant="outline" onClick={handleExportSummary}>
+              Export Summary
             </Button>
           </div>
+
+          {isSoloMode && (
+            <div className="p-3 bg-purple-50 rounded-lg border border-purple-200">
+              <div className="text-sm text-purple-800 font-medium mb-2">📱 Solo Mode Export</div>
+              <p className="text-sm text-purple-700">
+                Your exports contain only your personal data and insights from this physical 4-player game. 
+                No other player information is included.
+              </p>
+            </div>
+          )}
         </div>
       </Card>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Community Feedback</h3>
-        {game.votes > 0 ? (
-          <div className="space-y-3">
-            <div className="flex items-center space-x-3">
-              <span className="text-green-600">👍</span>
-              <span>{game.votes} people found this game helpful</span>
+      {!isSoloMode && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Community Feedback</h3>
+          {game.votes > 0 ? (
+            <div className="space-y-3">
+              <div className="flex items-center space-x-3">
+                <span className="text-green-600">👍</span>
+                <span>{game.votes} people found this game helpful</span>
+              </div>
+            </div>
+          ) : (
+            <p className="text-gray-500 text-center py-8">
+              Share this game to receive community feedback
+            </p>
+          )}
+        </Card>
+      )}
+
+      {isSoloMode && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Game Journal Tips</h3>
+          <div className="space-y-3 text-sm text-gray-600">
+            <div className="flex items-start space-x-2">
+              <span className="text-blue-500 mt-0.5">💡</span>
+              <span>Use the exported summary to track your progress over multiple physical games</span>
+            </div>
+            <div className="flex items-start space-x-2">
+              <span className="text-purple-500 mt-0.5">📊</span>
+              <span>The detailed JSON export can be imported into spreadsheet software for deeper analysis</span>
+            </div>
+            <div className="flex items-start space-x-2">
+              <span className="text-green-500 mt-0.5">🎯</span>
+              <span>Review recommended patterns before your next physical game session</span>
             </div>
           </div>
-        ) : (
-          <p className="text-gray-500 text-center py-8">
-            Share this game to receive community feedback
-          </p>
-        )}
-      </Card>
+        </Card>
+      )}
     </div>
   )
 }

@@ -36,6 +36,7 @@ export const useGameIntelligence = (gameState: GameState | null, playerId: strin
     gameState?.turnNumber,
     gameState?.currentPlayer,
     gameState?.discardPile?.length,
+    gameState,
     playerId,
     lastAnalysisUpdate,
     intelligenceStore

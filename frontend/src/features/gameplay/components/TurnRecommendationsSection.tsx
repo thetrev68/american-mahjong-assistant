@@ -5,7 +5,7 @@ import type { TurnRecommendations } from '../../../services/turn-intelligence-en
 
 interface TurnRecommendationsSectionProps {
   recommendations: TurnRecommendations
-  onAction: (action: string, data: any) => void
+  onAction: (action: string, data: Record<string, unknown>) => void
 }
 
 export const TurnRecommendationsSection: React.FC<TurnRecommendationsSectionProps> = ({

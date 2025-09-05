@@ -6,6 +6,21 @@ import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
 import type { PlayerTile } from '../types/tile-types'
 import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
 
+interface PlayerStatistics {
+  finalPatternCompletion?: number
+  turnsPlayed?: number
+  averageTurnTime?: number
+  decisionQuality?: {
+    excellent: number
+    good: number
+    fair: number
+    poor: number
+  }
+  patternSwitch?: boolean
+  mostActive?: boolean
+  playerId?: string
+}
+
 export interface MultiplayerGameEndData {
   gameEndResult: GameEndResult
   allPlayerHands: Record<string, PlayerTile[]>
@@ -79,8 +94,10 @@ export interface MultiplayerGameEndAnalytics {
 export class MultiplayerGameEndService {
   private coordinator: GameEndCoordinator
   private multiplayerManager = getUnifiedMultiplayerManager()
+  private context: GameEndContext
 
-  constructor(private context: GameEndContext) {
+  constructor(context: GameEndContext) {
+    this.context = context
     this.coordinator = new GameEndCoordinator(context)
   }
 
@@ -169,16 +186,16 @@ export class MultiplayerGameEndService {
     const { scenario, statistics } = gameEndResult
 
     // Winner analysis
-    const winnerAnalysis = this.analyzeWinner(scenario, statistics)
+    const winnerAnalysis = this.analyzeWinner(scenario as unknown as Record<string, unknown>, statistics as unknown as Record<string, unknown>)
     
     // Player comparisons
-    const playerComparisons = this.compareAllPlayers(allPlayerHands, allPlayerPatterns, statistics)
+    const playerComparisons = this.compareAllPlayers(allPlayerHands, allPlayerPatterns, statistics as unknown as Record<string, unknown>)
     
     // Game flow analysis
-    const gameFlow = this.analyzeGameFlow(statistics)
+    const gameFlow = this.analyzeGameFlow(statistics as unknown as Record<string, unknown>)
     
     // Group insights
-    const groupInsights = this.generateGroupInsights(playerComparisons, gameFlow)
+    const groupInsights = this.generateGroupInsights(playerComparisons)
 
     return {
       winnerAnalysis,
@@ -228,13 +245,15 @@ export class MultiplayerGameEndService {
     const analytics = this.generateMultiplayerAnalytics(multiplayerData)
 
     // Broadcast final game state to all players
-    await this.multiplayerManager.emitToRoom(this.context.roomId || '', 'game-end-complete', {
-      playerStates,
-      analytics,
-      shouldNavigateToPostGame: true,
-      gameId: this.context.gameId,
-      timestamp: new Date()
-    })
+    if (this.context.roomId && this.multiplayerManager) {
+      await this.multiplayerManager.emitToRoom(this.context.roomId, 'game-end-complete', {
+        playerStates,
+        analytics,
+        shouldNavigateToPostGame: true,
+        gameId: this.context.gameId,
+        timestamp: new Date()
+      })
+    }
 
     // Wait for all players to acknowledge before allowing post-game navigation
     await this.waitForPlayerAcknowledgments()
@@ -251,7 +270,7 @@ export class MultiplayerGameEndService {
       
       try {
         // Request player's final hand via socket
-        const response = await this.multiplayerManager.emitWithResponse(
+        const response = await this.multiplayerManager?.emitWithResponse(
           'request-final-hand',
           { 
             requestingPlayerId: 'game-coordinator',
@@ -279,8 +298,8 @@ export class MultiplayerGameEndService {
     
     // Process results
     handResults.forEach((result) => {
-      if (result.status === 'fulfilled') {
-        allHands[result.value.playerId] = result.value.hand
+      if (result.status === 'fulfilled' && result.value && Array.isArray(result.value.hand)) {
+        allHands[result.value.playerId] = result.value.hand as PlayerTile[]
       }
     })
     
@@ -294,7 +313,7 @@ export class MultiplayerGameEndService {
     const patternRequests = this.context.players.map(async (player) => {
       try {
         // Request player's selected patterns via socket
-        const response = await this.multiplayerManager.emitWithResponse(
+        const response = await this.multiplayerManager?.emitWithResponse(
           'request-selected-patterns',
           { 
             requestingPlayerId: 'game-coordinator',
@@ -322,8 +341,8 @@ export class MultiplayerGameEndService {
     
     // Process results
     patternResults.forEach((result) => {
-      if (result.status === 'fulfilled') {
-        allPatterns[result.value.playerId] = result.value.patterns
+      if (result.status === 'fulfilled' && result.value && Array.isArray(result.value.patterns)) {
+        allPatterns[result.value.playerId] = result.value.patterns as NMJL2025Pattern[]
       }
     })
     
@@ -340,7 +359,8 @@ export class MultiplayerGameEndService {
     const finalScores = this.calculateGroupScores(gameEndResult, allPlayerPatterns, endType)
     
     // Broadcast to all players in room with complete game end data
-    await this.multiplayerManager.emitToRoom(this.context.roomId || '', 'multiplayer-game-ended', {
+    if (this.context.roomId && this.multiplayerManager) {
+      await this.multiplayerManager.emitToRoom(this.context.roomId, 'multiplayer-game-ended', {
       endType,
       winner: gameEndResult.scenario.winner,
       winningPattern: gameEndResult.scenario.winningPattern,
@@ -355,9 +375,10 @@ export class MultiplayerGameEndService {
         gameStartTime: this.context.gameStartTime,
         playerCount: this.context.players.length
       },
-      reason: gameEndResult.scenario.reason,
-      timestamp: multiplayerData.timestamp
-    })
+        reason: gameEndResult.scenario.reason,
+        timestamp: multiplayerData.timestamp
+      })
+    }
   }
 
   private calculateGroupScores(
@@ -407,26 +428,26 @@ export class MultiplayerGameEndService {
     return scores
   }
 
-  private analyzeWinner(scenario: any, statistics: any): MultiplayerGameEndAnalytics['winnerAnalysis'] {
+  private analyzeWinner(scenario: Record<string, unknown>, statistics: Record<string, unknown>): MultiplayerGameEndAnalytics['winnerAnalysis'] {
     if (!scenario.winner) {
       return {
         playerId: '',
         playerName: 'No Winner',
         finalScore: 0,
-        timeToWin: statistics.duration,
+        timeToWin: Number(statistics.duration) || 0,
         keyDecisions: ['Game ended without a winner']
       }
     }
 
     const winner = this.context.players.find(p => p.id === scenario.winner)
-    const winnerScore = statistics.finalScores.find((s: any) => s.playerId === scenario.winner)
+    const winnerScore = (statistics.finalScores as Array<{playerId: string; [key: string]: unknown}>)?.find((s) => s.playerId === scenario.winner)
 
     return {
-      playerId: scenario.winner,
+      playerId: String(scenario.winner),
       playerName: winner?.name || 'Unknown',
-      winningPattern: scenario.winningPattern,
-      finalScore: winnerScore?.score || 0,
-      timeToWin: statistics.duration,
+      winningPattern: scenario.winningPattern as NMJL2025Pattern | undefined,
+      finalScore: Number(winnerScore?.score) || 0,
+      timeToWin: Number(statistics.duration) || 0,
       keyDecisions: [
         'Selected winning pattern early',
         'Made optimal tile decisions',
@@ -436,26 +457,25 @@ export class MultiplayerGameEndService {
   }
 
   private compareAllPlayers(
-    allPlayerHands: Record<string, PlayerTile[]>,
+    _allPlayerHands: Record<string, PlayerTile[]>,
     allPlayerPatterns: Record<string, NMJL2025Pattern[]>,
-    statistics: any
+    statistics: Record<string, unknown>
   ): MultiplayerGameEndAnalytics['playerComparisons'] {
     const comparisons = []
 
     for (let i = 0; i < this.context.players.length; i++) {
       const player = this.context.players[i]
-      const finalHand = allPlayerHands[player.id] || []
       const patterns = allPlayerPatterns[player.id] || []
-      const playerStats = statistics.playerStats[player.id]
+      const playerStats = (statistics.playerStats as Record<string, PlayerStatistics>)?.[player.id]
 
       comparisons.push({
         playerId: player.id,
         playerName: player.name,
         rank: i + 1, // Would be calculated based on actual performance
-        patternEfficiency: playerStats?.finalPatternCompletion || 0,
-        decisionQuality: playerStats ? 
+        patternEfficiency: Number(playerStats?.finalPatternCompletion) || 0,
+        decisionQuality: playerStats?.decisionQuality ? 
           (playerStats.decisionQuality.excellent + playerStats.decisionQuality.good) / 
-          Math.max(1, Object.values(playerStats.decisionQuality).reduce((a: any, b: any) => a + b, 0)) * 100 : 50,
+          Math.max(1, (Object.values(playerStats.decisionQuality) as number[]).reduce((a: number, b: number) => a + b, 0)) * 100 : 50,
         nearMisses: patterns.slice(0, 2).map(pattern => ({
           pattern,
           completionPercentage: Math.random() * 40 + 40, // Mock data
@@ -467,17 +487,18 @@ export class MultiplayerGameEndService {
     return comparisons.sort((a, b) => b.patternEfficiency - a.patternEfficiency)
   }
 
-  private analyzeGameFlow(statistics: any): MultiplayerGameEndAnalytics['gameFlow'] {
-    const playerStats = Object.values(statistics.playerStats) as any[]
-    const totalTurns = playerStats.reduce((sum, stats) => sum + (stats.turnsPlayed || 0), 0)
+  private analyzeGameFlow(statistics: Record<string, unknown>): MultiplayerGameEndAnalytics['gameFlow'] {
+    const playerStats = Object.values(statistics.playerStats as Record<string, PlayerStatistics>)
+    const totalTurns = playerStats.reduce((sum: number, stats: PlayerStatistics) => sum + (Number(stats?.turnsPlayed) || 0), 0)
 
     return {
-      totalDuration: statistics.duration,
+      totalDuration: Number(statistics.duration) || 0,
       averageTurnTime: totalTurns > 0 ? 
-        playerStats.reduce((sum, stats) => sum + (stats.averageTurnTime || 30), 0) / playerStats.length : 30,
-      mostActivePlayer: playerStats.reduce((mostActive, stats) => 
-        (stats.turnsPlayed || 0) > (mostActive.turnsPlayed || 0) ? stats : mostActive
-      ).playerId || 'unknown',
+        playerStats.reduce((sum: number, stats: PlayerStatistics) => sum + (Number(stats?.averageTurnTime) || 30), 0) / playerStats.length : 30,
+      mostActivePlayer: playerStats.reduce((mostActive: PlayerStatistics, stats: PlayerStatistics) => 
+        (Number(stats?.turnsPlayed) || 0) > (Number(mostActive?.turnsPlayed) || 0) ? stats : mostActive, 
+        {} as PlayerStatistics
+      )?.playerId || 'unknown',
       charlestonEffectiveness: Object.fromEntries(
         this.context.players.map(p => [p.id, Math.random() * 40 + 60]) // Mock data
       ),
@@ -493,8 +514,7 @@ export class MultiplayerGameEndService {
   }
 
   private generateGroupInsights(
-    playerComparisons: MultiplayerGameEndAnalytics['playerComparisons'],
-    gameFlow: MultiplayerGameEndAnalytics['gameFlow']
+    playerComparisons: MultiplayerGameEndAnalytics['playerComparisons']
   ): MultiplayerGameEndAnalytics['groupInsights'] {
     const efficiencyRange = Math.max(...playerComparisons.map(p => p.patternEfficiency)) - 
                            Math.min(...playerComparisons.map(p => p.patternEfficiency))

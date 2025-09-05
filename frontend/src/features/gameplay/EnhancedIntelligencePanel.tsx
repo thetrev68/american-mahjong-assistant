@@ -15,13 +15,11 @@ interface EnhancedIntelligencePanelProps {
   isCurrentTurn: boolean
   callOpportunity: CallOpportunity | null
   onClose: () => void
-  onActionRecommendation: (action: string, data: any) => void
+  onActionRecommendation: (action: string, data: Record<string, unknown>) => void
 }
 
 export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps> = ({
   analysis,
-  gameState: _gameState,
-  playerId: _playerId,
   isCurrentTurn,
   callOpportunity,
   onClose,

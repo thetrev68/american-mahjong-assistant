@@ -34,7 +34,7 @@ import { useHistoryStore } from '../../stores/history-store'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
-  onNavigateToPostGame?: () => void
+  onNavigateToPostGame?: (gameId?: string) => void
 }
 
 interface GameTurn {
@@ -183,6 +183,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [passedOutPlayers] = useState<Set<string>>(new Set())
   const [showFinalHandReveal, setShowFinalHandReveal] = useState(false)
   const [finalHandRevealData, setFinalHandRevealData] = useState<FinalHandRevealData | null>(null)
+  const [completedGameId, setCompletedGameId] = useState<string | null>(null)
   // const [showTileModal, setShowTileModal] = useState(false) // Unused for now
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
@@ -406,8 +407,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       if (gameEndResult) {
         setGameEnded(true)
         
-        // Add game to history
-        historyStore.completeGame(gameEndResult.completedGameData)
+        // Add game to history and capture the ID
+        const gameId = historyStore.completeGame(gameEndResult.completedGameData)
+        setCompletedGameId(gameId)
         
         // Show appropriate alert
         gameStore.addAlert({
@@ -460,10 +462,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         const finalHandData: FinalHandRevealData = {
           allPlayerHands: gameEndCoordination.allPlayerHands,
           playerNames,
-          winnerDetails: gameEndCoordination.gameEndData.winner ? {
-            playerId: gameEndCoordination.gameEndData.winner,
+          winnerDetails: gameEndCoordination.gameEndData?.winner ? {
+            playerId: String(gameEndCoordination.gameEndData.winner),
             winningPattern: undefined, // Will be filled from game end data
-            score: gameEndCoordination.finalScores?.find(s => s.playerId === gameEndCoordination.gameEndData.winner)?.score || 0
+            score: gameEndCoordination.finalScores?.find(s => s.playerId === String(gameEndCoordination.gameEndData?.winner))?.score || 0
           } : undefined,
           gameStatistics: {
             totalTurns: gameStore.currentTurn,
@@ -480,6 +482,30 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       }
     }
   }, [gameEndCoordination, gameStore])
+
+  // Solo game end enhancements
+  useEffect(() => {
+    if (roomStore.coPilotMode === 'solo' && gameEnded && finalHandRevealData) {
+      // For solo games, add context about the real-world game result
+      const gameEndResult = gameStore.gameEndResult
+      let message = 'Review your co-pilot analysis from this game'
+      
+      if (gameEndResult?.endReason === 'mahjong') {
+        message = 'Congratulations on your mahjong! Review your winning strategy.'
+      } else if (gameEndResult?.endReason === 'other-player-mahjong') {
+        message = `${gameEndResult.winner} won. Review your hand progress and strategy.`
+      } else if (gameEndResult?.endReason === 'drawn') {
+        message = `Game drawn: ${gameEndResult.drawReason}. Review your hand development.`
+      }
+      
+      gameStore.addAlert({
+        type: 'info',
+        title: 'Game Tracking Complete',
+        message,
+        duration: 5000
+      })
+    }
+  }, [roomStore.coPilotMode, gameEnded, finalHandRevealData, gameStore])
 
   // Wall exhaustion warning
   const wallExhaustionWarning = useMemo(() => {
@@ -888,8 +914,17 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   const handleContinueToPostGame = useCallback(() => {
     setShowFinalHandReveal(false)
-    onNavigateToPostGame?.()
-  }, [onNavigateToPostGame])
+    
+    // Pass the completed game ID for seamless navigation
+    if (completedGameId && onNavigateToPostGame) {
+      // If we have the game ID, pass it to the navigation handler
+      if (typeof onNavigateToPostGame === 'function') {
+        onNavigateToPostGame(completedGameId)
+      }
+    } else {
+      onNavigateToPostGame?.()
+    }
+  }, [onNavigateToPostGame, completedGameId])
 
 
   const handlePauseGame = useCallback(() => {
@@ -947,7 +982,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           <h1 className="text-3xl font-bold text-green-600 mb-2">Mahjong!</h1>
           <p className="text-lg text-gray-600 mb-6">Congratulations! You've won the game!</p>
           <div className="space-x-4">
-            <Button onClick={onNavigateToPostGame}>
+            <Button onClick={() => onNavigateToPostGame?.()}>
               View Analysis
             </Button>
             <Button variant="outline" onClick={() => window.location.reload()}>
@@ -1129,6 +1164,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           currentPlayer={turnSelectors.currentPlayerName}
           wallCount={turnSelectors.wallCount}
           turnDuration={turnSelectors.turnDuration}
+          isSoloMode={roomStore.coPilotMode === 'solo'}
         />
       </div>
 

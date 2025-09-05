@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { GameAlert } from '../features/gameplay/AlertSystem'
 import { getTurnMultiplayerService, destroyTurnMultiplayerService } from '../services/turn-multiplayer'
-import { GameEndCoordinator, shouldGameEnd, getWallExhaustionWarning, type GameEndContext } from '../services/game-end-coordinator'
+import { shouldGameEnd, getWallExhaustionWarning, type GameEndContext } from '../services/game-end-coordinator'
 import { usePatternStore } from './pattern-store'
 import { useTileStore } from './tile-store'
 
@@ -31,7 +31,7 @@ export interface GameState {
   // Wall & Game End State
   wallTilesRemaining: number
   passedOutPlayers: Set<string>
-  gameEndResult: any | null
+  gameEndResult: Record<string, unknown> | null
   
   // Game Statistics
   currentTurn: number
@@ -63,7 +63,7 @@ export interface GameState {
   updateWallTiles: (remaining: number) => void
   markPlayerPassedOut: (playerId: string) => void
   removePassedOutPlayer: (playerId: string) => void
-  setGameEndResult: (result: any | null) => void
+  setGameEndResult: (result: Record<string, unknown> | null) => void
   checkForGameEnd: () => boolean
   
   // Game Statistics Management
@@ -189,6 +189,7 @@ export const useGameStore = create<GameState>()(
               alerts: [...state.alerts, {
                 id: `wall-warning-${Date.now()}`,
                 type: 'warning' as const,
+                title: 'Wall Running Low',
                 message: warning,
                 duration: 8000,
                 createdAt: new Date()
@@ -216,8 +217,8 @@ export const useGameStore = create<GameState>()(
 
       checkForGameEnd: () => {
         const state = useGameStore.getState()
-        const { selectedPatterns } = usePatternStore.getState()
-        const { tiles } = useTileStore.getState()
+        const selectedPatterns = usePatternStore.getState().getTargetPatterns()
+        const tiles = useTileStore.getState().playerHand
         
         if (!state.gameStartTime) return false
         
@@ -228,7 +229,20 @@ export const useGameStore = create<GameState>()(
           passedOutPlayers: state.passedOutPlayers,
           currentTurn: state.currentTurn,
           gameStartTime: state.gameStartTime,
-          selectedPatterns: selectedPatterns || [],
+          selectedPatterns: (selectedPatterns || []).map(option => ({
+            Year: 2025,
+            Section: option.section,
+            Line: option.line,
+            'Pattern ID': option.patternId,
+            Hands_Key: option.id,
+            Hand_Pattern: option.pattern,
+            Hand_Description: option.description,
+            Hand_Points: option.points,
+            Hand_Conceiled: option.concealed,
+            Hand_Difficulty: option.difficulty,
+            Hand_Notes: null,
+            Groups: option.groups
+          })),
           playerHands: { [state.currentPlayerId || 'solo']: tiles },
           roomId: state.roomCode || undefined,
           coPilotMode: state.coPilotMode || undefined
@@ -241,7 +255,7 @@ export const useGameStore = create<GameState>()(
       incrementTurn: () =>
         set((state) => ({ currentTurn: state.currentTurn + 1 }), false, 'incrementTurn'),
 
-      recordAction: (playerId: string, actionType: string) =>
+      recordAction: (playerId: string) =>
         set((state) => {
           const newStats = { ...state.gameStatistics }
           newStats.totalActions += 1

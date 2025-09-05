@@ -5,7 +5,7 @@ import type { CallOpportunity, CallRecommendation } from '../../../services/call
 interface CallOpportunityOverlayProps {
   opportunity: CallOpportunity
   recommendation?: CallRecommendation | null
-  onAction: (action: string, data: any) => void
+  onAction: (action: string, data: Record<string, unknown>) => void
 }
 
 export const CallOpportunityOverlay: React.FC<CallOpportunityOverlayProps> = ({

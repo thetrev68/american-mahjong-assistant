@@ -96,10 +96,9 @@ export const FinalHandRevealModal: React.FC<FinalHandRevealModalProps> = ({
                           <AnimatedTile
                             tile={tile}
                             onClick={() => {}}
-                            isSelected={false}
-                            isRecommended={winnerDetails?.playerId === playerId}
-                            showOutline={false}
                             size="sm"
+                            context="analysis"
+                            recommendationType={winnerDetails?.playerId === playerId ? 'keep' : undefined}
                           />
                         </div>
                       ))}

@@ -8,7 +8,7 @@ import type { Tile } from '../../../shared/tile-utils'
 import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
 
 // Game outcome types
-export type GameOutcome = 'won' | 'lost' | 'draw' | 'incomplete'
+export type GameOutcome = 'won' | 'lost' | 'draw' | 'incomplete' | 'mahjong' | 'wall' | 'pass-out' | 'forfeit'
 export type GameDifficulty = 'beginner' | 'intermediate' | 'expert'
 export type DecisionType = 'keep' | 'pass' | 'discard' | 'joker-placement' | 'charleston'
 export type DecisionQuality = 'excellent' | 'good' | 'fair' | 'poor'
@@ -52,11 +52,17 @@ export interface GameInsights {
   learningOpportunities: string[]
   recommendedPatterns: string[]
   skillProgression: string
+  patternProgress?: Array<{
+    patternId: string
+    completionPercentage: number
+    viability: string
+  }>
 }
 
 export interface CompletedGame {
   id: string
   timestamp: Date
+  createdAt: Date // Added for PostGameView compatibility
   duration: number // in minutes
   outcome: GameOutcome
   finalScore: number
@@ -66,6 +72,13 @@ export interface CompletedGame {
   selectedPatterns: NMJL2025Pattern[]
   finalHand: Tile[]
   winningPattern?: NMJL2025Pattern
+  
+  // Game turns and actions
+  turns?: Array<{
+    action: string
+    tiles?: Tile[]
+    timestamp?: Date
+  }>
   
   // Performance data
   decisions: GameDecision[]
@@ -80,6 +93,7 @@ export interface CompletedGame {
   
   // Multiplayer data (if applicable)
   roomId?: string
+  players?: Array<{ id: string; name: string }>
   playerCount?: number
   playerPosition?: 'north' | 'east' | 'south' | 'west'
   coPilotMode?: 'everyone' | 'solo'
@@ -167,7 +181,7 @@ interface HistoryState {
 interface HistoryActions {
   // Game management
   startGame: (gameId: string, difficulty: GameDifficulty) => void
-  completeGame: (gameData: Omit<CompletedGame, 'id'>) => void
+  completeGame: (gameData: Omit<CompletedGame, 'id'>) => string
   deleteGame: (gameId: string) => void
   
   // Decision tracking
@@ -255,6 +269,8 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
           // Recalculate stats after adding game
           get().calculatePerformanceStats()
           get().generateLearningRecommendations()
+          
+          return gameId
         },
 
         deleteGame: (gameId: string) => {

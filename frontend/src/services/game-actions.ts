@@ -10,7 +10,7 @@ import { useRoomStore } from '../stores/room-store'
 import { useIntelligenceStore } from '../stores/intelligence-store'
 import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
 
-export type GameAction = 'draw' | 'discard' | 'call' | 'joker-swap' | 'mahjong' | 'declare-mahjong' | 'pass-out'
+export type GameAction = 'draw' | 'discard' | 'call' | 'joker-swap' | 'mahjong' | 'declare-mahjong' | 'pass-out' | 'other-player-mahjong' | 'game-drawn'
 export type CallType = 'pung' | 'kong' | 'quint' | 'sextet'
 
 export interface ActionValidationResult {
@@ -464,6 +464,90 @@ export class GameActionsService {
     }
   }
 
+  async declareOtherPlayerMahjong(_playerId: string, winnerName: string): Promise<boolean> {
+    try {
+      const gameStore = useGameStore.getState()
+      
+      gameStore.addAlert({
+        type: 'success',
+        title: 'Game Won',
+        message: `${winnerName} declared mahjong!`
+      })
+
+      // End the game for the app user (they didn't win)
+      const gameEndData = {
+        endReason: 'other-player-mahjong' as const,
+        winner: winnerName,
+        appUserResult: 'lost' as const
+      }
+
+      gameStore.setGameEndResult(gameEndData)
+      
+      // Trigger game end
+      if (gameStore.checkForGameEnd()) {
+        gameStore.addAlert({
+          type: 'info',
+          title: 'Game Ended',
+          message: 'Recording game results...',
+          duration: 3000
+        })
+      }
+
+      console.log(`Other player ${winnerName} won the game`)
+      return true
+    } catch (error) {
+      console.error('Error recording other player mahjong:', error)
+      useGameStore.getState().addAlert({
+        type: 'warning',
+        title: 'Game End Failed',
+        message: 'Failed to record game end. Please try again.'
+      })
+      return false
+    }
+  }
+
+  async declareGameDrawn(_playerId: string, reason: string): Promise<boolean> {
+    try {
+      const gameStore = useGameStore.getState()
+      
+      gameStore.addAlert({
+        type: 'info',
+        title: 'Game Drawn',
+        message: `Game ended: ${reason}`
+      })
+
+      // End the game as a draw
+      const gameEndData = {
+        endReason: 'drawn' as const,
+        drawReason: reason,
+        appUserResult: 'drawn' as const
+      }
+
+      gameStore.setGameEndResult(gameEndData)
+      
+      // Trigger game end
+      if (gameStore.checkForGameEnd()) {
+        gameStore.addAlert({
+          type: 'info',
+          title: 'Game Ended',
+          message: 'Recording game results...',
+          duration: 3000
+        })
+      }
+
+      console.log(`Game drawn: ${reason}`)
+      return true
+    } catch (error) {
+      console.error('Error recording game draw:', error)
+      useGameStore.getState().addAlert({
+        type: 'warning',
+        title: 'Game End Failed',
+        message: 'Failed to record game end. Please try again.'
+      })
+      return false
+    }
+  }
+
   // Action Validation
 
   validateAction(action: GameAction, gameState: GameState, playerId: string, actionData?: unknown): ActionValidationResult {
@@ -511,6 +595,14 @@ export class GameActionsService {
         return { isValid: true }
 
       case 'pass-out':
+        return { isValid: true }
+
+      case 'other-player-mahjong':
+        // Solo mode - app user can record other player wins
+        return { isValid: true }
+
+      case 'game-drawn':
+        // Solo mode - app user can record game draws
         return { isValid: true }
 
       default:

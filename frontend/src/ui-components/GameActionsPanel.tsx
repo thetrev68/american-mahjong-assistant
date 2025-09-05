@@ -14,6 +14,7 @@ export interface GameActionsPanelProps {
   wallCount?: number
   turnDuration?: number
   className?: string
+  isSoloMode?: boolean
 }
 
 export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
@@ -23,21 +24,41 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   currentPlayer,
   wallCount = 0,
   turnDuration = 0,
-  className = ''
+  className = '',
+  isSoloMode = false
 }) => {
   const handleDrawTile = async () => {
     await onAction('draw')
   }
 
   const handlePassOut = async () => {
-    const confirmed = window.confirm('Are you sure you want to pass out? This will remove you from active play.')
+    const message = isSoloMode ? 
+      'Pass out of this hand? You can still track the game as other players continue.' :
+      'Are you sure you want to pass out? This will remove you from active play.'
+    
+    const confirmed = window.confirm(message)
     if (confirmed) {
-      await onAction('pass-out', 'Hand not viable')
+      const reason = isSoloMode ? 'Hand not viable - continuing to track game' : 'Hand not viable'
+      await onAction('pass-out', reason)
     }
   }
 
   const handleMahjong = async () => {
     await onAction('declare-mahjong')
+  }
+
+  const handleOtherPlayerWon = async () => {
+    const playerName = window.prompt('Which player won? Enter their name:')
+    if (playerName) {
+      await onAction('other-player-mahjong', playerName)
+    }
+  }
+
+  const handleGameDrawn = async () => {
+    const reason = window.prompt('Why did the game end?\n(wall exhausted / all passed out / time limit)')
+    if (reason) {
+      await onAction('game-drawn', reason)
+    }
   }
 
   const canDraw = availableActions.includes('draw') && isMyTurn && wallCount > 0
@@ -146,6 +167,30 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
             </Button>
           </div>
         </div>
+
+        {/* Solo Mode Game End Controls */}
+        {isSoloMode && (
+          <div className="border-t pt-3">
+            <div className="text-xs font-medium text-gray-700 mb-2">Game End (Physical Game)</div>
+            <div className="space-y-2">
+              <Button
+                onClick={handleOtherPlayerWon}
+                variant="secondary"
+                className="w-full text-xs py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
+              >
+                🏆 Other Player Won
+              </Button>
+              
+              <Button
+                onClick={handleGameDrawn}
+                variant="secondary" 
+                className="w-full text-xs py-1 bg-gray-100 hover:bg-gray-200 text-gray-800"
+              >
+                🤝 Game Drawn
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Debug Info (development only) */}
         {process.env.NODE_ENV === 'development' && (

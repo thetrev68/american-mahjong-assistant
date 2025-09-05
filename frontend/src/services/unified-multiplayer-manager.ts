@@ -50,7 +50,7 @@ const DEFAULT_CONFIG: MultiplayerManagerConfig = {
 export class UnifiedMultiplayerManager {
   private static instance: UnifiedMultiplayerManager | null = null
   private config: MultiplayerManagerConfig
-  private socket: Socket | null = null
+  private _socket: Socket | null = null
   private playerId: string | null = null
   private playerName: string | null = null
   private isInitialized = false
@@ -69,6 +69,11 @@ export class UnifiedMultiplayerManager {
     return UnifiedMultiplayerManager.instance
   }
 
+  // Public getter for socket access
+  get socket(): Socket | null {
+    return this._socket
+  }
+
   // Initialize all multiplayer services with connection resilience
   async initialize(socket: Socket, playerId: string, playerName: string): Promise<void> {
     if (this.isInitialized) {
@@ -76,7 +81,7 @@ export class UnifiedMultiplayerManager {
       return
     }
 
-    this.socket = socket
+    this._socket = socket
     this.playerId = playerId
     this.playerName = playerName
 
@@ -167,10 +172,10 @@ export class UnifiedMultiplayerManager {
 
   // Set up event coordination between services
   private setupEventCoordination(): void {
-    if (!this.socket) return
+    if (!this._socket) return
 
     // Cross-service event handlers
-    this.socket.on('service-state-sync', (data: { service: string; state: unknown }) => {
+    this._socket.on('service-state-sync', (data: { service: string; state: unknown }) => {
       console.log('Cross-service state sync:', data.service)
       
       switch (data.service) {
@@ -189,7 +194,7 @@ export class UnifiedMultiplayerManager {
     })
 
     // Process queued events when connection is restored
-    this.socket.on('connect', async () => {
+    this._socket.on('connect', async () => {
       console.log('Connection restored - processing event queue')
       await this.processEventQueue()
     })
@@ -203,13 +208,13 @@ export class UnifiedMultiplayerManager {
     if (!resilienceService || !disconnectionManager) return
 
     // Handle successful reconnection
-    this.socket?.on('connect', () => {
+    this._socket?.on('connect', () => {
       console.log('Reconnection successful - resyncing all services')
       this.resyncAllServices()
     })
 
     // Handle disconnection with recovery preparation
-    this.socket?.on('disconnect', (reason: string) => {
+    this._socket?.on('disconnect', (reason: string) => {
       console.log('Connection lost - preparing service recovery:', reason)
       this.prepareServiceRecovery(reason)
     })
@@ -325,11 +330,11 @@ export class UnifiedMultiplayerManager {
     // Create emit function for event queue manager
     const emitFunction = async (eventType: string, data: unknown): Promise<boolean> => {
       try {
-        if (!this.socket?.connected) {
+        if (!this._socket?.connected) {
           return false
         }
         
-        this.socket.emit(eventType, data)
+        this._socket.emit(eventType, data)
         return true
       } catch (error) {
         console.error(`Failed to emit queued event ${eventType}:`, error)
@@ -362,7 +367,7 @@ export class UnifiedMultiplayerManager {
     
     let connectionHealthStatus: 'healthy' | 'degraded' | 'poor' | 'offline'
     
-    if (!this.socket?.connected) {
+    if (!this._socket?.connected) {
       connectionHealthStatus = 'offline'
     } else if (networkHealth.consecutiveFailures === 0 && networkHealth.latency !== null && networkHealth.latency < 100) {
       connectionHealthStatus = 'healthy'
@@ -403,7 +408,7 @@ export class UnifiedMultiplayerManager {
       return false
     }
 
-    if (!this.socket?.connected) {
+    if (!this._socket?.connected) {
       console.log(`Queueing event for ${serviceName} - connection not available`)
       
       // Queue event with advanced event queue manager
@@ -423,7 +428,7 @@ export class UnifiedMultiplayerManager {
     }
 
     try {
-      this.socket.emit(event, data)
+      this._socket.emit(event, data)
       return true
     } catch (error) {
       console.error(`Failed to emit event to ${serviceName}:`, error)
@@ -452,8 +457,8 @@ export class UnifiedMultiplayerManager {
       timeout?: number
       priority?: 'critical' | 'high' | 'medium' | 'low'
     }
-  ): Promise<any> {
-    if (!this.socket?.connected) {
+  ): Promise<Record<string, unknown>> {
+    if (!this._socket?.connected) {
       throw new Error('Socket not connected')
     }
 
@@ -467,17 +472,17 @@ export class UnifiedMultiplayerManager {
       // Create response event name
       const responseEvent = event.replace('request-', '') + '-response'
       
-      const responseHandler = (responseData: any) => {
+      const responseHandler = (responseData: Record<string, unknown>) => {
         clearTimeout(timeoutId)
-        this.socket?.off(responseEvent, responseHandler)
+        this._socket?.off(responseEvent, responseHandler)
         resolve(responseData)
       }
 
       // Listen for response
-      this.socket.on(responseEvent, responseHandler)
+      this._socket?.on(responseEvent, responseHandler)
       
       // Emit the request
-      this.socket.emit(event, data)
+      this._socket?.emit(event, data)
     })
   }
 
@@ -487,13 +492,13 @@ export class UnifiedMultiplayerManager {
     event: string,
     data: unknown
   ): Promise<boolean> {
-    if (!this.socket?.connected) {
+    if (!this._socket?.connected) {
       console.log('Queueing room event - connection not available')
       return false
     }
 
     try {
-      this.socket.emit(event, { ...data, roomId })
+      this._socket?.emit(event, { ...(data as Record<string, unknown>), roomId })
       return true
     } catch (error) {
       console.error(`Failed to emit event to room ${roomId}:`, error)
@@ -536,9 +541,9 @@ export class UnifiedMultiplayerManager {
       }
 
       // Clean up event listeners
-      this.socket?.off('service-state-sync')
-      this.socket?.off('connect')
-      this.socket?.off('disconnect')
+      this._socket?.off('service-state-sync')
+      this._socket?.off('connect')
+      this._socket?.off('disconnect')
 
       // Clear event queue manager
       if (this.eventQueueManager) {
@@ -548,7 +553,7 @@ export class UnifiedMultiplayerManager {
 
       // Clear state
       this.activeServices.clear()
-      this.socket = null
+      this._socket = null
       this.playerId = null
       this.playerName = null
       this.isInitialized = false

@@ -413,6 +413,16 @@ export const useTurnStore = create<TurnStore>()(
                 success = await gameActions.declarePassOut(playerId, reason)
                 break
               }
+              case 'other-player-mahjong': {
+                const winnerName = typeof data === 'string' ? data : 'Other Player'
+                success = await gameActions.declareOtherPlayerMahjong(playerId, winnerName)
+                break
+              }
+              case 'game-drawn': {
+                const reason = typeof data === 'string' ? data : 'Game drawn'
+                success = await gameActions.declareGameDrawn(playerId, reason)
+                break
+              }
             }
 
             // Update action timestamp if successful

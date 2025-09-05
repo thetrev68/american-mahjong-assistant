@@ -254,6 +254,7 @@ export function useGameHistory() {
       const completedGameData = {
         ...gameData,
         timestamp: new Date(),
+        createdAt: new Date(),
         decisions: gameAnalysis.decisions,
         patternAnalyses: gameAnalysis.patternAnalyses,
         performance: gameAnalysis.performance,

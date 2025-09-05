@@ -8,11 +8,10 @@ import { useTileStore } from '../stores/tile-store'
 import { useGameStore } from '../stores/game-store'
 import { getUnifiedMultiplayerManager } from '../services/unified-multiplayer-manager'
 import type { PlayerTile } from '../types/tile-types'
-import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
 
 interface GameEndCoordinationState {
   isCoordinatingGameEnd: boolean
-  gameEndData: any | null
+  gameEndData: Record<string, unknown> | null
   allPlayerHands: Record<string, PlayerTile[]> | null
   finalScores: Array<{ playerId: string; playerName: string; score: number; pattern?: string }> | null
   shouldNavigateToPostGame: boolean
@@ -44,45 +43,45 @@ export const useGameEndCoordination = () => {
   const multiplayerManager = getUnifiedMultiplayerManager()
 
   useEffect(() => {
-    if (!multiplayerManager?.manager?.socket) return
+    if (!multiplayerManager?.socket) return
 
-    const socket = multiplayerManager.manager.socket
+    const socket = multiplayerManager.socket
 
     // Listen for game end coordination
-    const handleGameEndCoordinated = (data: any) => {
+    const handleGameEndCoordinated = (data: Record<string, unknown>) => {
       console.log('Game end coordinated:', data)
       
       setState(prev => ({
         ...prev,
         isCoordinatingGameEnd: true,
         gameEndData: data,
-        finalScores: data.finalScores,
+        finalScores: Array.isArray(data.finalScores) ? data.finalScores as Array<{ playerId: string; playerName: string; score: number; pattern?: string }> : null,
         shouldNavigateToPostGame: true
       }))
       
       // Show game end notification
       gameStore.addAlert({
-        type: data.endType === 'mahjong' ? 'success' : 'info',
+        type: String(data.endType) === 'mahjong' ? 'success' : 'info',
         title: 'Game Complete',
-        message: data.reason || `Game ended: ${data.endType}`,
+        message: String(data.reason) || `Game ended: ${String(data.endType)}`,
         duration: 5000
       })
     }
 
     // Listen for requests to provide final hand
-    const handleProvideHandRequest = (data: any) => {
+    const handleProvideHandRequest = (data: Record<string, unknown>) => {
       const { requestingPlayerId, gameId, responseId } = data
       
       // Add to pending requests
       setPendingRequests(prev => [...prev, {
-        requestId: responseId,
+        requestId: String(responseId),
         type: 'final-hand',
-        requestingPlayerId,
-        gameId
+        requestingPlayerId: String(requestingPlayerId),
+        gameId: String(gameId)
       }])
 
       // Automatically provide our current hand
-      const currentHand = tileStore.tiles
+      const currentHand = tileStore.playerHand
       socket.emit('provide-final-hand-response', {
         hand: currentHand,
         responseId
@@ -90,15 +89,15 @@ export const useGameEndCoordination = () => {
     }
 
     // Listen for requests to provide selected patterns
-    const handleProvidePatternRequest = (data: any) => {
+    const handleProvidePatternRequest = (data: Record<string, unknown>) => {
       const { requestingPlayerId, gameId, responseId } = data
       
       // Add to pending requests
       setPendingRequests(prev => [...prev, {
-        requestId: responseId,
+        requestId: String(responseId),
         type: 'selected-patterns',
-        requestingPlayerId,
-        gameId
+        requestingPlayerId: String(requestingPlayerId),
+        gameId: String(gameId)
       }])
 
       // Automatically provide our selected patterns
@@ -110,14 +109,14 @@ export const useGameEndCoordination = () => {
     }
 
     // Listen for final hand responses (for collecting all hands)
-    const handleFinalHandProvided = (data: any) => {
+    const handleFinalHandProvided = (data: Record<string, unknown>) => {
       const { playerId, hand } = data
       
       setState(prev => ({
         ...prev,
         allPlayerHands: {
           ...prev.allPlayerHands,
-          [playerId]: hand
+          [String(playerId)]: hand as PlayerTile[]
         }
       }))
     }
