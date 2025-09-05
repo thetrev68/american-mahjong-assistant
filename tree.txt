@@ -2,7 +2,7 @@ american-mahjong-assistant/
 ├── .claude/
 │   ├── agents/
 │   │   └── code-reviewer.md
-│   └── settings.local.json (27 lines)
+│   └── settings.local.json (29 lines)
 ├── backend/
 │   ├── src/
 │   │   ├── __tests__/
@@ -18,7 +18,7 @@ american-mahjong-assistant/
 │   │   │   │   ├── player-coordination-manager.ts (265 lines)
 │   │   │   │   └── room-lifecycle-manager.ts (304 lines)
 │   │   │   ├── socket-communication/
-│   │   │   │   └── socket-handlers.ts (972 lines)
+│   │   │   │   └── socket-handlers.ts (1364 lines)
 │   │   │   └── state-sync/
 │   │   │       └── state-sync-manager.ts (261 lines)
 │   │   ├── types/
@@ -54,8 +54,8 @@ american-mahjong-assistant/
 │   │   │   │   ├── AlertSystem.tsx (194 lines)
 │   │   │   │   ├── DiscardPile.tsx (94 lines)
 │   │   │   │   ├── DiscardPileZone.tsx (53 lines)
-│   │   │   │   ├── EnhancedIntelligencePanel.tsx (129 lines)
-│   │   │   │   ├── GameModeView.tsx (750 lines)
+│   │   │   │   ├── EnhancedIntelligencePanel.tsx (127 lines)
+│   │   │   │   ├── GameModeView.tsx (1090 lines)
 │   │   │   │   ├── GameScreenLayout.tsx (142 lines)
 │   │   │   │   ├── GameTimer.tsx (33 lines)
 │   │   │   │   ├── index.ts (3 lines)
@@ -83,7 +83,7 @@ american-mahjong-assistant/
 │   │   │   │   ├── PatternSelectionPage.tsx (129 lines)
 │   │   │   │   └── SelectedPatternsPanel.tsx (158 lines)
 │   │   │   ├── post-game/
-│   │   │   │   └── PostGameView.tsx (551 lines)
+│   │   │   │   └── PostGameView.tsx (758 lines)
 │   │   │   ├── room-setup/
 │   │   │   │   ├── __tests__/
 │   │   │   │   │   ├── CoPilotModeSelector.test.tsx (154 lines)
@@ -129,8 +129,9 @@ american-mahjong-assistant/
 │   │   │   ├── useConnectionResilienceTest.ts (200 lines)
 │   │   │   ├── useConnectionStatus.ts (19 lines)
 │   │   │   ├── useCoPilotMode.ts (68 lines)
-│   │   │   ├── useGameHistory.ts (554 lines)
-│   │   │   ├── useGameIntelligence.ts (42 lines)
+│   │   │   ├── useGameEndCoordination.ts (141 lines)
+│   │   │   ├── useGameHistory.ts (555 lines)
+│   │   │   ├── useGameIntelligence.ts (43 lines)
 │   │   │   ├── useHapticFeedback.ts (274 lines)
 │   │   │   ├── useMultiplayer.ts (358 lines)
 │   │   │   ├── usePerformance.ts (306 lines)
@@ -143,8 +144,10 @@ american-mahjong-assistant/
 │   │   ├── services/
 │   │   │   ├── __tests__/
 │   │   │   │   ├── analysis-engine-cache-simple.test.ts (41 lines)
+│   │   │   │   ├── game-end-coordinator.test.ts (176 lines)
 │   │   │   │   ├── improved-scoring-verification.test.ts (136 lines)
 │   │   │   │   ├── intelligence-integration.test.ts (354 lines)
+│   │   │   │   ├── mahjong-validator.test.ts (135 lines)
 │   │   │   │   ├── nmjl-service.test.ts (295 lines)
 │   │   │   │   ├── pattern-analysis-engine.test.ts (357 lines)
 │   │   │   │   ├── pattern-ranking-engine.test.ts (421 lines)
@@ -157,7 +160,11 @@ american-mahjong-assistant/
 │   │   │   ├── connection-resilience.ts (344 lines)
 │   │   │   ├── disconnection-manager.ts (422 lines)
 │   │   │   ├── event-queue-manager.ts (372 lines)
-│   │   │   ├── game-actions.ts (535 lines)
+│   │   │   ├── game-actions.ts (624 lines)
+│   │   │   ├── game-end-coordinator.ts (283 lines)
+│   │   │   ├── game-statistics.ts (380 lines)
+│   │   │   ├── mahjong-validator.ts (347 lines)
+│   │   │   ├── multiplayer-game-end.ts (501 lines)
 │   │   │   ├── network-error-handler.ts (404 lines)
 │   │   │   ├── nmjl-service.ts (165 lines)
 │   │   │   ├── opponent-analysis-engine.ts (393 lines)
@@ -172,22 +179,22 @@ american-mahjong-assistant/
 │   │   │   ├── turn-multiplayer.ts (185 lines)
 │   │   │   ├── turn-realtime.ts (472 lines)
 │   │   │   ├── turn-solo-mode.ts (125 lines)
-│   │   │   └── unified-multiplayer-manager.ts (471 lines)
+│   │   │   └── unified-multiplayer-manager.ts (525 lines)
 │   │   ├── stores/
 │   │   │   ├── __tests__/
 │   │   │   │   ├── multiplayer-store.test.ts (314 lines)
 │   │   │   │   ├── pattern-store.test.ts (243 lines)
 │   │   │   │   └── room-store.test.ts (219 lines)
 │   │   │   ├── charleston-store.ts (436 lines)
-│   │   │   ├── game-store.ts (129 lines)
-│   │   │   ├── history-store.ts (470 lines)
+│   │   │   ├── game-store.ts (293 lines)
+│   │   │   ├── history-store.ts (484 lines)
 │   │   │   ├── index.ts (28 lines)
 │   │   │   ├── intelligence-store.ts (413 lines)
 │   │   │   ├── multiplayer-store.ts (239 lines)
 │   │   │   ├── pattern-store.ts (201 lines)
 │   │   │   ├── room-store.ts (468 lines)
 │   │   │   ├── tile-store.ts (482 lines)
-│   │   │   ├── turn-store.ts (508 lines)
+│   │   │   ├── turn-store.ts (528 lines)
 │   │   │   ├── tutorial-store.ts (260 lines)
 │   │   │   └── ui-store.ts (76 lines)
 │   │   ├── test/
@@ -224,10 +231,12 @@ american-mahjong-assistant/
 │   │   │   ├── ConfidenceBadge.tsx (30 lines)
 │   │   │   ├── ConnectionStatusIndicator.tsx (293 lines)
 │   │   │   ├── CountdownTimer.tsx (42 lines)
-│   │   │   ├── GameActionsPanel.tsx (151 lines)
+│   │   │   ├── FinalHandRevealModal.tsx (131 lines)
+│   │   │   ├── GameActionsPanel.tsx (188 lines)
 │   │   │   ├── HostControls.tsx (261 lines)
 │   │   │   ├── index.ts (12 lines)
 │   │   │   ├── LoadingSpinner.tsx (43 lines)
+│   │   │   ├── MahjongDeclarationModal.tsx (307 lines)
 │   │   │   ├── ShareButton.tsx (77 lines)
 │   │   │   ├── ThreatBadge.tsx (29 lines)
 │   │   │   ├── Tile.tsx (59 lines)
@@ -274,7 +283,7 @@ american-mahjong-assistant/
 │   ├── multiplayer-types.d.ts.map
 │   ├── multiplayer-types.js (4 lines)
 │   ├── multiplayer-types.js.map
-│   ├── multiplayer-types.ts (121 lines)
+│   ├── multiplayer-types.ts (140 lines)
 │   ├── nmjl-types.ts (52 lines)
 │   ├── socket-events.ts (188 lines)
 │   └── tile-utils.ts (188 lines)
@@ -295,9 +304,9 @@ american-mahjong-assistant/
 DIRECTORY TREE STATISTICS
 ==================================================
 Total directories: 49
-Total files: 242
-Files with line counts: 225
-Total lines of code: 66,047
+Total files: 251
+Files with line counts: 234
+Total lines of code: 69,786
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv
