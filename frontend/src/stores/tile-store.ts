@@ -13,6 +13,9 @@ interface TileState extends TileInputState {
   handSize: number
   dealerHand: boolean // True if dealer (14 tiles), false if player (13)
   
+  // Exposed tiles from calls (pung, kong, etc.)
+  exposedTiles: PlayerTile[]
+  
   // Selection Area State
   selectedForAction: PlayerTile[]
   tileStates: Record<string, string>
@@ -32,6 +35,11 @@ interface TileState extends TileInputState {
   removeTile: (instanceId: string) => void
   clearHand: () => void
   setDealerHand: (isDealer: boolean) => void
+  
+  // Actions - Exposed Tiles Management
+  addExposedTiles: (tiles: PlayerTile[], callType: string) => void
+  setExposedTiles: (tiles: PlayerTile[]) => void
+  clearExposedTiles: () => void
   
   // Actions - Tile Selection
   toggleTileSelection: (instanceId: string) => void
@@ -82,6 +90,7 @@ export const useTileStore = create<TileState>()(
         playerHand: [],
         handSize: 0,
         dealerHand: false,
+        exposedTiles: [],
         inputMode: 'select',
         isValidating: false,
         validation: {
@@ -156,6 +165,22 @@ export const useTileStore = create<TileState>()(
           })
         },
         
+        // Exposed Tiles Management Actions
+        addExposedTiles: (tiles: PlayerTile[], callType: string) => {
+          set((state) => ({
+            exposedTiles: [...state.exposedTiles, ...tiles]
+          }))
+          console.log(`Added exposed tiles for ${callType}:`, tiles.map(t => t.displayName))
+        },
+        
+        setExposedTiles: (tiles: PlayerTile[]) => {
+          set({ exposedTiles: tiles })
+        },
+        
+        clearExposedTiles: () => {
+          set({ exposedTiles: [] })
+        },
+        
         clearHand: () => {
           set((state) => {
             const oldTileIds = state.playerHand.map(tile => tile.id)
@@ -173,6 +198,7 @@ export const useTileStore = create<TileState>()(
               lastAnalysis: null, // Clear analysis timestamp
               selectedForAction: [],
               tileStates: {},
+              exposedTiles: [],
               validation: {
                 isValid: false,
                 errors: [],
@@ -326,7 +352,7 @@ export const useTileStore = create<TileState>()(
           
           try {
             // This would integrate with pattern analysis from intelligence layer
-            // For now, we'll simulate the analysis
+            // For now, we'll simulate the analysis (TODO)
             await new Promise(resolve => setTimeout(resolve, 1000))
             
             set({

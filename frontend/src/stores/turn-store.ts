@@ -3,6 +3,8 @@
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
+import type { GameAction, CallType } from '../services/game-actions'
+import type { Tile } from '../types/tile-types'
 
 export type PlayerPosition = 'east' | 'north' | 'west' | 'south'
 
@@ -11,6 +13,21 @@ export interface TurnPlayer {
   name: string
   position: PlayerPosition
   isReady: boolean
+}
+
+export interface PlayerActionState {
+  hasDrawn: boolean
+  hasDiscarded: boolean
+  availableActions: GameAction[]
+  lastActionTime?: Date
+}
+
+export interface CallOpportunity {
+  tile: Tile
+  callType: CallType
+  duration: number
+  deadline: Date
+  isActive: boolean
 }
 
 interface TurnState {
@@ -35,6 +52,18 @@ interface TurnState {
   // Turn state tracking
   isGameActive: boolean
   canAdvanceTurn: boolean
+  
+  // Action management - NEW
+  playerActions: Record<string, PlayerActionState>
+  
+  // Call opportunities - NEW
+  currentCallOpportunity: CallOpportunity | null
+  
+  // Discard pile management - NEW
+  discardPile: Tile[]
+  
+  // Wall management - NEW
+  wallCount: number
 }
 
 interface TurnActions {
@@ -55,11 +84,31 @@ interface TurnActions {
   resetTurns: () => void
   updateTurnDuration: () => void
   
+  // Action management - NEW
+  setAvailableActions: (playerId: string, actions: GameAction[]) => void
+  executeAction: (playerId: string, action: GameAction, data?: unknown) => Promise<boolean>
+  markPlayerAction: (playerId: string, actionType: 'hasDrawn' | 'hasDiscarded', value: boolean) => void
+  
+  // Turn timing - NEW  
+  startTurnTimer: (duration?: number) => void
+  pauseTurnTimer: () => void
+  resumeTurnTimer: () => void
+  
+  // Call management - NEW
+  openCallOpportunity: (tile: Tile, duration?: number) => void
+  respondToCall: (response: 'call' | 'pass', callType?: CallType, tiles?: Tile[]) => void
+  closeCallOpportunity: () => void
+  
+  // Game state management - NEW
+  updateDiscardPile: (tile: Tile, playerId: string) => void
+  updateWallCount: (count: number) => void
+  
   // Getters - computed properties
   getCurrentPlayerData: () => TurnPlayer | null
   getNextPlayer: () => TurnPlayer | null
   isCurrentPlayerTurn: (playerId: string) => boolean
   getTurnOrderDisplay: () => { player: TurnPlayer; isCurrent: boolean; isNext: boolean }[]
+  getPlayerActions: (playerId: string) => PlayerActionState | null
 }
 
 type TurnStore = TurnState & TurnActions
@@ -76,7 +125,11 @@ const initialState: TurnState = {
   turnDuration: 0,
   players: [],
   isGameActive: false,
-  canAdvanceTurn: false
+  canAdvanceTurn: false,
+  playerActions: {},
+  currentCallOpportunity: null,
+  discardPile: [],
+  wallCount: 144 // Standard mahjong wall size
 }
 
 export const useTurnStore = create<TurnStore>()(
@@ -269,6 +322,193 @@ export const useTurnStore = create<TurnStore>()(
             
             return { player, isCurrent, isNext }
           })
+        },
+
+        // Action management - NEW implementations
+
+        setAvailableActions: (playerId: string, actions: GameAction[]) => {
+          const state = get()
+          const currentActions = state.playerActions[playerId] || {
+            hasDrawn: false,
+            hasDiscarded: false,
+            availableActions: [],
+            lastActionTime: undefined
+          }
+
+          set({
+            playerActions: {
+              ...state.playerActions,
+              [playerId]: {
+                ...currentActions,
+                availableActions: actions
+              }
+            }
+          }, false, 'turn/setAvailableActions')
+        },
+
+        executeAction: async (playerId: string, action: GameAction, data?: unknown) => {
+          const { gameActions } = await import('../services/game-actions')
+          const state = get()
+          
+          try {
+            let success = false
+
+            switch (action) {
+              case 'draw':
+                const drawnTile = await gameActions.drawTile(playerId)
+                success = drawnTile !== null
+                break
+              case 'discard':
+                if (data && typeof data === 'object' && 'id' in data) {
+                  success = await gameActions.discardTile(playerId, data as Tile)
+                }
+                break
+              case 'call':
+                if (data && typeof data === 'object' && 'callType' in data && 'tiles' in data) {
+                  const callData = data as { callType: CallType; tiles: Tile[] }
+                  success = await gameActions.makeCall(playerId, callData.callType, callData.tiles)
+                }
+                break
+              case 'joker-swap':
+                if (data && typeof data === 'object' && 'jokerLocation' in data && 'targetTile' in data) {
+                  const swapData = data as { jokerLocation: 'own' | 'opponent'; targetTile: Tile }
+                  success = await gameActions.swapJoker(playerId, swapData.jokerLocation, swapData.targetTile)
+                }
+                break
+              case 'mahjong':
+                if (data && typeof data === 'object' && 'hand' in data && 'pattern' in data) {
+                  const mahjongData = data as { hand: Tile[]; pattern: any }
+                  success = await gameActions.declareMahjong(playerId, mahjongData.hand, mahjongData.pattern)
+                }
+                break
+              case 'pass-out':
+                const reason = typeof data === 'string' ? data : 'Hand not viable'
+                success = await gameActions.declarePassOut(playerId, reason)
+                break
+            }
+
+            // Update action timestamp if successful
+            if (success) {
+              get().markPlayerAction(playerId, action === 'draw' ? 'hasDrawn' : 'hasDiscarded', true)
+            }
+
+            return success
+          } catch (error) {
+            console.error(`Error executing action ${action} for player ${playerId}:`, error)
+            return false
+          }
+        },
+
+        markPlayerAction: (playerId: string, actionType: 'hasDrawn' | 'hasDiscarded', value: boolean) => {
+          const state = get()
+          const currentActions = state.playerActions[playerId] || {
+            hasDrawn: false,
+            hasDiscarded: false,
+            availableActions: [],
+            lastActionTime: undefined
+          }
+
+          set({
+            playerActions: {
+              ...state.playerActions,
+              [playerId]: {
+                ...currentActions,
+                [actionType]: value,
+                lastActionTime: value ? new Date() : currentActions.lastActionTime
+              }
+            }
+          }, false, 'turn/markPlayerAction')
+        },
+
+        // Turn timing - NEW implementations
+
+        startTurnTimer: (duration: number = 120000) => {
+          set({
+            turnStartTime: new Date(),
+            turnDuration: 0
+          }, false, 'turn/startTurnTimer')
+        },
+
+        pauseTurnTimer: () => {
+          const state = get()
+          if (state.turnStartTime) {
+            const duration = Math.floor((Date.now() - state.turnStartTime.getTime()) / 1000)
+            set({
+              turnDuration: duration,
+              turnStartTime: null
+            }, false, 'turn/pauseTurnTimer')
+          }
+        },
+
+        resumeTurnTimer: () => {
+          const state = get()
+          set({
+            turnStartTime: new Date(Date.now() - (state.turnDuration * 1000))
+          }, false, 'turn/resumeTurnTimer')
+        },
+
+        // Call management - NEW implementations
+
+        openCallOpportunity: (tile: Tile, duration: number = 5000) => {
+          const deadline = new Date(Date.now() + duration)
+          
+          set({
+            currentCallOpportunity: {
+              tile,
+              callType: 'pung', // Default, will be determined by player response
+              duration,
+              deadline,
+              isActive: true
+            }
+          }, false, 'turn/openCallOpportunity')
+
+          // Auto-close after duration
+          setTimeout(() => {
+            get().closeCallOpportunity()
+          }, duration)
+        },
+
+        respondToCall: async (response: 'call' | 'pass', callType?: CallType, tiles?: Tile[]) => {
+          const { turnRealtime } = await import('../services/turn-realtime')
+          
+          try {
+            await turnRealtime.respondToCall(response, callType, tiles)
+            
+            if (response === 'call') {
+              // Close call opportunity and handle call
+              get().closeCallOpportunity()
+            }
+          } catch (error) {
+            console.error('Error responding to call:', error)
+          }
+        },
+
+        closeCallOpportunity: () => {
+          set({
+            currentCallOpportunity: null
+          }, false, 'turn/closeCallOpportunity')
+        },
+
+        // Game state management - NEW implementations
+
+        updateDiscardPile: (tile: Tile, playerId: string) => {
+          const state = get()
+          set({
+            discardPile: [...state.discardPile, tile]
+          }, false, 'turn/updateDiscardPile')
+          
+          console.log(`Added to discard pile: ${tile.display} from ${playerId}`)
+        },
+
+        updateWallCount: (count: number) => {
+          set({
+            wallCount: Math.max(0, count)
+          }, false, 'turn/updateWallCount')
+        },
+
+        getPlayerActions: (playerId: string) => {
+          const state = get()
+          return state.playerActions[playerId] || null
         }
       }),
       {
@@ -312,6 +552,25 @@ export const useTurnSelectors = () => {
     isMyTurn: (playerId: string) => store.isCurrentPlayerTurn(playerId),
     
     // Mode info
-    isMultiplayer: store.isMultiplayerMode
+    isMultiplayer: store.isMultiplayerMode,
+    
+    // Action management - NEW
+    getPlayerActions: store.getPlayerActions,
+    currentCallOpportunity: store.currentCallOpportunity,
+    discardPile: store.discardPile,
+    wallCount: store.wallCount,
+    
+    // Action helpers
+    canPlayerDraw: (playerId: string) => {
+      const actions = store.getPlayerActions(playerId)
+      return store.isCurrentPlayerTurn(playerId) && !actions?.hasDrawn && store.wallCount > 0
+    },
+    canPlayerDiscard: (playerId: string) => {
+      const actions = store.getPlayerActions(playerId)
+      return store.isCurrentPlayerTurn(playerId) && actions?.hasDrawn
+    },
+    hasCallOpportunity: () => {
+      return store.currentCallOpportunity?.isActive || false
+    }
   }
 }

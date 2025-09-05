@@ -7,22 +7,23 @@ import { useRoomStore } from '../../stores/room-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { useTileStore } from '../../stores/tile-store'
+import { useTurnStore, useTurnSelectors } from '../../stores/turn-store'
+import { useGameActions } from '../../services/game-actions'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
+import GameActionsPanel from '../../ui-components/GameActionsPanel'
+import CallOpportunityModal from '../../ui-components/CallOpportunityModal'
 import type { Tile as TileType } from '../../types/tile-types'
 import type { PatternGroup } from '../../../../shared/nmjl-types'
+import type { GameAction, CallType } from '../../services/game-actions'
 import GameScreenLayout from './GameScreenLayout'
 import { SelectionArea } from './SelectionArea'
-// import { TileInputModal } from '../shared/TileInputModal' // Unused for now
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
   onNavigateToPostGame?: () => void
 }
-
-type GameAction = 'draw' | 'discard' | 'call' | 'pass'
-type CallType = 'pung' | 'kong' | 'quint' | 'sextet'
 
 interface GameTurn {
   playerId: string
@@ -31,15 +32,6 @@ interface GameTurn {
   callType?: CallType
   exposedTiles?: TileType[]
   timestamp: Date
-}
-
-interface CallOpportunity {
-  tile: TileType
-  callType: CallType
-  exposedTiles: TileType[]
-  priority: 'high' | 'medium' | 'low'
-  reasoning: string
-  patternProgress: number
 }
 
 export const GameModeView: React.FC<GameModeViewProps> = ({
@@ -52,6 +44,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const intelligenceStore = useIntelligenceStore()
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
+  const turnStore = useTurnStore()
+  const turnSelectors = useTurnSelectors()
+  const gameActions = useGameActions()
   
   // Initialize game phase - start with Charleston when first entering from tile input
   useEffect(() => {
@@ -96,16 +91,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     return false
   }, [])
 
-  // Local state
-  const [isMyTurn, setIsMyTurn] = useState(false)
+  // Local state - integrated with turn management
+  const currentPlayerId = roomStore.currentPlayerId || 'current-player'
+  const isMyTurn = turnSelectors.isMyTurn(currentPlayerId)
   const [lastDrawnTile, setLastDrawnTile] = useState<TileType | null>(null)
   const [selectedDiscardTile, setSelectedDiscardTile] = useState<TileType | null>(null)
-  const [callOpportunities, setCallOpportunities] = useState<CallOpportunity[]>([])
   const [gameHistory, setGameHistory] = useState<GameTurn[]>([])
-  const [showCallDialog, setShowCallDialog] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [gameEnded, setGameEnded] = useState(false)
-  const [callTimeoutId, setCallTimeoutId] = useState<NodeJS.Timeout | null>(null)
   const [exposedTiles, setExposedTiles] = useState<Array<{
     type: 'pung' | 'kong' | 'quint' | 'sextet'
     tiles: TileType[]
@@ -224,27 +217,117 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [fullHand, selectedPatterns, analyzeCurrentHand])
 
   // Draw tile action
-  const handleDrawTile = useCallback(() => {
-    if (!isMyTurn || lastDrawnTile) return
-
-    const value = (Math.floor(Math.random() * 9) + 1).toString() as TileType['value']
-    const newTile: TileType = {
-      id: `drawn-${Date.now()}`,
-      suit: 'dots',
-      value,
-      displayName: `${value} Dots`
+  // Enhanced action handlers using game actions service
+  const handlePlayerAction = useCallback(async (action: GameAction, data?: unknown) => {
+    if (!isMyTurn && action !== 'call' && action !== 'joker-swap') {
+      gameStore.addAlert({
+        type: 'error',
+        title: 'Not Your Turn',
+        message: 'Wait for your turn to take actions'
+      })
+      return
     }
 
-    setLastDrawnTile(newTile)
+    try {
+      const success = await turnStore.executeAction(currentPlayerId, action, data)
+      
+      if (success) {
+        // Add to game history
+        const turn: GameTurn = {
+          playerId: currentPlayerId,
+          action,
+          tile: data && typeof data === 'object' && 'id' in data ? data as TileType : undefined,
+          timestamp: new Date()
+        }
+        setGameHistory(prev => [turn, ...prev])
+
+        // Auto-analyze hand after actions
+        const currentHand = tileStore.playerHand
+        if (currentHand.length >= 10) {
+          intelligenceStore.analyzeHand(currentHand, tileStore.exposedTiles)
+        }
+
+        // Handle specific action results
+        if (action === 'draw') {
+          setLastDrawnTile(data as TileType)
+        } else if (action === 'discard') {
+          setLastDrawnTile(null)
+          setSelectedDiscardTile(null)
+        }
+      }
+    } catch (error) {
+      console.error('Action execution error:', error)
+      gameStore.addAlert({
+        type: 'error',
+        title: 'Action Failed',
+        message: 'Failed to execute action. Please try again.'
+      })
+    }
+  }, [currentPlayerId, isMyTurn, turnStore, gameStore, tileStore, intelligenceStore])
+
+  // Handle tile discard
+  const handleDiscardTile = useCallback(async (tile: TileType) => {
+    if (!turnSelectors.canPlayerDiscard(currentPlayerId)) {
+      gameStore.addAlert({
+        type: 'error',
+        title: 'Cannot Discard',
+        message: 'Must draw a tile before discarding'
+      })
+      return
+    }
+
+    await handlePlayerAction('discard', tile)
+  }, [currentPlayerId, handlePlayerAction, turnSelectors, gameStore])
+
+  // Handle call opportunity responses
+  const handleCallOpportunityResponse = useCallback((response: 'call' | 'pass', callType?: CallType) => {
+    if (response === 'call' && callType) {
+      // TODO: This would need to get the appropriate tiles from hand
+      // For now, we'll use placeholder logic
+      const callTiles: TileType[] = [] // This needs to be populated based on hand analysis
+      
+      handlePlayerAction('call', { callType, tiles: callTiles })
+    }
     
-    const turn: GameTurn = {
-      playerId: gameStore.currentPlayerId || 'player-1',
-      action: 'draw',
-      tile: newTile,
-      timestamp: new Date()
+    // Close call opportunity
+    turnStore.closeCallOpportunity()
+  }, [handlePlayerAction, turnStore])
+
+  // Get available actions for current player
+  const currentPlayerActions = useMemo(() => {
+    const playerActions = turnSelectors.getPlayerActions(currentPlayerId)
+    if (!playerActions) return []
+
+    const actions: GameAction[] = []
+    
+    if (isMyTurn && !playerActions.hasDrawn) {
+      actions.push('draw')
     }
-    setGameHistory(prev => [turn, ...prev])
-  }, [isMyTurn, lastDrawnTile, gameStore.currentPlayerId])
+    if (isMyTurn && playerActions.hasDrawn) {
+      actions.push('discard', 'mahjong')  
+    }
+    if (!isMyTurn && turnSelectors.hasCallOpportunity()) {
+      actions.push('call')
+    }
+    
+    // Always available actions
+    actions.push('joker-swap', 'pass-out')
+    
+    return actions
+  }, [currentPlayerId, isMyTurn, turnSelectors])
+
+  // Prepare call opportunity data for modal
+  const callOpportunityData = useMemo(() => {
+    const opportunity = turnSelectors.currentCallOpportunity
+    if (!opportunity || !opportunity.isActive) return null
+
+    return {
+      tile: opportunity.tile,
+      discardingPlayer: 'Other Player', // TODO: Get actual discarding player name
+      duration: opportunity.duration,
+      deadline: opportunity.deadline.getTime()
+    }
+  }, [turnSelectors.currentCallOpportunity])
 
   // Evaluate call opportunities (pung, kong, etc.)
   const evaluateCallOpportunities = useCallback((discardedTile: TileType) => {
@@ -612,6 +695,26 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         </div>
       )}
       
+      {/* Game Actions Panel */}
+      <div className="fixed bottom-4 left-4 right-4 z-30">
+        <GameActionsPanel
+          availableActions={currentPlayerActions}
+          onAction={handlePlayerAction}
+          isMyTurn={isMyTurn}
+          currentPlayer={turnSelectors.currentPlayerName}
+          wallCount={turnSelectors.wallCount}
+          turnDuration={turnSelectors.turnDuration}
+        />
+      </div>
+
+      {/* Call Opportunity Modal */}
+      {callOpportunityData && (
+        <CallOpportunityModal
+          opportunity={callOpportunityData}
+          onRespond={handleCallOpportunityResponse}
+        />
+      )}
+
       {/* Selection Area - Fixed overlay for tile actions */}
       <SelectionArea onAdvanceToGameplay={handleAdvanceToGameplay} onCharlestonPass={handleCharlestonPass} />
     </>
