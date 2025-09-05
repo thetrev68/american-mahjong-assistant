@@ -4,6 +4,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import { useRoomStore } from './room-store'
+import { useGameStore } from './game-store'
 import type { GameAction, CallType } from '../services/game-actions'
 import type { Tile } from '../types/tile-types'
 import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
@@ -417,6 +418,17 @@ export const useTurnStore = create<TurnStore>()(
             // Update action timestamp if successful
             if (success) {
               get().markPlayerAction(playerId, action === 'draw' ? 'hasDrawn' : 'hasDiscarded', true)
+              
+              // Record statistics in game store
+              const { recordAction, recordCallAttempt, recordDiscard } = useGameStore.getState()
+              recordAction(playerId, action)
+              
+              // Record specific action types
+              if (action === 'call') {
+                recordCallAttempt(playerId)
+              } else if (action === 'discard') {
+                recordDiscard()
+              }
             }
 
             return success

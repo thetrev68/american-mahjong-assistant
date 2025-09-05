@@ -14,6 +14,7 @@ import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import GameActionsPanel from '../../ui-components/GameActionsPanel'
 import CallOpportunityModal from '../../ui-components/CallOpportunityModal'
 import { MahjongDeclarationModal } from '../../ui-components/MahjongDeclarationModal'
+import { FinalHandRevealModal, type FinalHandRevealData } from '../../ui-components/FinalHandRevealModal'
 import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 import type { PatternGroup } from '../../../../shared/nmjl-types'
 import type { GameAction, CallType } from '../../services/game-actions'
@@ -179,6 +180,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [showMahjongModal, setShowMahjongModal] = useState(false)
   const [gameEndCoordinator, setGameEndCoordinator] = useState<GameEndCoordinator | null>(null)
   const [passedOutPlayers] = useState<Set<string>>(new Set())
+  const [showFinalHandReveal, setShowFinalHandReveal] = useState(false)
+  const [finalHandRevealData, setFinalHandRevealData] = useState<FinalHandRevealData | null>(null)
   // const [showTileModal, setShowTileModal] = useState(false) // Unused for now
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
@@ -409,12 +412,32 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           message: gameEndResult.scenario.reason
         })
         
-        // Navigate to post-game after delay
-        if (gameEndResult.shouldNavigateToPostGame) {
-          setTimeout(() => {
-            onNavigateToPostGame?.()
-          }, 3000)
+        // Prepare final hand revelation data
+        const revelationData = gameEndCoordinator.createHandRevelationData()
+        const playerNames = gameStore.players.reduce((names, player) => {
+          names[player.id] = player.name
+          return names
+        }, {} as Record<string, string>)
+        
+        const finalHandData: FinalHandRevealData = {
+          allPlayerHands: revelationData.allPlayerHands,
+          playerNames,
+          winnerDetails: gameEndResult.scenario.winner ? {
+            playerId: gameEndResult.scenario.winner,
+            winningPattern: gameEndResult.scenario.winningPattern,
+            score: gameEndResult.scenario.winningPattern?.Hand_Points || 0
+          } : undefined,
+          gameStatistics: {
+            totalTurns: gameStore.currentTurn,
+            gameDuration: gameStore.gameStartTime ? 
+              Math.round((Date.now() - gameStore.gameStartTime.getTime()) / 1000 / 60) + ' min' : 
+              'Unknown',
+            wallTilesRemaining: gameStore.wallTilesRemaining
+          }
         }
+        
+        setFinalHandRevealData(finalHandData)
+        setShowFinalHandReveal(true)
       }
     }
   }, [gameEndCoordinator, gameEnded, historyStore, gameStore, onNavigateToPostGame])
@@ -819,6 +842,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }, 1500)
   }, [currentPlayerIndex, playerNames, showCallDialog, gameEnded, onNavigateToPostGame])
 
+  // Final Hand Reveal handlers
+  const handleCloseFinalHandReveal = useCallback(() => {
+    setShowFinalHandReveal(false)
+  }, [])
+
+  const handleContinueToPostGame = useCallback(() => {
+    setShowFinalHandReveal(false)
+    onNavigateToPostGame?.()
+  }, [onNavigateToPostGame])
+
 
   const handlePauseGame = useCallback(() => {
     setIsPaused(!isPaused)
@@ -1112,6 +1145,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         playerId={currentPlayerId}
         gameContext={gameContext}
       />
+
+      {/* Final Hand Reveal Modal */}
+      {finalHandRevealData && (
+        <FinalHandRevealModal
+          isOpen={showFinalHandReveal}
+          onClose={handleCloseFinalHandReveal}
+          data={finalHandRevealData}
+          onContinueToPostGame={handleContinueToPostGame}
+        />
+      )}
 
       {/* Selection Area - Fixed overlay for tile actions */}
       <SelectionArea onAdvanceToGameplay={handleAdvanceToGameplay} onCharlestonPass={handleCharlestonPass} />

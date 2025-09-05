@@ -427,11 +427,24 @@ export class GameActionsService {
       const turnStore = useTurnStore.getState()
       const gameStore = useGameStore.getState()
       
+      // Mark player as passed out in game state
+      gameStore.markPlayerPassedOut(playerId)
+      
       gameStore.addAlert({
         type: 'info',
         title: 'Player Passed Out',
         message: `${playerId} has passed out: ${reason}`
       })
+
+      // Check if game should end due to all players passed out
+      if (gameStore.checkForGameEnd()) {
+        gameStore.addAlert({
+          type: 'success',
+          title: 'Game Ended',
+          message: 'Game ended - all players have passed out',
+          duration: 5000
+        })
+      }
 
       // If current player, advance turn
       if (turnStore.currentPlayer === playerId) {
