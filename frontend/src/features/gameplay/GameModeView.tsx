@@ -18,6 +18,11 @@ import type { PatternGroup } from '../../../../shared/nmjl-types'
 import type { GameAction, CallType } from '../../services/game-actions'
 import GameScreenLayout from './GameScreenLayout'
 import { SelectionArea } from './SelectionArea'
+import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
+import { CallOpportunityOverlay } from './components/CallOpportunityOverlay'
+import { useGameIntelligence } from '../../hooks/useGameIntelligence'
+import type { GameState } from '../../services/turn-intelligence-engine'
+import type { CallOpportunity as CallOpportunityType } from '../../services/call-opportunity-analyzer'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -98,8 +103,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     return false
   }, [])
 
+  // Get current player ID - use host or first player as fallback
+  const currentPlayerId = useMemo(() => {
+    if (roomStore.players.length > 0) {
+      return roomStore.players[0]?.id || 'player1'
+    }
+    return roomStore.hostPlayerId || 'player1'
+  }, [roomStore.players, roomStore.hostPlayerId])
+
   // Local state - integrated with turn management
-  const currentPlayerId = roomStore.hostPlayerId || 'current-player'
   const isMyTurn = turnSelectors.isMyTurn(currentPlayerId)
   const [lastDrawnTile, setLastDrawnTile] = useState<TileType | null>(null)
   const [callOpportunities, setCallOpportunities] = useState<CallOpportunity[]>([])
@@ -166,6 +178,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     strategicValue?: number 
   }>>([])
 
+  // Enhanced Intelligence Panel state
+  const [showEnhancedIntelligence, setShowEnhancedIntelligence] = useState(false)
+  const [callOpportunityEnhanced, setCallOpportunityEnhanced] = useState<CallOpportunityType | null>(null)
+
   // Current hand with drawn tile - get real player hand from tile store
   const currentHand = useMemo(() => tileStore.playerHand || [], [tileStore.playerHand])
   const fullHand = useMemo(() => 
@@ -175,6 +191,104 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Real-time analysis - get actual analysis from intelligence store
   const currentAnalysis = intelligenceStore.currentAnalysis
+
+  // Enhanced Intelligence Integration
+  const mockGameState: GameState = useMemo(() => ({
+    currentPlayer: currentPlayer,
+    turnNumber: gameRound,
+    roundNumber: gameRound,
+    playerHands: {
+      [currentPlayerId]: fullHand.map(tile => ({
+        ...tile,
+        instanceId: ('instanceId' in tile ? tile.instanceId : `${tile.id}-${Math.random()}`) as string,
+        isSelected: false
+      })),
+    },
+    playerActions: {
+      [currentPlayerId]: {
+        hasDrawn: !!lastDrawnTile,
+        hasDiscarded: false,
+        lastAction: lastDrawnTile ? 'draw' : null,
+        actionCount: gameRound
+      }
+    },
+    discardPile: discardPile.map(d => d.tile),
+    exposedTiles: {
+      [currentPlayerId]: exposedTiles
+    },
+    wallCount: 144 - (fullHand.length * 4) - discardPile.length, // Rough estimate
+    actionHistory: gameHistory.map(h => ({
+      playerId: h.playerId,
+      action: h.action,
+      tile: h.tile,
+      timestamp: h.timestamp,
+      isVisible: true,
+      turnNumber: gameRound
+    }))
+  }), [currentPlayer, gameRound, currentPlayerId, fullHand, lastDrawnTile, discardPile, exposedTiles, gameHistory])
+
+  // Use enhanced intelligence hook
+  const { analysis: enhancedAnalysis } = useGameIntelligence(mockGameState, currentPlayerId)
+
+  // Action recommendation handler
+  const handleActionRecommendation = useCallback((action: string, data: any) => {
+    switch (action) {
+      case 'discard-suggestion':
+        // Highlight suggested discard tile
+        const tileToHighlight = data.tile
+        if (tileToHighlight) {
+          // Find and select the suggested tile
+          setSelectedDiscardTile(tileToHighlight)
+        }
+        break
+      case 'call':
+        // Execute call action via turn store
+        turnStore.executeAction(currentPlayerId, 'call', {
+          callType: data.type,
+          tile: data.tile
+        })
+        setCallOpportunityEnhanced(null)
+        break
+      case 'pass':
+        // Pass on call opportunity
+        setCallOpportunityEnhanced(null)
+        break
+    }
+  }, [turnStore, setSelectedDiscardTile])
+
+  // Call opportunity detection
+  useEffect(() => {
+    const detectCallOpportunity = () => {
+      if (mockGameState?.discardPile.length > 0 && mockGameState.currentPlayer !== currentPlayerId) {
+        const lastDiscard = mockGameState.discardPile[mockGameState.discardPile.length - 1]
+        
+        // Simple call type detection - check if player has matching tiles
+        const matchingTiles = currentHand.filter(t => t.id === lastDiscard.id)
+        const availableCallTypes: ('pung' | 'kong' | 'quint' | 'sextet')[] = []
+        
+        if (matchingTiles.length >= 2) availableCallTypes.push('pung')
+        if (matchingTiles.length >= 3) availableCallTypes.push('kong')
+        if (matchingTiles.length >= 4) availableCallTypes.push('quint')
+        if (matchingTiles.length >= 5) availableCallTypes.push('sextet')
+        
+        if (availableCallTypes.length > 0) {
+          const opportunity: CallOpportunityType = {
+            tile: lastDiscard,
+            discardingPlayer: mockGameState.currentPlayer || 'opponent',
+            availableCallTypes,
+            timeRemaining: 5000, // 5 second window
+            deadline: Date.now() + 5000
+          }
+          
+          setCallOpportunityEnhanced(opportunity)
+        }
+      } else {
+        setCallOpportunityEnhanced(null)
+      }
+    }
+    
+    detectCallOpportunity()
+  }, [mockGameState?.discardPile, mockGameState?.currentPlayer, currentPlayerId, currentHand])
 
   // Real-time hand analysis
   const analyzeCurrentHand = useCallback(async () => {
@@ -637,6 +751,41 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           </Card>
         </div>
       )}
+
+      {/* Enhanced Intelligence Panel */}
+      {showEnhancedIntelligence && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-40">
+          <div className="max-w-4xl w-full max-h-[90vh]">
+            <EnhancedIntelligencePanel
+              analysis={enhancedAnalysis || currentAnalysis}
+              gameState={mockGameState}
+              playerId={currentPlayerId}
+              isCurrentTurn={isMyTurn}
+              callOpportunity={callOpportunityEnhanced}
+              onClose={() => setShowEnhancedIntelligence(false)}
+              onActionRecommendation={handleActionRecommendation}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Call Opportunity Overlay */}
+      {callOpportunityEnhanced && enhancedAnalysis?.currentCallRecommendation && (
+        <CallOpportunityOverlay
+          opportunity={callOpportunityEnhanced}
+          recommendation={enhancedAnalysis.currentCallRecommendation}
+          onAction={handleActionRecommendation}
+        />
+      )}
+
+      {/* Intelligence Toggle Button */}
+      <button 
+        className="fixed bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg z-30 transition-all"
+        onClick={() => setShowEnhancedIntelligence(!showEnhancedIntelligence)}
+        title="AI Assistant"
+      >
+        <span className="text-xl">🧠</span>
+      </button>
 
       {/* Pattern Switcher Modal */}
       {showPatternSwitcher && (
