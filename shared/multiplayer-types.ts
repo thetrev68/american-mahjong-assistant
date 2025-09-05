@@ -40,6 +40,8 @@ export interface PlayerGameState {
   score?: number
   isDealer?: boolean
   isActive?: boolean
+  passedOut?: boolean
+  passOutReason?: string
 }
 
 export interface SharedState {

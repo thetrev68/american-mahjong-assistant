@@ -985,6 +985,239 @@ export class SocketHandlers {
         })
       }
     })
+
+    // Mahjong Declaration Handler
+    socket.on('declare-mahjong', async (data) => {
+      try {
+        const { roomId, playerId, winningHand, selectedPattern } = data
+        
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          socket.emit('mahjong-declared', {
+            isValid: false,
+            validationDetails: 'Room not found'
+          })
+          return
+        }
+
+        const gameState = this.stateSyncManager.getGameState(roomId)
+        if (!gameState) {
+          socket.emit('mahjong-declared', {
+            isValid: false,
+            validationDetails: 'Game state not found'
+          })
+          return
+        }
+
+        // Validate it's the player's turn
+        if (gameState.sharedState.currentPlayer !== playerId) {
+          socket.emit('mahjong-declared', {
+            isValid: false,
+            validationDetails: 'Not your turn to declare mahjong'
+          })
+          return
+        }
+
+        // Basic validation - in a full implementation, this would use the MahjongValidator
+        const isValidMahjong = this.validateMahjongDeclaration(winningHand, selectedPattern)
+        
+        if (isValidMahjong.isValid) {
+          // End the game - update game state
+          gameState.phase = 'finished'
+          
+          // Calculate final scores
+          const finalScores = this.calculateFinalScores(roomId, playerId, selectedPattern, winningHand)
+
+          // Broadcast game end to all players
+          this.io.to(roomId).emit('game-ended', {
+            winner: room.players.find(p => p.id === playerId),
+            winningHand,
+            pattern: selectedPattern.Hand_Description,
+            finalScores,
+            gameStats: {
+              duration: Math.floor((Date.now() - gameState.lastUpdated.getTime()) / 1000 / 60), // minutes
+              totalTurns: gameState.currentRound || 1,
+              charlestonPasses: 3 // Standard Charleston rounds
+            },
+            endReason: 'mahjong'
+          })
+
+          // Confirm to declaring player
+          socket.emit('mahjong-declared', {
+            isValid: true,
+            winningHand,
+            pattern: selectedPattern.Hand_Description,
+            score: isValidMahjong.score,
+            bonusPoints: isValidMahjong.bonusPoints
+          })
+
+        } else {
+          socket.emit('mahjong-declared', {
+            isValid: false,
+            validationDetails: isValidMahjong.reason || 'Invalid mahjong declaration'
+          })
+        }
+
+        this.roomManager.updateRoomActivity(roomId)
+
+      } catch (error) {
+        socket.emit('mahjong-declared', {
+          isValid: false,
+          validationDetails: error instanceof Error ? error.message : 'Validation failed'
+        })
+      }
+    })
+
+    // Wall Exhaustion Handler
+    socket.on('check-wall-exhaustion', async (data) => {
+      try {
+        const { roomId, wallTilesRemaining } = data
+        
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          socket.emit('wall-exhaustion-checked', {
+            canContinue: false,
+            reason: 'Room not found'
+          })
+          return
+        }
+
+        const gameState = this.stateSyncManager.getGameState(roomId)
+        if (!gameState) {
+          socket.emit('wall-exhaustion-checked', {
+            canContinue: false,
+            reason: 'Game state not found'
+          })
+          return
+        }
+
+        // Check if wall is exhausted (less than 8 tiles for 4 players)
+        const minTilesNeeded = room.players.length * 2
+        const canContinue = wallTilesRemaining >= minTilesNeeded
+
+        if (!canContinue) {
+          // End the game due to wall exhaustion
+          gameState.phase = 'finished'
+
+          // Broadcast game end to all players
+          this.io.to(roomId).emit('game-ended', {
+            winner: undefined,
+            finalScores: room.players.map(player => ({
+              playerId: player.id,
+              playerName: player.name,
+              score: 0
+            })),
+            gameStats: {
+              duration: Math.floor((Date.now() - gameState.lastUpdated.getTime()) / 1000 / 60),
+              totalTurns: gameState.currentRound || 1,
+              charlestonPasses: 3
+            },
+            endReason: 'wall_exhausted'
+          })
+
+          socket.emit('wall-exhaustion-checked', {
+            canContinue: false,
+            reason: 'Wall exhausted - game ended'
+          })
+        } else {
+          socket.emit('wall-exhaustion-checked', {
+            canContinue: true,
+            tilesRemaining: wallTilesRemaining,
+            turnsUntilExhaustion: Math.floor(wallTilesRemaining / room.players.length)
+          })
+        }
+
+        this.roomManager.updateRoomActivity(roomId)
+
+      } catch (error) {
+        socket.emit('wall-exhaustion-checked', {
+          canContinue: false,
+          reason: error instanceof Error ? error.message : 'Wall exhaustion check failed'
+        })
+      }
+    })
+
+    // Player Pass Out Handler
+    socket.on('player-pass-out', async (data) => {
+      try {
+        const { roomId, playerId, reason } = data
+        
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          socket.emit('pass-out-result', {
+            success: false,
+            error: 'Room not found'
+          })
+          return
+        }
+
+        const gameState = this.stateSyncManager.getGameState(roomId)
+        if (!gameState) {
+          socket.emit('pass-out-result', {
+            success: false,
+            error: 'Game state not found'
+          })
+          return
+        }
+
+        // Mark player as passed out
+        if (!gameState.playerStates[playerId]) {
+          gameState.playerStates[playerId] = {}
+        }
+        gameState.playerStates[playerId].passedOut = true
+        gameState.playerStates[playerId].passOutReason = reason
+
+        // Count remaining active players
+        const passedOutCount = Object.values(gameState.playerStates)
+          .filter(state => state.passedOut).length
+        const activePlayers = room.players.length - passedOutCount
+
+        // Broadcast pass out to all players
+        this.io.to(roomId).emit('player-passed-out', {
+          playerId,
+          playerName: room.players.find(p => p.id === playerId)?.name,
+          reason,
+          activePlayers
+        })
+
+        // Check if game should end (only 1 or 0 active players)
+        if (activePlayers <= 1) {
+          const remainingPlayer = room.players.find(p => 
+            !gameState.playerStates[p.id]?.passedOut
+          )
+
+          gameState.phase = 'finished'
+
+          this.io.to(roomId).emit('game-ended', {
+            winner: remainingPlayer || undefined,
+            finalScores: room.players.map(player => ({
+              playerId: player.id,
+              playerName: player.name,
+              score: player.id === remainingPlayer?.id ? 25 : 0 // Default score for last player
+            })),
+            gameStats: {
+              duration: Math.floor((Date.now() - gameState.lastUpdated.getTime()) / 1000 / 60),
+              totalTurns: gameState.currentRound || 1,
+              charlestonPasses: 3
+            },
+            endReason: activePlayers === 1 ? 'all_passed_out' : 'forfeit'
+          })
+        }
+
+        socket.emit('pass-out-result', {
+          success: true,
+          activePlayers
+        })
+
+        this.roomManager.updateRoomActivity(roomId)
+
+      } catch (error) {
+        socket.emit('pass-out-result', {
+          success: false,
+          error: error instanceof Error ? error.message : 'Pass out failed'
+        })
+      }
+    })
   }
 
   private registerConnectionHandlers(socket: Socket): void {
@@ -1156,5 +1389,97 @@ export class SocketHandlers {
     } catch (error) {
       console.error('Failed to handle call interruption:', error)
     }
+  }
+
+  // Mahjong validation helper method
+  private validateMahjongDeclaration(winningHand: any[], selectedPattern: any): {
+    isValid: boolean
+    score?: number
+    bonusPoints?: string[]
+    reason?: string
+  } {
+    try {
+      // Basic validation checks
+      if (!winningHand || winningHand.length !== 14) {
+        return {
+          isValid: false,
+          reason: `Invalid hand size: ${winningHand?.length || 0} tiles (need exactly 14)`
+        }
+      }
+
+      if (!selectedPattern || !selectedPattern.Hand_Points) {
+        return {
+          isValid: false,
+          reason: 'No valid pattern selected'
+        }
+      }
+
+      // TODO: Integrate with frontend MahjongValidator service
+      // For now, assume valid mahjong for testing purposes
+      const baseScore = selectedPattern.Hand_Points || 25
+      const bonusPoints = ['Base pattern: +' + baseScore]
+
+      // Simple scoring calculation
+      let finalScore = baseScore
+
+      // Concealed hand bonus
+      if (selectedPattern.Hand_Conceiled) {
+        const concealedBonus = Math.floor(baseScore * 0.1)
+        finalScore += concealedBonus
+        bonusPoints.push(`Concealed hand: +${concealedBonus}`)
+      }
+
+      // Difficulty bonus
+      if (selectedPattern.Hand_Difficulty === 'hard') {
+        finalScore += 5
+        bonusPoints.push('Hard pattern: +5')
+      }
+
+      return {
+        isValid: true,
+        score: finalScore,
+        bonusPoints
+      }
+
+    } catch (error) {
+      return {
+        isValid: false,
+        reason: 'Validation system error'
+      }
+    }
+  }
+
+  // Calculate final scores for all players
+  private calculateFinalScores(roomId: string, winnerId: string, winningPattern: any, winningHand: any[]): Array<{
+    playerId: string
+    playerName: string
+    score: number
+    pattern?: string
+  }> {
+    const room = this.roomManager.getRoom(roomId)
+    if (!room) return []
+
+    const winnerScore = winningPattern.Hand_Points || 25
+    const scores = []
+
+    for (const player of room.players) {
+      if (player.id === winnerId) {
+        scores.push({
+          playerId: player.id,
+          playerName: player.name,
+          score: winnerScore,
+          pattern: winningPattern.Hand_Description
+        })
+      } else {
+        // Other players get 0 points (traditional American Mahjong)
+        scores.push({
+          playerId: player.id,
+          playerName: player.name,
+          score: 0
+        })
+      }
+    }
+
+    return scores
   }
 }

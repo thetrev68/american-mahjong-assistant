@@ -13,7 +13,8 @@ import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import GameActionsPanel from '../../ui-components/GameActionsPanel'
 import CallOpportunityModal from '../../ui-components/CallOpportunityModal'
-import type { Tile as TileType } from '../../types/tile-types'
+import { MahjongDeclarationModal } from '../../ui-components/MahjongDeclarationModal'
+import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 import type { PatternGroup } from '../../../../shared/nmjl-types'
 import type { GameAction, CallType } from '../../services/game-actions'
 import GameScreenLayout from './GameScreenLayout'
@@ -23,6 +24,11 @@ import { CallOpportunityOverlay } from './components/CallOpportunityOverlay'
 import { useGameIntelligence } from '../../hooks/useGameIntelligence'
 import type { GameState } from '../../services/turn-intelligence-engine'
 import type { CallOpportunity as CallOpportunityType } from '../../services/call-opportunity-analyzer'
+import type { MahjongValidationResult } from '../../services/mahjong-validator'
+import type { GameContext } from '../../services/pattern-analysis-engine'
+import { GameEndCoordinator, type GameEndContext, getWallExhaustionWarning } from '../../services/game-end-coordinator'
+import { createMultiplayerGameEndService, isMultiplayerSession } from '../../services/multiplayer-game-end'
+import { useHistoryStore } from '../../stores/history-store'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -59,6 +65,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const tileStore = useTileStore()
   const turnStore = useTurnStore()
   const turnSelectors = useTurnSelectors()
+  const historyStore = useHistoryStore()
   
   // Initialize game phase - start with Charleston when first entering from tile input
   useEffect(() => {
@@ -169,6 +176,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [elapsedTime, setElapsedTime] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const [showPatternSwitcher, setShowPatternSwitcher] = useState(false)
+  const [showMahjongModal, setShowMahjongModal] = useState(false)
+  const [gameEndCoordinator, setGameEndCoordinator] = useState<GameEndCoordinator | null>(null)
+  const [passedOutPlayers] = useState<Set<string>>(new Set())
   // const [showTileModal, setShowTileModal] = useState(false) // Unused for now
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
@@ -183,7 +193,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [callOpportunityEnhanced, setCallOpportunityEnhanced] = useState<CallOpportunityType | null>(null)
 
   // Current hand with drawn tile - get real player hand from tile store
-  const currentHand = useMemo(() => tileStore.playerHand || [], [tileStore.playerHand])
+  const currentHand = useMemo(() => (tileStore.playerHand || []) as TileType[], [tileStore.playerHand])
   const fullHand = useMemo(() => 
     lastDrawnTile ? [...currentHand, lastDrawnTile] : currentHand, 
     [currentHand, lastDrawnTile]
@@ -340,6 +350,80 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [fullHand, selectedPatterns, analyzeCurrentHand])
 
+  // Initialize game end coordinator
+  useEffect(() => {
+    if (!gameEndCoordinator && selectedPatterns.length > 0 && gameStore.players.length > 0) {
+      const gameEndContext: GameEndContext = {
+        gameId: roomStore.currentRoomCode || `game-${Date.now()}`,
+        players: gameStore.players.map(p => ({ id: p.id, name: p.name })),
+        wallTilesRemaining: turnSelectors.wallCount,
+        passedOutPlayers,
+        currentTurn: gameRound,
+        gameStartTime,
+        selectedPatterns: selectedPatterns.map(pattern => ({
+          Year: 2025,
+          Section: pattern.section,
+          Line: pattern.line,
+          'Pattern ID': pattern.patternId,
+          Hands_Key: pattern.id,
+          Hand_Pattern: pattern.pattern,
+          Hand_Description: pattern.displayName,
+          Hand_Points: pattern.points,
+          Hand_Conceiled: pattern.concealed,
+          Hand_Difficulty: pattern.difficulty,
+          Hand_Notes: null,
+          Groups: pattern.groups || []
+        })),
+        playerHands: {
+          [currentPlayerId]: currentHand.map((tile, index) => ({
+            ...tile,
+            instanceId: ('instanceId' in tile ? tile.instanceId : `${tile.id || 'tile'}-${index}`) as string,
+            isSelected: false
+          } as PlayerTile))
+        },
+        roomId: roomStore.currentRoomCode || undefined,
+        coPilotMode: roomStore.coPilotMode || undefined
+      }
+      
+      setGameEndCoordinator(new GameEndCoordinator(gameEndContext))
+    }
+  }, [gameEndCoordinator, selectedPatterns, gameStore.players, turnSelectors.wallCount, 
+      passedOutPlayers, gameRound, gameStartTime, currentHand, currentPlayerId, 
+      roomStore.currentRoomCode, roomStore.coPilotMode])
+
+  // Check for automatic game end conditions
+  useEffect(() => {
+    if (gameEndCoordinator && !gameEnded) {
+      const gameEndResult = gameEndCoordinator.checkForGameEnd()
+      
+      if (gameEndResult) {
+        setGameEnded(true)
+        
+        // Add game to history
+        historyStore.completeGame(gameEndResult.completedGameData)
+        
+        // Show appropriate alert
+        gameStore.addAlert({
+          type: gameEndResult.scenario.type === 'mahjong' ? 'success' : 'info',
+          title: 'Game Ended',
+          message: gameEndResult.scenario.reason
+        })
+        
+        // Navigate to post-game after delay
+        if (gameEndResult.shouldNavigateToPostGame) {
+          setTimeout(() => {
+            onNavigateToPostGame?.()
+          }, 3000)
+        }
+      }
+    }
+  }, [gameEndCoordinator, gameEnded, historyStore, gameStore, onNavigateToPostGame])
+
+  // Wall exhaustion warning
+  const wallExhaustionWarning = useMemo(() => {
+    return getWallExhaustionWarning(turnSelectors.wallCount)
+  }, [turnSelectors.wallCount])
+
   // Draw tile action
   // Enhanced action handlers using game actions service
   const handlePlayerAction = useCallback(async (action: GameAction, data?: unknown) => {
@@ -349,6 +433,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         title: 'Not Your Turn',
         message: 'Wait for your turn to take actions'
       })
+      return
+    }
+
+    // Handle mahjong declaration
+    if (action === 'declare-mahjong') {
+      setShowMahjongModal(true)
       return
     }
 
@@ -430,6 +520,127 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     // Close call opportunity
     turnStore.closeCallOpportunity()
   }, [handlePlayerAction, turnStore])
+
+  // Handle mahjong confirmation
+  const handleMahjongConfirmation = useCallback(async (validationResult: MahjongValidationResult) => {
+    if (validationResult.isValid && gameEndCoordinator && validationResult.validPattern) {
+      setGameEnded(true)
+      
+      const winningHand = currentHand.map((tile, index) => ({
+        ...tile,
+        instanceId: ('instanceId' in tile ? tile.instanceId : `${tile.id || 'tile'}-${index}`) as string,
+        isSelected: false
+      } as PlayerTile))
+
+      // Check if this is a multiplayer session
+      const gameEndContext: GameEndContext = {
+        gameId: roomStore.currentRoomCode || `game-${Date.now()}`,
+        players: gameStore.players.map(p => ({ id: p.id, name: p.name })),
+        wallTilesRemaining: turnSelectors.wallCount,
+        passedOutPlayers,
+        currentTurn: gameRound,
+        gameStartTime,
+        selectedPatterns: selectedPatterns.map(pattern => ({
+          Year: 2025,
+          Section: pattern.section,
+          Line: pattern.line,
+          'Pattern ID': pattern.patternId,
+          Hands_Key: pattern.id,
+          Hand_Pattern: pattern.pattern,
+          Hand_Description: pattern.displayName,
+          Hand_Points: pattern.points,
+          Hand_Conceiled: pattern.concealed,
+          Hand_Difficulty: pattern.difficulty,
+          Hand_Notes: null,
+          Groups: pattern.groups || []
+        })),
+        playerHands: {
+          [currentPlayerId]: winningHand
+        },
+        roomId: roomStore.currentRoomCode || undefined,
+        coPilotMode: roomStore.coPilotMode || undefined
+      }
+
+      if (isMultiplayerSession(gameEndContext)) {
+        // Use multiplayer coordination
+        const multiplayerService = createMultiplayerGameEndService(gameEndContext)
+        
+        try {
+          const multiplayerData = await multiplayerService.declareMahjong(
+            currentPlayerId,
+            validationResult.validPattern,
+            winningHand
+          )
+
+          // Add game to history using multiplayer data
+          historyStore.completeGame(multiplayerData.gameEndResult.completedGameData)
+
+          // Add success alert with multiplayer context
+          gameStore.addAlert({
+            type: 'success',
+            title: 'Mahjong! 🏆',
+            message: `Won with ${validationResult.validPattern.Hand_Description} for ${validationResult.score} points! All players will see the results.`
+          })
+
+          // Coordinate synchronized transition to post-game
+          await multiplayerService.coordinatePostGameTransition(multiplayerData)
+
+        } catch (error) {
+          console.error('Multiplayer game end failed:', error)
+          // Fallback to single-player handling
+          const gameEndResult = gameEndCoordinator.endGameByMahjong(
+            currentPlayerId,
+            validationResult.validPattern,
+            winningHand
+          )
+          historyStore.completeGame(gameEndResult.completedGameData)
+        }
+      } else {
+        // Single-player or solo mode
+        const gameEndResult = gameEndCoordinator.endGameByMahjong(
+          currentPlayerId,
+          validationResult.validPattern,
+          winningHand
+        )
+        
+        historyStore.completeGame(gameEndResult.completedGameData)
+
+        gameStore.addAlert({
+          type: 'success',
+          title: 'Mahjong!',
+          message: `Won with ${validationResult.validPattern.Hand_Description} for ${validationResult.score} points!`
+        })
+      }
+      
+      // Create game history entry
+      const mahjongTurn: GameTurn = {
+        playerId: currentPlayerId,
+        action: 'declare-mahjong',
+        tile: undefined,
+        callType: undefined,
+        exposedTiles: undefined,
+        timestamp: new Date()
+      }
+      setGameHistory(prev => [mahjongTurn, ...prev])
+
+      // Navigate to post-game after a delay
+      setTimeout(() => {
+        onNavigateToPostGame?.()
+      }, 3000)
+    }
+  }, [currentPlayerId, gameEndCoordinator, currentHand, selectedPatterns, roomStore, gameStore, 
+      turnSelectors.wallCount, passedOutPlayers, gameRound, gameStartTime, historyStore, onNavigateToPostGame])
+
+  // Create game context for mahjong validation
+  const gameContext = useMemo((): GameContext => ({
+    jokersInHand: fullHand.filter(tile => tile.id === 'joker' || tile.value === 'joker').length,
+    wallTilesRemaining: Math.max(0, 144 - (fullHand.length * 4) - discardPile.length),
+    discardPile: discardPile.map(d => d.tile.id),
+    exposedTiles: {
+      [currentPlayerId]: exposedTiles.flatMap(group => group.tiles.map(tile => tile.id))
+    },
+    currentPhase: 'gameplay'
+  }), [fullHand, discardPile, currentPlayerId, exposedTiles])
 
   // Get available actions for current player
   const currentPlayerActions = useMemo(() => {
@@ -690,7 +901,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         onNavigateToCharleston={onNavigateToCharleston}
         onPauseGame={handlePauseGame}
         isPaused={isPaused}
-        currentHand={currentHand}
+        currentHand={currentHand.map((tile, index) => ({
+          ...tile,
+          instanceId: ('instanceId' in tile ? tile.instanceId : `${tile.id || 'tile'}-${index}`) as string,
+          isSelected: false
+        } as PlayerTile))}
         lastDrawnTile={lastDrawnTile}
         exposedTiles={exposedTiles}
         selectedDiscardTile={selectedDiscardTile}
@@ -845,6 +1060,18 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         />
       </div>
 
+      {/* Wall Exhaustion Warning */}
+      {wallExhaustionWarning && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40">
+          <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-2 rounded-lg shadow-lg">
+            <div className="flex items-center space-x-2">
+              <span className="text-lg">⚠️</span>
+              <span className="font-medium">{wallExhaustionWarning}</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Call Opportunity Modal */}
       {callOpportunityData && (
         <CallOpportunityModal
@@ -852,6 +1079,39 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           onRespond={handleCallOpportunityResponse}
         />
       )}
+
+      {/* Mahjong Declaration Modal */}
+      <MahjongDeclarationModal
+        isOpen={showMahjongModal}
+        onClose={() => setShowMahjongModal(false)}
+        onConfirm={handleMahjongConfirmation}
+        playerHand={currentHand.map((tile, index) => ({
+          ...tile,
+          instanceId: ('instanceId' in tile ? tile.instanceId : `${tile.id || 'unknown'}-${index}-${Date.now()}`) as string,
+          isSelected: false
+        } as PlayerTile))}
+        exposedTiles={exposedTiles.flatMap(group => group.tiles.map((tile, index) => ({
+          ...tile,
+          instanceId: ('instanceId' in tile ? tile.instanceId : `${tile.id || 'exposed'}-${index}-${Date.now()}`) as string,
+          isSelected: false
+        } as PlayerTile)))}
+        selectedPatterns={selectedPatterns.map(pattern => ({
+          Year: 2025,
+          Section: pattern.section,
+          Line: pattern.line,
+          'Pattern ID': pattern.patternId,
+          Hands_Key: pattern.id,
+          Hand_Pattern: pattern.pattern,
+          Hand_Description: pattern.displayName,
+          Hand_Points: pattern.points,
+          Hand_Conceiled: pattern.concealed,
+          Hand_Difficulty: pattern.difficulty,
+          Hand_Notes: null,
+          Groups: pattern.groups || []
+        }))}
+        playerId={currentPlayerId}
+        gameContext={gameContext}
+      />
 
       {/* Selection Area - Fixed overlay for tile actions */}
       <SelectionArea onAdvanceToGameplay={handleAdvanceToGameplay} onCharlestonPass={handleCharlestonPass} />

@@ -16,7 +16,8 @@
       "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)",
       "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)",
       "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)",
-      "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)"
+      "Read(/C:\\Users\\thetr\\OneDrive\\Pictures\\Screenshots 1/**)",
+      "Bash(npm run type-check:*)"
     ],
     "deny": [],
     "ask": [],

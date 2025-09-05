@@ -37,10 +37,7 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   }
 
   const handleMahjong = async () => {
-    // TODO: This would need to integrate with pattern selection
-    console.log('Mahjong declaration - requires pattern validation')
-    // For now, show placeholder
-    alert('Mahjong declaration requires pattern validation - feature coming soon!')
+    await onAction('declare-mahjong')
   }
 
   const canDraw = availableActions.includes('draw') && isMyTurn && wallCount > 0

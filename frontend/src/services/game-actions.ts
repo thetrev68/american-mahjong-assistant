@@ -10,7 +10,7 @@ import { useRoomStore } from '../stores/room-store'
 import { useIntelligenceStore } from '../stores/intelligence-store'
 import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
 
-export type GameAction = 'draw' | 'discard' | 'call' | 'joker-swap' | 'mahjong' | 'pass-out'
+export type GameAction = 'draw' | 'discard' | 'call' | 'joker-swap' | 'mahjong' | 'declare-mahjong' | 'pass-out'
 export type CallType = 'pung' | 'kong' | 'quint' | 'sextet'
 
 export interface ActionValidationResult {
