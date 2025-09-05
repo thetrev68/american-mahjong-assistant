@@ -160,7 +160,7 @@ export function CharlestonView() {
         handleReceiveTiles(['1B', '2C', '3D']) // Mock received tiles
       }, 1000)
     }
-  }, [selectedTilesToPass, currentHand, isMultiplayerMode, charlestonMultiplayer, charlestonPhase, charlestonStore, handleReceiveTiles])
+  }, [selectedTilesToPass, currentHand, isMultiplayerMode, charlestonMultiplayer, charlestonStore, handleReceiveTiles])
   
   // Game context tracking for AI engines
   const [tilesPassedOut, setTilesPassedOut] = useState<string[]>([]) // Tiles we passed to others

@@ -4,8 +4,7 @@
 import React from 'react'
 import { Button } from './Button'
 import { Card } from './Card'
-import type { GameAction, CallType } from '../services/game-actions'
-import type { Tile } from '../types/tile-types'
+import type { GameAction } from '../services/game-actions'
 
 export interface GameActionsPanelProps {
   availableActions: GameAction[]

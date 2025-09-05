@@ -209,7 +209,8 @@ class TileService {
       winds: [],
       dragons: [],
       flowers: [],
-      jokers: []
+      jokers: [],
+      special: []
     }
 
     tiles.forEach(tile => {

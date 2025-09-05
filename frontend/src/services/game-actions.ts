@@ -2,7 +2,7 @@
 // Complete action system for American Mahjong gameplay with validation and coordination
 
 import type { Tile } from '../types/tile-types'
-import type { NMJLPattern } from '../../../shared/nmjl-types'
+import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
 import { useGameStore } from '../stores/game-store'
 import { useTileStore } from '../stores/tile-store'
 import { useTurnStore } from '../stores/turn-store'
@@ -100,7 +100,7 @@ export class GameActionsService {
       const tile = this.generateDrawnTile()
       if (tile) {
         // Add to player hand
-        useTileStore.getState().addTile(tile)
+        useTileStore.getState().addTile(tile.id)
         
         // Update turn state
         const turnStore = useTurnStore.getState()
@@ -112,7 +112,7 @@ export class GameActionsService {
           this.updateAvailableActions(playerId)
         }
 
-        console.log(`Player ${playerId} drew tile:`, tile.displayNameName)
+        console.log(`Player ${playerId} drew tile:`, tile.displayName)
       }
 
       return tile
@@ -155,7 +155,7 @@ export class GameActionsService {
             id: tile.id,
             suit: tile.suit,
             value: tile.value,
-            displayName: tile.displayNameName,
+            displayName: tile.displayName,
             isJoker: tile.isJoker
           }
         }, { priority: 'high' })
@@ -173,14 +173,14 @@ export class GameActionsService {
       this.updateAvailableActions(playerId)
 
       // Check for call opportunities (solo mode simulation)
-      if (!useRoomStore.getState().coPilotMode === 'everyone') {
+      if (useRoomStore.getState().coPilotMode !== 'everyone') {
         this.simulateCallOpportunities(tile, playerId)
       }
 
       // Analyze hand after discard for AI recommendations
       const intelligenceStore = useIntelligenceStore.getState()
       const currentHand = useTileStore.getState().playerHand
-      intelligenceStore.analyzeHand(currentHand, useTileStore.getState().exposedTiles)
+      intelligenceStore.analyzeHand(currentHand, [])
 
       console.log(`Player ${playerId} discarded:`, tile.displayName)
       return true
@@ -214,7 +214,11 @@ export class GameActionsService {
       })
       
       // Add to exposed tiles
-      useTileStore.getState().addExposedTiles(tiles, callType)
+      // Add exposed tiles - use proper method
+      useTileStore.getState().addExposedTiles(
+        tiles.map(t => ({ ...t, instanceId: t.id, isSelected: false })),
+        callType
+      )
       
       // In multiplayer mode, broadcast call
       if (useRoomStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
@@ -226,7 +230,7 @@ export class GameActionsService {
             id: tile.id,
             suit: tile.suit,
             value: tile.value,
-            displayName: tile.displayNameName
+            displayName: tile.displayName
           }))
         }, { priority: 'critical' })
 
@@ -287,18 +291,18 @@ export class GameActionsService {
         if (jokerIndex >= 0) {
           // Replace joker with target tile
           const updatedExposed = [...exposedTiles]
-          updatedExposed[jokerIndex] = { ...targetTile }
+          updatedExposed[jokerIndex] = { ...targetTile, instanceId: targetTile.id, isSelected: false }
           
           // Add joker to hand
           const jokerTile: Tile = {
             id: 'joker',
             suit: 'special',
             value: 'joker',
-            display: 'Joker',
+            displayName: 'Joker',
             isJoker: true
           }
           
-          tileStore.addTile(jokerTile)
+          tileStore.addTile(jokerTile.id)
           tileStore.setExposedTiles(updatedExposed)
         }
       } else {
@@ -311,7 +315,7 @@ export class GameActionsService {
               id: targetTile.id,
               suit: targetTile.suit,
               value: targetTile.value,
-              display: targetTile.display,
+              displayName: targetTile.displayName,
               isJoker: targetTile.isJoker
             }
           }, { priority: 'medium' })
@@ -323,12 +327,12 @@ export class GameActionsService {
         }
       }
 
-      console.log(`Player ${playerId} swapped joker for:`, targetTile.display)
+      console.log(`Player ${playerId} swapped joker for:`, targetTile.displayName)
       
       useGameStore.getState().addAlert({
         type: 'success',
         title: 'Joker Swapped',
-        message: `Joker swapped for ${targetTile.display}`
+        message: `Joker swapped for ${targetTile.displayName}`
       })
       
       return true
@@ -343,8 +347,8 @@ export class GameActionsService {
     }
   }
 
-  async declareMahjong(playerId: string, hand: Tile[], pattern: NMJLPattern): Promise<boolean> {
-    const validation = this.validateMahjongClaim(hand, pattern)
+  async declareMahjong(playerId: string, hand: Tile[], pattern: NMJL2025Pattern): Promise<boolean> {
+    const validation = this.validateMahjongClaim(hand)
     if (!validation.isValid) {
       console.error('Mahjong claim invalid:', validation.reason)
       useGameStore.getState().addAlert({
@@ -362,15 +366,15 @@ export class GameActionsService {
           playerId,
           roomId: useRoomStore.getState().currentRoomCode,
           pattern: {
-            id: pattern.ID,
-            name: pattern.Pattern_Description,
-            points: pattern.Points
+            id: pattern['Pattern ID'],
+            name: pattern.Hand_Description,
+            points: pattern.Hand_Points
           },
           hand: hand.map(tile => ({
             id: tile.id,
             suit: tile.suit,
             value: tile.value,
-            displayName: tile.displayNameName,
+            displayName: tile.displayName,
             isJoker: tile.isJoker
           }))
         }, { priority: 'critical', requiresAck: true })
@@ -387,10 +391,10 @@ export class GameActionsService {
       gameStore.addAlert({
         type: 'success',
         title: 'MAHJONG!',
-        message: `${pattern.Pattern_Description} - ${pattern.Points} points!`
+        message: `${pattern.Hand_Description} - ${pattern.Hand_Points} points!`
       })
 
-      console.log(`Player ${playerId} declared mahjong with pattern:`, pattern.Pattern_Description)
+      console.log(`Player ${playerId} declared mahjong with pattern:`, pattern.Hand_Description)
       return true
     } catch (error) {
       console.error('Error declaring mahjong:', error)
@@ -553,17 +557,17 @@ export class GameActionsService {
   private generateDrawnTile(): Tile {
     // Simplified tile generation for development
     // TODO: Implement proper wall management
-    const suits = ['bamboo', 'character', 'dots', 'dragons', 'winds']
+    const suits = ['bams', 'cracks', 'dots', 'dragons', 'winds']
     const values = ['1', '2', '3', '4', '5', '6', '7', '8', '9']
     
-    const randomSuit = suits[Math.floor(Math.random() * suits.length)]
-    const randomValue = values[Math.floor(Math.random() * values.length)]
+    const randomSuit = suits[Math.floor(Math.random() * suits.length)] as 'bams' | 'cracks' | 'dots' | 'dragons' | 'winds'
+    const randomValue = values[Math.floor(Math.random() * values.length)] as '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'
     
     return {
       id: `${randomValue}${randomSuit[0]}`,
       suit: randomSuit,
       value: randomValue,
-      display: `${randomValue}${randomSuit[0].toUpperCase()}`,
+      displayName: `${randomValue}${randomSuit[0].toUpperCase()}`,
       isJoker: false
     }
   }
@@ -588,7 +592,7 @@ export class GameActionsService {
     console.log(`Simulating call opportunities for tile ${tile.displayName} from ${playerId}`)
   }
 
-  private validateMahjongClaim(hand: Tile[], pattern: NMJLPattern): ActionValidationResult {
+  private validateMahjongClaim(hand: Tile[]): ActionValidationResult {
     // Basic validation - TODO: Implement proper pattern matching
     if (hand.length !== 14) {
       return { isValid: false, reason: 'Hand must contain exactly 14 tiles' }
@@ -610,7 +614,7 @@ export const useGameActions = () => {
     discardTile: (playerId: string, tile: Tile) => service.discardTile(playerId, tile),
     makeCall: (playerId: string, callType: CallType, tiles: Tile[]) => service.makeCall(playerId, callType, tiles),
     swapJoker: (playerId: string, jokerLocation: 'own' | 'opponent', targetTile: Tile) => service.swapJoker(playerId, jokerLocation, targetTile),
-    declareMahjong: (playerId: string, hand: Tile[], pattern: Pattern) => service.declareMahjong(playerId, hand, pattern),
+    declareMahjong: (playerId: string, hand: Tile[], pattern: NMJL2025Pattern) => service.declareMahjong(playerId, hand, pattern),
     declarePassOut: (playerId: string, reason: string) => service.declarePassOut(playerId, reason),
     validateAction: (action: GameAction, gameState: GameState, playerId: string, actionData?: unknown) => service.validateAction(action, gameState, playerId, actionData),
     getAvailableActions: (playerId: string, gameState: GameState) => service.getAvailableActions(playerId, gameState)

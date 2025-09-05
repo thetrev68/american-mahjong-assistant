@@ -54,14 +54,15 @@ export const CallOpportunityModal: React.FC<CallOpportunityModalProps> = ({
     const interval = setInterval(updateTimer, 100)
     
     return () => clearInterval(interval)
-  }, [opportunity, hasResponded])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [opportunity, hasResponded]) // handleResponse is stable and doesn't need to be in deps
 
-  const handleResponse = (response: 'call' | 'pass', callType?: CallType) => {
+  const handleResponse = React.useCallback((response: 'call' | 'pass', callType?: CallType) => {
     if (hasResponded) return
     
     setHasResponded(true)
     onRespond(response, callType)
-  }
+  }, [hasResponded, onRespond])
 
   if (!opportunity || hasResponded) {
     return null
@@ -84,9 +85,8 @@ export const CallOpportunityModal: React.FC<CallOpportunityModalProps> = ({
           {/* Discarded Tile */}
           <div className="flex justify-center">
             <AnimatedTile
-              tile={opportunity.tile}
-              isSelected={false}
-              animationType="glow"
+              tile={{...opportunity.tile, instanceId: opportunity.tile.id, isSelected: false}}
+              context="gameplay"
               className="transform scale-125"
             />
           </div>

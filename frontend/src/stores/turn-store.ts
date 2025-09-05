@@ -5,6 +5,7 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { GameAction, CallType } from '../services/game-actions'
 import type { Tile } from '../types/tile-types'
+import type { NMJL2025Pattern } from '../../../shared/nmjl-types'
 
 export type PlayerPosition = 'east' | 'north' | 'west' | 'south'
 
@@ -348,16 +349,16 @@ export const useTurnStore = create<TurnStore>()(
 
         executeAction: async (playerId: string, action: GameAction, data?: unknown) => {
           const { gameActions } = await import('../services/game-actions')
-          const state = get()
           
           try {
             let success = false
 
             switch (action) {
-              case 'draw':
+              case 'draw': {
                 const drawnTile = await gameActions.drawTile(playerId)
                 success = drawnTile !== null
                 break
+              }
               case 'discard':
                 if (data && typeof data === 'object' && 'id' in data) {
                   success = await gameActions.discardTile(playerId, data as Tile)
@@ -377,14 +378,15 @@ export const useTurnStore = create<TurnStore>()(
                 break
               case 'mahjong':
                 if (data && typeof data === 'object' && 'hand' in data && 'pattern' in data) {
-                  const mahjongData = data as { hand: Tile[]; pattern: any }
+                  const mahjongData = data as { hand: Tile[]; pattern: NMJL2025Pattern }
                   success = await gameActions.declareMahjong(playerId, mahjongData.hand, mahjongData.pattern)
                 }
                 break
-              case 'pass-out':
+              case 'pass-out': {
                 const reason = typeof data === 'string' ? data : 'Hand not viable'
                 success = await gameActions.declarePassOut(playerId, reason)
                 break
+              }
             }
 
             // Update action timestamp if successful
@@ -422,7 +424,7 @@ export const useTurnStore = create<TurnStore>()(
 
         // Turn timing - NEW implementations
 
-        startTurnTimer: (duration: number = 120000) => {
+        startTurnTimer: () => {
           set({
             turnStartTime: new Date(),
             turnDuration: 0

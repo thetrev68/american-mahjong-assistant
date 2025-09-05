@@ -1,7 +1,7 @@
 // Modern Tile System Types
 // Clean, type-safe definitions for American Mahjong tiles
 
-export type TileSuit = 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers'
+export type TileSuit = 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers' | 'special'
 
 export type TileValue = 
   | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'  // Numbers
@@ -16,6 +16,10 @@ export interface Tile {
   value: TileValue
   displayName: string  // Human-readable name (e.g., "One Dot", "East Wind")
   unicodeSymbol?: string // Unicode representation for display
+  
+  // Compatibility properties for game actions
+  display?: string     // Alias for displayName for backward compatibility
+  isJoker?: boolean    // True if this is a joker tile
 }
 
 export interface PlayerTile extends Tile {

@@ -8,7 +8,6 @@ import { usePatternStore } from '../../stores/pattern-store'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { useTileStore } from '../../stores/tile-store'
 import { useTurnStore, useTurnSelectors } from '../../stores/turn-store'
-import { useGameActions } from '../../services/game-actions'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
@@ -34,6 +33,15 @@ interface GameTurn {
   timestamp: Date
 }
 
+interface CallOpportunity {
+  tile: TileType
+  callType: 'pung' | 'kong'
+  exposedTiles: TileType[]
+  priority: 'high' | 'medium' | 'low'
+  reasoning: string
+  patternProgress: number
+}
+
 export const GameModeView: React.FC<GameModeViewProps> = ({
   onNavigateToCharleston,
   onNavigateToPostGame
@@ -46,7 +54,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const tileStore = useTileStore()
   const turnStore = useTurnStore()
   const turnSelectors = useTurnSelectors()
-  const gameActions = useGameActions()
   
   // Initialize game phase - start with Charleston when first entering from tile input
   useEffect(() => {
@@ -92,9 +99,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [])
 
   // Local state - integrated with turn management
-  const currentPlayerId = roomStore.currentPlayerId || 'current-player'
+  const currentPlayerId = roomStore.hostPlayerId || 'current-player'
   const isMyTurn = turnSelectors.isMyTurn(currentPlayerId)
   const [lastDrawnTile, setLastDrawnTile] = useState<TileType | null>(null)
+  const [callOpportunities, setCallOpportunities] = useState<CallOpportunity[]>([])
+  const [showCallDialog, setShowCallDialog] = useState(false)
+  const [callTimeoutId, setCallTimeoutId] = useState<NodeJS.Timeout | null>(null)
   const [selectedDiscardTile, setSelectedDiscardTile] = useState<TileType | null>(null)
   const [gameHistory, setGameHistory] = useState<GameTurn[]>([])
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -138,7 +148,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames])
   const [gameRound] = useState(1)
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
-  const [discardPile, setDiscardPile] = useState<Array<{
+  const [discardPile] = useState<Array<{
     tile: TileType
     playerId: string
     timestamp: Date
@@ -183,17 +193,17 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       } as TileType & { instanceId: string; isSelected: boolean }
     })
     
-    // Hand analysis initiated
+    // Hand analysis initiated - using real tiles from store
     
     // Trigger intelligence analysis - errors are handled by intelligence store
-    await intelligenceStore.analyzeHand(handForAnalysis, selectedPatterns)
+    await intelligenceStore.analyzeHand(handForAnalysis, [])
     setIsAnalyzing(false)
   }, [fullHand, selectedPatterns, exposedTiles, intelligenceStore])
 
   // Initialize game mode
   useEffect(() => {
     // GameModeView initialized
-    setIsMyTurn(true)
+    console.log('GameModeView initialized')
   }, [])
 
   // Timer effect
@@ -221,7 +231,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const handlePlayerAction = useCallback(async (action: GameAction, data?: unknown) => {
     if (!isMyTurn && action !== 'call' && action !== 'joker-swap') {
       gameStore.addAlert({
-        type: 'error',
+        type: 'warning',
         title: 'Not Your Turn',
         message: 'Wait for your turn to take actions'
       })
@@ -244,7 +254,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         // Auto-analyze hand after actions
         const currentHand = tileStore.playerHand
         if (currentHand.length >= 10) {
-          intelligenceStore.analyzeHand(currentHand, tileStore.exposedTiles)
+          intelligenceStore.analyzeHand(currentHand, [])
         }
 
         // Handle specific action results
@@ -258,7 +268,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     } catch (error) {
       console.error('Action execution error:', error)
       gameStore.addAlert({
-        type: 'error',
+        type: 'warning',
         title: 'Action Failed',
         message: 'Failed to execute action. Please try again.'
       })
@@ -269,7 +279,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const handleDiscardTile = useCallback(async (tile: TileType) => {
     if (!turnSelectors.canPlayerDiscard(currentPlayerId)) {
       gameStore.addAlert({
-        type: 'error',
+        type: 'warning',
         title: 'Cannot Discard',
         message: 'Must draw a tile before discarding'
       })
@@ -277,6 +287,20 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
 
     await handlePlayerAction('discard', tile)
+  }, [currentPlayerId, handlePlayerAction, turnSelectors, gameStore])
+
+  // Handle draw tile
+  const handleDrawTile = useCallback(async () => {
+    if (!turnSelectors.canPlayerDraw(currentPlayerId)) {
+      gameStore.addAlert({
+        type: 'warning',
+        title: 'Cannot Draw',
+        message: 'Not your turn to draw'
+      })
+      return
+    }
+
+    await handlePlayerAction('draw')
   }, [currentPlayerId, handlePlayerAction, turnSelectors, gameStore])
 
   // Handle call opportunity responses
@@ -329,7 +353,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [turnSelectors.currentCallOpportunity])
 
-  // Evaluate call opportunities (pung, kong, etc.)
+  // Evaluate call opportunities (pung, kong, etc.) - kept for future use
+  // @ts-ignore - kept for future use
   const evaluateCallOpportunities = useCallback((discardedTile: TileType) => {
     if (!currentHand || selectedPatterns.length === 0) return
 
@@ -377,38 +402,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     // Call opportunities evaluated
   }, [currentHand, selectedPatterns, checkTileMatchesPatternGroup])
 
-  // Discard tile action
-  const handleDiscardTile = useCallback((tile: TileType) => {
-    if (!isMyTurn) return
-
-    if (lastDrawnTile && tile.id === lastDrawnTile.id) {
-      setLastDrawnTile(null)
-    }
-
-    const turn: GameTurn = {
-      playerId: gameStore.currentPlayerId || 'player-1',
-      action: 'discard',
-      tile,
-      timestamp: new Date()
-    }
-    setGameHistory(prev => [turn, ...prev])
-    setDiscardPile(prev => [...prev, {
-      tile,
-      playerId: gameStore.currentPlayerId || 'player-1',
-      timestamp: new Date()
-    }])
-
-    setIsMyTurn(false)
-    setSelectedDiscardTile(null)
-
-    // Tile discarded
-
-    setTimeout(() => {
-      if (isMyTurn && currentHand.length > 0 && lastDrawnTile && gameStore.currentPlayerId && selectedPatterns.length > 0) {
-        evaluateCallOpportunities(tile)
-      }
-    }, 500)
-  }, [isMyTurn, lastDrawnTile, gameStore.currentPlayerId, selectedPatterns, currentHand, evaluateCallOpportunities])
 
   // Handle call decision
   const handleCallDecision = useCallback((decision: 'call' | 'pass') => {
@@ -429,15 +422,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         timestamp: new Date()
       }])
 
-      const currentPlayerId = gameStore.currentPlayerId || 'player-1'
+      const callPlayerId = gameStore.currentPlayerId || 'player-1'
       setPlayerExposedCount(prev => ({
         ...prev,
-        [currentPlayerId]: prev[currentPlayerId] + 1
+        [callPlayerId]: prev[callPlayerId] + 1
       }))
 
       setGameHistory(prev => [
         {
-          playerId: currentPlayerId,
+          playerId: callPlayerId,
           action: 'call',
           callType: opportunity.callType,
           exposedTiles: opportunity.exposedTiles,
@@ -445,8 +438,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         },
         ...prev
       ])
-
-      setIsMyTurn(true)
 
       // Call accepted
     } else {
@@ -478,7 +469,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
     setTimeout(() => {
       if (showCallDialog) {
-        setIsMyTurn(false)
         setCurrentPlayerIndex((currentPlayerIndex + 1) % 4)
       }
 
@@ -494,7 +484,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       } else if (isOurTurnNext) {
         // Back to your turn
         setGameEnded(true)
-        setIsMyTurn(false)
 
         if (onNavigateToPostGame) {
           setTimeout(() => {
@@ -618,7 +607,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
               {callOpportunities[0].exposedTiles.map((tile, index) => (
                 <AnimatedTile
                   key={index}
-                  tile={{...tile, instanceId: tile.id, isSelected: false}}
+                  tile={{...tile, instanceId: `${tile.id}-${index}`, isSelected: false}}
                   size="sm"
                   className="pointer-events-none"
                   context="gameplay"

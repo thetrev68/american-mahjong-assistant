@@ -1,13 +1,11 @@
 // Turn Real-time Synchronization Service
 // Coordinates turn actions across multiplayer sessions with connection resilience
 
-import type { Socket } from 'socket.io-client'
 import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
 import { useGameStore } from '../stores/game-store'
 import { useTurnStore } from '../stores/turn-store'
 import { useRoomStore } from '../stores/room-store'
-import { useTileStore } from '../stores/tile-store'
-import type { GameAction, CallType, GameState } from './game-actions'
+import type { GameAction, CallType } from './game-actions'
 import type { Tile } from '../types/tile-types'
 
 export interface TurnActionEvent {
@@ -93,7 +91,7 @@ export class TurnRealtimeService {
 
   private addEventListener(event: string, handler: (data: unknown) => void): void {
     // TODO: Integrate with actual socket event system through multiplayer manager
-    console.log(`Registered turn event listener: ${event}`)
+    console.log(`Registered turn event listener: ${event} with handler:`, !!handler)
   }
 
   // Turn Action Broadcasting
@@ -140,7 +138,6 @@ export class TurnRealtimeService {
 
     const turnStore = useTurnStore.getState()
     const gameStore = useGameStore.getState()
-    const tileStore = useTileStore.getState()
 
     switch (actionData.action) {
       case 'draw':
@@ -152,7 +149,7 @@ export class TurnRealtimeService {
         })
         break
 
-      case 'discard':
+      case 'discard': {
         // Update discard pile and check for call opportunities
         const discardData = actionData.result as { tile: Tile }
         if (discardData?.tile) {
@@ -160,18 +157,20 @@ export class TurnRealtimeService {
           console.log(`${actionData.playerId} discarded: ${discardData.tile.display}`)
         }
         break
+      }
 
-      case 'call':
+      case 'call': {
         // Update exposed tiles for the calling player
         const callData = actionData.result as { callType: CallType, tiles: Tile[] }
         if (callData?.tiles) {
           console.log(`${actionData.playerId} called ${callData.callType}:`, callData.tiles.map(t => t.display))
         }
         break
+      }
 
       case 'mahjong':
         // Game over
-        gameStore.setGamePhase('post-game')
+        gameStore.setGamePhase('finished')
         gameStore.addAlert({
           type: 'success',
           title: 'Game Over',
@@ -220,7 +219,7 @@ export class TurnRealtimeService {
           display: discardedTile.display,
           isJoker: discardedTile.isJoker
         },
-        discardingPlayer: roomStore.currentPlayerId,
+        discardingPlayer: roomStore.hostPlayerId,
         duration,
         deadline: Date.now() + duration
       }, { priority: 'critical' })
@@ -245,7 +244,7 @@ export class TurnRealtimeService {
 
     const gameStore = useGameStore.getState()
     const roomStore = useRoomStore.getState()
-    const currentPlayerId = roomStore.currentPlayerId
+    const currentPlayerId = roomStore.hostPlayerId
 
     // Don't show call opportunity to the discarding player
     if (opportunityData.discardingPlayer === currentPlayerId) {
@@ -281,7 +280,7 @@ export class TurnRealtimeService {
 
     try {
       await this.multiplayerManager.emitToService('turn', 'call-response', {
-        playerId: roomStore.currentPlayerId,
+        playerId: roomStore.hostPlayerId,
         response,
         callType,
         tiles: tiles?.map(tile => ({
@@ -291,7 +290,7 @@ export class TurnRealtimeService {
           display: tile.display,
           isJoker: tile.isJoker
         })),
-        priority: this.getCallPriority(roomStore.currentPlayerId || '', turnStore.turnOrder)
+        priority: this.getCallPriority(roomStore.hostPlayerId || '', turnStore.turnOrder)
       }, { priority: 'critical' })
 
       console.log(`Call response sent: ${response}`)
@@ -384,7 +383,7 @@ export class TurnRealtimeService {
     try {
       await this.multiplayerManager.emitToService('turn', 'request-game-state-sync', {
         roomId: roomStore.currentRoomCode,
-        playerId: roomStore.currentPlayerId
+        playerId: roomStore.hostPlayerId
       }, { priority: 'medium' })
 
       console.log('Turn state sync requested')
@@ -444,7 +443,7 @@ export class TurnRealtimeService {
 
     const gameStore = useGameStore.getState()
     gameStore.addAlert({
-      type: 'error',
+      type: 'warning',
       title: 'Action Rejected',
       message: rejectionData.reason
     })
