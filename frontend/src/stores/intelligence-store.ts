@@ -6,6 +6,12 @@ import { devtools } from 'zustand/middleware'
 import type { PatternSelectionOption, PatternGroup } from '../../../shared/nmjl-types'
 import type { PlayerTile } from '../types/tile-types'
 import { AnalysisEngine } from '../services/analysis-engine'
+import { getTurnIntelligenceEngine } from '../services/turn-intelligence-engine'
+import { getOpponentAnalysisEngine } from '../services/opponent-analysis-engine'
+import { getCallOpportunityAnalyzer } from '../services/call-opportunity-analyzer'
+import type { TurnRecommendations, DefensiveAnalysis, PatternSwitchSuggestion, GameState } from '../services/turn-intelligence-engine'
+import type { OpponentProfile, DangerousTileAnalysis } from '../services/opponent-analysis-engine'
+import type { CallRecommendation, CallOpportunity, CallAnalysisContext } from '../services/call-opportunity-analyzer'
 
 export interface TileRecommendation {
   tileId: string
@@ -110,6 +116,14 @@ export interface HandAnalysis {
   lastUpdated: number
   analysisVersion: string
   engine1Facts?: Array<{ patternId: string; tileMatching?: { bestVariation?: { patternTiles: string[]; sequence: number } } }> // Engine 1 pattern analysis facts with tile arrays
+  
+  // Phase 4C: Enhanced turn-aware intelligence
+  turnIntelligence?: TurnRecommendations
+  opponentAnalysis?: OpponentProfile[]
+  defensiveAnalysis?: DefensiveAnalysis
+  patternSwitchSuggestions?: PatternSwitchSuggestion[]
+  dangerousTiles?: DangerousTileAnalysis[]
+  currentCallRecommendation?: CallRecommendation
 }
 
 export interface WhatIfScenario {
@@ -166,6 +180,12 @@ export interface IntelligenceState {
   getCachedAnalysis: (handHash: string) => HandAnalysis | null
   setCachedAnalysis: (handHash: string, analysis: HandAnalysis) => void
   clearCache: () => void
+  
+  // Phase 4C: Enhanced intelligence actions
+  analyzeTurnSituation: (playerId: string, gameState: GameState) => Promise<void>
+  analyzeOpponents: (gameState: GameState, excludePlayerId: string) => Promise<void>
+  analyzeCallOpportunity: (opportunity: CallOpportunity, context: CallAnalysisContext) => Promise<void>
+  updateDefensiveAnalysis: (gameState: GameState, playerId: string) => Promise<void>
   
   // Getters
   getTopRecommendations: (limit?: number) => TileRecommendation[]
@@ -342,6 +362,77 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       
       clearCache: () => {
         set({ analysisCache: {} })
+      },
+      
+      // Phase 4C: Enhanced intelligence implementations
+      analyzeTurnSituation: async (playerId: string, gameState: GameState) => {
+        try {
+          const turnIntelligenceEngine = getTurnIntelligenceEngine()
+          const turnRecommendations = await turnIntelligenceEngine.analyzeCurrentTurn(gameState, playerId)
+          
+          set(state => ({
+            currentAnalysis: state.currentAnalysis ? {
+              ...state.currentAnalysis,
+              turnIntelligence: turnRecommendations,
+              analysisVersion: '4C-turn-aware'
+            } : null
+          }))
+        } catch (error) {
+          console.error('Turn situation analysis failed:', error)
+        }
+      },
+
+      analyzeOpponents: async (gameState: GameState, excludePlayerId: string) => {
+        try {
+          const opponentAnalysisEngine = getOpponentAnalysisEngine()
+          const opponentProfiles = opponentAnalysisEngine.analyzeAllOpponents(gameState, excludePlayerId)
+          const dangerousTiles = opponentAnalysisEngine.identifyDangerousTilesForAll(gameState, excludePlayerId)
+          
+          set(state => ({
+            currentAnalysis: state.currentAnalysis ? {
+              ...state.currentAnalysis,
+              opponentAnalysis: opponentProfiles,
+              dangerousTiles: dangerousTiles
+            } : null
+          }))
+        } catch (error) {
+          console.error('Opponent analysis failed:', error)
+        }
+      },
+
+      analyzeCallOpportunity: async (opportunity: CallOpportunity, context: CallAnalysisContext) => {
+        try {
+          const callOpportunityAnalyzer = getCallOpportunityAnalyzer()
+          const callRecommendation = await callOpportunityAnalyzer.analyzeCallOpportunity(opportunity, context)
+          
+          set(state => ({
+            currentAnalysis: state.currentAnalysis ? {
+              ...state.currentAnalysis,
+              currentCallRecommendation: callRecommendation
+            } : null
+          }))
+        } catch (error) {
+          console.error('Call opportunity analysis failed:', error)
+        }
+      },
+
+      updateDefensiveAnalysis: async (gameState: GameState, playerId: string) => {
+        try {
+          const turnIntelligenceEngine = getTurnIntelligenceEngine()
+          
+          // This would be part of a larger turn analysis, but we can call it separately
+          const mockTurnRecommendations = await turnIntelligenceEngine.analyzeCurrentTurn(gameState, playerId)
+          
+          set(state => ({
+            currentAnalysis: state.currentAnalysis ? {
+              ...state.currentAnalysis,
+              defensiveAnalysis: mockTurnRecommendations.defensiveAnalysis,
+              patternSwitchSuggestions: mockTurnRecommendations.patternSwitchSuggestions
+            } : null
+          }))
+        } catch (error) {
+          console.error('Defensive analysis failed:', error)
+        }
       },
       
       // Getters
