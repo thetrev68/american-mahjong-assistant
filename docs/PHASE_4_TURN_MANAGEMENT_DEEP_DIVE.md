@@ -661,3 +661,803 @@ Turn management coordinates with all existing stores:
 - Intelligence store for AI analysis coordination
 
 This comprehensive Phase 4 implementation transforms the existing co-pilot foundation into a complete, professional-quality multiplayer American Mahjong game with intelligent turn management and strategic assistance.
+
+---
+
+## 📋 Phase 4.5: Enhanced Intelligence UI Integration
+
+### **Current State Assessment (Post-Phase 4C)**
+
+✅ **Completed Intelligence Infrastructure**:
+- **TurnIntelligenceEngine**: 400+ lines of context-sensitive AI analysis
+- **OpponentAnalysisEngine**: 350+ lines of opponent behavior analysis  
+- **CallOpportunityAnalyzer**: 450+ lines of strategic call evaluation
+- **Intelligence Store Integration**: Enhanced methods for real-time analysis
+- **TypeScript Compliance**: Zero build errors, production-ready
+
+❌ **Missing UI Integration**:
+- Enhanced intelligence not displayed in Game Mode interface
+- Turn recommendations not visible to players during gameplay
+- Call opportunity notifications not integrated with existing UI
+- Opponent analysis insights not presented to users
+- Defensive play suggestions not shown in tile management
+
+### **4.5.1: Intelligence Panel Enhancement (45 minutes)**
+
+#### **Current Intelligence Panel State**
+```typescript
+// Current basic intelligence display in GameModeView.tsx
+{showIntelligence && (
+  <IntelligencePanel 
+    analysis={currentAnalysis}
+    onClose={() => setShowIntelligence(false)}
+  />
+)}
+```
+
+#### **Enhanced Intelligence Panel Integration**
+```typescript
+// Phase 4.5: Enhanced intelligence display with turn-aware features
+interface EnhancedIntelligencePanelProps {
+  analysis: HandAnalysis | null
+  gameState: GameState
+  playerId: string
+  isCurrentTurn: boolean
+  callOpportunity: CallOpportunity | null
+  onClose: () => void
+  onActionRecommendation: (action: string, data: any) => void
+}
+
+const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps> = ({
+  analysis,
+  gameState, 
+  playerId,
+  isCurrentTurn,
+  callOpportunity,
+  onClose,
+  onActionRecommendation
+}) => {
+  return (
+    <div className="enhanced-intelligence-panel">
+      {/* Turn-Aware Recommendations Section */}
+      {isCurrentTurn && analysis?.turnIntelligence && (
+        <TurnRecommendationsSection 
+          recommendations={analysis.turnIntelligence}
+          onAction={onActionRecommendation}
+        />
+      )}
+      
+      {/* Call Opportunity Section */}
+      {callOpportunity && analysis?.currentCallRecommendation && (
+        <CallOpportunitySection
+          opportunity={callOpportunity}
+          recommendation={analysis.currentCallRecommendation}
+          onCallAction={onActionRecommendation}
+        />
+      )}
+      
+      {/* Opponent Analysis Section */}
+      {analysis?.opponentAnalysis && (
+        <OpponentInsightsSection
+          opponents={analysis.opponentAnalysis}
+          dangerousTiles={analysis.dangerousTiles}
+        />
+      )}
+      
+      {/* Defensive Analysis Section */}
+      {analysis?.defensiveAnalysis && (
+        <DefensivePlaySection
+          defensiveAnalysis={analysis.defensiveAnalysis}
+          patternSwitchSuggestions={analysis.patternSwitchSuggestions}
+        />
+      )}
+      
+      {/* Existing Pattern Analysis */}
+      <PatternAnalysisSection analysis={analysis} />
+    </div>
+  )
+}
+```
+
+### **4.5.2: Turn Recommendation Components (60 minutes)**
+
+#### **TurnRecommendationsSection Component**
+```typescript
+interface TurnRecommendationsSectionProps {
+  recommendations: TurnRecommendations
+  onAction: (action: string, data: any) => void
+}
+
+const TurnRecommendationsSection: React.FC<TurnRecommendationsSectionProps> = ({
+  recommendations,
+  onAction
+}) => {
+  return (
+    <div className="turn-recommendations">
+      <h3 className="section-title">🎯 Turn Recommendations</h3>
+      
+      {/* Draw Recommendations */}
+      {recommendations.drawRecommendation && (
+        <div className="recommendation-card draw-rec">
+          <div className="rec-header">
+            <Icon name="download" />
+            <span>Draw Recommendation</span>
+            <ConfidenceBadge confidence={recommendations.drawRecommendation.confidence} />
+          </div>
+          <div className="rec-content">
+            <div className={`recommendation ${recommendations.drawRecommendation.shouldDraw ? 'positive' : 'negative'}`}>
+              {recommendations.drawRecommendation.shouldDraw ? '✅ Draw from wall' : '⚠️ Consider passing'}
+            </div>
+            <div className="reasoning">{recommendations.drawRecommendation.reasoning}</div>
+            <div className={`risk-level ${recommendations.drawRecommendation.riskAssessment}`}>
+              Risk: {recommendations.drawRecommendation.riskAssessment}
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Discard Recommendations */}
+      {recommendations.discardRecommendations.length > 0 && (
+        <div className="recommendation-card discard-rec">
+          <div className="rec-header">
+            <Icon name="upload" />
+            <span>Discard Recommendations</span>
+          </div>
+          <div className="discard-list">
+            {recommendations.discardRecommendations.slice(0, 3).map((discard, idx) => (
+              <div 
+                key={discard.tile.instanceId}
+                className={`discard-option ${discard.recommended ? 'recommended' : ''} ${discard.riskLevel}`}
+                onClick={() => onAction('discard-suggestion', { tile: discard.tile })}
+              >
+                <TileSprite tile={discard.tile} size="small" />
+                <div className="discard-info">
+                  <div className="pattern-impact">
+                    {discard.patternProgress.description}
+                  </div>
+                  <div className="risk-reason">
+                    {discard.reasoning}
+                  </div>
+                </div>
+                <ConfidenceBadge confidence={discard.confidence} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+#### **CallOpportunitySection Component**
+```typescript
+interface CallOpportunitySectionProps {
+  opportunity: CallOpportunity
+  recommendation: CallRecommendation
+  onCallAction: (action: string, data: any) => void
+}
+
+const CallOpportunitySection: React.FC<CallOpportunitySectionProps> = ({
+  opportunity,
+  recommendation,
+  onCallAction
+}) => {
+  const timeRemaining = opportunity.timeRemaining
+  const isExpiring = timeRemaining < 2000 // Less than 2 seconds
+  
+  return (
+    <div className={`call-opportunity ${recommendation.shouldCall ? 'positive' : 'negative'}`}>
+      <div className="call-header">
+        <Icon name="hand-point-up" />
+        <span>Call Opportunity</span>
+        <CountdownTimer 
+          timeRemaining={timeRemaining}
+          className={`countdown ${isExpiring ? 'urgent' : ''}`}
+        />
+      </div>
+      
+      <div className="call-content">
+        <div className="called-tile">
+          <TileSprite tile={opportunity.tile} size="medium" />
+          <div className="tile-source">
+            from {opportunity.discardingPlayer}
+          </div>
+        </div>
+        
+        <div className="call-recommendation">
+          <div className={`rec-main ${recommendation.shouldCall ? 'positive' : 'negative'}`}>
+            {recommendation.shouldCall 
+              ? `✅ Call ${recommendation.recommendedCallType?.toUpperCase()}` 
+              : '❌ Pass recommended'
+            }
+          </div>
+          
+          <div className="net-value">
+            Net Value: {(recommendation.netValue * 100).toFixed(1)}%
+          </div>
+          
+          <ConfidenceBadge confidence={recommendation.confidence} />
+        </div>
+        
+        {/* Action Buttons */}
+        <div className="call-actions">
+          {recommendation.shouldCall && opportunity.availableCallTypes.map(callType => (
+            <button
+              key={callType}
+              className={`call-btn ${callType} ${callType === recommendation.recommendedCallType ? 'recommended' : ''}`}
+              onClick={() => onCallAction('call', { type: callType, tile: opportunity.tile })}
+            >
+              {callType.toUpperCase()}
+            </button>
+          ))}
+          <button 
+            className="pass-btn"
+            onClick={() => onCallAction('pass', {})}
+          >
+            Pass
+          </button>
+        </div>
+        
+        {/* Risk/Benefit Summary */}
+        <div className="call-analysis-summary">
+          {recommendation.benefits.length > 0 && (
+            <div className="benefits">
+              <h4>Benefits:</h4>
+              {recommendation.benefits.map((benefit, idx) => (
+                <div key={idx} className={`benefit ${benefit.type}`}>
+                  {benefit.description}
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {recommendation.riskFactors.length > 0 && (
+            <div className="risks">
+              <h4>Risks:</h4>
+              {recommendation.riskFactors.map((risk, idx) => (
+                <div key={idx} className={`risk ${risk.severity}`}>
+                  {risk.description}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+### **4.5.3: Opponent Analysis Display (35 minutes)**
+
+#### **OpponentInsightsSection Component**
+```typescript
+interface OpponentInsightsSectionProps {
+  opponents: OpponentProfile[]
+  dangerousTiles?: DangerousTileAnalysis[]
+}
+
+const OpponentInsightsSection: React.FC<OpponentInsightsSectionProps> = ({
+  opponents,
+  dangerousTiles
+}) => {
+  return (
+    <div className="opponent-insights">
+      <h3 className="section-title">👥 Opponent Analysis</h3>
+      
+      {/* Opponent Threat Summary */}
+      <div className="threat-overview">
+        {opponents.map(opponent => (
+          <div key={opponent.playerId} className={`opponent-card ${opponent.threatLevel}`}>
+            <div className="opponent-header">
+              <PlayerAvatar playerId={opponent.playerId} size="small" />
+              <span className="player-name">{opponent.playerName}</span>
+              <ThreatBadge level={opponent.threatLevel} />
+            </div>
+            
+            <div className="opponent-insights-list">
+              {opponent.suspectedPatterns.length > 0 && (
+                <div className="insight">
+                  <Icon name="target" />
+                  <span>Likely targeting: {opponent.suspectedPatterns[0].pattern.Hand_Description}</span>
+                </div>
+              )}
+              
+              {opponent.callBehavior.aggressiveness > 0.7 && (
+                <div className="insight warning">
+                  <Icon name="alert" />
+                  <span>Aggressive calling behavior</span>
+                </div>
+              )}
+              
+              {opponent.behaviorNotes.length > 0 && (
+                <div className="insight">
+                  <Icon name="eye" />
+                  <span>{opponent.behaviorNotes[0]}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Dangerous Tiles Warning */}
+      {dangerousTiles && dangerousTiles.length > 0 && (
+        <div className="dangerous-tiles">
+          <h4 className="warning-title">⚠️ High-Risk Tiles</h4>
+          <div className="dangerous-tile-grid">
+            {dangerousTiles.slice(0, 6).map((analysis, idx) => (
+              <div key={idx} className="dangerous-tile">
+                <TileSprite tile={analysis.tile} size="small" />
+                <div className="danger-info">
+                  <div className={`danger-level ${analysis.dangerLevel}`}>
+                    {analysis.dangerLevel} risk
+                  </div>
+                  <div className="danger-reason">
+                    {analysis.reasons[0]}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+```
+
+### **4.5.4: GameModeView Integration (40 minutes)**
+
+#### **Enhanced GameModeView with Real-Time Intelligence**
+```typescript
+// Integration points in GameModeView.tsx
+const GameModeView: React.FC = () => {
+  const [callOpportunity, setCallOpportunity] = useState<CallOpportunity | null>(null)
+  const [showEnhancedIntelligence, setShowEnhancedIntelligence] = useState(false)
+  const gameState = useGameStore(state => state.gameState)
+  const currentPlayer = useTurnStore(state => state.currentPlayer)
+  const playerId = useRoomStore(state => state.playerId)
+  const currentAnalysis = useIntelligenceStore(state => state.currentAnalysis)
+  
+  // Real-time intelligence updates
+  useEffect(() => {
+    const updateIntelligence = async () => {
+      if (gameState && playerId) {
+        // Update turn situation analysis
+        await useIntelligenceStore.getState().analyzeTurnSituation(playerId, gameState)
+        
+        // Update opponent analysis
+        await useIntelligenceStore.getState().analyzeOpponents(gameState, playerId)
+        
+        // Update defensive analysis
+        await useIntelligenceStore.getState().updateDefensiveAnalysis(gameState, playerId)
+      }
+    }
+    
+    updateIntelligence()
+  }, [gameState?.turnNumber, currentPlayer, playerId])
+  
+  // Call opportunity detection
+  useEffect(() => {
+    const detectCallOpportunity = () => {
+      if (gameState?.discardPile.length > 0 && currentPlayer !== playerId) {
+        const lastDiscard = gameState.discardPile[gameState.discardPile.length - 1]
+        const playerHand = useGameStore.getState().hands[playerId] || []
+        
+        // Check if player can call
+        const availableCallTypes = detectAvailableCallTypes(playerHand, lastDiscard)
+        
+        if (availableCallTypes.length > 0) {
+          const opportunity: CallOpportunity = {
+            tile: lastDiscard,
+            discardingPlayer: currentPlayer!,
+            availableCallTypes,
+            timeRemaining: 5000, // 5 second window
+            deadline: Date.now() + 5000
+          }
+          
+          setCallOpportunity(opportunity)
+          
+          // Analyze call opportunity
+          const context: CallAnalysisContext = {
+            playerHand,
+            selectedPatterns: usePatternStore.getState().selectedPatterns,
+            gameState,
+            opponentProfiles: currentAnalysis?.opponentAnalysis || [],
+            turnPosition: getTurnPosition(playerId, currentPlayer!),
+            roundPhase: getRoundPhase(gameState.turnNumber)
+          }
+          
+          useIntelligenceStore.getState().analyzeCallOpportunity(opportunity, context)
+        }
+      } else {
+        setCallOpportunity(null)
+      }
+    }
+    
+    detectCallOpportunity()
+  }, [gameState?.discardPile, currentPlayer, playerId])
+  
+  const handleActionRecommendation = (action: string, data: any) => {
+    switch (action) {
+      case 'discard-suggestion':
+        // Highlight suggested discard tile
+        useGameStore.getState().highlightTile(data.tile.instanceId)
+        break
+      case 'call':
+        // Execute call action
+        useTurnStore.getState().executeAction('call', { 
+          type: data.type, 
+          tile: data.tile 
+        })
+        setCallOpportunity(null)
+        break
+      case 'pass':
+        // Pass on call opportunity
+        setCallOpportunity(null)
+        break
+    }
+  }
+  
+  return (
+    <div className="game-mode-view">
+      {/* Existing game interface */}
+      <div className="game-content">
+        {/* Tile management, turn status, etc. */}
+      </div>
+      
+      {/* Enhanced Intelligence Integration */}
+      {showEnhancedIntelligence && (
+        <EnhancedIntelligencePanel
+          analysis={currentAnalysis}
+          gameState={gameState!}
+          playerId={playerId!}
+          isCurrentTurn={currentPlayer === playerId}
+          callOpportunity={callOpportunity}
+          onClose={() => setShowEnhancedIntelligence(false)}
+          onActionRecommendation={handleActionRecommendation}
+        />
+      )}
+      
+      {/* Call Opportunity Overlay */}
+      {callOpportunity && (
+        <CallOpportunityOverlay
+          opportunity={callOpportunity}
+          recommendation={currentAnalysis?.currentCallRecommendation}
+          onAction={handleActionRecommendation}
+        />
+      )}
+      
+      {/* Intelligence Toggle Button */}
+      <button 
+        className="intelligence-toggle"
+        onClick={() => setShowEnhancedIntelligence(!showEnhancedIntelligence)}
+      >
+        <Icon name="brain" />
+        AI Assistant
+      </button>
+    </div>
+  )
+}
+```
+
+### **4.5.5: Real-Time Intelligence Hooks (25 minutes)**
+
+#### **useGameIntelligence Hook**
+```typescript
+// Custom hook for managing game intelligence state
+export const useGameIntelligence = (gameState: GameState | null, playerId: string | null) => {
+  const [lastAnalysisUpdate, setLastAnalysisUpdate] = useState<number>(0)
+  const intelligenceStore = useIntelligenceStore()
+  
+  // Trigger intelligence updates on game state changes
+  useEffect(() => {
+    if (!gameState || !playerId) return
+    
+    const currentTime = Date.now()
+    const timeSinceLastUpdate = currentTime - lastAnalysisUpdate
+    
+    // Rate limit analysis updates (max every 2 seconds)
+    if (timeSinceLastUpdate < 2000) return
+    
+    const updateIntelligence = async () => {
+      try {
+        // Parallel intelligence updates
+        await Promise.all([
+          intelligenceStore.analyzeTurnSituation(playerId, gameState),
+          intelligenceStore.analyzeOpponents(gameState, playerId),
+          intelligenceStore.updateDefensiveAnalysis(gameState, playerId)
+        ])
+        
+        setLastAnalysisUpdate(currentTime)
+      } catch (error) {
+        console.error('Intelligence update failed:', error)
+      }
+    }
+    
+    updateIntelligence()
+  }, [
+    gameState?.turnNumber,
+    gameState?.currentPlayer,
+    gameState?.discardPile?.length,
+    playerId,
+    lastAnalysisUpdate,
+    intelligenceStore
+  ])
+  
+  // Return current intelligence state
+  return {
+    analysis: intelligenceStore.currentAnalysis,
+    isAnalyzing: intelligenceStore.isAnalyzing,
+    error: intelligenceStore.analysisError
+  }
+}
+```
+
+### **4.5.6: Styling and UX Polish (30 minutes)**
+
+#### **Enhanced Intelligence Styling**
+```scss
+// Enhanced intelligence component styles
+.enhanced-intelligence-panel {
+  @apply bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl;
+  @apply border border-purple-200/50 max-h-[80vh] overflow-y-auto;
+  
+  .section-title {
+    @apply text-lg font-bold text-purple-800 mb-4 flex items-center gap-2;
+  }
+  
+  .turn-recommendations {
+    @apply mb-6;
+    
+    .recommendation-card {
+      @apply bg-gradient-to-r p-4 rounded-xl mb-4 border-l-4;
+      
+      &.draw-rec {
+        @apply from-green-50 to-emerald-50 border-l-green-500;
+        
+        &.negative {
+          @apply from-yellow-50 to-orange-50 border-l-yellow-500;
+        }
+      }
+      
+      &.discard-rec {
+        @apply from-blue-50 to-indigo-50 border-l-blue-500;
+      }
+    }
+    
+    .rec-header {
+      @apply flex items-center gap-2 mb-2;
+      
+      .icon {
+        @apply text-purple-600;
+      }
+      
+      span {
+        @apply font-semibold text-gray-800;
+      }
+    }
+    
+    .discard-list {
+      @apply space-y-2;
+      
+      .discard-option {
+        @apply flex items-center gap-3 p-3 rounded-lg cursor-pointer transition-all;
+        @apply hover:bg-white/70 hover:shadow-sm;
+        
+        &.recommended {
+          @apply bg-green-100/50 border border-green-300;
+        }
+        
+        &.safe { @apply bg-green-50/30; }
+        &.moderate { @apply bg-yellow-50/30; }
+        &.dangerous { @apply bg-red-50/30; }
+        
+        .discard-info {
+          @apply flex-1;
+          
+          .pattern-impact {
+            @apply font-medium text-gray-800;
+          }
+          
+          .risk-reason {
+            @apply text-sm text-gray-600;
+          }
+        }
+      }
+    }
+  }
+  
+  .call-opportunity {
+    @apply mb-6 p-4 rounded-xl border-2;
+    
+    &.positive {
+      @apply bg-green-50 border-green-300;
+    }
+    
+    &.negative {
+      @apply bg-red-50 border-red-300;
+    }
+    
+    .call-header {
+      @apply flex items-center justify-between mb-3;
+      
+      .countdown {
+        @apply bg-gray-100 px-2 py-1 rounded text-sm font-mono;
+        
+        &.urgent {
+          @apply bg-red-100 text-red-700 animate-pulse;
+        }
+      }
+    }
+    
+    .call-actions {
+      @apply flex gap-2 mt-3;
+      
+      .call-btn {
+        @apply px-4 py-2 rounded-lg font-medium transition-all;
+        @apply bg-purple-100 text-purple-800 hover:bg-purple-200;
+        
+        &.recommended {
+          @apply bg-purple-600 text-white hover:bg-purple-700;
+        }
+      }
+      
+      .pass-btn {
+        @apply px-4 py-2 rounded-lg font-medium;
+        @apply bg-gray-100 text-gray-700 hover:bg-gray-200;
+      }
+    }
+  }
+  
+  .opponent-insights {
+    @apply mb-6;
+    
+    .opponent-card {
+      @apply p-3 rounded-lg mb-3 border-l-4;
+      
+      &.low { @apply bg-green-50 border-l-green-400; }
+      &.medium { @apply bg-yellow-50 border-l-yellow-400; }
+      &.high { @apply bg-orange-50 border-l-orange-400; }
+      &.critical { @apply bg-red-50 border-l-red-400; }
+      
+      .opponent-header {
+        @apply flex items-center gap-2 mb-2;
+      }
+      
+      .opponent-insights-list {
+        @apply space-y-1;
+        
+        .insight {
+          @apply flex items-center gap-2 text-sm text-gray-700;
+          
+          &.warning {
+            @apply text-orange-700;
+          }
+        }
+      }
+    }
+    
+    .dangerous-tiles {
+      @apply mt-4 p-3 bg-red-50 rounded-lg border border-red-200;
+      
+      .warning-title {
+        @apply text-red-800 font-semibold mb-2;
+      }
+      
+      .dangerous-tile-grid {
+        @apply grid grid-cols-3 gap-2;
+        
+        .dangerous-tile {
+          @apply flex flex-col items-center text-center;
+          
+          .danger-info {
+            @apply mt-1;
+            
+            .danger-level {
+              @apply text-xs font-medium;
+              
+              &.high { @apply text-red-600; }
+              &.medium { @apply text-orange-600; }
+              &.low { @apply text-yellow-600; }
+            }
+            
+            .danger-reason {
+              @apply text-xs text-gray-600;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+.call-opportunity-overlay {
+  @apply fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2;
+  @apply bg-white rounded-2xl shadow-2xl p-6 border-4 z-50;
+  @apply animate-in fade-in duration-200;
+  
+  &.positive {
+    @apply border-green-400;
+  }
+  
+  &.negative {
+    @apply border-red-400;
+  }
+}
+
+.confidence-badge {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-medium;
+  
+  &.high { @apply bg-green-100 text-green-800; }
+  &.medium { @apply bg-yellow-100 text-yellow-800; }
+  &.low { @apply bg-red-100 text-red-800; }
+}
+
+.threat-badge {
+  @apply inline-flex items-center px-2 py-1 rounded-full text-xs font-bold;
+  
+  &.low { @apply bg-green-100 text-green-800; }
+  &.medium { @apply bg-yellow-100 text-yellow-800; }
+  &.high { @apply bg-orange-100 text-orange-800; }
+  &.critical { @apply bg-red-100 text-red-800; }
+}
+```
+
+### **Phase 4.5 Implementation Timeline**
+
+**Total Estimated Time: 4 hours 15 minutes**
+
+1. **Intelligence Panel Enhancement** (45 min)
+   - Extend existing IntelligencePanel component
+   - Add turn-aware sections and real-time updates
+   - Integrate with enhanced HandAnalysis interface
+
+2. **Turn Recommendation Components** (60 min)
+   - Build TurnRecommendationsSection with draw/discard suggestions
+   - Create CallOpportunitySection with countdown timer
+   - Add interactive action buttons and confidence displays
+
+3. **Opponent Analysis Display** (35 min)
+   - Create OpponentInsightsSection with threat indicators
+   - Add dangerous tiles warning system
+   - Build player behavior summaries
+
+4. **GameModeView Integration** (40 min)
+   - Add real-time intelligence updates to game loop
+   - Integrate call opportunity detection
+   - Add enhanced intelligence panel toggle
+
+5. **Real-Time Intelligence Hooks** (25 min)
+   - Create useGameIntelligence custom hook
+   - Add rate limiting and error handling
+   - Optimize performance with proper dependencies
+
+6. **Styling and UX Polish** (30 min)
+   - Create comprehensive SCSS for new components
+   - Add animations and visual feedback
+   - Ensure mobile responsiveness
+
+### **Success Criteria for Phase 4.5**
+
+✅ **Turn Intelligence Visible**: Players see draw/discard recommendations during their turn
+✅ **Call Opportunities Interactive**: 5-second call windows with strategic analysis  
+✅ **Opponent Insights Displayed**: Threat levels and behavior analysis visible
+✅ **Defensive Intelligence Active**: Dangerous tiles and safe play suggestions shown
+✅ **Real-Time Updates**: Intelligence refreshes automatically during gameplay
+✅ **Professional UX**: Polished interface with animations and visual feedback
+✅ **Mobile Responsive**: All intelligence features work on mobile devices
+✅ **Performance Optimized**: No lag during intelligence updates
+
+### **Integration Testing Plan**
+
+1. **Solo Mode Testing**: Verify all intelligence features work in solo gameplay
+2. **Multiplayer Testing**: Test real-time updates across multiple players
+3. **Call Opportunity Testing**: Validate 5-second call windows and recommendations
+4. **Turn Sequence Testing**: Ensure intelligence updates correctly with turn changes  
+5. **Performance Testing**: Verify no performance degradation with intelligence active
+6. **Mobile Device Testing**: Test on various mobile devices and screen sizes
+
+Phase 4.5 will complete the full integration of the Enhanced Gameplay Intelligence system, making the sophisticated AI analysis visible and interactive for players during actual American Mahjong gameplay.
