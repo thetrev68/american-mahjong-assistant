@@ -260,7 +260,7 @@ describe('usePerformance Hook', () => {
 
     it('should return null when memory API not available', () => {
       // Mock performance without memory API
-      const originalMemory = global.performance.memory
+      const originalMemory = (global.performance as Performance & { memory?: unknown }).memory
       Object.defineProperty(global.performance, 'memory', {
         writable: true,
         value: undefined

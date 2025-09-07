@@ -14,6 +14,12 @@ const mockMultiplayer = {
   // Connection state
   isConnected: true,
   connectionError: null,
+  connectionHealth: 'healthy' as const,
+  isReconnecting: false,
+  canRecover: true,
+  isOperationSafe: vi.fn(() => true),
+  retryConnection: vi.fn(),
+  getNetworkQuality: vi.fn(() => ({ quality: 'good' as const, latency: 50, packetLoss: 0, stability: 'stable' })),
   
   // Room operations
   createRoom: vi.fn(),

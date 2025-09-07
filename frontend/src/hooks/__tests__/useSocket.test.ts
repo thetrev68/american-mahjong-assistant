@@ -76,7 +76,7 @@ describe('useSocket Hook', () => {
 
       // Simulate connection event
       act(() => {
-        const connectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'connect')?.[1]
+        const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
         connectHandler()
       })
 
@@ -85,7 +85,7 @@ describe('useSocket Hook', () => {
 
       // Simulate disconnection event
       act(() => {
-        const disconnectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'disconnect')?.[1]
+        const disconnectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'disconnect')?.[1] as ((...args: unknown[]) => void) | undefined
         disconnectHandler('server error')
       })
 
@@ -161,7 +161,7 @@ describe('useSocket Hook', () => {
       
       // Simulate disconnect and queue events
       act(() => {
-        const disconnectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'disconnect')?.[1]
+        const disconnectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'disconnect')?.[1] as ((...args: unknown[]) => void) | undefined
         disconnectHandler()
         result.current.emit('queued-event', { data: 'queued' })
       })
@@ -170,7 +170,7 @@ describe('useSocket Hook', () => {
 
       // Simulate reconnection
       act(() => {
-        const connectHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'connect')?.[1]
+        const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
         connectHandler()
       })
 
@@ -243,7 +243,7 @@ describe('useSocket Hook', () => {
 
       // Simulate pong response
       act(() => {
-        const pongHandler = mockSocket.on.mock.calls.find((call: [string, (...args: unknown[]) => void]) => call[0] === 'pong')?.[1]
+        const pongHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'pong')?.[1] as ((...args: unknown[]) => void) | undefined
         pongHandler({ timestamp: Date.now() - 100 }) // 100ms latency
       })
 

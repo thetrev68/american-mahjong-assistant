@@ -33,13 +33,13 @@ describe('Simple Integration Tests', () => {
       
       // Add some tiles
       const mockTile = { suit: 'bam', rank: '1', id: 'test-tile-1' }
-      tileStore.addTile(mockTile)
+      tileStore.addTile(mockTile.id)
 
       // Verify state consistency
       expect(gameStore.coPilotMode).toBe('solo')
       expect(gameStore.gamePhase).toBe('tile-input')
       expect(patternStore.targetPatterns).toContain('2025-TEST-1')
-      expect(tileStore.getTileCount()).toBe(1)
+      expect(tileStore.handSize).toBe(1)
     })
 
     it('should handle store resets properly', () => {
@@ -50,21 +50,21 @@ describe('Simple Integration Tests', () => {
       // Set up some state
       gameStore.setCoPilotMode('solo')
       patternStore.addTargetPattern('test-pattern')
-      tileStore.addTile({ suit: 'bam', rank: '1', id: 'test-tile' })
+      tileStore.addTile('test-tile')
 
       // Reset individual stores
       patternStore.clearSelection()
       expect(patternStore.targetPatterns).toEqual([])
       
-      tileStore.clearTiles()
-      expect(tileStore.getTileCount()).toBe(0)
+      tileStore.clearHand()
+      expect(tileStore.handSize).toBe(0)
 
       // Other stores should remain unaffected
       expect(gameStore.coPilotMode).toBe('solo')
 
       // Reset game should reset to defaults
       gameStore.resetGame()
-      expect(gameStore.coPilotMode).toBe('everyone') // default value
+      expect(gameStore.coPilotMode).toBe(null) // default value
     })
   })
 
@@ -73,28 +73,25 @@ describe('Simple Integration Tests', () => {
       const gameStore = useGameStore.getState()
 
       // Start with default phase
-      expect(gameStore.gamePhase).toBe('setup')
+      expect(gameStore.gamePhase).toBe('lobby')
 
       // Transition through phases
-      gameStore.setGamePhase('pattern-selection')
-      expect(gameStore.gamePhase).toBe('pattern-selection')
-
       gameStore.setGamePhase('tile-input')  
       expect(gameStore.gamePhase).toBe('tile-input')
 
       gameStore.setGamePhase('charleston')
       expect(gameStore.gamePhase).toBe('charleston')
 
-      gameStore.setGamePhase('gameplay')
-      expect(gameStore.gamePhase).toBe('gameplay')
+      gameStore.setGamePhase('playing')
+      expect(gameStore.gamePhase).toBe('playing')
     })
 
     it('should maintain pattern selections across phases', () => {
       const gameStore = useGameStore.getState()
       const patternStore = usePatternStore.getState()
 
-      // Select patterns in pattern selection phase
-      gameStore.setGamePhase('pattern-selection')
+      // Select patterns in tile input phase
+      gameStore.setGamePhase('tile-input')
       patternStore.addTargetPattern('pattern-1')
       patternStore.addTargetPattern('pattern-2')
 
@@ -111,7 +108,7 @@ describe('Simple Integration Tests', () => {
       expect(patternStore.targetPatterns).toEqual(['pattern-1', 'pattern-2'])
 
       // Continue to gameplay
-      gameStore.setGamePhase('gameplay')
+      gameStore.setGamePhase('playing')
       expect(patternStore.targetPatterns).toEqual(['pattern-1', 'pattern-2'])
     })
   })
@@ -125,7 +122,9 @@ describe('Simple Integration Tests', () => {
       gameStore.addPlayer({
         id: 'solo-player',
         name: 'Solo Player', 
-        isReady: true
+        position: null,
+        isReady: true,
+        isConnected: true
       })
 
       expect(gameStore.coPilotMode).toBe('solo')
@@ -203,7 +202,7 @@ describe('Simple Integration Tests', () => {
       const tileStore = useTileStore.getState()
 
       // Start with empty hand
-      expect(tileStore.getTileCount()).toBe(0)
+      expect(tileStore.handSize).toBe(0)
 
       // Add tiles one by one
       const tiles = [
@@ -212,16 +211,16 @@ describe('Simple Integration Tests', () => {
         { suit: 'bam', rank: '3', id: 'tile-3' }
       ]
 
-      tiles.forEach(tile => tileStore.addTile(tile))
-      expect(tileStore.getTileCount()).toBe(3)
+      tiles.forEach(tile => tileStore.addTile(tile.id))
+      expect(tileStore.handSize).toBe(3)
 
       // Remove a tile
       tileStore.removeTile('tile-2')
-      expect(tileStore.getTileCount()).toBe(2)
+      expect(tileStore.handSize).toBe(2)
 
       // Clear all tiles
       tileStore.clearHand()
-      expect(tileStore.getTileCount()).toBe(0)
+      expect(tileStore.handSize).toBe(0)
     })
 
     it('should validate tile limits', () => {
@@ -235,11 +234,11 @@ describe('Simple Integration Tests', () => {
       }))
 
       excessTiles.forEach(tile => {
-        tileStore.addTile(tile)
+        tileStore.addTile(tile.id)
       })
 
       // Should not exceed reasonable limit (depending on implementation)
-      expect(tileStore.getTileCount()).toBeLessThanOrEqual(20) // Allow for flexible implementation
+      expect(tileStore.handSize).toBeLessThanOrEqual(20) // Allow for flexible implementation
     })
   })
 
@@ -259,7 +258,7 @@ describe('Simple Integration Tests', () => {
       }).not.toThrow()
 
       // Stores should remain in valid state
-      expect(tileStore.getTileCount()).toBe(0)
+      expect(tileStore.handSize).toBe(0)
       expect(patternStore.targetPatterns).toEqual([])
     })
 

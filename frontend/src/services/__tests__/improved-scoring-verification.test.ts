@@ -2,24 +2,42 @@
 // Tests the two key improvements: individual tile difficulty and joker integration
 
 import { PatternRankingEngine } from '../pattern-ranking-engine'
+import type { TileAvailability, PatternAnalysisFacts, ProgressMetrics } from '../pattern-analysis-engine'
+import type { PatternSelectionOption } from '@shared/nmjl-types'
 
 // Mock pattern analysis facts creator
-function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck' | 'joker_helps'): Record<string, unknown> {
+function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck' | 'joker_helps'): PatternAnalysisFacts {
   const baseFacts = {
     patternId: '2025-SINGLES_AND_PAIRS-4-1',
     tileMatching: {
       bestVariation: {
         variationId: 'test-variation',
+        patternId: 'test-pattern',
+        sequence: 1,
         tilesMatched: 3,
         tilesNeeded: 11,
         completionRatio: 3/14,
-        tileContributions: []
+        missingTiles: [],
+        tileContributions: [],
+        patternTiles: []
       },
+      worstVariation: {
+        variationId: 'test-variation-worst',
+        patternId: 'test-pattern',
+        sequence: 2,
+        tilesMatched: 1,
+        tilesNeeded: 13,
+        completionRatio: 1/14,
+        missingTiles: [],
+        tileContributions: [],
+        patternTiles: []
+      },
+      allResults: [],
       totalVariations: 1,
       averageCompletion: 3/14
     },
     tileAvailability: {
-      missingTileCounts: [],
+      missingTileCounts: [] as TileAvailability[],
       totalMissingInWall: 0,
       totalMissingNeeded: 2,
       availabilityRatio: 0
@@ -30,7 +48,14 @@ function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck'
       maxJokersUseful: 0,
       withJokersCompletion: 3/14,
       jokersToComplete: 11
-    }
+    },
+    progressMetrics: {
+      tilesCollected: 3,
+      tilesRemaining: 11,
+      progressPercentage: 21.4,
+      pairsFormed: 0,
+      setsFormed: 0
+    } as ProgressMetrics
   }
 
   switch (scenario) {
@@ -81,14 +106,20 @@ function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck'
   return baseFacts
 }
 
-const mockPatterns = [
+const mockPatterns: PatternSelectionOption[] = [
   {
-    patternId: '2025-SINGLES_AND_PAIRS-4-1',
-    description: 'Singles and Pairs Pattern 4-1',
+    id: '2025-SINGLES_AND_PAIRS-4-1',
+    patternId: 1,
+    displayName: 'Singles and Pairs Pattern 4-1',
+    pattern: '11 22 33 DD FF',
     points: 25,
     difficulty: 'medium' as const,
+    description: 'Singles and Pairs Pattern 4-1',
     section: 'SINGLES AND PAIRS',
-    allowsJokers: false
+    line: 1,
+    allowsJokers: false,
+    concealed: false,
+    groups: []
   }
 ]
 

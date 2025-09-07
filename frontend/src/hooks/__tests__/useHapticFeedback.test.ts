@@ -47,7 +47,10 @@ describe('useHapticFeedback Hook', () => {
     });
 
     it('should handle unsupported devices gracefully', () => {
-      delete (navigator as Record<string, unknown>).vibrate;
+      const nav = navigator as Navigator & { vibrate?: unknown }
+      if ('vibrate' in nav) {
+        delete nav.vibrate
+      }
       delete (window as WindowWithHaptics).TapticEngine;
       delete (window as WindowWithHaptics).DeviceMotionEvent;
 
@@ -61,7 +64,7 @@ describe('useHapticFeedback Hook', () => {
       const { result } = renderHook(() => useHapticFeedback());
       
       act(() => {
-        result.current.triggerImpact('light');
+        result.current.triggerLight();
       });
 
       expect(mockVibrate).toHaveBeenCalled();
@@ -71,7 +74,7 @@ describe('useHapticFeedback Hook', () => {
       const { result } = renderHook(() => useHapticFeedback());
       
       act(() => {
-        result.current.triggerImpact('medium');
+        result.current.triggerMedium();
       });
 
       expect(mockTapticEngine.impact).toHaveBeenCalled();
@@ -82,19 +85,19 @@ describe('useHapticFeedback Hook', () => {
     it('should provide testing utilities', () => {
       const { result } = renderHook(() => useHapticTester());
       
-      expect(result.current.testAll).toBeDefined();
-      expect(result.current.testImpact).toBeDefined();
-      expect(result.current.testSelection).toBeDefined();
+      expect(result.current.testAllHaptics).toBeDefined();
+      expect(result.current.triggerHeavy).toBeDefined();
+      expect(result.current.triggerSelection).toBeDefined();
     });
   });
 
   describe('Contextual Haptics', () => {
     it('should provide contextual haptic functions', () => {
-      const { result } = renderHook(() => useContextualHaptics());
+      const { result } = renderHook(() => useContextualHaptics('tile'));
       
       expect(result.current.tileSelect).toBeDefined();
       expect(result.current.tileDeselect).toBeDefined();
-      expect(result.current.buttonPress).toBeDefined();
+      expect(result.current.contextualFeedback).toBeDefined();
     });
   });
 });

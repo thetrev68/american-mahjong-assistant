@@ -3,6 +3,7 @@
  * Tests the entire user journey from pattern selection through post-game analysis
  */
 
+import React from 'react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -63,8 +64,8 @@ describe('Solo Game Complete Workflow Integration', () => {
   beforeEach(() => {
     // Reset all stores to initial state
     useGameStore.getState().resetGame()
-    usePatternStore.getState().clearPatterns()
-    useTileStore.getState().clearTiles()
+    usePatternStore.getState().clearSelection()
+    useTileStore.getState().clearHand()
     useCharlestonStore.getState().reset()
     useHistoryStore.getState().clearHistory()
 
@@ -116,7 +117,7 @@ describe('Solo Game Complete Workflow Integration', () => {
 
     // Verify pattern selection state
     await waitFor(() => {
-      const selectedPatterns = usePatternStore.getState().getSelectedPatterns()
+      const selectedPatterns = usePatternStore.getState().getTargetPatterns()
       expect(selectedPatterns.length).toBeGreaterThan(0)
     })
 
@@ -148,7 +149,7 @@ describe('Solo Game Complete Workflow Integration', () => {
 
     // Verify tile count
     await waitFor(() => {
-      const tileCount = useTileStore.getState().getTileCount()
+      const tileCount = useTileStore.getState().handSize
       expect(tileCount).toBe(13)
     })
 
@@ -226,7 +227,7 @@ describe('Solo Game Complete Workflow Integration', () => {
     for (let turn = 0; turn < 5; turn++) {
       // Draw tile (if available)
       const drawButton = screen.getByText(/Draw/i)
-      if (drawButton && !drawButton.disabled) {
+      if (drawButton && !(drawButton as HTMLButtonElement).disabled) {
         await user.click(drawButton)
       }
 
@@ -240,7 +241,7 @@ describe('Solo Game Complete Workflow Integration', () => {
         await user.click(tileElements[0])
         
         const discardButton = screen.getByText(/Discard/i)
-        if (discardButton && !discardButton.disabled) {
+        if (discardButton && !(discardButton as HTMLButtonElement).disabled) {
           await user.click(discardButton)
         }
       }

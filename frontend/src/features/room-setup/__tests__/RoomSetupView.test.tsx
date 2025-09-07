@@ -4,6 +4,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { RoomSetupView } from '../RoomSetupView'
 import { useRoomSetup } from '../../../hooks/useRoomSetup'
+import type { CoPilotMode } from '../../../stores/room-store'
 import { useRoomStore } from '../../../stores/room-store'
 import { useMultiplayerStore } from '../../../stores/multiplayer-store'
 
@@ -13,14 +14,14 @@ vi.mock('../../../stores/room-store')
 vi.mock('../../../stores/multiplayer-store')
 
 interface MockRoomSetup {
-  coPilotMode: string
+  coPilotMode: CoPilotMode
   roomCode: string | null
   isHost: boolean
   isCreatingRoom: boolean
   isJoiningRoom: boolean
   error: string | null
   setupProgress: {
-    currentStep: string
+    currentStep: 'mode-selection' | 'room-creation' | 'player-positioning' | 'ready'
     completedSteps: number
     totalSteps: number
   }
@@ -39,7 +40,7 @@ const mockRoomSetup: MockRoomSetup = {
   isJoiningRoom: false,
   error: null,
   setupProgress: {
-    currentStep: 'mode-selection',
+    currentStep: 'mode-selection' as const,
     completedSteps: 0,
     totalSteps: 3
   },

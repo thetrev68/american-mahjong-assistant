@@ -33,6 +33,16 @@ american-mahjong-assistant/
 │   └── tsconfig.json (25 lines)
 ├── frontend/
 │   ├── src/
+│   │   ├── __tests__/
+│   │   │   └── integration/
+│   │   │       ├── error-handling.test.ts (383 lines)
+│   │   │       ├── infrastructure-validation.test.ts (155 lines)
+│   │   │       ├── README.md
+│   │   │       ├── service-integration.test.ts (283 lines)
+│   │   │       ├── simple-integration.test.ts (228 lines)
+│   │   │       ├── solo-game-workflow.test.tsx (289 lines)
+│   │   │       ├── store-integration.test.ts (264 lines)
+│   │   │       └── test-runner.test.ts (119 lines)
 │   │   ├── assets/
 │   │   │   ├── react.svg
 │   │   │   └── tiles.json (912 lines)
@@ -124,6 +134,7 @@ american-mahjong-assistant/
 │   │   │   │   ├── usePerformance.test.ts (424 lines)
 │   │   │   │   ├── useRoomSetup.test.ts (279 lines)
 │   │   │   │   └── useSocket.test.ts (199 lines)
+│   │   │   ├── useAccessibility.ts (252 lines)
 │   │   │   ├── useAnimations.ts (265 lines)
 │   │   │   ├── useConnectionResilience.ts (269 lines)
 │   │   │   ├── useConnectionResilienceTest.ts (200 lines)
@@ -135,6 +146,7 @@ american-mahjong-assistant/
 │   │   │   ├── useHapticFeedback.ts (274 lines)
 │   │   │   ├── useMultiplayer.ts (358 lines)
 │   │   │   ├── usePerformance.ts (306 lines)
+│   │   │   ├── usePerformanceMonitor.ts (264 lines)
 │   │   │   ├── useRoomSetup.ts (177 lines)
 │   │   │   ├── useShare.ts (84 lines)
 │   │   │   ├── useSocket.ts (184 lines)
@@ -197,6 +209,8 @@ american-mahjong-assistant/
 │   │   │   ├── turn-store.ts (528 lines)
 │   │   │   ├── tutorial-store.ts (260 lines)
 │   │   │   └── ui-store.ts (76 lines)
+│   │   ├── styles/
+│   │   │   └── accessibility.css (308 lines)
 │   │   ├── test/
 │   │   │   └── setup.ts (161 lines)
 │   │   ├── types/
@@ -204,6 +218,11 @@ american-mahjong-assistant/
 │   │   ├── ui-components/
 │   │   │   ├── __tests__/
 │   │   │   │   └── Button.test.tsx (72 lines)
+│   │   │   ├── accessibility/
+│   │   │   │   ├── AccessibilityProvider.tsx (87 lines)
+│   │   │   │   ├── AccessibilitySettings.tsx (267 lines)
+│   │   │   │   ├── AccessibleTile.tsx (207 lines)
+│   │   │   │   └── FocusManager.tsx (187 lines)
 │   │   │   ├── analysis/
 │   │   │   │   ├── ConfidenceMeter.tsx (148 lines)
 │   │   │   │   ├── index.ts (5 lines)
@@ -215,8 +234,17 @@ american-mahjong-assistant/
 │   │   │   │   ├── Container.tsx (36 lines)
 │   │   │   │   ├── Header.tsx (56 lines)
 │   │   │   │   └── NavigationSidebar.tsx (173 lines)
+│   │   │   ├── mobile/
+│   │   │   │   ├── MobileNavigation.tsx (366 lines)
+│   │   │   │   └── TouchOptimizedTile.tsx (279 lines)
 │   │   │   ├── patterns/
 │   │   │   │   └── PatternVariationDisplay.tsx (239 lines)
+│   │   │   ├── performance/
+│   │   │   │   ├── LazyWrapper.tsx (261 lines)
+│   │   │   │   └── PerformanceMonitor.tsx (260 lines)
+│   │   │   ├── status/
+│   │   │   │   ├── GamePhaseStatusIndicator.tsx (317 lines)
+│   │   │   │   └── NotificationSystem.tsx (325 lines)
 │   │   │   ├── tiles/
 │   │   │   │   ├── AnimatedTile.tsx (263 lines)
 │   │   │   │   ├── animation-utils.ts (218 lines)
@@ -248,6 +276,7 @@ american-mahjong-assistant/
 │   │   │   │   ├── animation-config.test.ts (227 lines)
 │   │   │   │   └── reduced-motion.test.ts (238 lines)
 │   │   │   ├── animation-config.ts (265 lines)
+│   │   │   ├── bundle-analyzer.ts (258 lines)
 │   │   │   ├── charleston-adapter.ts (439 lines)
 │   │   │   ├── pattern-color-utils.ts (58 lines)
 │   │   │   ├── reduced-motion.ts (272 lines)
@@ -255,7 +284,7 @@ american-mahjong-assistant/
 │   │   │   ├── router.tsx (44 lines)
 │   │   │   └── tile-display-utils.ts (256 lines)
 │   │   ├── App.tsx (6 lines)
-│   │   ├── index.css (189 lines)
+│   │   ├── index.css (190 lines)
 │   │   ├── main.tsx (9 lines)
 │   │   └── vite-env.d.ts (1 lines)
 │   ├── dev.log
@@ -303,10 +332,10 @@ american-mahjong-assistant/
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 49
-Total files: 251
-Files with line counts: 234
-Total lines of code: 69,786
+Total directories: 56
+Total files: 273
+Files with line counts: 255
+Total lines of code: 75,146
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv

@@ -5,6 +5,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useMultiplayer } from '../useMultiplayer'
 import { useSocket } from '../useSocket'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
+import type { Room, GameState } from '@shared/multiplayer-types'
 
 // Mock dependencies
 vi.mock('../useSocket')
@@ -20,8 +21,8 @@ const mockSocketHook = {
 }
 
 const mockMultiplayerStore = {
-  currentRoom: null,
-  gameState: null,
+  currentRoom: null as Room | null,
+  gameState: null as GameState | null,
   isHost: false,
   availableRooms: [],
   getCurrentPlayer: vi.fn(),
@@ -41,7 +42,9 @@ const mockMultiplayerStore = {
 describe('useMultiplayer Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // @ts-expect-error - vi namespace not available in test config
     ;(useSocket as vi.MockedFunction<typeof useSocket>).mockReturnValue(mockSocketHook)
+    // @ts-expect-error - vi namespace not available in test config
     ;(useMultiplayerStore as vi.MockedFunction<typeof useMultiplayerStore>).mockReturnValue(mockMultiplayerStore)
   })
 
@@ -113,7 +116,7 @@ describe('useMultiplayer Hook', () => {
     })
 
     it('should leave room successfully', async () => {
-      mockStore.currentRoom = { id: 'room-123', hostId: 'other-player' }
+      mockMultiplayerStore.currentRoom = { id: 'room-123', hostId: 'other-player' }
       const { result } = renderHook(() => useMultiplayer())
 
       await act(async () => {
@@ -124,7 +127,7 @@ describe('useMultiplayer Hook', () => {
         roomId: 'room-123'
       })
 
-      expect(mockStore.clearCurrentRoom).toHaveBeenCalled()
+      expect(mockMultiplayerStore.clearCurrentRoom).toHaveBeenCalled()
     })
 
     it('should handle room not found error', async () => {
@@ -151,8 +154,8 @@ describe('useMultiplayer Hook', () => {
 
   describe('Game State Management', () => {
     beforeEach(() => {
-      mockStore.currentRoom = { id: 'room-123', hostId: 'host-id' }
-      mockStore.gameState = {
+      mockMultiplayerStore.currentRoom = { id: 'room-123', hostId: 'host-id' }
+      mockMultiplayerStore.gameState = {
         phase: 'setup',
         currentRound: 1,
         playerStates: {}
@@ -246,12 +249,13 @@ describe('useMultiplayer Hook', () => {
 
       act(() => {
         const joinHandler = mockSocketHook.on.mock.calls.find(
-          (call: [string, (...args: unknown[]) => void]) => call[0] === 'player-joined'
-        )?.[1]
+          (call: unknown[]) => call[0] === 'player-joined'
+        )?.[1] as ((...args: unknown[]) => void) | undefined
+        // @ts-expect-error - handler type assertion
         joinHandler({ player: newPlayer, room: { id: 'room-123' } })
       })
 
-      expect(mockStore.addPlayerToRoom).toHaveBeenCalledWith(newPlayer)
+      expect(mockMultiplayerStore.addPlayerToRoom).toHaveBeenCalledWith(newPlayer)
     })
 
     it('should handle player-left events', () => {
@@ -259,12 +263,13 @@ describe('useMultiplayer Hook', () => {
 
       act(() => {
         const leaveHandler = mockSocketHook.on.mock.calls.find(
-          (call: [string, (...args: unknown[]) => void]) => call[0] === 'player-left'
-        )?.[1]
+          (call: unknown[]) => call[0] === 'player-left'
+        )?.[1] as ((...args: unknown[]) => void) | undefined
+        // @ts-expect-error - handler type assertion
         leaveHandler({ playerId: 'leaving-player', roomId: 'room-123' })
       })
 
-      expect(mockStore.removePlayerFromRoom).toHaveBeenCalledWith('leaving-player')
+      expect(mockMultiplayerStore.removePlayerFromRoom).toHaveBeenCalledWith('leaving-player')
     })
 
     it('should handle game-state-changed events', () => {
@@ -278,26 +283,28 @@ describe('useMultiplayer Hook', () => {
 
       act(() => {
         const stateHandler = mockSocketHook.on.mock.calls.find(
-          (call: [string, (...args: unknown[]) => void]) => call[0] === 'game-state-changed'
-        )?.[1]
+          (call: unknown[]) => call[0] === 'game-state-changed'
+        )?.[1] as ((...args: unknown[]) => void) | undefined
+        // @ts-expect-error - handler type assertion
         stateHandler({ gameState: updatedGameState })
       })
 
-      expect(mockStore.setGameState).toHaveBeenCalledWith(updatedGameState)
+      expect(mockMultiplayerStore.setGameState).toHaveBeenCalledWith(updatedGameState)
     })
 
     it('should handle room-deleted events', () => {
-      mockStore.currentRoom = { id: 'room-123' }
+      mockMultiplayerStore.currentRoom = { id: 'room-123' }
       renderHook(() => useMultiplayer())
 
       act(() => {
         const deleteHandler = mockSocketHook.on.mock.calls.find(
-          (call: [string, (...args: unknown[]) => void]) => call[0] === 'room-deleted'
-        )?.[1]
+          (call: unknown[]) => call[0] === 'room-deleted'
+        )?.[1] as ((...args: unknown[]) => void) | undefined
+        // @ts-expect-error - handler type assertion
         deleteHandler({ roomId: 'room-123' })
       })
 
-      expect(mockStore.clearCurrentRoom).toHaveBeenCalled()
+      expect(mockMultiplayerStore.clearCurrentRoom).toHaveBeenCalled()
     })
   })
 
@@ -327,7 +334,7 @@ describe('useMultiplayer Hook', () => {
 
     it('should queue state updates when disconnected', async () => {
       mockSocketHook.isConnected = false
-      mockStore.currentRoom = { id: 'room-123' }
+      mockMultiplayerStore.currentRoom = { id: 'room-123' }
       
       const { result } = renderHook(() => useMultiplayer())
 

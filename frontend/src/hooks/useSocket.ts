@@ -37,7 +37,7 @@ export function useSocket() {
         return
       }
 
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000'
+      const backendUrl = (import.meta as ImportMeta & { env: Record<string, string> }).env.VITE_BACKEND_URL || 'http://localhost:5000'
       
       socketRef.current = io(backendUrl, {
         autoConnect: true,

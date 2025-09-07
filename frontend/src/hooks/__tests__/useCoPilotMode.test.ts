@@ -21,6 +21,7 @@ describe('useCoPilotMode Hook', () => {
     mockRoomStore.coPilotMode = 'everyone'
     mockRoomStore.setCoPilotMode = vi.fn()
     mockRoomStore.getCoPilotModeDescription = vi.fn()
+    // @ts-expect-error - vi namespace not available in test config
     ;(useRoomStore as vi.MockedFunction<typeof useRoomStore>).mockReturnValue(mockRoomStore)
   })
 

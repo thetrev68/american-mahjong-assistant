@@ -19,7 +19,7 @@ vi.mock('../../utils/animation-config', () => ({
   })),
   getOptimizedDuration: vi.fn((duration) => duration),
   createAnimationSequence: vi.fn((sequence) => 
-    sequence.map((item) => ({
+    sequence.map((item: { type: string; duration?: number }) => ({
       ...item,
       config: { duration: 300, easing: 'ease-out' }
     }))
@@ -373,7 +373,7 @@ describe('Error Handling', () => {
 
     // Start animation with invalid name
     act(() => {
-      result.current.playAnimation('nonexistent' as unknown as keyof typeof import('../../ui-components/tiles/tile-animation-constants').ANIMATION_CONFIGS)
+      result.current.playAnimation('nonexistent' as never)
     })
 
     // Advance timers

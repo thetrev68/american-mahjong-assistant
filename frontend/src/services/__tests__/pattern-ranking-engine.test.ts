@@ -5,7 +5,8 @@ import { describe, test, expect, beforeAll } from 'vitest'
 import { PatternRankingEngine } from '../pattern-ranking-engine'
 import { type PatternAnalysisFacts } from '../pattern-analysis-engine'
 import { PatternVariationLoader } from '../pattern-variation-loader'
-import { type PatternSelectionOption } from '../../stores/pattern-store'
+import type { PatternSelectionOption, PatternGroup } from '@shared/nmjl-types'
+// Test objects use simplified structure, not full PatternSelectionOption
 
 // Sample pattern selection options for testing
 const createMockPatterns = (): PatternSelectionOption[] => ([
@@ -15,7 +16,7 @@ const createMockPatterns = (): PatternSelectionOption[] => ([
     points: 25,
     difficulty: 'medium',
     description: 'FF DDDD DDDD 33',
-    groups: ['singles', 'pairs'],
+    groups: [] as PatternGroup[],
     jokerRules: { allowJokers: true, minTiles: 8 },
     isStarred: false,
     completionProgress: 0
@@ -26,7 +27,7 @@ const createMockPatterns = (): PatternSelectionOption[] => ([
     points: 30,
     difficulty: 'hard',
     description: '1111 2222 3333 FF',
-    groups: ['consecutive'],
+    groups: [] as PatternGroup[],
     jokerRules: { allowJokers: true, minTiles: 12 },
     isStarred: false,
     completionProgress: 0
@@ -37,7 +38,7 @@ const createMockPatterns = (): PatternSelectionOption[] => ([
     points: 25,
     difficulty: 'medium',
     description: '111 222 333 DDDD',
-    groups: ['numbers'],
+    groups: [] as PatternGroup[],
     jokerRules: { allowJokers: true, minTiles: 9 },
     isStarred: false,
     completionProgress: 0
@@ -48,7 +49,7 @@ const createMockPatterns = (): PatternSelectionOption[] => ([
     points: 25,
     difficulty: 'medium',
     description: 'FFFF 2025 222 222',
-    groups: ['special'],
+    groups: [] as PatternGroup[],
     jokerRules: { allowJokers: true, minTiles: 8 },
     isStarred: false,
     completionProgress: 0
@@ -59,7 +60,7 @@ const createMockPatterns = (): PatternSelectionOption[] => ([
     points: 25,
     difficulty: 'medium',
     description: '2468 2468 2468 22',
-    groups: ['special'],
+    groups: [] as PatternGroup[],
     jokerRules: { allowJokers: true, minTiles: 10 },
     isStarred: false,
     completionProgress: 0

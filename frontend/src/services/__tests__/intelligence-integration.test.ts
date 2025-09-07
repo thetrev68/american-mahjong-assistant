@@ -6,42 +6,52 @@ import { PatternAnalysisEngine, type GameContext } from '../pattern-analysis-eng
 import { PatternRankingEngine } from '../pattern-ranking-engine'
 import { TileRecommendationEngine } from '../tile-recommendation-engine'
 import { PatternVariationLoader } from '../pattern-variation-loader'
-import type { PatternSelectionOption } from '../../stores/pattern-store'
+import type { PatternSelectionOption, PatternGroup } from '@shared/nmjl-types'
+// Test objects use simplified structure, not full PatternSelectionOption
 
 // Sample pattern selection options for integration testing
 const createTestPatterns = (): PatternSelectionOption[] => ([
   {
     id: '2025-SINGLES_AND_PAIRS-3-1',
-    name: 'Singles And Pairs',
+    patternId: 1,
+    displayName: 'Singles And Pairs',
+    pattern: 'FF DDDD DDDD 33',
     points: 25,
     difficulty: 'medium',
     description: 'FF DDDD DDDD 33',
-    groups: ['singles', 'pairs'],
-    jokerRules: { allowJokers: true, minTiles: 8 },
-    isStarred: true,
-    completionProgress: 0
+    section: 'SINGLES_AND_PAIRS',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   },
   {
     id: '2025-CONSECUTIVE_RUN-7-1',
-    name: 'Consecutive Run',
+    patternId: 2,
+    displayName: 'Consecutive Run',
+    pattern: '1111 2222 3333 FF',
     points: 30,
     difficulty: 'hard',
     description: '1111 2222 3333 FF',
-    groups: ['consecutive'],
-    jokerRules: { allowJokers: true, minTiles: 12 },
-    isStarred: true,
-    completionProgress: 0
+    section: 'CONSECUTIVE_RUN',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   },
   {
     id: '2025-ANY_LIKE_NUMBERS-2-1',
-    name: 'Any Like Numbers',
+    patternId: 3,
+    displayName: 'Any Like Numbers',
+    pattern: '111 222 333 DDDD',
     points: 25,
     difficulty: 'medium',
     description: '111 222 333 DDDD',
-    groups: ['numbers'],
-    jokerRules: { allowJokers: true, minTiles: 9 },
-    isStarred: false,
-    completionProgress: 0
+    section: 'ANY_LIKE_NUMBERS',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   }
 ])
 
@@ -237,7 +247,7 @@ describe('3-Engine Intelligence System Integration', () => {
           points: 25,
           difficulty: 'medium',
           description: 'FFFF 2025 222 222',
-          groups: ['special'],
+          groups: [] as PatternGroup[],
           jokerRules: { allowJokers: true, minTiles: 8 },
           isStarred: false,
           completionProgress: 0
