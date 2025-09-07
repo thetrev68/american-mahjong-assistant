@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { io, Socket } from 'socket.io-client'
+import { appConfig } from '../utils/feature-flags'
 
 interface QueuedEvent {
   event: string
@@ -37,7 +38,7 @@ export function useSocket() {
         return
       }
 
-      const backendUrl = (import.meta as ImportMeta & { env: Record<string, string> }).env.VITE_BACKEND_URL || 'http://localhost:5000'
+      const backendUrl = appConfig.backendUrl
       
       socketRef.current = io(backendUrl, {
         autoConnect: true,

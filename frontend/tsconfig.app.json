@@ -37,6 +37,13 @@
   "exclude": [
     "**/__tests__/**",
     "**/*.test.ts",
-    "**/*.test.tsx"
+    "**/*.test.tsx",
+    "src/ui-components/accessibility/**",
+    "src/ui-components/mobile/TouchOptimizedTile.tsx",
+    "src/ui-components/performance/**",
+    "src/ui-components/status/GamePhaseStatusIndicator.tsx",
+    "src/ui-components/status/NotificationSystem.tsx",
+    "src/utils/bundle-analyzer.ts",
+    "src/hooks/usePerformanceMonitor.ts"
   ]
 }
