@@ -61,6 +61,7 @@ export class ConnectionResilienceService {
   private connectionTimeoutTimer: NodeJS.Timeout | null = null
   private currentAttempt = 0
   private isReconnecting = false
+  private hasHandledDisconnection = false
   private lastKnownState: Record<string, unknown> = {}
 
   constructor(config: Partial<ConnectionResilienceConfig> = {}) {
@@ -84,6 +85,7 @@ export class ConnectionResilienceService {
     this.clearReconnectionTimer()
     this.currentAttempt = 0
     this.isReconnecting = false
+    this.hasHandledDisconnection = false
     
     // Trigger state recovery if needed
     if (this.config.enableStateSync) {
@@ -111,18 +113,24 @@ export class ConnectionResilienceService {
 
   // Handle connection lost
   private onConnectionLost(): void {
-    // Only handle if not already processing a disconnection
-    if (this.isReconnecting) {
+    // Only handle if not already processing a disconnection or already handled
+    if (this.isReconnecting || this.hasHandledDisconnection) {
       return
     }
 
-    // Start auto-reconnection if enabled (will be called from hook with socket instance)
-    if (this.config.enableAutoReconnect && this.currentAttempt < this.config.reconnectionStrategy.maxAttempts) {
-      // This will be triggered from the hook
-      console.log('Auto-reconnection needed - will be triggered from hook')
-    } else {
-      console.log('Max reconnection attempts reached or auto-reconnect disabled')
+    // Mark as handled to prevent repeated calls
+    this.hasHandledDisconnection = true
+
+    // Check if auto-reconnection is enabled and we haven't exceeded max attempts
+    if (!this.config.enableAutoReconnect || this.currentAttempt >= this.config.reconnectionStrategy.maxAttempts) {
+      console.log('Auto-reconnection disabled or max attempts reached')
+      this.onReconnectionFailed()
       return
+    }
+
+    // Log once and preserve state
+    if (this.currentAttempt === 0) {
+      console.log('Connection lost - starting auto-reconnection process')
     }
 
     // Preserve current state for recovery

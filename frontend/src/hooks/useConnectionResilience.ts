@@ -82,8 +82,10 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
       heartbeatInterval: finalConfig.heartbeatInterval || 15000
     })
 
-    // Initialize with socket instance
-    resilienceService.initialize(socket)
+    // Initialize with socket instance only once
+    if (socket) {
+      resilienceService.initialize(socket)
+    }
 
     // Unused variable fix
     void resilienceService
@@ -91,7 +93,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     return () => {
       destroyConnectionResilience()
     }
-  }, [finalConfig, socket])
+  }, [finalConfig]) // Removed socket dependency to prevent reinitializing
 
   // Monitor connection state changes
   useEffect(() => {
