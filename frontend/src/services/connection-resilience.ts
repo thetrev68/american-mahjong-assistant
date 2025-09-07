@@ -8,8 +8,7 @@ import { useTurnStore } from '../stores/turn-store'
 import { useCharlestonStore } from '../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
 
-// Global flag to prevent repeated disconnection logging across all instances
-let globalDisconnectionHandled = false
+// Global state to prevent repeated disconnection logging across all instances
 let lastDisconnectionTime = 0
 const DISCONNECTION_LOG_INTERVAL = 10000 // Only log once per 10 seconds
 
@@ -464,7 +463,6 @@ export const destroyConnectionResilience = (): void => {
     connectionResilienceService.destroy()
     connectionResilienceService = null
   }
-  // Reset global flags when destroying service
-  globalDisconnectionHandled = false
+  // Reset global state when destroying service
   lastDisconnectionTime = 0
 }
