@@ -10,6 +10,8 @@ import { getRoomMultiplayerService } from './room-multiplayer'
 
 // Global flag to prevent repeated disconnection logging across all instances
 let globalDisconnectionHandled = false
+let lastDisconnectionTime = 0
+const DISCONNECTION_LOG_INTERVAL = 10000 // Only log once per 10 seconds
 
 export interface ReconnectionStrategy {
   maxAttempts: number
@@ -89,7 +91,7 @@ export class ConnectionResilienceService {
     this.currentAttempt = 0
     this.isReconnecting = false
     this.hasHandledDisconnection = false
-    globalDisconnectionHandled = false // Reset global flag
+    // Don't reset lastDisconnectionTime to maintain rate limiting
     
     // Trigger state recovery if needed
     if (this.config.enableStateSync) {
@@ -117,14 +119,20 @@ export class ConnectionResilienceService {
 
   // Handle connection lost
   private onConnectionLost(): void {
-    // Only handle if not already processing a disconnection or already handled globally
-    if (this.isReconnecting || this.hasHandledDisconnection || globalDisconnectionHandled) {
+    // Only handle if not already processing a disconnection
+    if (this.isReconnecting || this.hasHandledDisconnection) {
       return
     }
 
-    // Mark as handled to prevent repeated calls (both instance and global)
+    // Rate limit disconnection logging to prevent spam
+    const now = Date.now()
+    if (now - lastDisconnectionTime < DISCONNECTION_LOG_INTERVAL) {
+      return // Skip this disconnection event if too recent
+    }
+
+    // Mark as handled to prevent repeated calls
     this.hasHandledDisconnection = true
-    globalDisconnectionHandled = true
+    lastDisconnectionTime = now
 
     // Check if auto-reconnection is enabled and we haven't exceeded max attempts
     if (!this.config.enableAutoReconnect || this.currentAttempt >= this.config.reconnectionStrategy.maxAttempts) {
@@ -133,7 +141,7 @@ export class ConnectionResilienceService {
       return
     }
 
-    // Log once and preserve state (only first instance logs)
+    // Log with timestamp to help debug connection issues
     console.log('Connection lost - starting auto-reconnection process')
 
     // Preserve current state for recovery
@@ -456,6 +464,7 @@ export const destroyConnectionResilience = (): void => {
     connectionResilienceService.destroy()
     connectionResilienceService = null
   }
-  // Reset global flag when destroying service
+  // Reset global flags when destroying service
   globalDisconnectionHandled = false
+  lastDisconnectionTime = 0
 }
