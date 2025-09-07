@@ -10,12 +10,14 @@ const app = express();
 const server = createServer(app);
 
 // CORS configuration for local network multiplayer
+const productionOrigins = [
+  process.env.FRONTEND_URL,
+  'https://american-mahjong-assistant.vercel.app',
+  /^https:\/\/american-mahjong-assistant-.*\.vercel\.app$/
+].filter((origin): origin is string | RegExp => Boolean(origin));
+
 const allowedOrigins = process.env.NODE_ENV === 'production' 
-  ? [
-      process.env.FRONTEND_URL,
-      'https://american-mahjong-assistant.vercel.app',
-      /^https:\/\/american-mahjong-assistant-.*\.vercel\.app$/
-    ].filter(Boolean)
+  ? productionOrigins
   : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://localhost:5176", "http://localhost:3000"];
 
 app.use(cors({
