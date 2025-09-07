@@ -181,10 +181,16 @@ export class ConnectionResilienceService {
       }
     }, delay)
 
-    // Update reconnection attempts in store
-    useRoomStore.getState().updateConnectionStatus({
-      reconnectionAttempts: this.currentAttempt
-    })
+    // Update reconnection attempts in store - defer to avoid React render cycle issues
+    setTimeout(() => {
+      try {
+        useRoomStore.getState().updateConnectionStatus({
+          reconnectionAttempts: this.currentAttempt
+        })
+      } catch (error) {
+        console.warn('Failed to update reconnection attempts:', error)
+      }
+    }, 0)
   }
 
   // Attempt to reconnect (will be called from hook)
@@ -236,11 +242,17 @@ export class ConnectionResilienceService {
       message: 'Unable to reconnect to server. Please check your connection and try again.'
     })
 
-    // Offer manual retry
-    useRoomStore.getState().updateConnectionStatus({
-      isConnected: false,
-      reconnectionAttempts: this.config.reconnectionStrategy.maxAttempts
-    })
+    // Offer manual retry - defer to avoid React render cycle issues
+    setTimeout(() => {
+      try {
+        useRoomStore.getState().updateConnectionStatus({
+          isConnected: false,
+          reconnectionAttempts: this.config.reconnectionStrategy.maxAttempts
+        })
+      } catch (error) {
+        console.warn('Failed to update connection status after max attempts:', error)
+      }
+    }, 0)
   }
 
   // Preserve current state for recovery
@@ -331,10 +343,16 @@ export class ConnectionResilienceService {
     this.heartbeatTimer = setInterval(() => {
       if (socketInstance.isConnected) {
         // Send heartbeat - this is handled by useSocket's ping mechanism
-        // Update last ping time
-        useRoomStore.getState().updateConnectionStatus({
-          lastPing: new Date()
-        })
+        // Update last ping time - defer to avoid React render cycle issues
+        setTimeout(() => {
+          try {
+            useRoomStore.getState().updateConnectionStatus({
+              lastPing: new Date()
+            })
+          } catch (error) {
+            console.warn('Failed to update last ping time:', error)
+          }
+        }, 0)
       }
     }, this.config.heartbeatInterval)
   }

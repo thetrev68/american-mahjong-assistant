@@ -86,9 +86,9 @@ export const featureFlags: FeatureFlags = {
 export const appConfig: AppConfig = {
   name: getEnvVar('VITE_APP_NAME', 'American Mahjong Assistant'),
   version: getEnvVar('VITE_APP_VERSION', '1.0.0'),
-  environment: getEnvVar('VITE_APP_ENVIRONMENT', 'development') as AppConfig['environment'],
-  backendUrl: getEnvVar('VITE_BACKEND_URL', 'http://localhost:5000'),
-  websocketUrl: getEnvVar('VITE_WEBSOCKET_URL', 'ws://localhost:5000'),
+  environment: getEnvVar('VITE_APP_ENVIRONMENT', import.meta.env.DEV ? 'development' : 'production') as AppConfig['environment'],
+  backendUrl: getEnvVar('VITE_BACKEND_URL', import.meta.env.DEV ? 'http://localhost:5000' : 'https://american-mahjong-assistant.onrender.com'),
+  websocketUrl: getEnvVar('VITE_WEBSOCKET_URL', import.meta.env.DEV ? 'ws://localhost:5000' : 'wss://american-mahjong-assistant.onrender.com'),
   
   // Analytics (only if provided)
   ...(getEnvVar('VITE_GOOGLE_ANALYTICS_ID') && {
