@@ -54,7 +54,7 @@ This is a **co-pilot system** that enhances human decision-making rather than re
    - Switch strategies mid-game with alternative pattern suggestions
 
 ### Test the Complete Flow:
-- Start the app and navigate to `http://localhost:5175`
+- Start the app and navigate to `http://localhost:5173`
 - Follow the flow: Pattern Selection → Tile Input → Charleston → **Game Mode**
 - Experience comprehensive co-pilot assistance during simulated gameplay
 
@@ -87,11 +87,11 @@ cd frontend
 npm run dev
 ```
 
-The app will be available at **http://localhost:5175**
+The app will be available at **http://localhost:5173**
 
 **For multiplayer features** (when implemented):
 - Start the backend: `cd backend && npm run dev`
-- Other players visit `http://[HOST_IP]:5175` on their devices
+- Other players visit `http://[HOST_IP]:5173` on their devices
 
 ## 🏗️ Modern Architecture
 

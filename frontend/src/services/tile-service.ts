@@ -6,12 +6,15 @@ import tilesData from '../assets/tiles.json'
 
 class TileService {
   private allTiles: Tile[] = []
+  private initialized = false
 
   constructor() {
-    this.initializeTiles()
+    // Lazy initialization to avoid circular dependency issues
   }
 
   private initializeTiles() {
+    if (this.initialized) return
+    
     const tiles: Tile[] = []
 
     // Use the frames directly from the JSON in their original order
@@ -57,20 +60,24 @@ class TileService {
     })
 
     this.allTiles = tiles
+    this.initialized = true
   }
 
   // Get all available tiles
   getAllTiles(): Tile[] {
+    this.initializeTiles()
     return [...this.allTiles]
   }
 
   // Get tiles by suit
   getTilesBySuit(suit: TileSuit): Tile[] {
+    this.initializeTiles()
     return this.allTiles.filter(tile => tile.suit === suit)
   }
 
   // Get tile by ID
   getTileById(id: string): Tile | undefined {
+    this.initializeTiles()
     return this.allTiles.find(tile => tile.id === id)
   }
 
@@ -227,6 +234,7 @@ class TileService {
 
   // Quick tile search
   searchTiles(query: string): Tile[] {
+    this.initializeTiles()
     const lowercaseQuery = query.toLowerCase()
     return this.allTiles.filter(tile => 
       tile.displayName.toLowerCase().includes(lowercaseQuery) ||
