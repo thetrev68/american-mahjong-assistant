@@ -271,7 +271,7 @@ describe('Simple Integration Tests', () => {
       
       expect(() => {
         phases.forEach(phase => {
-          gameStore.setGamePhase(phase as any)
+          gameStore.setGamePhase(phase as 'lobby' | 'tile-input' | 'charleston' | 'playing' | 'finished')
         })
       }).not.toThrow()
 

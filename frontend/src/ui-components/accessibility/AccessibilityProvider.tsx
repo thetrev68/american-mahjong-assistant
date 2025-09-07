@@ -3,7 +3,7 @@
  * Global accessibility context and configuration
  */
 
-import React, { createContext, useContext, ReactNode } from 'react'
+import React, { ReactNode } from 'react'
 import { useAccessibility, AccessibilityOptions } from '../../hooks/useAccessibility'
 
 interface AccessibilityContextType {
@@ -92,12 +92,15 @@ const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ children 
   )
 }
 
-const useAccessibilityContext = (): AccessibilityContextType => {
-  const context = useContext(AccessibilityContext)
-  if (!context) {
-    throw new Error('useAccessibilityContext must be used within AccessibilityProvider')
-  }
-  return context
-}
+// Moved to accessibility-utils.ts to avoid Fast Refresh issues
+// const useAccessibilityContext = (): AccessibilityContextType => {
+//   const context = useContext(AccessibilityContext)
+//   if (!context) {
+//     throw new Error('useAccessibilityContext must be used within AccessibilityProvider')
+//   }
+//   return context
+// }
 
-export { AccessibilityProvider, useAccessibilityContext }
+export default AccessibilityProvider
+// Re-export from separate file to avoid Fast Refresh warnings
+// export { useAccessibilityContext }

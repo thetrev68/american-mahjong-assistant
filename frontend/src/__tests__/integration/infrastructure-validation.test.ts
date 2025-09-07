@@ -150,7 +150,7 @@ describe('Integration Test Infrastructure', () => {
             throw new Error('Invalid input')
           }
           return input * 2
-        } catch (error) {
+        } catch {
           return null
         }
       }

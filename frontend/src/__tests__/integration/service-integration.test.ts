@@ -309,7 +309,10 @@ describe('Service Integration Tests', () => {
       expect(analysis).toBeDefined()
       expect(analysis.recommendations).toBeDefined()
       expect(analysis.insights).toBeDefined()
-      expect(analysis.insights.learningOpportunities).toContain('service unavailable' || 'analysis failed')
+      expect(
+        analysis.insights.learningOpportunities.includes('service unavailable') ||
+        analysis.insights.learningOpportunities.includes('analysis failed')
+      ).toBeTruthy()
     })
 
     it('should validate service responses', async () => {
@@ -319,7 +322,7 @@ describe('Service Integration Tests', () => {
         {
           patternId: 'invalid',
           // Missing other required fields
-        } as any
+        } as { patternId: string }
       ])
 
       // Should handle invalid responses

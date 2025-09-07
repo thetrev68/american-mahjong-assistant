@@ -5,21 +5,10 @@
 
 import React, { useEffect, useState, useCallback } from 'react'
 import { createPortal } from 'react-dom'
+import type { NotificationConfig } from './notification-utils'
+import { useNotifications } from './notification-utils'
 
-export interface NotificationConfig {
-  id: string
-  type: 'success' | 'error' | 'warning' | 'info' | 'achievement'
-  title: string
-  message?: string
-  icon?: string
-  duration?: number // milliseconds, 0 for persistent
-  action?: {
-    label: string
-    onClick: () => void
-  }
-  position?: 'top-right' | 'top-center' | 'top-left' | 'bottom-right' | 'bottom-center' | 'bottom-left'
-  priority?: 'low' | 'normal' | 'high' | 'urgent'
-}
+export type { NotificationConfig } from './notification-utils'
 
 interface NotificationProps {
   notification: NotificationConfig
@@ -277,71 +266,6 @@ const NotificationContainer: React.FC<NotificationContainerProps> = ({
   )
 }
 
-// Hook for managing notifications
-const useNotifications = () => {
-  const [notifications, setNotifications] = useState<NotificationConfig[]>([])
-
-  const addNotification = (config: Omit<NotificationConfig, 'id'>) => {
-    const notification: NotificationConfig = {
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-      duration: config.type === 'error' ? 0 : 5000, // Errors persist by default
-      position: 'top-right',
-      priority: 'normal',
-      ...config
-    }
-
-    setNotifications(prev => [notification, ...prev])
-    return notification.id
-  }
-
-  const dismissNotification = (id: string) => {
-    setNotifications(prev => prev.filter(n => n.id !== id))
-  }
-
-  const dismissAll = () => {
-    setNotifications([])
-  }
-
-  // Convenience methods
-  const success = (title: string, message?: string, options?: Partial<NotificationConfig>) => {
-    return addNotification({ ...options, type: 'success', title, message })
-  }
-
-  const error = (title: string, message?: string, options?: Partial<NotificationConfig>) => {
-    return addNotification({ ...options, type: 'error', title, message })
-  }
-
-  const warning = (title: string, message?: string, options?: Partial<NotificationConfig>) => {
-    return addNotification({ ...options, type: 'warning', title, message })
-  }
-
-  const info = (title: string, message?: string, options?: Partial<NotificationConfig>) => {
-    return addNotification({ ...options, type: 'info', title, message })
-  }
-
-  const achievement = (title: string, message?: string, options?: Partial<NotificationConfig>) => {
-    return addNotification({ 
-      ...options, 
-      type: 'achievement', 
-      title, 
-      message,
-      duration: 8000, // Achievements show longer
-      priority: 'high'
-    })
-  }
-
-  return {
-    notifications,
-    addNotification,
-    dismissNotification,
-    dismissAll,
-    success,
-    error,
-    warning,
-    info,
-    achievement
-  }
-}
 
 // Main notification system component to be rendered at app level
 export const NotificationSystem: React.FC<{ maxVisible?: number }> = ({ maxVisible }) => {
@@ -362,5 +286,6 @@ export const NotificationSystem: React.FC<{ maxVisible?: number }> = ({ maxVisib
   )
 }
 
-export { useNotifications }
+// Re-export from separate file to avoid Fast Refresh warnings
+// export { useNotifications } from './notification-utils'
 export default NotificationSystem

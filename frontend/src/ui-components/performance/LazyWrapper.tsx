@@ -4,12 +4,8 @@
  */
 
 import React, { 
-  Suspense, 
-  lazy, 
-  ComponentType, 
   useEffect, 
   useState,
-  useCallback,
   useRef
 } from 'react'
 import { LoadingSpinner } from '../LoadingSpinner'
@@ -26,15 +22,6 @@ interface LazyWrapperProps {
   className?: string
 }
 
-interface LazyComponentProps {
-  loader: () => Promise<{ default: ComponentType<Record<string, unknown>> }>
-  fallback?: React.ReactNode
-  errorBoundary?: ComponentType<{ children: React.ReactNode; onError?: (error: Error, errorInfo: { componentStack: string }) => void; fallback?: React.ReactNode }>
-  timeout?: number
-  retryAttempts?: number
-  preload?: boolean
-  componentName?: string
-}
 
 // Error boundary for lazy components
 class LazyErrorBoundary extends React.Component<
@@ -208,89 +195,7 @@ export const LazyWrapper: React.FC<LazyWrapperProps> = ({
   )
 }
 
-// Factory for creating lazy components with retry logic
-const createLazyComponent = ({
-  loader,
-  fallback,
-  errorBoundary: ErrorBoundary = LazyErrorBoundary,
-  timeout = 10000,
-  preload = false,
-  componentName = 'LazyComponent'
-}: LazyComponentProps) => {
-  const LazyComponent = lazy(() => {
-    let retries = 0
-    
-    const loadWithRetry = (): Promise<{ default: ComponentType<Record<string, unknown>> }> => {
-      return loader().catch((error) => {
-        if (retries < retryAttempts) {
-          retries++
-          console.warn(`Retry ${retries}/${retryAttempts} loading ${componentName}:`, error)
-          return new Promise(resolve => setTimeout(resolve, 1000 * retries))
-            .then(() => loadWithRetry())
-        }
-        throw error
-      })
-    }
-    
-    return loadWithRetry()
-  })
 
-  const WrappedComponent: React.FC<Record<string, unknown>> = (props) => {
-    const { trackComponent } = usePerformanceMonitor()
-    const startTime = useRef(Date.now())
-
-    useEffect(() => {
-      const componentStartTime = startTime.current
-      return () => {
-        trackComponent(componentName, Date.now() - componentStartTime, false)
-      }
-    }, [])
-
-    // Preload on hover for better UX
-    const handleMouseEnter = useCallback(() => {
-      if (!preload) {
-        // Trigger preload by importing
-        loader().catch(() => {
-          // Silent fail for preload
-        })
-      }
-    }, [trackComponent])
-
-    return (
-      <div onMouseEnter={handleMouseEnter}>
-        <ErrorBoundary>
-          <Suspense 
-            fallback={
-              fallback || <SmartFallback timeout={timeout} componentName={componentName} />
-            }
-          >
-            <LazyComponent {...props} />
-          </Suspense>
-        </ErrorBoundary>
-      </div>
-    )
-  }
-
-  WrappedComponent.displayName = `Lazy(${componentName})`
-  return WrappedComponent
-}
-
-// Hook for preloading components
-const usePreloadComponent = (loader: () => Promise<unknown>) => {
-  const [isPreloaded, setIsPreloaded] = useState(false)
-  
-  const preload = useCallback(() => {
-    if (!isPreloaded) {
-      loader()
-        .then(() => setIsPreloaded(true))
-        .catch(() => {
-          // Silent fail for preload
-        })
-    }
-  }, [loader, isPreloaded])
-
-  return { preload, isPreloaded }
-}
-
-export { createLazyComponent, usePreloadComponent }
+// Re-export utilities from separate file to avoid Fast Refresh warnings
+// export { createLazyComponent, usePreloadComponent } from './lazy-utils'
 export default LazyWrapper

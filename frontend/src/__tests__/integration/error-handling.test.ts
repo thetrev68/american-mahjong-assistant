@@ -25,12 +25,10 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     }
   })
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
-    </QueryClientProvider>
+  return React.createElement(
+    QueryClientProvider,
+    { client: queryClient },
+    React.createElement(BrowserRouter, null, children)
   )
 }
 
@@ -51,9 +49,9 @@ describe('Error Handling and Edge Cases Integration', () => {
       vi.spyOn(nmjlService, 'loadAllPatterns').mockRejectedValue(new Error('Network timeout'))
 
       render(
-        <TestWrapper>
-          <App />
-        </TestWrapper>
+        React.createElement(TestWrapper, null,
+          React.createElement(App)
+        )
       )
 
       // App should still render
@@ -125,9 +123,9 @@ describe('Error Handling and Edge Cases Integration', () => {
       })
 
       render(
-        <TestWrapper>
-          <App />
-        </TestWrapper>
+        React.createElement(TestWrapper, null,
+          React.createElement(App)
+        )
       )
 
       // Navigate and trigger pattern loading
@@ -168,7 +166,7 @@ describe('Error Handling and Edge Cases Integration', () => {
         {
           Year: 2025,
           // Missing other required fields
-        } as any,
+        } as unknown,
         // Another invalid pattern (wrong data types)
         {
           Year: 'invalid',
@@ -179,7 +177,7 @@ describe('Error Handling and Edge Cases Integration', () => {
           Hand_Criteria: undefined,
           Points: 'invalid',
           Concealed: 'not-boolean'
-        } as any
+        } as unknown
       ])
 
       const patternStore = usePatternStore.getState()
@@ -194,7 +192,7 @@ describe('Error Handling and Edge Cases Integration', () => {
           if (pattern.Hands_Key && pattern.Hand_Criteria) {
             patternStore.selectPattern(pattern)
           }
-        } catch (error) {
+        } catch {
           // Should not throw errors for invalid data
           expect(error).toBeUndefined()
         }
@@ -224,8 +222,8 @@ describe('Error Handling and Edge Cases Integration', () => {
         const initialCount = tileStore.getTileCount()
         
         try {
-          tileStore.addTile(tile as any)
-        } catch (error) {
+          tileStore.addTile(tile as unknown)
+        } catch {
           // Should either handle gracefully or throw expected error
         }
 
@@ -246,17 +244,17 @@ describe('Error Handling and Edge Cases Integration', () => {
       ]
 
       invalidTransitions.forEach(({ from, to }) => {
-        gameStore.setGamePhase(from as any)
+        gameStore.setGamePhase(from as unknown)
         expect(gameStore.gamePhase).toBe(from)
 
         try {
-          gameStore.setGamePhase(to as any)
+          gameStore.setGamePhase(to as unknown)
           // If transition is allowed, verify it's intentional
           if (gameStore.gamePhase === to) {
             // Some transitions might be valid (e.g., reset to setup)
             expect(['setup', from]).toContain(gameStore.gamePhase)
           }
-        } catch (error) {
+        } catch {
           // Invalid transitions should either throw or be ignored
           expect(gameStore.gamePhase).toBe(from)
         }
