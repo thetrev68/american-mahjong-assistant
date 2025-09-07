@@ -90,40 +90,63 @@ export class ConnectionResilienceService {
       this.initiateStateRecovery()
     }
 
-    // Update connection status in stores
-    useRoomStore.getState().updateConnectionStatus({
-      isConnected: true,
-      reconnectionAttempts: 0
-    })
+    // Update connection status in stores - defer to avoid React render cycle issues
+    setTimeout(() => {
+      try {
+        useRoomStore.getState().updateConnectionStatus({
+          isConnected: true,
+          reconnectionAttempts: 0
+        })
 
-    useGameStore.getState().addAlert({
-      type: 'success',
-      title: 'Connected',
-      message: 'Connection established successfully'
-    })
+        useGameStore.getState().addAlert({
+          type: 'success',
+          title: 'Connected',
+          message: 'Connection established successfully'
+        })
+      } catch (error) {
+        console.warn('Failed to update connection status:', error)
+      }
+    }, 0)
   }
 
   // Handle connection lost
   private onConnectionLost(): void {
-    // Update connection status
-    useRoomStore.getState().updateConnectionStatus({
-      isConnected: false
-    })
+    // Only handle if not already processing a disconnection
+    if (this.isReconnecting) {
+      return
+    }
 
     // Start auto-reconnection if enabled (will be called from hook with socket instance)
-    if (this.config.enableAutoReconnect && !this.isReconnecting) {
+    if (this.config.enableAutoReconnect && this.currentAttempt < this.config.reconnectionStrategy.maxAttempts) {
       // This will be triggered from the hook
       console.log('Auto-reconnection needed - will be triggered from hook')
+    } else {
+      console.log('Max reconnection attempts reached or auto-reconnect disabled')
+      return
     }
 
     // Preserve current state for recovery
     this.preserveCurrentState()
 
-    useGameStore.getState().addAlert({
-      type: 'warning',
-      title: 'Connection Lost',
-      message: 'Attempting to reconnect...'
-    })
+    // Update connection status - defer to avoid React render cycle issues
+    setTimeout(() => {
+      try {
+        useRoomStore.getState().updateConnectionStatus({
+          isConnected: false
+        })
+
+        if (this.currentAttempt === 0) {
+          // Only show alert on first disconnection, not on retry attempts
+          useGameStore.getState().addAlert({
+            type: 'warning',
+            title: 'Connection Lost',
+            message: 'Attempting to reconnect...'
+          })
+        }
+      } catch (error) {
+        console.warn('Failed to update connection status:', error)
+      }
+    }, 0)
   }
 
   // Start reconnection process with exponential backoff

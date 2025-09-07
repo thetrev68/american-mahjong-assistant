@@ -46,8 +46,11 @@ export class TurnRealtimeService {
   private callOpportunityTimer: NodeJS.Timeout | null = null
 
   private constructor() {
-    this.multiplayerManager = getUnifiedMultiplayerManager()
-    this.setupTurnEventListeners()
+    // Don't initialize immediately - wait for multiplayer to be ready
+    setTimeout(() => {
+      this.multiplayerManager = getUnifiedMultiplayerManager()
+      this.setupTurnEventListeners()
+    }, 100)
   }
 
   static getInstance(): TurnRealtimeService {
