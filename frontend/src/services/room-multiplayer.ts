@@ -208,12 +208,18 @@ export class RoomMultiplayerService {
         })
       }
       
-      // Update room-level health metrics
+      // Update room-level health metrics - defer to avoid React render cycle issues
       if (data.healthMetrics) {
-        roomStore.updateConnectionStatus({
-          lastPing: new Date(),
-          isConnected: true
-        })
+        setTimeout(() => {
+          try {
+            roomStore.updateConnectionStatus({
+              lastPing: new Date(),
+              isConnected: true
+            })
+          } catch (error) {
+            console.warn('Failed to update connection status from health metrics:', error)
+          }
+        }, 0)
       }
     })
 
@@ -430,13 +436,19 @@ export class RoomMultiplayerService {
 
     roomStore.updatePlayers(crossPhaseStates)
 
-    // Update connection status
-    roomStore.updateConnectionStatus({
-      isConnected: true,
-      connectionId: this.playerId || undefined,
-      lastPing: new Date(),
-      reconnectionAttempts: 0
-    })
+    // Update connection status - defer to avoid React render cycle issues
+    setTimeout(() => {
+      try {
+        roomStore.updateConnectionStatus({
+          isConnected: true,
+          connectionId: this.playerId || undefined,
+          lastPing: new Date(),
+          reconnectionAttempts: 0
+        })
+      } catch (error) {
+        console.warn('Failed to update connection status from room multiplayer:', error)
+      }
+    }, 0)
 
     // Update host permissions if user is host
     if (room.hostId === this.playerId) {

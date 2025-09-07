@@ -373,11 +373,17 @@ export class NetworkErrorHandler {
       this.networkHealth.status = 'degraded'
     }
 
-    // Update room store with health status
-    useRoomStore.getState().updateConnectionStatus({
-      isConnected: this.networkHealth.status === 'healthy',
-      reconnectionAttempts: this.networkHealth.consecutiveFailures
-    })
+    // Update room store with health status - defer to avoid React render cycle issues
+    setTimeout(() => {
+      try {
+        useRoomStore.getState().updateConnectionStatus({
+          isConnected: this.networkHealth.status === 'healthy',
+          reconnectionAttempts: this.networkHealth.consecutiveFailures
+        })
+      } catch (error) {
+        console.warn('Failed to update connection status from network health:', error)
+      }
+    }, 0)
   }
 
   // Handle successful connection (reset failure count)
