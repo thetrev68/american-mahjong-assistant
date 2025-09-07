@@ -3,6 +3,8 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 
+// Force fresh build - cache bust for React error #185 fixes
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],

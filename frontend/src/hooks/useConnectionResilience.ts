@@ -115,8 +115,8 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
       })
     }
 
-    // Update immediately and then periodically
-    updateResilienceState()
+    // Defer initial update to avoid React render cycle issues
+    setTimeout(updateResilienceState, 0)
     const interval = setInterval(updateResilienceState, 2000)
 
     return () => clearInterval(interval)
