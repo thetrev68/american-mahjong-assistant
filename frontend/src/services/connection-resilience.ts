@@ -8,6 +8,9 @@ import { useTurnStore } from '../stores/turn-store'
 import { useCharlestonStore } from '../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
 
+// Global flag to prevent repeated disconnection logging across all instances
+let globalDisconnectionHandled = false
+
 export interface ReconnectionStrategy {
   maxAttempts: number
   initialDelay: number
@@ -86,6 +89,7 @@ export class ConnectionResilienceService {
     this.currentAttempt = 0
     this.isReconnecting = false
     this.hasHandledDisconnection = false
+    globalDisconnectionHandled = false // Reset global flag
     
     // Trigger state recovery if needed
     if (this.config.enableStateSync) {
@@ -113,13 +117,14 @@ export class ConnectionResilienceService {
 
   // Handle connection lost
   private onConnectionLost(): void {
-    // Only handle if not already processing a disconnection or already handled
-    if (this.isReconnecting || this.hasHandledDisconnection) {
+    // Only handle if not already processing a disconnection or already handled globally
+    if (this.isReconnecting || this.hasHandledDisconnection || globalDisconnectionHandled) {
       return
     }
 
-    // Mark as handled to prevent repeated calls
+    // Mark as handled to prevent repeated calls (both instance and global)
     this.hasHandledDisconnection = true
+    globalDisconnectionHandled = true
 
     // Check if auto-reconnection is enabled and we haven't exceeded max attempts
     if (!this.config.enableAutoReconnect || this.currentAttempt >= this.config.reconnectionStrategy.maxAttempts) {
@@ -128,10 +133,8 @@ export class ConnectionResilienceService {
       return
     }
 
-    // Log once and preserve state
-    if (this.currentAttempt === 0) {
-      console.log('Connection lost - starting auto-reconnection process')
-    }
+    // Log once and preserve state (only first instance logs)
+    console.log('Connection lost - starting auto-reconnection process')
 
     // Preserve current state for recovery
     this.preserveCurrentState()
@@ -453,4 +456,6 @@ export const destroyConnectionResilience = (): void => {
     connectionResilienceService.destroy()
     connectionResilienceService = null
   }
+  // Reset global flag when destroying service
+  globalDisconnectionHandled = false
 }
