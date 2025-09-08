@@ -93,7 +93,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     return () => {
       destroyConnectionResilience()
     }
-  }, [finalConfig]) // Removed socket dependency to prevent reinitializing
+  }, [finalConfig, socket]) // Include socket but prevent reinitializing with service singleton
 
   // Monitor connection state changes
   useEffect(() => {

@@ -8,9 +8,10 @@ import { useTurnStore } from '../stores/turn-store'
 import { useCharlestonStore } from '../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
 
-// Global state to prevent repeated disconnection logging across all instances
+// Global state to prevent repeated disconnection logging and multiple service instances
 let lastDisconnectionTime = 0
 const DISCONNECTION_LOG_INTERVAL = 10000 // Only log once per 10 seconds
+let isGlobalReconnectionInProgress = false // Prevent multiple services from reconnecting simultaneously
 
 export interface ReconnectionStrategy {
   maxAttempts: number
@@ -90,6 +91,7 @@ export class ConnectionResilienceService {
     this.currentAttempt = 0
     this.isReconnecting = false
     this.hasHandledDisconnection = false
+    isGlobalReconnectionInProgress = false // Clear global reconnection flag on successful connection
     // Don't reset lastDisconnectionTime to maintain rate limiting
     
     // Trigger state recovery if needed
@@ -118,8 +120,8 @@ export class ConnectionResilienceService {
 
   // Handle connection lost
   private onConnectionLost(): void {
-    // Only handle if not already processing a disconnection
-    if (this.isReconnecting || this.hasHandledDisconnection) {
+    // Only handle if not already processing a disconnection globally or locally
+    if (this.isReconnecting || this.hasHandledDisconnection || isGlobalReconnectionInProgress) {
       return
     }
 
@@ -129,8 +131,9 @@ export class ConnectionResilienceService {
       return // Skip this disconnection event if too recent
     }
 
-    // Mark as handled to prevent repeated calls
+    // Mark as handled globally to prevent repeated calls from other instances
     this.hasHandledDisconnection = true
+    isGlobalReconnectionInProgress = true
     lastDisconnectionTime = now
 
     // Check if auto-reconnection is enabled and we haven't exceeded max attempts
@@ -253,6 +256,7 @@ export class ConnectionResilienceService {
   private onReconnectionFailed(): void {
     this.isReconnecting = false
     this.currentAttempt = 0
+    isGlobalReconnectionInProgress = false // Clear global flag when giving up
     
     useGameStore.getState().addAlert({
       type: 'warning',
@@ -437,8 +441,9 @@ export class ConnectionResilienceService {
   }
 }
 
-// Singleton service manager
+// Singleton service manager with initialization guard
 let connectionResilienceService: ConnectionResilienceService | null = null
+let isInitializing = false
 
 export const getConnectionResilienceService = (): ConnectionResilienceService | null => {
   return connectionResilienceService
@@ -447,22 +452,35 @@ export const getConnectionResilienceService = (): ConnectionResilienceService | 
 export const initializeConnectionResilience = (
   config?: Partial<ConnectionResilienceConfig>
 ): ConnectionResilienceService => {
-  // Clean up existing service
-  if (connectionResilienceService) {
-    connectionResilienceService.destroy()
+  // Prevent multiple simultaneous initializations
+  if (isInitializing) {
+    console.warn('Connection resilience service is already initializing')
+    return connectionResilienceService || new ConnectionResilienceService(config)
   }
 
-  connectionResilienceService = new ConnectionResilienceService(config)
-  // Initialize will be called from the hook with socket instance
-  
-  return connectionResilienceService
+  // Return existing service if already initialized
+  if (connectionResilienceService) {
+    console.warn('Connection resilience service already initialized, returning existing instance')
+    return connectionResilienceService
+  }
+
+  isInitializing = true
+  try {
+    connectionResilienceService = new ConnectionResilienceService(config)
+    console.log('Connection resilience service initialized')
+    return connectionResilienceService
+  } finally {
+    isInitializing = false
+  }
 }
 
 export const destroyConnectionResilience = (): void => {
+  isInitializing = false
   if (connectionResilienceService) {
     connectionResilienceService.destroy()
     connectionResilienceService = null
   }
   // Reset global state when destroying service
   lastDisconnectionTime = 0
+  isGlobalReconnectionInProgress = false
 }
