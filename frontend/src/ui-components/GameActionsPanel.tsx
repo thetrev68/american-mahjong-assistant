@@ -1,7 +1,7 @@
 // Game Actions Panel
 // UI component for all player actions in turn-based gameplay
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Button } from './Button'
 import { Card } from './Card'
 import type { GameAction } from '../services/game-actions'
@@ -27,6 +27,7 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   className = '',
   isSoloMode = false
 }) => {
+  const [showJokerSwapDialog, setShowJokerSwapDialog] = useState(false)
   const handleDrawTile = async () => {
     await onAction('draw')
   }
@@ -150,8 +151,8 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
               variant="ghost"
               className="text-xs py-1"
               onClick={() => {
-                // TODO: Implement joker swap UI
-                alert('Joker swap feature coming soon!')
+                // Open joker swap dialog
+                setShowJokerSwapDialog(true)
               }}
             >
               🃏 Swap Joker
@@ -202,6 +203,44 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
           </div>
         )}
       </div>
+
+      {/* Joker Swap Dialog */}
+      {showJokerSwapDialog && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold mb-4">🃏 Joker Swap</h3>
+            <p className="text-gray-600 mb-4">
+              Select a joker from your hand and choose which tile to swap it with from exposed sets.
+            </p>
+            <div className="space-y-3">
+              <div className="text-sm text-gray-500">
+                • Jokers can be swapped for actual tiles in exposed pungs/kongs
+                <br />
+                • You must have the actual tile that the joker represents
+                <br />
+                • This gives you the joker back for other uses
+              </div>
+              <div className="flex gap-2 justify-end">
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setShowJokerSwapDialog(false)}
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    // For now, just close the dialog - full implementation would handle the swap
+                    onAction('joker-swap', { message: 'Joker swap functionality will be fully implemented in a future update' })
+                    setShowJokerSwapDialog(false)
+                  }}
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </Card>
   )
 }

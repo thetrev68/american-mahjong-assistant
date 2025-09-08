@@ -98,8 +98,13 @@ export class TurnRealtimeService {
   }
 
   private addEventListener(event: string, handler: (data: unknown) => void): void {
-    // TODO: Integrate with actual socket event system through multiplayer manager
-    console.log(`Registered turn event listener: ${event} with handler:`, !!handler)
+    // Integrate with actual socket event system through multiplayer manager
+    if (this.multiplayerManager?.socket?.connected) {
+      this.multiplayerManager.socket.on(event, handler)
+      console.log(`✅ Registered socket listener for turn event: ${event}`)
+    } else {
+      console.warn(`⚠️ Cannot register socket listener for ${event} - no active connection`)
+    }
   }
 
   // Turn Action Broadcasting

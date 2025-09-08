@@ -356,7 +356,11 @@ export const useCharlestonStore = create<CharlestonStore>()(
           }), false, 'charleston/markReady')
           
           // TODO: Emit socket event for multiplayer coordination
-          // This will be handled by the multiplayer service
+          // Note: This needs to be handled through a proper service or hook
+          // since useMultiplayer is a React hook and can't be called from Zustand
+          if (get().isMultiplayerMode && get().roomId) {
+            console.log('Charleston multiplayer readiness would be emitted here')
+          }
         },
         
         handleTileExchange: (tilesReceived) => {
