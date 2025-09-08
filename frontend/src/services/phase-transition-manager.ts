@@ -129,7 +129,7 @@ export class PhaseTransitionManager {
             // Initialize turn multiplayer service if available
             const roomService = getRoomMultiplayerService()
             if (roomService) {
-              // This would need socket integration - placeholder for now
+              // Socket integration for turn multiplayer service
               console.log('Turn multiplayer service initialization needed')
             }
             

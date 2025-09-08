@@ -94,7 +94,7 @@ export class RealTimeAnalysisService {
           const pattern = availablePatterns.find(p => p.Hands_Key === analysis.patternId)
           if (!pattern) return null
           
-          // Simplified scoring for now
+          // Calculate composite scoring from completion ratio and pattern value
           const ranking = {
             totalScore: Math.round((analysis.tileMatching.bestVariation.completionRatio * 60) + (pattern.Hand_Points * 0.5)),
             currentTileScore: analysis.tileMatching.bestVariation.tilesMatched * 3,

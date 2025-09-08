@@ -203,7 +203,7 @@ export class OpponentAnalysisEngine {
     const callTypeCounts: Record<string, number> = {}
     for (const action of callActions) {
       // This would need to be enhanced to track call type from action data
-      const callType = action.action === 'kong' ? 'kong' : 'pung' // Simplified for now
+      const callType = action.action === 'kong' ? 'kong' : 'pung' // Default call type mapping
       callTypeCounts[callType] = (callTypeCounts[callType] || 0) + 1
     }
 

@@ -87,7 +87,7 @@ export const PrimaryAnalysisCard = ({
   const priorityScore = scoreBreakdown?.priorityScore || 0
   const totalScore = currentTileScore + availabilityScore + jokerScore + priorityScore
 
-  // Get pattern tiles for visualization - using empty array for now since tileMatching doesn't exist
+  // Pattern tiles would be displayed here if available in pattern data
   const patternTiles: string[] = []
   
   // Sort hand tiles alphabetically: Jokers, Flowers, suits (1-9 B/C/D), dragons, winds

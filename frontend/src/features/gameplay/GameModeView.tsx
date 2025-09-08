@@ -209,7 +209,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [showFinalHandReveal, setShowFinalHandReveal] = useState(false)
   const [finalHandRevealData, setFinalHandRevealData] = useState<FinalHandRevealData | null>(null)
   const [completedGameId, setCompletedGameId] = useState<string | null>(null)
-  // const [showTileModal, setShowTileModal] = useState(false) // Unused for now
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
     completionPercentage: number; 
@@ -964,8 +963,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Handle Charleston pass - show tile modal for receiving tiles
   const handleCharlestonPass = useCallback(() => {
-    // setShowTileModal(true) // Commented out - unused for now
-  }, [])
+    // Navigate to Charleston phase if handler exists
+    if (onNavigateToCharleston) {
+      onNavigateToCharleston()
+    }
+  }, [onNavigateToCharleston])
   
   // Advance from Charleston to Gameplay phase
   const handleAdvanceToGameplay = useCallback(() => {

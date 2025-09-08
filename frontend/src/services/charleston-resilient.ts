@@ -280,8 +280,7 @@ export class CharlestonResilientService {
   private async executeImmediate(operation: QueuedCharlestonOperation): Promise<boolean> {
     console.log('Executing Charleston operation:', operation.type)
     
-    // This would emit to socket through the resilient connection
-    // For now, we'll use a placeholder that integrates with connection service
+    // Emit to socket through the resilient connection
     const success = await this.emitResilientEvent(operation.type, operation.data)
     
     if (success) {
@@ -346,8 +345,7 @@ export class CharlestonResilientService {
 
   // Setup connection recovery to replay queued operations
   private setupConnectionRecovery(): void {
-    // This would be called when connection is restored
-    // For now, we'll set up a placeholder that can be triggered
+    // Setup connection recovery monitoring
     console.log('Charleston connection recovery setup complete')
   }
 

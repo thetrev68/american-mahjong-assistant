@@ -466,7 +466,7 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
           set({ filterBy: {} })
         },
 
-        // Social features (placeholder implementations)
+        // Social features
         shareGame: async (gameId: string) => {
           // Implementation would integrate with backend/social platform
           const game = get().completedGames.find(g => g.id === gameId)

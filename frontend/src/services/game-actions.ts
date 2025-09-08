@@ -694,10 +694,10 @@ export class GameActionsService {
     console.log(`Available actions updated for player ${playerId}`)
   }
 
-  private simulateCallOpportunities(tile: Tile, playerId: string): void {
+  private simulateCallOpportunities(tile: Tile, _playerId: string): void {
     // In solo mode, simulate call opportunities for co-pilot experience
-    // This would trigger UI notifications in a real implementation
-    console.log(`Call opportunity simulation for tile ${tile.displayName} from ${playerId}`)
+    // This would normally create UI notifications in multiplayer scenarios
+    console.log(`Simulating call opportunity for tile: ${tile.displayName}`)
   }
 
   private validateMahjongClaim(hand: Tile[]): ActionValidationResult {

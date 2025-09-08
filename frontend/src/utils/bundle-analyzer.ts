@@ -136,8 +136,7 @@ export class BundleAnalyzer {
 
   private async extractDependencies(url: string): Promise<string[]> {
     try {
-      // This would require actual source map analysis in a real implementation
-      // For now, we'll use heuristics based on common dependency patterns
+      // Use heuristics to extract dependencies from bundle content
       const response = await fetch(url)
       const content = await response.text()
       
