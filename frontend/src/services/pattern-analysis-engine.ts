@@ -277,13 +277,14 @@ export class PatternAnalysisEngine {
   }
 
   /**
-   * Analyze joker substitution possibilities
+   * Analyze joker substitution possibilities using authoritative NMJL joker data
    */
   private static analyzeJokerSubstitution(
     missingTiles: string[],
     variation: PatternVariation,
     jokersAvailable: number
   ): JokerAnalysis {
+
     const substitutablePositions: number[] = []
     let maxJokersUseful = 0
     
@@ -400,7 +401,8 @@ export class PatternAnalysisEngine {
   private static canJokerReplace(tileId: string, variation: PatternVariation): boolean {
     const positions = this.findTilePositions(tileId, variation.tiles)
     
-    // Check if any position of this tile allows jokers
+    // Use the definitive joker data from the variation (derived from NMJL Jokers_Allowed fields)
+    // The variation.jokers array contains the authoritative joker allowance for each position
     return positions.some(position => variation.jokers[position])
   }
 

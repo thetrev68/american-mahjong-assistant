@@ -348,19 +348,66 @@ export const useTileStore = create<TileState>()(
         },
         
         analyzeHand: async () => {
+          const state = get()
           set({ analysisInProgress: true })
           
           try {
-            // This would integrate with pattern analysis from intelligence layer
-            // For now, we'll simulate the analysis (TODO)
-            await new Promise(resolve => setTimeout(resolve, 1000))
+            // Import real-time analysis service
+            const { RealTimeAnalysisService } = await import('../services/real-time-analysis-service')
+            const { nmjlService } = await import('../services/nmjl-service')
+            
+            // Get available patterns
+            const patterns = await nmjlService.loadPatterns()
+            
+            // Create analysis context
+            const context = {
+              playerId: 'current-player',
+              gamePhase: 'charleston' as const,
+              selectedPatterns: [], // Would come from pattern store
+              wallTilesRemaining: 100, // Would come from game state
+              discardPile: [],
+              exposedTiles: {},
+              currentRound: 1
+            }
+            
+            // Perform real-time analysis
+            const analysisResult = await RealTimeAnalysisService.analyzeAllPatterns(
+              state.playerHand,
+              patterns,
+              context
+            )
+            
+            // Log performance metrics
+            const perfMetrics = RealTimeAnalysisService.getPerformanceMetrics(analysisResult)
+            console.log(`🧠 Pattern Analysis Complete: ${analysisResult.performanceMs}ms (Grade: ${perfMetrics.performanceGrade})`)
+            
+            // Update recommendations
+            const newRecommendations: { [instanceId: string]: TileRecommendation } = {}
+            analysisResult.topRecommendations.forEach((rec) => {
+              const displayText = RealTimeAnalysisService.formatRecommendationDisplay(rec)
+              console.log(displayText)
+              
+              // Create recommendations for relevant tiles
+              state.playerHand.forEach(tile => {
+                if (rec.tilesNeeded > 0) {
+                  newRecommendations[tile.instanceId] = {
+                    action: rec.completionPercentage > 50 ? 'keep' : 'neutral',
+                    confidence: rec.aiScore / 100,
+                    reasoning: `${rec.badge} ${rec.pattern.Hand_Description} (${rec.completionPercentage}%)`,
+                    priority: rec.rank
+                  }
+                }
+              })
+            })
             
             set({
               analysisInProgress: false,
-              lastAnalysis: Date.now()
+              lastAnalysis: Date.now(),
+              recommendations: newRecommendations
             })
-          } catch {
-            // Analysis failed - continue silently
+          } catch (error) {
+            console.error('Real-time pattern analysis failed:', error)
+            // Analysis failed - continue silently but log error
             set({ analysisInProgress: false })
           }
         },
