@@ -3,11 +3,15 @@ import { RoomManager } from '../room-lifecycle/room-manager'
 import { StateSyncManager } from '../state-sync/state-sync-manager'
 import { RoomLifecycleManager } from '../room-management/room-lifecycle-manager'
 import { PlayerCoordinationManager } from '../room-management/player-coordination-manager'
+import { GameLogicService } from '../../services/game-logic'
+import { MahjongValidationBridge } from '../../services/mahjong-validation-bridge'
 import type { SocketEvents } from '@shared/multiplayer-types'
+import type { ActionType } from '@shared/game-types'
 
 export class SocketHandlers {
   private roomLifecycleManager = new RoomLifecycleManager()
   private playerCoordinationManager = new PlayerCoordinationManager()
+  private gameLogicServices = new Map<string, GameLogicService>() // Per-room game logic
   
   constructor(
     private io: SocketIOServer,
@@ -1279,65 +1283,30 @@ export class SocketHandlers {
   // Phase 4B: Turn Action Validation and Execution Methods
 
   private validateTurnAction(action: string, gameState: any, playerId: string): boolean {
-    // Basic validation - TODO: Enhance with proper game rule validation
-    const validActions = ['draw', 'discard', 'call', 'joker-swap', 'mahjong', 'pass-out']
+    // Get game logic service for this room
+    const roomId = this.findRoomIdForPlayer(playerId)
+    if (!roomId) {
+      return false
+    }
+
+    const gameLogic = this.getOrCreateGameLogic(roomId)
     
-    if (!validActions.includes(action)) {
-      return false
-    }
-
-    // Player must be in the current turn
-    if (gameState.sharedState.currentPlayer !== playerId) {
-      return false
-    }
-
-    // TODO: Add more sophisticated validation based on game state
-    // - Has player already drawn this turn?
-    // - Is the action valid for the current phase?
-    // - Are required parameters present?
-
-    return true
+    // Use proper game rule validation
+    const validation = gameLogic.validateAction(playerId, action)
+    return validation.isValid
   }
 
   private async executeTurnAction(roomId: string, playerId: string, action: string, actionData: any): Promise<any> {
     try {
-      // Simulate action execution - TODO: Integrate with actual game logic
-      const result = {
-        success: true,
-        action,
-        playerId,
-        timestamp: new Date().toISOString(),
-        data: actionData
+      // Execute action using real game logic
+      const gameLogic = this.getOrCreateGameLogic(roomId)
+      const result = await gameLogic.executeAction(playerId, action, actionData)
+      
+      // Add timestamp and format for socket response
+      return {
+        ...result,
+        timestamp: new Date().toISOString()
       }
-
-      switch (action) {
-        case 'draw':
-          // TODO: Draw a tile from wall, add to player's hand
-          result.data = { tileDrawn: true }
-          break
-          
-        case 'discard':
-          // TODO: Remove tile from hand, add to discard pile
-          result.data = { tileDiscarded: actionData.tile }
-          break
-          
-        case 'call':
-          // TODO: Handle pung/kong calls
-          result.data = { callType: actionData.callType, tiles: actionData.tiles }
-          break
-          
-        case 'mahjong':
-          // TODO: Validate winning hand
-          result.data = { winner: playerId, pattern: actionData.pattern }
-          break
-          
-        case 'pass-out':
-          // TODO: Remove player from active play
-          result.data = { reason: actionData.reason }
-          break
-      }
-
-      return result
     } catch (error) {
       return {
         success: false,
@@ -1415,8 +1384,20 @@ export class SocketHandlers {
         }
       }
 
-      // TODO: Integrate with frontend MahjongValidator service
-      // For now, assume valid mahjong for testing purposes
+      // Use proper mahjong validation
+      const validationResult = MahjongValidationBridge.validateMahjongDeclaration({
+        playerId: 'server-validation',
+        winningHand: winningHand,
+        exposedTiles: [], // This would come from game state
+        selectedPattern: selectedPattern
+      })
+      
+      if (!validationResult.isValid) {
+        return {
+          isValid: false,
+          reason: validationResult.violations.join('; ')
+        }
+      }
       const baseScore = selectedPattern.Hand_Points || 25
       const bonusPoints = ['Base pattern: +' + baseScore]
 
@@ -1608,5 +1589,32 @@ export class SocketHandlers {
         })
       }
     })
+  }
+
+  // Game Logic Service Management Methods
+
+  private getOrCreateGameLogic(roomId: string): GameLogicService {
+    let gameLogic = this.gameLogicServices.get(roomId)
+    if (!gameLogic) {
+      gameLogic = new GameLogicService()
+      this.gameLogicServices.set(roomId, gameLogic)
+    }
+    return gameLogic
+  }
+
+  private findRoomIdForPlayer(playerId: string): string | null {
+    const room = this.roomManager.getPlayerRoom(playerId)
+    return room ? room.id : null
+  }
+
+  private cleanupGameLogic(roomId: string): void {
+    this.gameLogicServices.delete(roomId)
+  }
+
+  // Override room deletion to clean up game logic
+  private handleRoomDeletion(roomId: string): void {
+    this.cleanupGameLogic(roomId)
+    this.io.to(roomId).emit('room-deleted', { roomId })
+    this.broadcastRoomListUpdate()
   }
 }
