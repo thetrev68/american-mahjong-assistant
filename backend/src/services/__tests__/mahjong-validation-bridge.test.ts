@@ -6,7 +6,12 @@ import type { Tile } from '@shared/game-types'
 
 describe('MahjongValidationBridge', () => {
   const samplePattern: NMJL2025Pattern = {
+    Year: 2025,
+    Section: 'SINGLES AND PAIRS',
+    Line: 2,
+    'Pattern ID': 2,
     Hands_Key: 'SP-2',
+    Hand_Pattern: 'FF FF 2025 2025 2025',
     Hand_Description: 'SINGLES AND PAIRS #2',
     Hand_Points: 25,
     Hand_Difficulty: 'medium',
@@ -14,18 +19,26 @@ describe('MahjongValidationBridge', () => {
     Hand_Notes: '',
     Groups: [
       {
-        Group_Key: 'SP-2-1',
+        Group: 'SP-2-1',
+        Suit_Role: 'any',
+        Suit_Note: null,
         Constraint_Type: 'single',
-        Constraint_Jokers_Allowed: false,
+        Constraint_Values: 'F1,F2,F3,F4',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
         Jokers_Allowed: false,
-        Tiles: ['F1', 'F2', 'F3', 'F4']
+        display_color: 'blue'
       },
       {
-        Group_Key: 'SP-2-2',
+        Group: 'SP-2-2',
+        Suit_Role: 'any',
+        Suit_Note: null,
         Constraint_Type: 'pair',
-        Constraint_Jokers_Allowed: false,
+        Constraint_Values: '2D,2D',
+        Constraint_Must_Match: null,
+        Constraint_Extra: null,
         Jokers_Allowed: false,
-        Tiles: ['2D', '2D']
+        display_color: 'red'
       }
     ]
   }
@@ -192,10 +205,10 @@ describe('MahjongValidationBridge', () => {
     })
 
     test('should apply joker penalties', () => {
-      const handWithJokers = [
+      const handWithJokers: Tile[] = [
         ...validHand.slice(0, 12),
-        { id: 'joker', suit: 'jokers', value: 'joker' },
-        { id: 'joker', suit: 'jokers', value: 'joker' }
+        { id: 'joker', suit: 'jokers' as const, value: 'joker' as const },
+        { id: 'joker', suit: 'jokers' as const, value: 'joker' as const }
       ]
 
       const declaration = {
@@ -259,15 +272,15 @@ describe('MahjongValidationBridge', () => {
     })
 
     test('should count jokers correctly', () => {
-      const handWithJokers = [
+      const handWithJokers: Tile[] = [
         ...validHand.slice(0, 10),
-        { id: 'joker', suit: 'jokers', value: 'joker' },
-        { id: 'joker', suit: 'jokers', value: 'joker' }
+        { id: 'joker', suit: 'jokers' as const, value: 'joker' as const },
+        { id: 'joker', suit: 'jokers' as const, value: 'joker' as const }
       ]
 
-      const exposedWithJokers = [
-        { id: 'joker', suit: 'jokers', value: 'joker' },
-        { id: '1D', suit: 'dots', value: '1' }
+      const exposedWithJokers: Tile[] = [
+        { id: 'joker', suit: 'jokers' as const, value: 'joker' as const },
+        { id: '1D', suit: 'dots' as const, value: '1' as const }
       ]
 
       const declaration = {
