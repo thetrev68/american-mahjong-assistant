@@ -4,7 +4,6 @@
 import { useEffect, useCallback, useState, useMemo } from 'react'
 import { useSocket } from './useSocket'
 import { 
-  initializeConnectionResilience, 
   getConnectionResilienceService,
   destroyConnectionResilience 
 } from '../services/connection-resilience'
@@ -67,20 +66,13 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     lastError: null
   })
 
-  // Initialize services on mount
+  // Get existing service instance (do not initialize here to prevent multiple instances)
   useEffect(() => {
-    const resilienceService = initializeConnectionResilience({
-      enableAutoReconnect: finalConfig.enableAutoReconnect,
-      enableStateSync: finalConfig.enableStateRecovery,
-      reconnectionStrategy: {
-        maxAttempts: finalConfig.maxReconnectAttempts || 5,
-        initialDelay: 1000,
-        maxDelay: 30000,
-        backoffMultiplier: 2,
-        jitterMax: 1000
-      },
-      heartbeatInterval: finalConfig.heartbeatInterval || 15000
-    })
+    const resilienceService = getConnectionResilienceService()
+    if (!resilienceService) {
+      console.warn('Connection resilience service not initialized. Make sure unified multiplayer manager is initialized first.')
+      return
+    }
 
     // Initialize with socket instance only once
     if (socket) {

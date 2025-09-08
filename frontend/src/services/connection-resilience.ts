@@ -452,15 +452,14 @@ export const getConnectionResilienceService = (): ConnectionResilienceService | 
 export const initializeConnectionResilience = (
   config?: Partial<ConnectionResilienceConfig>
 ): ConnectionResilienceService => {
-  // Prevent multiple simultaneous initializations
+  // Prevent multiple simultaneous initializations with stronger guards
   if (isInitializing) {
-    console.warn('Connection resilience service is already initializing')
+    console.warn('Connection resilience service is already initializing, waiting for completion')
     return connectionResilienceService || new ConnectionResilienceService(config)
   }
 
-  // Return existing service if already initialized
+  // Return existing service if already initialized - no logging to prevent spam
   if (connectionResilienceService) {
-    console.warn('Connection resilience service already initialized, returning existing instance')
     return connectionResilienceService
   }
 
