@@ -23,11 +23,6 @@ export function ConnectionStatusIndicator({
   const roomStore = useRoomStore()
   const socket = useSocket()
   const [showTooltip, setShowTooltip] = useState(false)
-  
-  // Don't show connection indicator in solo mode since no server connection is needed
-  if (roomStore.coPilotMode === 'solo') {
-    return null
-  }
   const [connectionHealth, setConnectionHealth] = useState<{
     isHealthy: boolean
     status: 'connected' | 'disconnected' | 'reconnecting' | 'failed'
@@ -135,6 +130,11 @@ export function ConnectionStatusIndicator({
   const handleManualRetry = () => {
     const networkHandler = getNetworkErrorHandler()
     networkHandler.manualRetry(socket)
+  }
+
+  // Don't show connection indicator in solo mode since no server connection is needed
+  if (roomStore.coPilotMode === 'solo') {
+    return null
   }
 
   if (compact) {
