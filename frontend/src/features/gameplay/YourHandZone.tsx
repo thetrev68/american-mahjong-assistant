@@ -22,6 +22,14 @@ interface YourHandZoneProps {
   handleDiscardTile: (tile: TileType) => void
   gamePhase: 'charleston' | 'gameplay'
   onAdvanceToGameplay?: () => void
+  currentAnalysis?: {
+    tileRecommendations?: Array<{
+      tileId: string
+      action: 'keep' | 'pass' | 'discard' | 'neutral'
+      confidence: number
+      reasoning: string
+    }>
+  } | null
 }
 
 const YourHandZone: React.FC<YourHandZoneProps> = ({
@@ -34,12 +42,42 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   handleDrawTile,
   handleDiscardTile,
   gamePhase,
+  currentAnalysis
 }) => {
   const { selectedForAction, moveToSelection, returnFromSelection } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
   
   // Sort hand tiles using same logic as tile input page
   const sortedCurrentHand = tileService.sortTiles([...currentHand])
+  
+  // Get tile recommendations for highlighting
+  const getTileRecommendation = (tileId: string) => {
+    if (!currentAnalysis?.tileRecommendations) return null
+    return currentAnalysis.tileRecommendations.find(rec => rec.tileId === tileId)
+  }
+  
+  // Get tile highlighting class based on recommendation
+  const getTileHighlightClass = (tileId: string, isSelected: boolean) => {
+    if (isSelected) return '' // Let selection styling take precedence
+    
+    const recommendation = getTileRecommendation(tileId)
+    if (!recommendation) return ''
+    
+    const action = isCharleston ? 
+      (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'pass' ? 'pass' : null) :
+      (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'discard' ? 'discard' : null)
+    
+    switch (action) {
+      case 'keep':
+        return 'ring-2 ring-green-400 ring-opacity-60 bg-green-50' // Green for keep
+      case 'pass':
+        return 'ring-2 ring-orange-400 ring-opacity-60 bg-orange-50' // Orange for pass
+      case 'discard':
+        return 'ring-2 ring-red-400 ring-opacity-60 bg-red-50' // Red for discard
+      default:
+        return ''
+    }
+  }
   
   
   const handleTileClick = (tile: PlayerTile) => {
@@ -94,6 +132,8 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                 ? selectedForAction.some(t => t.instanceId === tile.instanceId)
                 : selectedDiscardTile?.id === tile.id
               
+              const highlightClass = getTileHighlightClass(tile.id, isSelected)
+              
               const updatedTile: PlayerTile = {
                 ...tile,
                 isSelected
@@ -105,7 +145,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                   tile={updatedTile}
                   size="md"
                   onClick={() => isMyTurn && handleTileClick(tile)}
-                  className="cursor-pointer hover:scale-105 transition-transform min-w-12 min-h-16"
+                  className={`cursor-pointer hover:scale-105 transition-transform min-w-12 min-h-16 ${highlightClass}`}
                   context={isCharleston ? "charleston" : "gameplay"}
                 />
               )

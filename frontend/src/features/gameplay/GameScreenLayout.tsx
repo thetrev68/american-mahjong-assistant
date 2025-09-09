@@ -61,6 +61,12 @@ interface GameScreenLayoutProps {
       difficulty: 'easy' | 'medium' | 'hard'
     }>
     overallScore?: number
+    tileRecommendations?: Array<{
+      tileId: string
+      action: 'keep' | 'pass' | 'discard' | 'neutral'
+      confidence: number
+      reasoning: string
+    }>
   } | null
 }
 
@@ -122,10 +128,13 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         handleDiscardTile={handleDiscardTile}
         gamePhase={gamePhase}
         onAdvanceToGameplay={onAdvanceToGameplay}
+        currentAnalysis={currentAnalysis}
       />
 
-      {/* ZONE 2: DISCARD PILE */}
-      <DiscardPileZone discardPile={discardPile} />
+      {/* ZONE 2: DISCARD PILE - Hidden during Charleston */}
+      {gamePhase !== 'charleston' && (
+        <DiscardPileZone discardPile={discardPile} />
+      )}
 
       {/* ZONE 3: OPPONENT EXPOSED TILES */}
       <OpponentExposedZone

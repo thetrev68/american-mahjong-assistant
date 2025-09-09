@@ -73,6 +73,16 @@ const getNextPlayer = (currentPlayer: string, playerNames: string[], gamePhase?:
   return playerNames[nextIndex]
 }
 
+const getReceivingFromPlayer = (currentPlayer: string, playerNames: string[]): string => {
+  // In Charleston, you receive from the player before you (counter-clockwise)
+  const currentIndex = playerNames.findIndex(name => name === currentPlayer)
+  if (currentIndex !== -1) {
+    const receivingIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
+    return playerNames[receivingIndex]
+  }
+  return playerNames[playerNames.length - 1] || 'Previous Player' // Fallback to last player
+}
+
 const TopZone: React.FC<TopZoneProps> = ({
   gamePhase,
   currentPlayer,
@@ -99,21 +109,27 @@ const TopZone: React.FC<TopZoneProps> = ({
         <div>
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{phaseDisplayName}</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
-            <p className="text-sm md:text-base text-gray-600">
-              🟢 {currentPlayer}{currentPlayer.endsWith('s') ? "'" : "'s"} turn 
-              {gamePhase === 'gameplay' && (
-                <>
+            {gamePhase === 'charleston' ? (
+              <div className="text-sm md:text-base text-gray-600 space-y-1">
+                <div className="flex flex-wrap items-center gap-4">
+                  <span>📤 Passing to: <span className="font-semibold text-blue-600">{nextPlayer}</span></span>
+                  <span>📥 Receiving from: <span className="font-semibold text-green-600">{getReceivingFromPlayer(currentPlayer, playerNames)}</span></span>
+                </div>
+                <div className="text-xs text-gray-500">
+                  All players select 3 tiles simultaneously
+                </div>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm md:text-base text-gray-600">
+                  🟢 {currentPlayer}{currentPlayer.endsWith('s') ? "'" : "'s"} turn 
                   • Playing {selectedPatternsCount} pattern{selectedPatternsCount !== 1 ? 's' : ''}
-                </>
-              )}
-            </p>
-            <div className="text-xs md:text-sm text-gray-500">
-              {gamePhase === 'charleston' ? (
-                <>Passing tiles • Receiving from: {nextPlayer}</>
-              ) : (
-                <>{windRound.charAt(0).toUpperCase() + windRound.slice(1)} Round #{gameRound} • Next: {nextPlayer}</>
-              )}
-            </div>
+                </p>
+                <div className="text-xs md:text-sm text-gray-500">
+                  {windRound.charAt(0).toUpperCase() + windRound.slice(1)} Round #{gameRound} • Next: {nextPlayer}
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className="flex flex-wrap gap-1 sm:gap-2">

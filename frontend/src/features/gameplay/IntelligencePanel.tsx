@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
+import { PatternVariationDisplay } from '../../ui-components/patterns/PatternVariationDisplay'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
@@ -116,9 +117,27 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                 <div className="space-y-3">
                   <div>
                     <h4 className="text-lg font-bold text-purple-800 mb-1">PRIMARY PATTERN</h4>
-                    <div className="text-xl font-bold text-gray-900">
-                      {currentAnalysis.recommendedPatterns[0]?.pattern.pattern || 'Selected Pattern'}
+                    <div className="text-xl font-bold text-gray-900 mb-2">
+                      {currentAnalysis.recommendedPatterns[0]?.pattern ? (
+                        <PatternVariationDisplay
+                          patternTiles={currentAnalysis.recommendedPatterns[0].pattern.pattern.split(' ').join('').split('')}
+                          playerTiles={playerHand.map(t => t.id)}
+                          showMatches={true}
+                          invertMatches={true}
+                          showCompletion={false}
+                          spacing={true}
+                          size="lg"
+                          patternGroups={currentAnalysis.recommendedPatterns[0].pattern.groups}
+                        />
+                      ) : (
+                        'Selected Pattern'
+                      )}
                     </div>
+                    {currentAnalysis.recommendedPatterns[0]?.pattern && (
+                      <div className="text-sm text-gray-600 font-medium mt-1">
+                        {currentAnalysis.recommendedPatterns[0].pattern.section} - {currentAnalysis.recommendedPatterns[0].pattern.line}
+                      </div>
+                    )}
                   </div>
                   
                   <div className="flex items-center gap-4">
@@ -182,19 +201,19 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                 <div className="text-sm font-medium text-gray-700">
                   {hasPatternSelected ? '🎯 Your Patterns' : '📋 Recommended Patterns'}
                 </div>
-                {currentAnalysis.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 3 && (
+                {currentAnalysis.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 5 && (
                   <Button
                     variant="ghost" 
                     size="sm"
                     onClick={() => setShowAllPatterns(!showAllPatterns)}
                     className="text-xs"
                   >
-                    {showAllPatterns ? 'Show Less' : `+${currentAnalysis.recommendedPatterns.length - 3} More`}
+                    {showAllPatterns ? 'Show Less' : `+${currentAnalysis.recommendedPatterns.length - 5} More`}
                   </Button>
                 )}
               </div>
               
-              {currentAnalysis.recommendedPatterns?.slice(0, showAllPatterns ? undefined : 3).map((patternRec, index) => {
+              {currentAnalysis.recommendedPatterns?.slice(0, showAllPatterns ? undefined : 5).map((patternRec, index) => {
                 const completionPercentage = patternRec.completionPercentage || 0
                 const isSelected = selectedPatterns.some(p => p.id === patternRec.pattern.id)
                 const isPrimary = patternRec.isPrimary || index === 0
@@ -212,15 +231,17 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <div className="flex flex-wrap gap-1">
-                            {getColoredPatternParts(patternRec.pattern.pattern, patternRec.pattern.groups).map((part, partIndex) => (
-                              <span 
-                                key={partIndex}
-                                className={`font-mono text-sm font-medium ${getColorClasses(part.color, 'text')}`}
-                              >
-                                {part.text}
-                              </span>
-                            ))}
+                          <div className="flex-1">
+                            <PatternVariationDisplay
+                              patternTiles={patternRec.pattern.pattern.split(' ').join('').split('')}
+                              playerTiles={playerHand.map(t => t.id)}
+                              showMatches={true}
+                              invertMatches={true}
+                              showCompletion={false}
+                              spacing={true}
+                              size="sm"
+                              patternGroups={patternRec.pattern.groups}
+                            />
                           </div>
                           {isPrimary && isSelected && (
                             <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
@@ -229,6 +250,9 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                           )}
                         </div>
                         <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-gray-500 font-medium">
+                            {patternRec.pattern.section} - {patternRec.pattern.line}
+                          </span>
                           <span className="text-xs text-gray-500">
                             {patternRec.pattern.points || 0} pts
                           </span>
@@ -276,17 +300,6 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
               })}
             </div>
 
-            {/* Quick Actions */}
-            <div className="space-y-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full text-purple-600 border-purple-300"
-                onClick={findAlternativePatterns}
-              >
-                🔄 Switch Pattern
-              </Button>
-            </div>
           </>
         ) : (
           <div className="text-center text-gray-500 py-8">
