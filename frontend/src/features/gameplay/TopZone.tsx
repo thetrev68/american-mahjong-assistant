@@ -58,9 +58,13 @@ const DramaticTimer: React.FC<{
 
 const getNextPlayer = (currentPlayer: string, playerNames: string[], gamePhase?: 'charleston' | 'gameplay'): string => {
   if (gamePhase === 'charleston') {
-    // For Charleston, the "next" refers to who will receive your tiles
-    // This should be passed from the parent component
-    return 'Receiving Player' // Will be overridden by parent
+    // For Charleston, show who will receive tiles (next player in order)
+    const currentIndex = playerNames.findIndex(name => name === currentPlayer)
+    if (currentIndex !== -1) {
+      const nextIndex = (currentIndex + 1) % playerNames.length
+      return playerNames[nextIndex]
+    }
+    return playerNames[1] || 'Next Player' // Fallback to second player
   }
   
   // Regular gameplay: counterclockwise turn order

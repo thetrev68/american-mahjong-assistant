@@ -195,7 +195,7 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
     // State
     coPilotMode: roomStore.coPilotMode,
     roomCode: roomStore.currentRoomCode,
-    isHost: roomStore.hostPlayerId === multiplayerStore.currentPlayerId,
+    isHost: roomStore.coPilotMode === 'solo' ? true : roomStore.hostPlayerId === multiplayerStore.currentPlayerId,
     isCreatingRoom: roomStore.roomCreationStatus === 'creating',
     isJoiningRoom: roomStore.joinRoomStatus === 'joining',
     error: roomStore.error,

@@ -188,10 +188,19 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const currentPlayerId = gameStore.currentPlayerId
     if (currentPlayerId && gameStore.players.length > 0) {
       const player = gameStore.players.find(p => p.id === currentPlayerId)
-      return player?.name || playerNames[0] // Use first player name instead of 'You'
+      return player?.name || playerNames[0]
     }
+    
+    // In solo mode, if we're using fallback names that start with "You", 
+    // try to use the actual entered player names instead
+    if (roomStore.coPilotMode === 'solo' && roomStore.otherPlayerNames.length > 0) {
+      // Use the first actual player name instead of "You" 
+      const allRealNames = [roomStore.otherPlayerNames[0], ...roomStore.otherPlayerNames.slice(1)]
+      return allRealNames[currentPlayerIndex % allRealNames.length] || playerNames[currentPlayerIndex]
+    }
+    
     return playerNames[currentPlayerIndex]
-  }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames])
+  }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames, roomStore.coPilotMode, roomStore.otherPlayerNames])
   const [gameRound] = useState(1)
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
   const [discardPile] = useState<Array<{
@@ -1218,18 +1227,20 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         </div>
       )}
       
-      {/* Game Actions Panel */}
-      <div className="fixed bottom-4 left-4 right-4 z-30">
-        <GameActionsPanel
-          availableActions={currentPlayerActions}
-          onAction={handlePlayerAction}
-          isMyTurn={isMyTurn}
-          currentPlayer={turnSelectors.currentPlayerName}
-          wallCount={turnSelectors.wallCount}
-          turnDuration={turnSelectors.turnDuration}
-          isSoloMode={roomStore.coPilotMode === 'solo'}
-        />
-      </div>
+      {/* Game Actions Panel - Hide during Charleston */}
+      {gameStore.gamePhase !== 'charleston' && (
+        <div className="fixed bottom-4 left-4 right-4 z-30">
+          <GameActionsPanel
+            availableActions={currentPlayerActions}
+            onAction={handlePlayerAction}
+            isMyTurn={isMyTurn}
+            currentPlayer={turnSelectors.currentPlayerName}
+            wallCount={turnSelectors.wallCount}
+            turnDuration={turnSelectors.turnDuration}
+            isSoloMode={roomStore.coPilotMode === 'solo'}
+          />
+        </div>
+      )}
 
       {/* Wall Exhaustion Warning */}
       {wallExhaustionWarning && (
