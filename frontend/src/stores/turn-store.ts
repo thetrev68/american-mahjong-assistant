@@ -351,7 +351,8 @@ export const useTurnStore = create<TurnStore>()(
 
         executeAction: async (playerId: string, action: GameAction, data?: unknown) => {
           const { gameActions } = await import('../services/game-actions')
-          const { turnRealtime } = await import('../services/turn-realtime')
+          const { getTurnRealtime } = await import('../services/turn-realtime')
+          const turnRealtime = getTurnRealtime()
           const roomStore = useRoomStore.getState()
           
           try {
@@ -518,7 +519,8 @@ export const useTurnStore = create<TurnStore>()(
         },
 
         respondToCall: async (response: 'call' | 'pass', callType?: CallType, tiles?: Tile[]) => {
-          const { turnRealtime } = await import('../services/turn-realtime')
+          const { getTurnRealtime } = await import('../services/turn-realtime')
+          const turnRealtime = getTurnRealtime()
           
           try {
             await turnRealtime.respondToCall(response, callType, tiles)

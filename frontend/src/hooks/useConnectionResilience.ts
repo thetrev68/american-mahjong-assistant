@@ -50,10 +50,13 @@ const DEFAULT_CONFIG: ConnectionResilienceConfig = {
 }
 
 export function useConnectionResilience(config: ConnectionResilienceConfig = {}) {
-  const socket = useSocket()
   const roomStore = useRoomStore()
   const gameStore = useGameStore()
   const finalConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config])
+  
+  // Only auto-connect if we're in multiplayer context
+  const shouldAutoConnect = Boolean(roomStore.currentRoomCode || roomStore.hostPlayerId)
+  const socket = useSocket({ autoConnect: shouldAutoConnect })
   
   const [resilienceState, setResilienceState] = useState<ConnectionResilienceState>({
     isConnected: false,

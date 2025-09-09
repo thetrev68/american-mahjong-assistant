@@ -15,7 +15,8 @@ interface ConnectionHealth {
   reconnectAttempts: number
 }
 
-export function useSocket() {
+export function useSocket(options: { autoConnect?: boolean } = {}) {
+  const { autoConnect = true } = options
   const [isConnected, setIsConnected] = useState(false)
   const [socketId, setSocketId] = useState<string | null>(null)
   const [connectionError, setConnectionError] = useState<string | null>(null)
@@ -189,14 +190,16 @@ export function useSocket() {
     }
   }, [isConnected])
 
-  // Auto-connect on mount - run only once
+  // Auto-connect on mount - run only once, but respect autoConnect option
   useEffect(() => {
-    connect()
+    if (autoConnect) {
+      connect()
+    }
 
     return () => {
       disconnect()
     }
-  }, [connect, disconnect])
+  }, [autoConnect, connect, disconnect])
 
   return {
     isConnected,

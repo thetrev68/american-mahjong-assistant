@@ -570,12 +570,19 @@ export class TurnRealtimeService {
   }
 }
 
-// Export singleton instance
-export const turnRealtime = TurnRealtimeService.getInstance()
+// Export lazy-initialized singleton instance
+let turnRealtimeInstance: TurnRealtimeService | null = null
+
+export const getTurnRealtime = (): TurnRealtimeService => {
+  if (!turnRealtimeInstance) {
+    turnRealtimeInstance = TurnRealtimeService.getInstance()
+  }
+  return turnRealtimeInstance
+}
 
 // React hook for using turn realtime service
 export const useTurnRealtime = () => {
-  const service = TurnRealtimeService.getInstance()
+  const service = getTurnRealtime()
   
   return {
     broadcastTurnAction: (action: TurnActionEvent) => service.broadcastTurnAction(action),
