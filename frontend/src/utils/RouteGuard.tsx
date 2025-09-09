@@ -28,9 +28,24 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   // Check if game start is required
   if (requiresGameStart) {
     const progress = roomStore.getRoomSetupProgress()
+    const isRoomReady = roomStore.isRoomReadyForGame()
+    
+    // Debug logging for bouncing issues
+    console.log('RouteGuard - Game Start Check:', {
+      currentStep: progress.currentStep,
+      isRoomReady,
+      roomCode: roomStore.currentRoomCode,
+      coPilotMode: roomStore.coPilotMode,
+      playerPositions: roomStore.playerPositions,
+      otherPlayerNames: roomStore.otherPlayerNames
+    })
     
     // If not ready for game, redirect to room setup
-    if (progress.currentStep !== 'ready' || !roomStore.isRoomReadyForGame()) {
+    if (progress.currentStep !== 'ready' || !isRoomReady) {
+      console.warn('RouteGuard - Redirecting to room setup because:', {
+        stepNotReady: progress.currentStep !== 'ready',
+        roomNotReady: !isRoomReady
+      })
       return <Navigate to="/room-setup" replace />
     }
   }
