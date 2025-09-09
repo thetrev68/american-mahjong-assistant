@@ -22,8 +22,8 @@ export const LandingPage = () => {
     navigate('/room-setup')
   }
   
-  const handleStartOver = () => {
-    // Clear ALL stores for a complete fresh start
+  const handleReset = () => {
+    // Clear ALL stores for a complete fresh start - no navigation
     roomStore.resetToStart()
     patternStore.clearSelection()
     patternStore.clearAllFilters()
@@ -32,7 +32,12 @@ export const LandingPage = () => {
     intelligenceStore.clearAnalysis()
     intelligenceStore.clearCache()
     
-    navigate('/room-setup')
+    // Show confirmation that reset was successful
+    gameStore.addAlert({
+      type: 'success',
+      title: 'Reset Complete',
+      message: 'All game data cleared successfully'
+    })
   }
   
   const features = [
@@ -104,19 +109,22 @@ export const LandingPage = () => {
           <Button 
             variant="outline" 
             size="lg"
-            onClick={handleStartOver}
-            icon="🔄"
+            onClick={handleReset}
+            icon="🗑️"
+            className="border-red-500 text-red-600 hover:bg-red-50 hover:border-red-600"
           >
-            Start Over
+            Reset/Refresh
           </Button>
           
           <Button 
-            variant="secondary" 
+            variant="outline" 
             size="lg"
-            onClick={() => navigate('/tiles')}
+            disabled
             icon="🧠"
+            className="opacity-50 cursor-not-allowed"
+            title="Coming soon: Simple tile analysis tool"
           >
-            AI Co-Pilot
+            AI Co-Pilot (Soon)
           </Button>
           
           <Button 
@@ -125,7 +133,7 @@ export const LandingPage = () => {
             onClick={() => navigate('/tutorial')}
             icon="🎓"
           >
-            View Demo
+            View Tutorial
           </Button>
           
           <Button 

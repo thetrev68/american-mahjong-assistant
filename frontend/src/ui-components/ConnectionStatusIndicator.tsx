@@ -138,8 +138,9 @@ export function ConnectionStatusIndicator({
         className={`
           fixed z-50 ${positionClasses[position]}
           flex items-center gap-2 px-3 py-2
-          bg-white/10 backdrop-blur-sm border border-white/20 rounded-lg
-          shadow-lg transition-all duration-300
+          bg-white border border-gray-200 rounded-lg
+          shadow-lg transition-all duration-300 hover:shadow-xl
+          text-gray-900
           ${className}
         `}
         onMouseEnter={() => setShowTooltip(true)}
@@ -149,7 +150,7 @@ export function ConnectionStatusIndicator({
         <div className={`w-3 h-3 rounded-full ${status.color} animate-pulse`} />
         
         {/* Connection text */}
-        <span className="text-sm font-medium text-white">{status.text}</span>
+        <span className="text-sm font-medium text-gray-700">{status.text}</span>
         
         {/* Tooltip */}
         {showTooltip && (
