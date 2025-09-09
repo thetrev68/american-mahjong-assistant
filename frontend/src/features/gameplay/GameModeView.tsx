@@ -969,9 +969,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       return
     }
     
-    // In solo mode, simulate receiving tiles and continue
+    // In solo mode, remove passed tiles and prompt user to input received tiles
     if (roomStore.coPilotMode === 'solo') {
-      // Remove selected tiles from hand
+      // Remove selected tiles from hand (tiles passed out)
       selectedTiles.forEach(tile => {
         tileStore.removeTile(tile.instanceId)
       })
@@ -979,29 +979,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Clear selection
       tileStore.clearSelection()
       
-      // Simulate receiving 3 random tiles (in real game, these would come from other players)
-      const availableTileTypes = ['1D', '2D', '3D', '4D', '5D', '6D', '7D', '8D', '9D', 
-                                 '1B', '2B', '3B', '4B', '5B', '6B', '7B', '8B', '9B',
-                                 '1C', '2C', '3C', '4C', '5C', '6C', '7C', '8C', '9C',
-                                 'east', 'south', 'west', 'north', 'red', 'green', 'white']
-      
-      for (let i = 0; i < 3; i++) {
-        const randomTileType = availableTileTypes[Math.floor(Math.random() * availableTileTypes.length)]
-        tileStore.addTile(randomTileType)
-      }
-      
-      // Show success message
+      // Show alert prompting user to input the tiles they received
       gameStore.addAlert({
-        type: 'success',
-        title: 'Tiles Passed',
-        message: 'Successfully passed 3 tiles and received 3 new tiles'
+        type: 'info',
+        title: 'Charleston Pass Complete',
+        message: 'Now enter the 3 tiles you received from other players using the tile input'
       })
       
-      // Check if Charleston should continue or advance to gameplay
-      // For now, advance to gameplay after one pass
-      setTimeout(() => {
-        gameStore.setGamePhase('playing')
-      }, 1500)
+      // The user will need to manually add the tiles they received via tile input
+      // For now, keep in Charleston phase - user can advance to gameplay when ready
+      
     } else {
       // Navigate to Charleston phase for multiplayer
       if (onNavigateToCharleston) {
