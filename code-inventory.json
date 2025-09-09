@@ -1,0 +1,719 @@
+{
+  "generatedAt": "2025-01-09T00:00:00.000Z",
+  "totalFiles": 220,
+  "totalElements": 247,
+  "summary": {
+    "interfaces": 89,
+    "hooks": 31,
+    "components": 47,
+    "stores": 12,
+    "services": 23,
+    "utilities": 18,
+    "types": 15,
+    "functions": 12
+  },
+  "elements": [
+    {
+      "name": "NMJL2025Pattern",
+      "type": "interface",
+      "file": "shared/nmjl-types.ts",
+      "line": 20,
+      "properties": ["Year", "Section", "Line", "Pattern ID", "Hands_Key", "Hand_Pattern", "Hand_Description", "Hand_Points", "Hand_Conceiled", "Hand_Difficulty", "Hand_Notes", "Groups"],
+      "description": "Core interface for NMJL 2025 patterns with all official pattern data"
+    },
+    {
+      "name": "PatternSelectionOption",
+      "type": "interface", 
+      "file": "shared/nmjl-types.ts",
+      "line": 35,
+      "properties": ["id", "patternId", "displayName", "pattern", "points", "difficulty", "description", "section", "line", "allowsJokers", "concealed", "groups"],
+      "description": "Processed pattern data for UI selection components"
+    },
+    {
+      "name": "Tile",
+      "type": "interface",
+      "file": "shared/tile-utils.ts", 
+      "line": 7,
+      "properties": ["id", "suit", "value", "isJoker?"],
+      "description": "Core tile representation with suit, value, and optional joker flag"
+    },
+    {
+      "name": "createAllTiles",
+      "type": "function",
+      "file": "shared/tile-utils.ts",
+      "line": 21,
+      "parameters": [],
+      "returnType": "Tile[]",
+      "description": "Creates complete set of all available tiles for selection"
+    },
+    {
+      "name": "validateTileCollection",
+      "type": "function", 
+      "file": "shared/tile-utils.ts",
+      "line": 155,
+      "parameters": ["tiles: Tile[]", "playerPosition?: PlayerPosition"],
+      "returnType": "{ isValid: boolean; errors: string[]; warnings?: string[] }",
+      "description": "Validates tile collection with position-aware logic"
+    },
+    {
+      "name": "sortTiles",
+      "type": "function",
+      "file": "shared/tile-utils.ts",
+      "line": 200,
+      "parameters": ["tiles: Tile[]"],
+      "returnType": "Tile[]", 
+      "description": "Sorts tiles for consistent display by suit then value"
+    },
+    {
+      "name": "usePatternStore", 
+      "type": "store",
+      "file": "frontend/src/stores/pattern-store.ts",
+      "line": 54,
+      "stateProperties": ["patterns", "selectionOptions", "isLoading", "error", "selectedPatternId", "targetPatterns", "searchQuery", "difficultyFilter", "pointsFilter", "jokerFilter", "sectionFilter", "patternProgress"],
+      "actions": ["loadPatterns", "selectPattern", "addTargetPattern", "removeTargetPattern", "clearSelection", "setSearchQuery", "setDifficultyFilter", "setPointsFilter", "setJokerFilter", "setSectionFilter", "clearAllFilters", "updatePatternProgress", "getFilteredPatterns", "getSelectedPattern", "getTargetPatterns"],
+      "description": "Zustand store for NMJL pattern data and user selection state"
+    },
+    {
+      "name": "useTileStore",
+      "type": "store", 
+      "file": "frontend/src/stores/tile-store.ts",
+      "line": 84,
+      "stateProperties": ["playerHand", "handSize", "dealerHand", "exposedTiles", "selectedForAction", "tileStates", "selectedCount", "showAnimations", "sortBy", "recommendations", "analysisInProgress", "lastAnalysis"],
+      "actions": ["addTile", "removeTile", "clearHand", "setDealerHand", "addExposedTiles", "setExposedTiles", "clearExposedTiles", "toggleTileSelection", "selectTile", "deselectTile", "selectAll", "deselectAll", "moveToSelection", "returnFromSelection", "lockTile", "clearSelection", "setInputMode", "setSortBy", "setShowAnimations", "setShowRecommendations", "triggerTileAnimation", "clearAnimations", "validateHand", "analyzeHand", "setRecommendation", "clearRecommendations", "importTilesFromString", "exportTilesToString", "sortHand", "getSelectedTiles", "getTileGroups", "getHandSummary"],
+      "description": "Zustand store for hand management and tile input state"
+    },
+    {
+      "name": "useGameStore",
+      "type": "store",
+      "file": "frontend/src/stores/game-store.ts", 
+      "line": 105,
+      "stateProperties": ["gamePhase", "roomCode", "players", "currentPlayer", "isHost", "gameSettings", "gameState", "connectionStatus"],
+      "actions": ["setGamePhase", "setRoomCode", "addPlayer", "removePlayer", "updatePlayer", "setCurrentPlayer", "setIsHost", "updateGameSettings", "updateGameState", "setConnectionStatus"],
+      "description": "Main Zustand store for core game state management"
+    },
+    {
+      "name": "useCharlestonStore",
+      "type": "store",
+      "file": "frontend/src/stores/charleston-store.ts",
+      "line": 111, 
+      "stateProperties": ["currentPhase", "roundNumber", "passDirection", "selectedTiles", "receivedTiles", "allPlayersReady", "passHistory", "recommendations", "phaseProgress"],
+      "actions": ["setCurrentPhase", "nextPhase", "setPassDirection", "selectTileForPassing", "deselectTileForPassing", "clearSelectedTiles", "addReceivedTiles", "setReceivedTiles", "clearReceivedTiles", "setPlayerReady", "resetReadyStates", "addToPassHistory", "clearPassHistory", "setRecommendations", "updatePhaseProgress"],
+      "description": "Zustand store for Charleston phase management and tile passing"
+    },
+    {
+      "name": "useIntelligenceStore",
+      "type": "store",
+      "file": "frontend/src/stores/intelligence-store.ts",
+      "line": 197,
+      "stateProperties": ["handAnalysis", "patternRecommendations", "tileRecommendations", "strategicAdvice", "threats", "analysisVersion", "lastAnalysisTime", "analysisInProgress"],
+      "actions": ["updateHandAnalysis", "clearAnalysis", "setPatternRecommendations", "setTileRecommendations", "addStrategicAdvice", "clearStrategicAdvice", "setThreats", "clearThreats", "startAnalysis", "completeAnalysis"],
+      "description": "Zustand store for AI analysis and recommendations"
+    },
+    {
+      "name": "useRoomStore",
+      "type": "store",
+      "file": "frontend/src/stores/room-store.ts",
+      "line": 151,
+      "stateProperties": ["roomCode", "currentPlayer", "isHost", "players", "roomSettings", "setupProgress", "hostPermissions", "crossPhasePlayerState", "connectionStatus"],
+      "actions": ["setRoomCode", "setCurrentPlayer", "setIsHost", "addPlayer", "removePlayer", "updatePlayer", "updateRoomSettings", "updateSetupProgress", "updateHostPermissions", "updateCrossPhasePlayerState", "updateConnectionStatus", "clearRoom"],
+      "description": "Zustand store for room setup and multiplayer coordination"
+    },
+    {
+      "name": "useTurnStore", 
+      "type": "store",
+      "file": "frontend/src/stores/turn-store.ts",
+      "line": 138,
+      "stateProperties": ["currentTurn", "turnOrder", "turnHistory", "turnTimer", "isPlayerTurn", "canPerformAction", "pendingActions", "turnMetrics"],
+      "actions": ["setCurrentTurn", "nextTurn", "setTurnOrder", "addToTurnHistory", "startTurnTimer", "stopTurnTimer", "setCanPerformAction", "addPendingAction", "removePendingAction", "clearPendingActions", "updateTurnMetrics", "resetTurn"],
+      "description": "Zustand store for turn-based gameplay management"
+    },
+    {
+      "name": "useUIStore",
+      "type": "store",
+      "file": "frontend/src/stores/ui-store.ts",
+      "line": 42,
+      "stateProperties": ["theme", "animationsEnabled", "soundEnabled", "skillLevel", "tutorialCompleted", "showTooltips", "reducedMotion"],
+      "actions": ["setTheme", "toggleAnimations", "toggleSound", "setSkillLevel", "setTutorialCompleted", "setShowTooltips", "setReducedMotion"],
+      "description": "Zustand store for UI preferences and user settings"
+    },
+    {
+      "name": "useHistoryStore",
+      "type": "store", 
+      "file": "frontend/src/stores/history-store.ts",
+      "line": 233,
+      "stateProperties": ["completedGames", "currentGame", "performanceStats", "learningRecommendations", "selectedGameId"],
+      "actions": ["addCompletedGame", "updateCurrentGame", "clearCurrentGame", "updatePerformanceStats", "addLearningRecommendation", "setSelectedGame", "clearHistory"],
+      "description": "Zustand store for game history and performance tracking"
+    },
+    {
+      "name": "useTutorialStore",
+      "type": "store",
+      "file": "frontend/src/stores/tutorial-store.ts", 
+      "line": 46,
+      "stateProperties": ["progress", "preferences", "demoState", "isCompleted"],
+      "actions": ["updateProgress", "setPreferences", "updateDemo", "completeSection", "resetTutorial"],
+      "description": "Zustand store for tutorial progress and user learning"
+    },
+    {
+      "name": "useMultiplayerStore",
+      "type": "store",
+      "file": "frontend/src/stores/multiplayer-store.ts",
+      "line": 60,
+      "stateProperties": ["isConnected", "socket", "error", "reconnectAttempts"],
+      "actions": ["setConnected", "setSocket", "setError", "incrementReconnectAttempts", "resetReconnectAttempts"],
+      "description": "Zustand store for multiplayer connection state"
+    },
+    {
+      "name": "AnalysisEngine",
+      "type": "class",
+      "file": "frontend/src/services/analysis-engine.ts",
+      "line": 22,
+      "methods": ["analyzeHand", "clearCacheForHandChange", "getCacheStats", "generateCacheKey", "getEngine1Facts", "manageCacheSize", "convertToHandAnalysis", "normalizeAction", "generatePatternReasoning", "extractMatchingGroups", "extractTilePriorities", "extractGroupPriorities"],
+      "description": "Main interface for 3-engine intelligence system coordinating pattern analysis, ranking, and tile recommendations"
+    },
+    {
+      "name": "PatternAnalysisEngine",
+      "type": "service",
+      "file": "frontend/src/services/pattern-analysis-engine.ts",
+      "methods": ["analyzePatterns", "analyzePattern", "getPatternVariations", "matchTilesToVariation", "calculateTileMatching", "assessJokerUsage", "validateConstraints"],
+      "description": "Engine 1: Mathematical pattern analysis with 1,002 pattern variations"
+    },
+    {
+      "name": "PatternRankingEngine", 
+      "type": "service",
+      "file": "frontend/src/services/pattern-ranking-engine.ts",
+      "methods": ["rankPatterns", "calculateComponents", "generateRecommendation", "assessRiskFactors", "calculateStrategicValue"],
+      "description": "Engine 2: 4-component pattern scoring system (0-40, 0-30, 0-20, 0-10)"
+    },
+    {
+      "name": "TileRecommendationEngine",
+      "type": "service", 
+      "file": "frontend/src/services/tile-recommendation-engine.ts",
+      "methods": ["generateRecommendations", "analyzeTileActions", "assessKeepValue", "assessPassValue", "assessDiscardValue", "generateStrategicAdvice"],
+      "description": "Engine 3: Keep/pass/discard recommendations with opponent analysis"
+    },
+    {
+      "name": "nmjlService",
+      "type": "service",
+      "file": "frontend/src/services/nmjl-service.ts",
+      "methods": ["loadPatterns", "getAllPatterns", "getSelectionOptions", "getPatternById", "getPatternsBySection", "getPatternsByDifficulty", "validatePatternData"],
+      "description": "Service for loading and managing NMJL 2025 pattern data"
+    },
+    {
+      "name": "tileService",
+      "type": "service", 
+      "file": "frontend/src/services/tile-service.ts",
+      "methods": ["createPlayerTile", "validateHand", "sortTiles", "getTilesGroupedBySuit", "analyzeTileFrequency", "findTileMatches"],
+      "description": "Service for tile creation, validation, and manipulation"
+    },
+    {
+      "name": "useAnimations",
+      "type": "hook",
+      "file": "frontend/src/hooks/useAnimations.ts",
+      "line": 38,
+      "parameters": [],
+      "returnType": "UseAnimationsReturn",
+      "description": "Hook for managing tile and game animations with performance optimization"
+    },
+    {
+      "name": "useHapticFeedback",
+      "type": "hook", 
+      "file": "frontend/src/hooks/useHapticFeedback.ts",
+      "line": 60,
+      "parameters": [],
+      "returnType": "UseHapticFeedbackReturn", 
+      "description": "Hook for haptic feedback on mobile devices with contextual patterns"
+    },
+    {
+      "name": "usePerformance",
+      "type": "hook",
+      "file": "frontend/src/hooks/usePerformance.ts",
+      "line": 62, 
+      "parameters": [],
+      "returnType": "UsePerformanceReturn",
+      "description": "Hook for performance monitoring and optimization with metrics tracking"
+    },
+    {
+      "name": "useCoPilotMode",
+      "type": "hook",
+      "file": "frontend/src/hooks/useCoPilotMode.ts", 
+      "line": 36,
+      "parameters": [],
+      "returnType": "UseCoPilotModeReturn",
+      "description": "Hook for managing co-pilot mode selection and configuration"
+    },
+    {
+      "name": "useConnectionResilience",
+      "type": "hook",
+      "file": "frontend/src/hooks/useConnectionResilience.ts",
+      "line": 52,
+      "parameters": ["config: ConnectionResilienceConfig"],
+      "returnType": "ConnectionResilienceState",
+      "description": "Hook for connection resilience and automatic reconnection with exponential backoff"
+    },
+    {
+      "name": "useSocket",
+      "type": "hook",
+      "file": "frontend/src/hooks/useSocket.ts",
+      "line": 18,
+      "parameters": ["options: { autoConnect?: boolean }"], 
+      "returnType": "Socket instance with health monitoring",
+      "description": "Hook for WebSocket connection with automatic reconnection and health monitoring"
+    },
+    {
+      "name": "useMultiplayer",
+      "type": "hook", 
+      "file": "frontend/src/hooks/useMultiplayer.ts",
+      "line": 23,
+      "parameters": [],
+      "returnType": "Multiplayer actions and state",
+      "description": "Hook for multiplayer room management and coordination"
+    },
+    {
+      "name": "useRoomSetup",
+      "type": "hook",
+      "file": "frontend/src/hooks/useRoomSetup.ts", 
+      "line": 29,
+      "parameters": [],
+      "returnType": "UseRoomSetupReturn",
+      "description": "Hook for room creation and joining with validation"
+    },
+    {
+      "name": "useTutorial", 
+      "type": "hook",
+      "file": "frontend/src/hooks/useTutorial.ts",
+      "line": 164,
+      "parameters": [],
+      "returnType": "Tutorial navigation and progress",
+      "description": "Hook for tutorial system with progressive learning flow"
+    },
+    {
+      "name": "useTileSprites",
+      "type": "hook",
+      "file": "frontend/src/hooks/useTileSprites.ts",
+      "line": 32,
+      "parameters": [],
+      "returnType": "Tile sprite mapping and utilities", 
+      "description": "Hook for tile sprite management and rendering optimization"
+    },
+    {
+      "name": "useAccessibility",
+      "type": "hook",
+      "file": "frontend/src/hooks/useAccessibility.ts",
+      "line": 22,
+      "parameters": [],
+      "returnType": "Accessibility utilities",
+      "description": "Hook for accessibility features including screen reader support"
+    },
+    {
+      "name": "useShare",
+      "type": "hook",
+      "file": "frontend/src/hooks/useShare.ts", 
+      "line": 18,
+      "parameters": [],
+      "returnType": "UseShareReturn",
+      "description": "Hook for sharing game results and room codes"
+    },
+    {
+      "name": "useGameHistory",
+      "type": "hook",
+      "file": "frontend/src/hooks/useGameHistory.ts",
+      "line": 29,
+      "parameters": [],
+      "returnType": "Game history management",
+      "description": "Hook for tracking and analyzing game performance history"
+    },
+    {
+      "name": "GameModeView", 
+      "type": "component",
+      "file": "frontend/src/features/gameplay/GameModeView.tsx",
+      "line": 58,
+      "props": "GameModeViewProps",
+      "description": "Main game mode interface with real-time co-pilot assistance during gameplay"
+    },
+    {
+      "name": "PatternSelectionPage",
+      "type": "component",
+      "file": "frontend/src/features/pattern-selection/PatternSelectionPage.tsx", 
+      "line": 13,
+      "props": "None",
+      "description": "Pattern selection interface with filtering and search capabilities"
+    },
+    {
+      "name": "TileInputPage",
+      "type": "component", 
+      "file": "frontend/src/features/tile-input/TileInputPage.tsx",
+      "line": 14,
+      "props": "None",
+      "description": "Tile input interface for hand management and validation"
+    },
+    {
+      "name": "CharlestonView", 
+      "type": "component",
+      "file": "frontend/src/features/charleston/CharlestonView.tsx",
+      "props": "CharlestonViewProps",
+      "description": "Charleston phase interface with AI-powered passing recommendations"
+    },
+    {
+      "name": "TutorialView",
+      "type": "component",
+      "file": "frontend/src/features/tutorial/TutorialView.tsx",
+      "line": 19,
+      "props": "TutorialViewProps", 
+      "description": "Tutorial orchestrator with progressive learning flow and skill assessment"
+    },
+    {
+      "name": "RoomSetupView",
+      "type": "component",
+      "file": "frontend/src/features/room-setup/RoomSetupView.tsx",
+      "props": "None",
+      "description": "Room creation and joining interface with multiplayer coordination"
+    },
+    {
+      "name": "PatternCard",
+      "type": "component",
+      "file": "frontend/src/features/pattern-selection/PatternCard.tsx", 
+      "line": 18,
+      "props": "PatternCardProps",
+      "description": "Interactive pattern card with visual indicators for difficulty, points, and jokers"
+    },
+    {
+      "name": "HandDisplay",
+      "type": "component",
+      "file": "frontend/src/features/tile-input/HandDisplay.tsx",
+      "line": 17,
+      "props": "HandDisplayProps",
+      "description": "Player hand display with tile selection and animation support"
+    },
+    {
+      "name": "TileSelector",
+      "type": "component", 
+      "file": "frontend/src/features/tile-input/TileSelector.tsx",
+      "line": 19,
+      "props": "TileSelectorProps",
+      "description": "Tile selection interface organized by suit with search capabilities"
+    },
+    {
+      "name": "AnimatedTile",
+      "type": "component",
+      "file": "frontend/src/ui-components/tiles/AnimatedTile.tsx", 
+      "line": 30,
+      "props": "AnimatedTileProps",
+      "description": "Animated tile component with contextual effects and performance optimization"
+    },
+    {
+      "name": "TileSprite",
+      "type": "component",
+      "file": "frontend/src/ui-components/TileSprite.tsx",
+      "line": 22,
+      "props": "TileSpriteProps",
+      "description": "Base tile rendering component with sprite-based display"
+    },
+    {
+      "name": "PatternGrid", 
+      "type": "component",
+      "file": "frontend/src/features/pattern-selection/PatternGrid.tsx",
+      "line": 10,
+      "props": "None",
+      "description": "Grid display for pattern cards with responsive layout"
+    },
+    {
+      "name": "IntelligencePanel",
+      "type": "component",
+      "file": "frontend/src/features/gameplay/IntelligencePanel.tsx",
+      "props": "IntelligencePanelProps",
+      "description": "AI recommendations panel with pattern analysis and tile suggestions"
+    },
+    {
+      "name": "Button",
+      "type": "component",
+      "file": "frontend/src/ui-components/Button.tsx", 
+      "props": "ButtonProps",
+      "description": "Modern button component with variants and accessibility support"
+    },
+    {
+      "name": "Card",
+      "type": "component",
+      "file": "frontend/src/ui-components/Card.tsx",
+      "props": "CardProps", 
+      "description": "Glassmorphism card component with blur effects and subtle borders"
+    },
+    {
+      "name": "LoadingSpinner",
+      "type": "component",
+      "file": "frontend/src/ui-components/LoadingSpinner.tsx",
+      "props": "LoadingSpinnerProps",
+      "description": "Loading spinner with animation and accessibility support"
+    },
+    {
+      "name": "RouteGuard",
+      "type": "component",
+      "file": "frontend/src/utils/RouteGuard.tsx", 
+      "line": 11,
+      "props": "RouteGuardProps",
+      "description": "Route protection component preventing access to features before proper setup"
+    },
+    {
+      "name": "getTileDisplayChar",
+      "type": "function",
+      "file": "frontend/src/utils/tile-display-utils.ts", 
+      "line": 17,
+      "parameters": ["tileId: string"],
+      "returnType": "TileDisplayChar",
+      "description": "Converts tile ID to display character with Unicode symbols"
+    },
+    {
+      "name": "getColoredPatternParts",
+      "type": "function",
+      "file": "frontend/src/utils/pattern-color-utils.ts",
+      "line": 18, 
+      "parameters": ["pattern: string", "groups: PatternGroup[]"],
+      "returnType": "ColoredPatternPart[]",
+      "description": "Applies color coding to pattern parts based on groups"
+    },
+    {
+      "name": "withReducedMotion",
+      "type": "function",
+      "file": "frontend/src/utils/reduced-motion.ts",
+      "line": 56,
+      "parameters": ["config: T"],
+      "returnType": "T",
+      "description": "Applies reduced motion preferences to animation configurations"
+    },
+    {
+      "name": "createAccessibleAnimation", 
+      "type": "function",
+      "file": "frontend/src/utils/reduced-motion.ts",
+      "line": 118,
+      "parameters": ["config: AnimationConfig"],
+      "returnType": "AccessibleAnimation<T>",
+      "description": "Creates accessible animation with reduced motion support"
+    },
+    {
+      "name": "GameLogicService",
+      "type": "class",
+      "file": "backend/src/services/game-logic.ts", 
+      "line": 66,
+      "methods": ["validateAction", "processAction", "updateGameState", "checkWinCondition", "handleDiscard", "handleCall"],
+      "description": "Backend service for game logic validation and processing"
+    },
+    {
+      "name": "MahjongValidationBridge",
+      "type": "class",
+      "file": "backend/src/services/mahjong-validation-bridge.ts",
+      "line": 39,
+      "methods": ["validateHand", "validateMahjong", "calculateScore", "checkPatternMatch"], 
+      "description": "Bridge service for mahjong rule validation and scoring"
+    },
+    {
+      "name": "StateSyncManager", 
+      "type": "class",
+      "file": "backend/src/features/state-sync/state-sync-manager.ts",
+      "line": 25,
+      "methods": ["syncState", "resolveConflicts", "broadcastUpdate", "validateUpdate"],
+      "description": "Manages state synchronization across multiplayer clients"
+    },
+    {
+      "name": "SocketHandlers",
+      "type": "class",
+      "file": "backend/src/features/socket-communication/socket-handlers.ts",
+      "line": 11,
+      "methods": ["handleConnection", "handleDisconnection", "handleRoomJoin", "handleRoomLeave", "handleGameAction", "handleChatMessage"],
+      "description": "Socket.IO event handlers for client-server communication"
+    },
+    {
+      "name": "RoomManager", 
+      "type": "class",
+      "file": "backend/src/features/room-lifecycle/room-manager.ts",
+      "line": 4,
+      "methods": ["createRoom", "joinRoom", "leaveRoom", "deleteRoom", "getRoomInfo", "updateRoomSettings"],
+      "description": "Manages room lifecycle and player coordination"
+    },
+    {
+      "name": "PlayerCoordinationManager",
+      "type": "class",
+      "file": "backend/src/features/room-management/player-coordination-manager.ts", 
+      "line": 48,
+      "methods": ["addPlayer", "removePlayer", "updatePlayerState", "broadcastToRoom", "handlePlayerAction"],
+      "description": "Coordinates player actions and state across multiplayer sessions"
+    },
+    {
+      "name": "RoomLifecycleManager",
+      "type": "class",
+      "file": "backend/src/features/room-management/room-lifecycle-manager.ts",
+      "line": 21,
+      "methods": ["initializeRoom", "startGame", "endGame", "handlePhaseTransition", "cleanupRoom"],
+      "description": "Manages room lifecycle from creation to cleanup"
+    },
+    {
+      "name": "Player",
+      "type": "interface", 
+      "file": "backend/src/types/room-types.ts",
+      "line": 3,
+      "properties": ["id", "name", "position", "isHost", "isReady", "connectionStatus"],
+      "description": "Backend player data structure for multiplayer coordination"
+    },
+    {
+      "name": "Room",
+      "type": "interface",
+      "file": "backend/src/types/room-types.ts",
+      "line": 20, 
+      "properties": ["id", "code", "host", "players", "config", "state", "createdAt"],
+      "description": "Backend room data structure with configuration and state"
+    },
+    {
+      "name": "GameState",
+      "type": "interface",
+      "file": "backend/src/types/sync-types.ts",
+      "line": 23,
+      "properties": ["phase", "currentPlayer", "turnNumber", "wall", "discardPile", "exposedTiles", "gameTimer"],
+      "description": "Backend game state for synchronization across clients"
+    },
+    {
+      "name": "StateUpdate",
+      "type": "interface", 
+      "file": "backend/src/types/sync-types.ts",
+      "line": 41,
+      "properties": ["type", "playerId", "timestamp", "data", "sequenceNumber"],
+      "description": "State update message for multiplayer synchronization"
+    },
+    {
+      "name": "TileAnimationContext",
+      "type": "type",
+      "file": "frontend/src/ui-components/tiles/animation-utils.ts",
+      "line": 8,
+      "definition": "'charleston' | 'gameplay' | 'analysis' | 'selection'",
+      "description": "Context type for tile animations based on game phase"
+    },
+    {
+      "name": "HandDifficulty", 
+      "type": "type",
+      "file": "shared/nmjl-types.ts",
+      "line": 6,
+      "definition": "'easy' | 'medium' | 'hard'",
+      "description": "Difficulty classification for NMJL patterns"
+    },
+    {
+      "name": "TileSuit",
+      "type": "type",
+      "file": "shared/tile-utils.ts",
+      "line": 5,
+      "definition": "'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers'", 
+      "description": "Tile suit enumeration for all mahjong tiles"
+    },
+    {
+      "name": "PlayerPosition",
+      "type": "type",
+      "file": "shared/tile-utils.ts",
+      "line": 14,
+      "definition": "'east' | 'south' | 'west' | 'north'",
+      "description": "Player seating positions in mahjong game"
+    },
+    {
+      "name": "ConstraintType", 
+      "type": "type",
+      "file": "shared/nmjl-types.ts",
+      "line": 4,
+      "definition": "'kong' | 'pung' | 'sequence' | 'pair' | 'single' | 'consecutive' | 'like'",
+      "description": "Pattern constraint types for NMJL validation"
+    },
+    {
+      "name": "TileRecommendationType",
+      "type": "type",
+      "file": "frontend/src/ui-components/tiles/animation-utils.ts", 
+      "line": 9,
+      "definition": "'keep' | 'pass' | 'discard' | 'joker'",
+      "description": "Recommendation types for tile actions"
+    },
+    {
+      "name": "SkillLevel",
+      "type": "type",
+      "file": "frontend/src/features/tutorial/types.ts",
+      "line": 4,
+      "definition": "'beginner' | 'intermediate' | 'expert'",
+      "description": "User skill level classification for tutorial personalization"
+    },
+    {
+      "name": "TutorialSection",
+      "type": "type", 
+      "file": "frontend/src/features/tutorial/types.ts",
+      "line": 6,
+      "definition": "'basics' | 'patterns' | 'charleston' | 'gameplay' | 'strategy' | 'multiplayer'",
+      "description": "Tutorial section categories for progressive learning"
+    },
+    {
+      "name": "PatternProgress",
+      "type": "interface",
+      "file": "shared/nmjl-types.ts",
+      "line": 50,
+      "properties": ["patternId", "completionPercentage", "tilesNeeded", "completingTiles", "canUseJokers", "jokersNeeded"],
+      "description": "Pattern completion progress tracking interface"
+    },
+    {
+      "name": "PatternGroup",
+      "type": "interface", 
+      "file": "shared/nmjl-types.ts",
+      "line": 8,
+      "properties": ["Group", "Suit_Role", "Suit_Note", "Constraint_Type", "Constraint_Values", "Constraint_Must_Match", "Constraint_Extra", "Jokers_Allowed", "display_color"],
+      "description": "Pattern group definition for NMJL pattern structure"
+    },
+    {
+      "name": "TILE_KEYFRAMES",
+      "type": "constant",
+      "file": "frontend/src/ui-components/tiles/tile-animation-constants.ts", 
+      "line": 5,
+      "description": "CSS keyframe definitions for tile animations"
+    },
+    {
+      "name": "TILE_STATES",
+      "type": "constant",
+      "file": "frontend/src/features/gameplay/TileStates.tsx",
+      "line": 4,
+      "description": "Tile state definitions for gameplay UI"
+    },
+    {
+      "name": "router",
+      "type": "constant",
+      "file": "frontend/src/utils/router.tsx", 
+      "line": 12,
+      "description": "React Router configuration for application routing"
+    }
+  ],
+  "fileStructure": {
+    "frontend/src": {
+      "features": {
+        "pattern-selection": ["PatternSelectionPage", "PatternGrid", "PatternCard", "PatternFilters", "SelectedPatternsPanel"],
+        "tile-input": ["TileInputPage", "HandDisplay", "TileSelector", "HandValidation"],
+        "charleston": ["CharlestonView", "TilePassingArea", "PassingRecommendations", "TargetPatternDisplay", "StrategyExplanation"],
+        "gameplay": ["GameModeView", "IntelligencePanel", "SelectionArea", "DiscardPile", "GameTimer", "AlertSystem"],
+        "tutorial": ["TutorialView", "PatternLearning", "CoPilotDemo", "SkillAssessment", "PreferenceSetup"],
+        "room-setup": ["RoomSetupView", "RoomCreation", "RoomJoining", "PlayerPositioning", "CoPilotModeSelector"],
+        "post-game": ["PostGameView"]
+      },
+      "stores": ["pattern-store", "tile-store", "game-store", "charleston-store", "intelligence-store", "room-store", "turn-store", "ui-store", "history-store", "tutorial-store", "multiplayer-store"],
+      "services": ["analysis-engine", "pattern-analysis-engine", "pattern-ranking-engine", "tile-recommendation-engine", "nmjl-service", "tile-service"],
+      "hooks": ["useAnimations", "useHapticFeedback", "usePerformance", "useCoPilotMode", "useConnectionResilience", "useSocket", "useMultiplayer", "useRoomSetup", "useTutorial", "useTileSprites", "useAccessibility", "useShare", "useGameHistory"],
+      "ui-components": ["Button", "Card", "LoadingSpinner", "TileSprite", "AnimatedTile", "Tile", "ConnectionStatusIndicator", "CountdownTimer"],
+      "utils": ["tile-display-utils", "pattern-color-utils", "reduced-motion", "RouteGuard", "router"]
+    },
+    "backend/src": {
+      "services": ["GameLogicService", "MahjongValidationBridge"],
+      "features": {
+        "state-sync": ["StateSyncManager"],
+        "socket-communication": ["SocketHandlers"], 
+        "room-lifecycle": ["RoomManager"],
+        "room-management": ["PlayerCoordinationManager", "RoomLifecycleManager"]
+      },
+      "types": ["room-types", "sync-types"]
+    },
+    "shared": ["nmjl-types", "tile-utils", "game-types", "socket-events", "multiplayer-types"]
+  },
+  "keyArchitecturalPatterns": {
+    "stateManagement": "Zustand stores with persistence and devtools integration",
+    "componentArchitecture": "Feature-based organization with reusable UI components",
+    "intelligenceSystem": "3-engine architecture: Analysis → Ranking → Recommendations", 
+    "typeSystem": "Unified TypeScript definitions in /shared directory",
+    "animationSystem": "Performance-optimized with reduced motion support",
+    "multiplayerArchitecture": "WebSocket-based with connection resilience and state synchronization"
+  }
+}
