@@ -20,9 +20,14 @@ export function ConnectionStatusIndicator({
   compact = false,
   className = '' 
 }: ConnectionStatusProps) {
-  const socket = useSocket()
   const roomStore = useRoomStore()
+  const socket = useSocket()
   const [showTooltip, setShowTooltip] = useState(false)
+  
+  // Don't show connection indicator in solo mode since no server connection is needed
+  if (roomStore.coPilotMode === 'solo') {
+    return null
+  }
   const [connectionHealth, setConnectionHealth] = useState<{
     isHealthy: boolean
     status: 'connected' | 'disconnected' | 'reconnecting' | 'failed'

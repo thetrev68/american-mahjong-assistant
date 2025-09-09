@@ -70,7 +70,8 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
       return
     }
 
-    if (!multiplayer.isConnected) {
+    // Only check server connection for multiplayer mode
+    if (roomStore.coPilotMode !== 'solo' && !multiplayer.isConnected) {
       roomStore.handleRoomCreationError('Not connected to server. Please check your connection.')
       return
     }
