@@ -108,6 +108,14 @@ export class DisconnectionManager {
   public async handleUnexpectedDisconnection(
     reason: DisconnectionReason
   ): Promise<void> {
+    const roomStore = useRoomStore.getState()
+    
+    // Skip disconnection handling in solo mode
+    if (roomStore.coPilotMode === 'solo') {
+      console.log('Skipping disconnection handling in solo mode')
+      return
+    }
+
     console.warn('Unexpected disconnection detected:', reason)
 
     // Gather metadata for potential recovery
@@ -299,6 +307,12 @@ export class DisconnectionManager {
     const gameStore = useGameStore.getState()
     const turnStore = useTurnStore.getState()
     const charlestonStore = useCharlestonStore.getState()
+
+    // Don't clear room store in solo mode - it's not a real disconnection
+    if (roomStore.coPilotMode === 'solo') {
+      console.log('Skipping room state clearing in solo mode')
+      return
+    }
 
     // Clear all stores
     roomStore.clearAll()
