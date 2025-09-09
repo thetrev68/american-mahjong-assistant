@@ -330,18 +330,34 @@ export const useRoomStore = create<RoomState>()(
 
         isRoomReadyForGame: () => {
           const state = get()
-          if (!state.currentRoomCode) return false
+          if (!state.currentRoomCode) {
+            console.log('DEBUG isRoomReadyForGame: No room code')
+            return false
+          }
           
           const positionedPlayers = Object.keys(state.playerPositions).length
           
+          let result: boolean
           if (state.coPilotMode === 'solo') {
             // Solo mode: all players (1 + other players) must be positioned
             const totalPlayers = 1 + state.otherPlayerNames.filter(name => name.trim().length > 0).length
-            return positionedPlayers >= totalPlayers
+            result = positionedPlayers >= totalPlayers
           } else {
             // Everyone mode: minimum 2 players for game
-            return positionedPlayers >= 2
+            result = positionedPlayers >= 2
           }
+
+          console.log('DEBUG isRoomReadyForGame:', {
+            result,
+            roomCode: state.currentRoomCode,
+            coPilotMode: state.coPilotMode,
+            positionedPlayers,
+            totalExpectedPlayers: state.coPilotMode === 'solo' ? (1 + state.otherPlayerNames.filter(name => name.trim().length > 0).length) : 2,
+            playerPositions: state.playerPositions,
+            otherPlayerNames: state.otherPlayerNames
+          })
+
+          return result
         },
 
         // Enhanced multiplayer actions
@@ -520,6 +536,19 @@ export const useRoomStore = create<RoomState>()(
             completedSteps = 3
             currentStep = 'ready'
           }
+
+          console.log('DEBUG getRoomSetupProgress:', {
+            currentStep,
+            completedSteps,
+            coPilotModeSelected: state.coPilotModeSelected,
+            currentRoomCode: state.currentRoomCode,
+            coPilotMode: state.coPilotMode,
+            positionedPlayersCount,
+            totalExpectedPlayers: state.coPilotMode === 'solo' ? (1 + state.otherPlayerNames.filter(name => name.trim().length > 0).length) : 2,
+            isReadyForGame,
+            playerPositions: state.playerPositions,
+            otherPlayerNames: state.otherPlayerNames
+          })
 
           return {
             currentStep,
