@@ -148,7 +148,6 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
       <IntelligencePanel
         isAnalyzing={isAnalyzing}
         currentAnalysis={currentAnalysis}
-        findAlternativePatterns={findAlternativePatterns}
         gamePhase={gamePhase}
       />
     </div>

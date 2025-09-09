@@ -3,7 +3,6 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { PatternVariationDisplay } from '../../ui-components/patterns/PatternVariationDisplay'
-import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
@@ -27,14 +26,12 @@ interface IntelligencePanelProps {
     }>
     overallScore?: number
   } | null
-  findAlternativePatterns: () => void
   gamePhase: 'charleston' | 'gameplay'
 }
 
 const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
   isAnalyzing,
   currentAnalysis,
-  findAlternativePatterns,
   gamePhase
 }) => {
   const [showAllPatterns, setShowAllPatterns] = useState(false)
@@ -127,7 +124,7 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                           showCompletion={false}
                           spacing={true}
                           size="lg"
-                          patternGroups={currentAnalysis.recommendedPatterns[0].pattern.groups}
+                          patternGroups={currentAnalysis.recommendedPatterns[0].pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
                         />
                       ) : (
                         'Selected Pattern'
@@ -240,7 +237,7 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                               showCompletion={false}
                               spacing={true}
                               size="sm"
-                              patternGroups={patternRec.pattern.groups}
+                              patternGroups={patternRec.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
                             />
                           </div>
                           {isPrimary && isSelected && (
