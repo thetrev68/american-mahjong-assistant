@@ -5,6 +5,7 @@ import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { PlayerTile, Tile as TileType } from '../../types/tile-types'
 import { useTileStore } from '../../stores/tile-store'
+import { tileService } from '../../services/tile-service'
 
 interface YourHandZoneProps {
   currentHand: PlayerTile[]
@@ -36,6 +37,9 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
 }) => {
   const { selectedForAction, moveToSelection, returnFromSelection } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
+  
+  // Sort hand tiles using same logic as tile input page
+  const sortedCurrentHand = tileService.sortTiles([...currentHand])
   
   
   const handleTileClick = (tile: PlayerTile) => {
@@ -83,9 +87,9 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
       <div className="space-y-4">
         {/* Concealed Hand */}
         <div>
-          <div className="text-sm text-gray-600 mb-2">Concealed ({currentHand.length} tiles)</div>
+          <div className="text-sm text-gray-600 mb-2">Concealed ({sortedCurrentHand.length} tiles)</div>
           <div className="flex flex-wrap gap-1 sm:gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
-            {currentHand.length > 0 ? currentHand.map((tile) => {
+            {sortedCurrentHand.length > 0 ? sortedCurrentHand.map((tile) => {
               const isSelected = isCharleston 
                 ? selectedForAction.some(t => t.instanceId === tile.instanceId)
                 : selectedDiscardTile?.id === tile.id

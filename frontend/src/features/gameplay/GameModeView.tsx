@@ -188,7 +188,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const currentPlayerId = gameStore.currentPlayerId
     if (currentPlayerId && gameStore.players.length > 0) {
       const player = gameStore.players.find(p => p.id === currentPlayerId)
-      return player?.name || 'You'
+      return player?.name || playerNames[0] // Use first player name instead of 'You'
     }
     return playerNames[currentPlayerIndex]
   }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames])
@@ -1107,8 +1107,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         </div>
       )}
 
-      {/* Enhanced Intelligence Panel */}
-      {showEnhancedIntelligence && (
+      {/* Enhanced Intelligence Panel - Hidden during Charleston */}
+      {showEnhancedIntelligence && gameStore.gamePhase !== 'charleston' && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-40">
           <div className="max-w-4xl w-full max-h-[90vh]">
             <EnhancedIntelligencePanel
@@ -1133,14 +1133,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         />
       )}
 
-      {/* Intelligence Toggle Button */}
-      <button 
-        className="fixed bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg z-30 transition-all"
-        onClick={() => setShowEnhancedIntelligence(!showEnhancedIntelligence)}
-        title="AI Assistant"
-      >
-        <span className="text-xl">🧠</span>
-      </button>
+      {/* Intelligence Toggle Button - Hidden during Charleston */}
+      {gameStore.gamePhase !== 'charleston' && (
+        <button 
+          className="fixed bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg z-30 transition-all"
+          onClick={() => setShowEnhancedIntelligence(!showEnhancedIntelligence)}
+          title="AI Assistant"
+        >
+          <span className="text-xl">🧠</span>
+        </button>
+      )}
 
       {/* Pattern Switcher Modal */}
       {showPatternSwitcher && (

@@ -96,7 +96,7 @@ const TopZone: React.FC<TopZoneProps> = ({
           <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{phaseDisplayName}</h1>
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mt-1">
             <p className="text-sm md:text-base text-gray-600">
-              🟢 {currentPlayer}'s turn 
+              🟢 {currentPlayer}{currentPlayer.endsWith('s') ? "'" : "'s"} turn 
               {gamePhase === 'gameplay' && (
                 <>
                   • Playing {selectedPatternsCount} pattern{selectedPatternsCount !== 1 ? 's' : ''}
@@ -104,8 +104,11 @@ const TopZone: React.FC<TopZoneProps> = ({
               )}
             </p>
             <div className="text-xs md:text-sm text-gray-500">
-              {windRound.charAt(0).toUpperCase() + windRound.slice(1)} Round #{gameRound} • 
-              Next: {nextPlayer}
+              {gamePhase === 'charleston' ? (
+                <>Passing tiles • Receiving from: {nextPlayer}</>
+              ) : (
+                <>{windRound.charAt(0).toUpperCase() + windRound.slice(1)} Round #{gameRound} • Next: {nextPlayer}</>
+              )}
             </div>
           </div>
         </div>
