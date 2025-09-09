@@ -961,13 +961,54 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setIsPaused(!isPaused)
   }, [isPaused])
 
-  // Handle Charleston pass - show tile modal for receiving tiles
+  // Handle Charleston tile passing
   const handleCharlestonPass = useCallback(() => {
-    // Navigate to Charleston phase if handler exists
-    if (onNavigateToCharleston) {
-      onNavigateToCharleston()
+    const selectedTiles = tileStore.selectedForAction
+    if (selectedTiles.length !== 3) {
+      console.warn('Must select exactly 3 tiles for Charleston')
+      return
     }
-  }, [onNavigateToCharleston])
+    
+    // In solo mode, simulate receiving tiles and continue
+    if (roomStore.coPilotMode === 'solo') {
+      // Remove selected tiles from hand
+      selectedTiles.forEach(tile => {
+        tileStore.removeTile(tile.instanceId)
+      })
+      
+      // Clear selection
+      tileStore.clearSelection()
+      
+      // Simulate receiving 3 random tiles (in real game, these would come from other players)
+      const availableTileTypes = ['1D', '2D', '3D', '4D', '5D', '6D', '7D', '8D', '9D', 
+                                 '1B', '2B', '3B', '4B', '5B', '6B', '7B', '8B', '9B',
+                                 '1C', '2C', '3C', '4C', '5C', '6C', '7C', '8C', '9C',
+                                 'east', 'south', 'west', 'north', 'red', 'green', 'white']
+      
+      for (let i = 0; i < 3; i++) {
+        const randomTileType = availableTileTypes[Math.floor(Math.random() * availableTileTypes.length)]
+        tileStore.addTile(randomTileType)
+      }
+      
+      // Show success message
+      gameStore.addAlert({
+        type: 'success',
+        title: 'Tiles Passed',
+        message: 'Successfully passed 3 tiles and received 3 new tiles'
+      })
+      
+      // Check if Charleston should continue or advance to gameplay
+      // For now, advance to gameplay after one pass
+      setTimeout(() => {
+        gameStore.setGamePhase('playing')
+      }, 1500)
+    } else {
+      // Navigate to Charleston phase for multiplayer
+      if (onNavigateToCharleston) {
+        onNavigateToCharleston()
+      }
+    }
+  }, [tileStore, roomStore.coPilotMode, gameStore, onNavigateToCharleston])
   
   // Advance from Charleston to Gameplay phase
   const handleAdvanceToGameplay = useCallback(() => {
@@ -1267,7 +1308,13 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       )}
 
       {/* Selection Area - Fixed overlay for tile actions */}
-      <SelectionArea onAdvanceToGameplay={handleAdvanceToGameplay} onCharlestonPass={handleCharlestonPass} />
+      <SelectionArea 
+        onAdvanceToGameplay={handleAdvanceToGameplay} 
+        onCharlestonPass={handleCharlestonPass}
+        onPass={gameStore.gamePhase === 'charleston' ? handleCharlestonPass : undefined}
+        isReadyToPass={gameStore.gamePhase === 'charleston' ? false : undefined}
+        allPlayersReady={gameStore.gamePhase === 'charleston' ? false : undefined}
+      />
     </>
   )
 }

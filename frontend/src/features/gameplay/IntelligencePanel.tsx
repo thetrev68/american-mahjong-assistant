@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
+import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
@@ -211,9 +212,16 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                     <div className="flex justify-between items-start mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">
-                            {patternRec.pattern.pattern}
-                          </span>
+                          <div className="flex flex-wrap gap-1">
+                            {getColoredPatternParts(patternRec.pattern.pattern, patternRec.pattern.groups).map((part, partIndex) => (
+                              <span 
+                                key={partIndex}
+                                className={`font-mono text-sm font-medium ${getColorClasses(part.color, 'text')}`}
+                              >
+                                {part.text}
+                              </span>
+                            ))}
+                          </div>
                           {isPrimary && isSelected && (
                             <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
                               Primary
@@ -232,9 +240,26 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                           </span>
                         </div>
                       </div>
-                      {isSelected && (
-                        <div className="text-purple-600">✓</div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {isSelected ? (
+                          <div className="flex items-center gap-1">
+                            <div className="text-purple-600">✓</div>
+                            <span className="text-xs text-purple-600">Selected</span>
+                          </div>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-blue-600 border-blue-300 hover:bg-blue-50 text-xs px-2 py-1"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handlePatternSelect(patternRec.pattern.id)
+                            }}
+                          >
+                            Select
+                          </Button>
+                        )}
+                      </div>
                     </div>
                     
                     {/* Progress bar */}
