@@ -70,7 +70,11 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
   useEffect(() => {
     const resilienceService = getConnectionResilienceService()
     if (!resilienceService) {
-      console.warn('Connection resilience service not initialized. Make sure unified multiplayer manager is initialized first.')
+      // Only warn if we're actually in a multiplayer context (not on landing page)
+      const roomStore = useRoomStore.getState()
+      if (roomStore.currentRoomCode || roomStore.hostPlayerId) {
+        console.warn('Connection resilience service not initialized in multiplayer context.')
+      }
       return
     }
 
@@ -94,6 +98,21 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
       const disconnectionManager = getDisconnectionManager()
       const resilienceService = getConnectionResilienceService()
       
+      // If no services are initialized, provide basic socket-only state
+      if (!networkHandler || !disconnectionManager || !resilienceService) {
+        setResilienceState({
+          isConnected: socket.isConnected,
+          isReconnecting: false,
+          connectionHealth: socket.isConnected ? 'healthy' : 'offline',
+          reconnectAttempts: 0,
+          maxAttempts: finalConfig.maxReconnectAttempts || 5,
+          canRecover: false,
+          hasQueuedEvents: socket.eventQueue.length > 0,
+          lastError: socket.lastError
+        })
+        return
+      }
+      
       const networkHealth = networkHandler.getNetworkHealth()
       const connectionHealth = resilienceService?.getConnectionHealth(socket)
       
@@ -111,7 +130,11 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
 
     // Defer initial update to avoid React render cycle issues
     setTimeout(updateResilienceState, 0)
-    const interval = setInterval(updateResilienceState, 2000)
+    
+    // Only run frequent updates if we're in multiplayer context
+    const roomStore = useRoomStore.getState()
+    const updateInterval = (roomStore.currentRoomCode || roomStore.hostPlayerId) ? 2000 : 10000
+    const interval = setInterval(updateResilienceState, updateInterval)
 
     return () => clearInterval(interval)
   }, [socket, socket.isConnected, socket.eventQueue.length, socket.lastError, finalConfig.maxReconnectAttempts])
