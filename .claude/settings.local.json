@@ -26,7 +26,8 @@
       "Bash(timeout 5 npm run dev:backend)",
       "Bash(timeout 10 npm run build:*)",
       "Bash(xargs sed:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": [],

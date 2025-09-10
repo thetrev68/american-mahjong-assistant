@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '../../stores'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomSetupStore } from '../../stores/room-setup.store'
+import { useRoomStore } from '../../stores/room.store'
 import { Button } from '../Button'
 
 interface NavItem {
@@ -58,10 +59,11 @@ const navItems: NavItem[] = [
 export const NavigationSidebar = () => {
   const navigate = useNavigate()
   const { sidebarOpen, setSidebarOpen } = useUIStore()
+  const roomSetupStore = useRoomSetupStore()
   const roomStore = useRoomStore()
 
   const getItemAccessibility = (path: string) => {
-    const progress = roomStore.getRoomSetupProgress()
+    const progress = roomSetupStore.getRoomSetupProgress()
     
     switch (path) {
       case '/charleston':

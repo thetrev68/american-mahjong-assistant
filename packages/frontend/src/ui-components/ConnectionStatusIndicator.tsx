@@ -3,7 +3,9 @@
 
 import { useState, useEffect } from 'react'
 import { useSocket } from '../hooks/useSocket'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomSetupStore } from '../stores/room-setup.store'
+import { useRoomStore } from '../stores/room.store'
+import { useConnectionStore } from '../stores/connection.store'
 import { getNetworkErrorHandler } from '../services/network-error-handler'
 import { getConnectionResilienceService } from '../services/connection-resilience'
 
@@ -20,7 +22,9 @@ export function ConnectionStatusIndicator({
   compact = false,
   className = '' 
 }: ConnectionStatusProps) {
+  const roomSetupStore = useRoomSetupStore()
   const roomStore = useRoomStore()
+  const connectionStore = useConnectionStore()
   const socket = useSocket()
   const [showTooltip, setShowTooltip] = useState(false)
   const [connectionHealth, setConnectionHealth] = useState<{
@@ -133,7 +137,7 @@ export function ConnectionStatusIndicator({
   }
 
   // Don't show connection indicator in solo mode since no server connection is needed
-  if (roomStore.coPilotMode === 'solo') {
+  if (roomSetupStore.coPilotMode === 'solo') {
     return null
   }
 
@@ -222,10 +226,10 @@ export function ConnectionStatusIndicator({
           </div>
         )}
 
-        {roomStore.connectionStatus.reconnectionAttempts > 0 && (
+        {connectionStore.connectionStatus.reconnectionAttempts > 0 && (
           <div className="flex justify-between items-center">
             <span className="text-sm text-gray-300">Retries:</span>
-            <span className="text-sm text-white">{roomStore.connectionStatus.reconnectionAttempts}</span>
+            <span className="text-sm text-white">{connectionStore.connectionStatus.reconnectionAttempts}</span>
           </div>
         )}
       </div>
@@ -238,7 +242,7 @@ export function ConnectionStatusIndicator({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-300">Room:</span>
                 <span className="text-sm text-white">
-                  {roomStore.currentRoomCode || 'None'}
+                  {roomStore.room?.id || 'None'}
                 </span>
               </div>
               
@@ -252,7 +256,7 @@ export function ConnectionStatusIndicator({
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-300">Players:</span>
                 <span className="text-sm text-white">
-                  {roomStore.getConnectedPlayers().length}/{roomStore.players.length}
+                  {roomStore.players.filter(p => p.isConnected).length}/{roomStore.players.length}
                 </span>
               </div>
             </div>
@@ -294,7 +298,7 @@ export function ConnectionStatusIndicator({
 // Simplified status bar for minimal UI
 export function ConnectionStatusBar() {
   const socket = useSocket()
-  const roomStore = useRoomStore()
+  const connectionStore = useConnectionStore()
 
   if (socket.isConnected && socket.connectionHealth.isHealthy) {
     return null // Don't show anything when everything is fine
@@ -304,7 +308,7 @@ export function ConnectionStatusBar() {
     if (!socket.isConnected) {
       return {
         color: 'bg-red-500',
-        text: `Offline${roomStore.connectionStatus.reconnectionAttempts > 0 ? ` (${roomStore.connectionStatus.reconnectionAttempts} retries)` : ''}`
+        text: `Offline${connectionStore.connectionStatus.reconnectionAttempts > 0 ? ` (${connectionStore.connectionStatus.reconnectionAttempts} retries)` : ''}`
       }
     } else if (!socket.connectionHealth.isHealthy) {
       return {

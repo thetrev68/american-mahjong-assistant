@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { Container } from '../../ui-components/layout/Container'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { useGameStore } from '../../stores/game-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
@@ -12,7 +12,7 @@ import { useIntelligenceStore } from '../../stores/intelligence-store'
 export const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
   const navigate = useNavigate()
-  const roomStore = useRoomStore()
+  const roomSetupStore = useRoomSetupStore()
   const gameStore = useGameStore()
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
@@ -24,7 +24,7 @@ export const LandingPage = () => {
   
   const handleReset = () => {
     // Clear ALL stores for a complete fresh start - no navigation
-    roomStore.resetToStart()
+    roomSetupStore.resetToStart()
     patternStore.clearSelection()
     patternStore.clearAllFilters()
     tileStore.clearHand()

@@ -2,20 +2,23 @@
 // Host-only management panel for room administration
 
 import React, { useState } from 'react'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
+import { usePlayerStore } from '../stores/player.store'
 import { getRoomMultiplayerService } from '../services/room-multiplayer'
 import { Button } from './Button'
 import { Card } from './Card'
 
 const HostControls: React.FC = () => {
   const roomStore = useRoomStore()
+  const playerStore = usePlayerStore()
   const [showSettings, setShowSettings] = useState(false)
   const [showTransferHost, setShowTransferHost] = useState(false)
   const [selectedNewHost, setSelectedNewHost] = useState('')
   const [roomSettings, setRoomSettings] = useState(roomStore.roomSettings)
 
   const roomService = getRoomMultiplayerService()
-  const connectedPlayers = roomStore.getConnectedPlayers()
+  const allPlayers = roomStore.players || []
+  const connectedPlayers = allPlayers.filter(p => p.isConnected)
   const nonHostPlayers = connectedPlayers.filter(p => !p.isHost)
   
   // Handle kicking a player
@@ -63,7 +66,8 @@ const HostControls: React.FC = () => {
     setShowSettings(false)
   }
 
-  if (!roomStore.hostPermissions.canKickPlayers) {
+  // Check if current player is host
+  if (!playerStore.isCurrentPlayerHost() || !roomStore.hostPermissions.canKickPlayers) {
     return null // Not a host or no permissions
   }
 

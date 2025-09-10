@@ -62,6 +62,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Store state
   const gameStore = useGameStore()
   const roomStore = useRoomStore()
+  const roomSetupStore = useRoomSetupStore()
+  const playerStore = usePlayerStore()
   const intelligenceStore = useIntelligenceStore()
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
@@ -175,13 +177,13 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
     
     // For solo games, use room store other player names with "You" as the first player
-    if (roomStore.coPilotMode === 'solo' && roomStore.otherPlayerNames.length > 0) {
-      return ['You', ...roomStore.otherPlayerNames]
+    if (roomSetupStore.coPilotMode === 'solo' && playerStore.otherPlayerNames.length > 0) {
+      return ['You', ...playerStore.otherPlayerNames]
     }
     
     // Fallback to generic names
     return ['You', 'Right', 'Across', 'Left']
-  }, [gameStore.players, roomStore.coPilotMode, roomStore.otherPlayerNames])
+  }, [gameStore.players, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
 
   // Get current player info from game store
   const currentPlayer = useMemo(() => {
@@ -193,14 +195,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     
     // In solo mode, if we're using fallback names that start with "You", 
     // try to use the actual entered player names instead
-    if (roomStore.coPilotMode === 'solo' && roomStore.otherPlayerNames.length > 0) {
+    if (roomSetupStore.coPilotMode === 'solo' && playerStore.otherPlayerNames.length > 0) {
       // Use the first actual player name instead of "You" 
-      const allRealNames = [roomStore.otherPlayerNames[0], ...roomStore.otherPlayerNames.slice(1)]
+      const allRealNames = [playerStore.otherPlayerNames[0], ...playerStore.otherPlayerNames.slice(1)]
       return allRealNames[currentPlayerIndex % allRealNames.length] || playerNames[currentPlayerIndex]
     }
     
     return playerNames[currentPlayerIndex]
-  }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames, roomStore.coPilotMode, roomStore.otherPlayerNames])
+  }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
   const [gameRound] = useState(1)
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
   const [discardPile] = useState<Array<{
@@ -395,7 +397,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   useEffect(() => {
     if (!gameEndCoordinator && selectedPatterns.length > 0 && gameStore.players.length > 0) {
       const gameEndContext: GameEndContext = {
-        gameId: roomStore.currentRoomCode || `game-${Date.now()}`,
+        gameId: roomStore.room?.id || `game-${Date.now()}`,
         players: gameStore.players.map(p => ({ id: p.id, name: p.name })),
         wallTilesRemaining: turnSelectors.wallCount,
         passedOutPlayers,
@@ -422,15 +424,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
             isSelected: false
           } as PlayerTile))
         },
-        roomId: roomStore.currentRoomCode || undefined,
-        coPilotMode: roomStore.coPilotMode || undefined
+        roomId: roomStore.room?.id || undefined,
+        coPilotMode: roomSetupStore.coPilotMode || undefined
       }
       
       setGameEndCoordinator(new GameEndCoordinator(gameEndContext))
     }
   }, [gameEndCoordinator, selectedPatterns, gameStore.players, turnSelectors.wallCount, 
       passedOutPlayers, gameRound, gameStartTime, currentHand, currentPlayerId, 
-      roomStore.currentRoomCode, roomStore.coPilotMode])
+      roomStore.room?.id, roomSetupStore.coPilotMode])
 
   // Check for automatic game end conditions
   useEffect(() => {
@@ -518,7 +520,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Solo game end enhancements
   useEffect(() => {
-    if (roomStore.coPilotMode === 'solo' && gameEnded && finalHandRevealData) {
+    if (roomSetupStore.coPilotMode === 'solo' && gameEnded && finalHandRevealData) {
       // For solo games, add context about the real-world game result
       const gameEndResult = gameStore.gameEndResult
       let message = 'Review your co-pilot analysis from this game'
@@ -538,7 +540,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         duration: 5000
       })
     }
-  }, [roomStore.coPilotMode, gameEnded, finalHandRevealData, gameStore])
+  }, [roomSetupStore.coPilotMode, gameEnded, finalHandRevealData, gameStore])
 
   // Wall exhaustion warning
   const wallExhaustionWarning = useMemo(() => {
@@ -655,7 +657,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
       // Check if this is a multiplayer session
       const gameEndContext: GameEndContext = {
-        gameId: roomStore.currentRoomCode || `game-${Date.now()}`,
+        gameId: roomStore.room?.id || `game-${Date.now()}`,
         players: gameStore.players.map(p => ({ id: p.id, name: p.name })),
         wallTilesRemaining: turnSelectors.wallCount,
         passedOutPlayers,
@@ -678,8 +680,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         playerHands: {
           [currentPlayerId]: winningHand
         },
-        roomId: roomStore.currentRoomCode || undefined,
-        coPilotMode: roomStore.coPilotMode || undefined
+        roomId: roomStore.room?.id || undefined,
+        coPilotMode: roomSetupStore.coPilotMode || undefined
       }
 
       if (isMultiplayerSession(gameEndContext)) {
@@ -979,7 +981,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
     
     // In solo mode, remove passed tiles and prompt user to input received tiles
-    if (roomStore.coPilotMode === 'solo') {
+    if (roomSetupStore.coPilotMode === 'solo') {
       // Remove selected tiles from hand (tiles passed out)
       selectedTiles.forEach(tile => {
         tileStore.removeTile(tile.instanceId)
@@ -1004,7 +1006,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         onNavigateToCharleston()
       }
     }
-  }, [tileStore, roomStore.coPilotMode, gameStore, onNavigateToCharleston])
+  }, [tileStore, roomSetupStore.coPilotMode, gameStore, onNavigateToCharleston])
   
   // Advance from Charleston to Gameplay phase
   const handleAdvanceToGameplay = useCallback(() => {
@@ -1237,7 +1239,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
             currentPlayer={turnSelectors.currentPlayerName}
             wallCount={turnSelectors.wallCount}
             turnDuration={turnSelectors.turnDuration}
-            isSoloMode={roomStore.coPilotMode === 'solo'}
+            isSoloMode={roomSetupStore.coPilotMode === 'solo'}
           />
         </div>
       )}

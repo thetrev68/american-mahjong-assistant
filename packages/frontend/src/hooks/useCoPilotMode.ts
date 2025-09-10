@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { useRoomStore, type CoPilotMode } from '../stores/room-store'
+import { useRoomSetupStore, type CoPilotMode } from '../stores/room-setup.store'
 
 interface ModeOption {
   value: CoPilotMode
@@ -34,7 +34,7 @@ const MODE_LABELS: Record<CoPilotMode, string> = {
 }
 
 export const useCoPilotMode = (): UseCoPilotModeReturn => {
-  const { coPilotMode, setCoPilotMode, getCoPilotModeDescription } = useRoomStore()
+  const { coPilotMode, setCoPilotMode, getCoPilotModeDescription } = useRoomSetupStore()
 
   const setMode = useCallback((mode: CoPilotMode) => {
     setCoPilotMode(mode)
