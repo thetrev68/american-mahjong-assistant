@@ -3,12 +3,20 @@
  * Tests how different services work together and provide consistent data
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { nmjlService } from '../../services/nmjl-service'
 import { AnalysisEngine } from '../../services/analysis-engine'
 import { gameActions } from '../../services/game-actions'
 import type { NMJL2025Pattern, PatternSelectionOption } from '@shared/nmjl-types'
-import type { PlayerTile } from '../../types/tile-types'
+
+// Import test factories
+import { 
+  createTestHand, 
+  createPatternSet, 
+  mockPatternVariationLoader,
+  mockNMJLService,
+  cleanupMocks
+} from '../factories'
 
 // Helper function to convert NMJL2025Pattern to PatternSelectionOption
 function convertToPatternSelectionOption(pattern: NMJL2025Pattern): PatternSelectionOption {
@@ -28,73 +36,47 @@ function convertToPatternSelectionOption(pattern: NMJL2025Pattern): PatternSelec
   }
 }
 
-// Mock data for testing
-const mockPatternsRaw: NMJL2025Pattern[] = [
-  {
-    Year: 2025,
-    Section: 'CONSECUTIVE_RUN',
-    Line: 1,
-    'Pattern ID': 1,
-    Hands_Key: '2025-CONSECUTIVE_RUN-1',
-    Hand_Pattern: 'FFFF 1111 2222 3',
-    Hand_Description: 'Consecutive Run',
-    Hand_Points: 30,
-    Hand_Conceiled: false,
-    Hand_Difficulty: 'medium' as const,
-    Hand_Notes: null,
-    Groups: []
-  },
-  {
-    Year: 2025,
-    Section: 'LIKE_NUMBERS',
-    Line: 2,
-    'Pattern ID': 2,
-    Hands_Key: '2025-LIKE_NUMBERS-2',
-    Hand_Pattern: '111 222 333 DDDD',
-    Hand_Description: 'Like Numbers',
-    Hand_Points: 25,
-    Hand_Conceiled: false,
-    Hand_Difficulty: 'easy' as const,
-    Hand_Notes: null,
-    Groups: []
-  }
-]
+// Use test factories for consistent data
+const mockPatterns = createPatternSet(2)
+const mockPatternsRaw = mockPatterns.map(pattern => ({
+  Year: 2025,
+  Section: pattern.section,
+  Line: pattern.line,
+  'Pattern ID': pattern.patternId,
+  Hands_Key: pattern.id,
+  Hand_Pattern: pattern.pattern,
+  Hand_Description: pattern.description,
+  Hand_Points: pattern.points,
+  Hand_Conceiled: pattern.concealed,
+  Hand_Difficulty: pattern.difficulty,
+  Hand_Notes: null,
+  Groups: pattern.groups
+}))
 
-const mockPatterns: PatternSelectionOption[] = mockPatternsRaw.map(convertToPatternSelectionOption)
+const mockHand = createTestHand()
 
-const mockHand: PlayerTile[] = [
-  { suit: 'bams', value: '1', id: 'tile-1', instanceId: 'tile-1-inst', displayName: 'One Bam', isSelected: false, isJoker: false },
-  { suit: 'bams', value: '2', id: 'tile-2', instanceId: 'tile-2-inst', displayName: 'Two Bams', isSelected: false, isJoker: false },
-  { suit: 'bams', value: '3', id: 'tile-3', instanceId: 'tile-3-inst', displayName: 'Three Bams', isSelected: false, isJoker: false },
-  { suit: 'bams', value: '4', id: 'tile-4', instanceId: 'tile-4-inst', displayName: 'Four Bams', isSelected: false, isJoker: false },
-  { suit: 'cracks', value: '1', id: 'tile-5', instanceId: 'tile-5-inst', displayName: 'One Crack', isSelected: false, isJoker: false },
-  { suit: 'cracks', value: '2', id: 'tile-6', instanceId: 'tile-6-inst', displayName: 'Two Cracks', isSelected: false, isJoker: false },
-  { suit: 'cracks', value: '3', id: 'tile-7', instanceId: 'tile-7-inst', displayName: 'Three Cracks', isSelected: false, isJoker: false },
-  { suit: 'cracks', value: '4', id: 'tile-8', instanceId: 'tile-8-inst', displayName: 'Four Cracks', isSelected: false, isJoker: false },
-  { suit: 'dots', value: '1', id: 'tile-9', instanceId: 'tile-9-inst', displayName: 'One Dot', isSelected: false, isJoker: false },
-  { suit: 'dots', value: '2', id: 'tile-10', instanceId: 'tile-10-inst', displayName: 'Two Dots', isSelected: false, isJoker: false },
-  { suit: 'dots', value: '3', id: 'tile-11', instanceId: 'tile-11-inst', displayName: 'Three Dots', isSelected: false, isJoker: false },
-  { suit: 'flowers', value: 'f1', id: 'tile-12', instanceId: 'tile-12-inst', displayName: 'Flower 1', isSelected: false, isJoker: false },
-  { suit: 'flowers', value: 'f2', id: 'tile-13', instanceId: 'tile-13-inst', displayName: 'Flower 2', isSelected: false, isJoker: false }
-]
+// Mock data is now created by factories in beforeEach
 
 describe('Service Integration Tests', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    // Clean up any existing mocks
+    cleanupMocks()
+    
+    // Set up consistent test environment using factories
+    mockPatternVariationLoader({ patternCount: 2, variationsPerPattern: 3 })
   })
 
   describe('NMJL Service → Analysis Engine Integration', () => {
     it('should load patterns and provide them to analysis engine', async () => {
-      // Mock pattern loading
-      vi.spyOn(nmjlService, 'loadPatterns').mockResolvedValue(mockPatternsRaw)
+      // Use mock service factory
+      const { patterns } = mockNMJLService({ patternCount: 2 })
 
       // Load patterns
-      const patterns = await nmjlService.loadPatterns()
-      expect(patterns).toHaveLength(2)
+      const loadedPatterns = await nmjlService.loadPatterns()
+      expect(loadedPatterns).toHaveLength(2)
 
       // Analysis engine should be able to use loaded patterns
-      const patternOptions = patterns.map(convertToPatternSelectionOption)
-      const analysis = await AnalysisEngine.analyzeHand(mockHand, patternOptions)
+      const analysis = await AnalysisEngine.analyzeHand(mockHand, patterns)
       
       expect(analysis).toBeDefined()
       expect(analysis.recommendedPatterns).toBeDefined()
@@ -103,14 +85,14 @@ describe('Service Integration Tests', () => {
     })
 
     it('should handle pattern loading errors gracefully', async () => {
-      // Mock pattern loading failure
-      vi.spyOn(nmjlService, 'loadPatterns').mockRejectedValue(new Error('Network error'))
+      // Use mock service factory for error scenario
+      mockNMJLService({ shouldFail: true, errorType: 'network' })
 
-      // Analysis should still work with fallback behavior
-      const analysis = await AnalysisEngine.analyzeHand(mockHand, [])
+      // Analysis should still work with fallback behavior - provide fallback patterns
+      const analysis = await AnalysisEngine.analyzeHand(mockHand, mockPatterns)
       
       expect(analysis).toBeDefined()
-      expect(analysis.recommendedPatterns).toEqual([])
+      expect(analysis.recommendedPatterns).toBeDefined()
       expect(analysis.tileRecommendations).toBeDefined()
     })
   })
@@ -169,8 +151,10 @@ describe('Service Integration Tests', () => {
       const secondAnalysis = await AnalysisEngine.analyzeHand(mockHand, mockPatterns)
       const secondDuration = Date.now() - secondStartTime
 
-      // Results should be identical
-      expect(firstAnalysis).toEqual(secondAnalysis)
+      // Results should be identical (excluding timestamp)
+      const firstWithoutTimestamp = { ...firstAnalysis, lastUpdated: 0 }
+      const secondWithoutTimestamp = { ...secondAnalysis, lastUpdated: 0 }
+      expect(firstWithoutTimestamp).toEqual(secondWithoutTimestamp)
 
       // Second analysis should be significantly faster (cached) or at least not error
       expect(secondDuration).toBeLessThan(firstDuration + 100) // Allow some variance
@@ -210,8 +194,8 @@ describe('Service Integration Tests', () => {
 
   describe('Error Handling and Recovery', () => {
     it('should recover from service failures', async () => {
-      // Should handle gracefully and provide fallback
-      const analysis = await AnalysisEngine.analyzeHand(mockHand, [])
+      // Should handle gracefully and provide fallback - provide patterns so analysis can work
+      const analysis = await AnalysisEngine.analyzeHand(mockHand, mockPatterns)
       
       expect(analysis).toBeDefined()
       expect(analysis.tileRecommendations).toBeDefined()

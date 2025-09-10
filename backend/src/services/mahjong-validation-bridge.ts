@@ -133,7 +133,11 @@ export class MahjongValidationBridge {
     exposedTiles: Tile[]
   ): { isValid: boolean; violations: string[] } {
     const violations: string[] = []
-    const totalTiles = hand.length + exposedTiles.length
+    
+    // Handle null/undefined inputs gracefully
+    const safeHand = hand || []
+    const safeExposedTiles = exposedTiles || []
+    const totalTiles = safeHand.length + safeExposedTiles.length
 
     // Check total tile count
     if (totalTiles !== 14) {
@@ -142,11 +146,11 @@ export class MahjongValidationBridge {
     }
 
     // Check for excessive duplicate tiles (more than 4 of any type)
-    const allTiles = [...hand, ...exposedTiles]
+    const allTiles = [...safeHand, ...safeExposedTiles]
     const tileCounts = new Map<string, number>()
     
     allTiles.forEach(tile => {
-      if (tile.id !== 'joker') {
+      if (tile && tile.id && tile.id !== 'joker') {
         tileCounts.set(tile.id, (tileCounts.get(tile.id) || 0) + 1)
       }
     })
@@ -158,8 +162,8 @@ export class MahjongValidationBridge {
     }
 
     // Validate exposed tile groups (must be in sets of 3 or 4)
-    if (exposedTiles.length > 0 && exposedTiles.length % 3 !== 0) {
-      violations.push(`Exposed tiles must be in groups of 3 or 4 (have ${exposedTiles.length})`)
+    if (safeExposedTiles.length > 0 && safeExposedTiles.length % 3 !== 0) {
+      violations.push(`Exposed tiles must be in groups of 3 or 4 (have ${safeExposedTiles.length})`)
     }
 
     return {
@@ -319,14 +323,18 @@ export class MahjongValidationBridge {
     exposedTiles: number
     concealedTiles: number
   } {
-    const allTiles = [...hand, ...exposedTiles]
-    const jokersUsed = allTiles.filter(tile => tile.id === 'joker').length
+    // Handle null/undefined inputs gracefully
+    const safeHand = hand || []
+    const safeExposedTiles = exposedTiles || []
+    
+    const allTiles = [...safeHand, ...safeExposedTiles]
+    const jokersUsed = allTiles.filter(tile => tile && tile.id === 'joker').length
 
     return {
       totalTiles: allTiles.length,
       jokersUsed,
-      exposedTiles: exposedTiles.length,
-      concealedTiles: hand.length
+      exposedTiles: safeExposedTiles.length,
+      concealedTiles: safeHand.length
     }
   }
 

@@ -644,7 +644,7 @@ export class GameActionsService {
       playerHands: {
         [roomStore.hostPlayerId || 'current']: tileStore.playerHand
       },
-      discardPile: useTurnStore.getState().discardPile.map((d: any) => d.tile),
+      discardPile: useTurnStore.getState().discardPile.map((d: { tile: Tile }) => d.tile),
       exposedTiles: {
         [roomStore.hostPlayerId || 'current']: tileStore.exposedTiles
       },
@@ -694,7 +694,7 @@ export class GameActionsService {
     console.log(`Available actions updated for player ${playerId}`)
   }
 
-  private simulateCallOpportunities(tile: Tile, _playerId: string): void {
+  private simulateCallOpportunities(tile: Tile): void {
     // In solo mode, simulate call opportunities for co-pilot experience
     // This would normally create UI notifications in multiplayer scenarios
     console.log(`Simulating call opportunity for tile: ${tile.displayName}`)

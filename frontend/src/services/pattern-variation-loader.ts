@@ -84,7 +84,7 @@ export class PatternVariationLoader {
    */
   static async getPatternVariations(patternId: string): Promise<PatternVariation[]> {
     await this.loadVariations()
-    return this.index?.byPattern[patternId] || []
+    return this.index?.byPattern?.[patternId] || []
   }
 
   /**
@@ -92,7 +92,7 @@ export class PatternVariationLoader {
    */
   static async getSectionVariations(section: string): Promise<PatternVariation[]> {
     await this.loadVariations()
-    return this.index?.bySection[section] || []
+    return this.index?.bySection?.[section] || []
   }
 
   /**

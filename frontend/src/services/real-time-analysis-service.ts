@@ -218,8 +218,7 @@ export class RealTimeAnalysisService {
    */
   private static generateReasoning(
     pattern: NMJL2025Pattern,
-    analysis: any,
-    _ranking: any
+    analysis: { tileMatching: { bestVariation: { completionRatio: number } } }
   ): string {
     const completion = Math.round(analysis.tileMatching.bestVariation.completionRatio * 100)
     const difficulty = pattern.Hand_Difficulty

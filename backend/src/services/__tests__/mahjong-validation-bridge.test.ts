@@ -144,7 +144,7 @@ describe('MahjongValidationBridge', () => {
       const result = MahjongValidationBridge.validateMahjongDeclaration(declaration)
       
       expect(result.isValid).toBe(false)
-      expect(result.violations).toContain('Validation system error')
+      expect(result.violations).toContain('Invalid tile count: 0 tiles (need exactly 14)')
     })
   })
 

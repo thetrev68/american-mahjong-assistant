@@ -33,12 +33,10 @@ export const useGameIntelligence = (gameState: GameState | null, playerId: strin
     
     updateIntelligence()
   }, [
-    gameState?.turnNumber,
-    gameState?.currentPlayer,
-    gameState?.discardPile?.length,
+    gameState,
+    intelligenceStore,
     playerId,
     lastAnalysisUpdate
-    // Removed intelligenceStore from dependencies to prevent infinite loop
   ])
   
   // Return current intelligence state

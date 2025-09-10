@@ -128,9 +128,11 @@ describe('useSocket Hook', () => {
 
       const { result } = renderHook(() => useSocket())
 
-      expect(() => {
-        result.current.emit('test-event', { data: 'test' })
-      }).not.toThrow()
+      act(() => {
+        expect(() => {
+          result.current.emit('test-event', { data: 'test' })
+        }).not.toThrow()
+      })
 
       expect(result.current.lastError).toBe('Failed to emit event: Emission failed')
     })

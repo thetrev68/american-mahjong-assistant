@@ -84,7 +84,7 @@ class PerformanceMonitor {
       const entries = entryList.getEntries()
       entries.forEach(entry => {
         if (entry.name === 'first-input') {
-          this.metrics.firstInputDelay = (entry as any).processingStart - entry.startTime
+          this.metrics.firstInputDelay = (entry as PerformanceEventTiming).processingStart - entry.startTime
         }
       })
     }).observe({ entryTypes: ['first-input'] })
@@ -93,8 +93,9 @@ class PerformanceMonitor {
     new PerformanceObserver((entryList) => {
       let cls = 0
       entryList.getEntries().forEach(entry => {
-        if (!(entry as any).hadRecentInput) {
-          cls += (entry as any).value
+        const layoutShiftEntry = entry as PerformanceEntry & { hadRecentInput?: boolean; value?: number }
+        if (!layoutShiftEntry.hadRecentInput) {
+          cls += layoutShiftEntry.value || 0
         }
       })
       this.metrics.cumulativeLayoutShift = cls
@@ -193,7 +194,7 @@ class PerformanceMonitor {
   }
   
   recordCustomMetric(name: keyof PerformanceMetrics, value: number): void {
-    this.metrics[name] = value as any
+    ;(this.metrics as Record<string, unknown>)[name] = value
   }
   
   generateReport(): PerformanceReport {
@@ -202,8 +203,8 @@ class PerformanceMonitor {
       timestamp: new Date(),
       url: window.location.href,
       userAgent: navigator.userAgent,
-      connectionType: (navigator as any).connection?.effectiveType,
-      deviceMemory: (navigator as any).deviceMemory
+      connectionType: (navigator as Navigator & { connection?: { effectiveType?: string } }).connection?.effectiveType,
+      deviceMemory: (navigator as Navigator & { deviceMemory?: number }).deviceMemory
     }
     
     this.reports.push(report)
