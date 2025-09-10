@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useGameStore } from '../../stores/game-store'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomStore } from '../../stores/room.store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { useTileStore } from '../../stores/tile-store'

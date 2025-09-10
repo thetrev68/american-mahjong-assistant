@@ -19,7 +19,7 @@ import {
   handleNetworkError,
   handleServerShutdown 
 } from '../services/disconnection-manager'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import { useGameStore } from '../stores/game-store'
 
 export interface ConnectionResilienceConfig {
