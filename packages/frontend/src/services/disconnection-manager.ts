@@ -1,7 +1,7 @@
 // Graceful Disconnection Manager
 // Handles clean disconnection, state preservation, and graceful degradation
 
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import { useGameStore } from '../stores/game-store'
 import { useTurnStore } from '../stores/turn-store'
 import { useCharlestonStore } from '../stores/charleston-store'
@@ -162,7 +162,7 @@ export class DisconnectionManager {
     this.disconnectionMetadata = {
       playerId: gameStore.currentPlayerId || 'unknown',
       playerName: 'Unknown Player', // Will be updated from room store
-      roomId: roomStore.currentRoomCode,
+      roomId: roomStore.room?.id,
       currentPhase: roomStore.currentPhase,
       disconnectionTime: new Date(),
       reason
@@ -202,7 +202,7 @@ export class DisconnectionManager {
 
       const progressData = {
         room: {
-          roomCode: roomStore.currentRoomCode,
+          roomCode: roomStore.room?.id,
           playerPosition: roomStore.playerPositions,
           currentPhase: roomStore.currentPhase
         },

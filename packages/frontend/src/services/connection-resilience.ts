@@ -2,7 +2,7 @@
 // Comprehensive reconnection handling, state recovery, and network error management
 
 import { useSocket } from '../hooks/useSocket'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import { useGameStore } from '../stores/game-store'
 import { useTurnStore } from '../stores/turn-store'
 import { useCharlestonStore } from '../stores/charleston-store'
@@ -286,7 +286,7 @@ export class ConnectionResilienceService {
 
     this.lastKnownState = {
       room: {
-        currentRoomCode: roomStore.currentRoomCode,
+        currentRoomCode: roomStore.room?.id,
         hostPlayerId: roomStore.hostPlayerId,
         players: roomStore.players,
         currentPhase: roomStore.currentPhase,
@@ -315,7 +315,7 @@ export class ConnectionResilienceService {
     const roomStore = useRoomStore.getState()
     const roomService = getRoomMultiplayerService()
 
-    if (!roomStore.currentRoomCode || !roomService) {
+    if (!roomStore.room?.id || !roomService) {
       return
     }
 
@@ -324,8 +324,8 @@ export class ConnectionResilienceService {
       roomService.requestGameStateRecovery()
 
       // If room exists but we lost connection, try to rejoin
-      if (this.lastKnownState.room && roomStore.currentRoomCode) {
-        roomService.reconnectToRoom(roomStore.currentRoomCode)
+      if (this.lastKnownState.room && roomStore.room?.id) {
+        roomService.reconnectToRoom(roomStore.room?.id)
       }
 
       useGameStore.getState().addAlert({

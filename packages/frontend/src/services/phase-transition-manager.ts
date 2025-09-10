@@ -1,7 +1,7 @@
 // Phase Transition Manager
 // Seamless integration between all game phases with proper state management
 
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import { useGameStore } from '../stores/game-store'
 import { useTurnStore } from '../stores/turn-store'
 import { useCharlestonStore } from '../stores/charleston-store'
@@ -79,7 +79,7 @@ export class PhaseTransitionManager {
             const players = roomStore.getConnectedPlayers()
             
             // Set up Charleston multiplayer mode
-            charlestonStore.setMultiplayerMode(true, roomStore.currentRoomCode || undefined)
+            charlestonStore.setMultiplayerMode(true, roomStore.room?.id || undefined)
             
             // Initialize Charleston for each player
             players.forEach(player => {
@@ -124,7 +124,7 @@ export class PhaseTransitionManager {
             
             // Initialize turns and multiplayer
             turnStore.initializeTurns(turnPlayers)
-            turnStore.setMultiplayerMode(true, roomStore.currentRoomCode || undefined)
+            turnStore.setMultiplayerMode(true, roomStore.room?.id || undefined)
             
             // Initialize turn multiplayer service if available
             const roomService = getRoomMultiplayerService()

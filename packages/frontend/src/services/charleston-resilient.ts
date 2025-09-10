@@ -2,7 +2,7 @@
 // Multiplayer Charleston coordination with connection resilience and event queuing
 
 import { useCharlestonStore } from '../stores/charleston-store'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import { getConnectionResilienceService } from './connection-resilience'
 import { getNetworkErrorHandler } from './network-error-handler'
 import type { Tile } from '../utils/charleston-adapter'
@@ -170,7 +170,7 @@ export class CharlestonResilientService {
       
       // Update room readiness for next phase
       const roomStore = useRoomStore.getState()
-      const currentPlayerId = roomStore.currentRoomCode // This would need proper player ID
+      const currentPlayerId = roomStore.room?.id // This would need proper player ID
       if (currentPlayerId) {
         roomStore.setPlayerReadiness(currentPlayerId, 'gameplay', true)
       }
@@ -213,7 +213,7 @@ export class CharlestonResilientService {
   async markPlayerReady(selectedTiles: Tile[], phase: string): Promise<boolean> {
     const roomStore = useRoomStore.getState()
     const currentPlayerId = roomStore.hostPlayerId // This needs proper current player ID
-    const roomId = roomStore.currentRoomCode
+    const roomId = roomStore.room?.id
 
     if (!currentPlayerId || !roomId) {
       console.error('Missing player ID or room ID for Charleston readiness')
@@ -385,7 +385,7 @@ export class CharlestonResilientService {
   // Request current Charleston status from server
   async requestCharlestonStatus(): Promise<boolean> {
     const roomStore = useRoomStore.getState()
-    const roomId = roomStore.currentRoomCode
+    const roomId = roomStore.room?.id
 
     if (!roomId) {
       console.error('No room ID for Charleston status request')

@@ -6,7 +6,7 @@ import type { NMJL2025Pattern } from 'shared-types'
 import { useGameStore } from '../stores/game-store'
 import { useTileStore } from '../stores/tile-store'
 import { useTurnStore } from '../stores/turn-store'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import { useIntelligenceStore } from '../stores/intelligence-store'
 import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
 

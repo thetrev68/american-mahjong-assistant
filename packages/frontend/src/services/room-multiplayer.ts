@@ -2,7 +2,7 @@
 // Real-time room coordination and player state synchronization
 
 import { Socket } from 'socket.io-client'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import { useGameStore } from '../stores/game-store'
 import type { Room, Player, RoomConfig } from 'shared-types'
 

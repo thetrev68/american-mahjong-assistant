@@ -4,7 +4,7 @@
 import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
 import { useGameStore } from '../stores/game-store'
 import { useTurnStore } from '../stores/turn-store'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomStore } from '../stores/room.store'
 import type { GameAction, CallType } from './game-actions'
 import type { Tile } from '../types/tile-types'
 
@@ -395,7 +395,7 @@ export class TurnRealtimeService {
     
     try {
       await this.multiplayerManager.emitToService('turn', 'request-game-state-sync', {
-        roomId: roomStore.currentRoomCode,
+        roomId: roomStore.room?.id,
         playerId: roomStore.hostPlayerId
       }, { priority: 'medium' })
 
