@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useRoomSetup } from '../../hooks/useRoomSetup'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import { useGameStore } from '../../stores/game-store'
 import { CoPilotModeSelector } from './CoPilotModeSelector'
@@ -30,7 +30,7 @@ const steps: ProgressStep[] = [
 export const RoomSetupView: React.FC = () => {
   const navigate = useNavigate()
   const roomSetup = useRoomSetup()
-  const roomStore = useRoomStore()
+  const roomSetupStore = useRoomSetupStore()
   const multiplayerStore = useMultiplayerStore()
   const gameStore = useGameStore()
   
@@ -71,10 +71,10 @@ export const RoomSetupView: React.FC = () => {
     switch (currentStep) {
       case 'room-creation':
         // Reset the co-pilot mode selection so user can change it
-        roomStore.resetCoPilotModeSelection()
+        roomSetupStore.resetCoPilotModeSelection()
         // Also reset room creation status and clear errors
-        roomStore.setRoomCreationStatus('idle')
-        roomStore.clearError()
+        roomSetupStore.setRoomCreationStatus('idle')
+        roomSetupStore.clearError()
         setForceStep('mode-selection')
         break
       case 'player-positioning':
@@ -89,10 +89,10 @@ export const RoomSetupView: React.FC = () => {
 
   // Effect to clear forceStep when room is successfully created so natural progression works
   useEffect(() => {
-    if (forceStep === 'room-creation' && roomStore.currentRoomCode && roomStore.roomCreationStatus === 'success') {
+    if (forceStep === 'room-creation' && roomSetup.roomCode && roomSetupStore.roomCreationStatus === 'success') {
       setForceStep(null) // Clear forced step to allow natural progression to player-positioning
     }
-  }, [forceStep, roomStore.currentRoomCode, roomStore.roomCreationStatus])
+  }, [forceStep, roomSetup.roomCode, roomSetupStore.roomCreationStatus])
 
   const renderProgressIndicator = () => (
     <Card variant="default" padding="sm" className="mb-8">
@@ -234,7 +234,7 @@ export const RoomSetupView: React.FC = () => {
                   <span>Room Code: <span className="font-mono text-lg">{roomSetup.roomCode}</span></span>
                   {/* Show share button for host (multiple fallback conditions for reliability) */}
                   {(roomSetup.isHost || 
-                    roomStore.roomCreationStatus === 'success' || 
+                    roomSetupStore.roomCreationStatus === 'success' || 
                     multiplayerStore.currentRoom?.hostId === multiplayerStore.currentPlayerId) && roomSetup.roomCode && (
                     <ShareButton 
                       roomCode={roomSetup.roomCode}
@@ -250,11 +250,9 @@ export const RoomSetupView: React.FC = () => {
 
             <PlayerPositioning
               players={multiplayerStore.currentRoom?.players || []}
-              playerPositions={roomStore.playerPositions}
               currentPlayerId={multiplayerStore.currentPlayerId}
-              onPositionChange={roomStore.setPlayerPosition}
               disabled={false}
-              isSoloMode={roomStore.coPilotMode === 'solo'}
+              isSoloMode={roomSetupStore.coPilotMode === 'solo'}
             />
           </div>
         )
@@ -317,7 +315,7 @@ export const RoomSetupView: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => {
-              roomStore.resetToStart()
+              roomSetupStore.resetToStart()
             }}
             className="text-red-600 hover:bg-red-50 border-red-200"
           >

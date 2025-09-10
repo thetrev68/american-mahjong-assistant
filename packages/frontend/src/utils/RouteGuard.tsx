@@ -1,6 +1,7 @@
 import React from 'react'
 import { Navigate } from 'react-router-dom'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomSetupStore } from '../stores/room-setup.store'
+import { useRoomStore } from '../stores/room.store'
 
 interface RouteGuardProps {
   children: React.ReactNode
@@ -13,11 +14,12 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
   requiresRoomSetup = false,
   requiresGameStart = false 
 }) => {
+  const roomSetupStore = useRoomSetupStore()
   const roomStore = useRoomStore()
 
   // Check if room setup is required and completed
   if (requiresRoomSetup) {
-    const progress = roomStore.getRoomSetupProgress()
+    const progress = roomSetupStore.getRoomSetupProgress()
     
     // If room setup isn't complete, redirect to room setup
     if (progress.currentStep !== 'ready') {
@@ -27,7 +29,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
 
   // Check if game start is required
   if (requiresGameStart) {
-    const progress = roomStore.getRoomSetupProgress()
+    const progress = roomSetupStore.getRoomSetupProgress()
     const isRoomReady = roomStore.isRoomReadyForGame()
     
     // If not ready for game, redirect to room setup
@@ -35,7 +37,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
       console.warn('RouteGuard: Game not ready, redirecting to room setup', {
         step: progress.currentStep,
         roomReady: isRoomReady,
-        coPilotMode: roomStore.coPilotMode
+        coPilotMode: roomSetupStore.coPilotMode
       })
       return <Navigate to="/room-setup" replace />
     }

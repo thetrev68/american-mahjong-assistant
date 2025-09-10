@@ -1,5 +1,7 @@
 import { useCallback } from 'react'
-import { useRoomStore, type CoPilotMode } from '../stores/room-store'
+import { useRoomSetupStore, type CoPilotMode } from '../stores/room-setup.store'
+import { useRoomStore } from '../stores/room.store'
+import { usePlayerStore } from '../stores/player.store'
 import { useMultiplayer } from './useMultiplayer'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
 import type { Player, Room } from 'shared-types'
@@ -27,7 +29,9 @@ export interface UseRoomSetupReturn {
 }
 
 export const useRoomSetup = (): UseRoomSetupReturn => {
+  const roomSetupStore = useRoomSetupStore()
   const roomStore = useRoomStore()
+  const playerStore = usePlayerStore()
   const multiplayerStore = useMultiplayerStore()
   const multiplayer = useMultiplayer()
 
@@ -66,29 +70,30 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   const createRoom = useCallback(async (hostName: string, otherPlayerNames?: string[]) => {
     // Validation
     if (!hostName.trim()) {
-      roomStore.handleRoomCreationError('Please enter your name')
+      roomSetupStore.handleRoomCreationError('Please enter your name')
       return
     }
 
     // Only check server connection for multiplayer mode
-    if (roomStore.coPilotMode !== 'solo' && !multiplayer.isConnected) {
-      roomStore.handleRoomCreationError('Not connected to server. Please check your connection.')
+    if (roomSetupStore.coPilotMode !== 'solo' && !multiplayer.isConnected) {
+      roomSetupStore.handleRoomCreationError('Not connected to server. Please check your connection.')
       return
     }
 
     try {
-      roomStore.setRoomCreationStatus('creating')
+      roomSetupStore.setRoomCreationStatus('creating')
       
       // In solo mode, create a local game instead of a multiplayer room
-      if (roomStore.coPilotMode === 'solo') {
+      if (roomSetupStore.coPilotMode === 'solo') {
         // Generate a local room code for solo mode
         const roomCode = generateRoomCode()
-        let hostPlayerId = multiplayerStore.currentPlayerId
+        let hostPlayerId = playerStore.currentPlayerId
         
         // Ensure we have a consistent player ID
         if (!hostPlayerId) {
           hostPlayerId = generatePlayerId()
-          // Update the multiplayer store with the generated player ID
+          // Update the player store with the generated player ID
+          playerStore.setCurrentPlayerId(hostPlayerId)
           multiplayerStore.setCurrentPlayerId(hostPlayerId)
         }
         
@@ -131,10 +136,11 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
           createdAt: new Date()
         }
         
-        // Set the room in multiplayer store so PlayerPositioning can see all players
+        // Set the room in stores
+        roomStore.updateRoom(room)
         multiplayerStore.setCurrentRoom(room)
         
-        roomStore.handleRoomCreated(roomCode, hostPlayerId, otherPlayerNames)
+        roomSetupStore.handleRoomCreated(roomCode, hostPlayerId, otherPlayerNames)
         
       } else {
         // Everyone mode - create actual multiplayer room
@@ -152,64 +158,65 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
         // Ensure we have a consistent player ID
         if (!hostPlayerId) {
           hostPlayerId = generatePlayerId()
-          // Update the multiplayer store with the generated player ID
+          // Update the player store with the generated player ID
+          playerStore.setCurrentPlayerId(hostPlayerId)
           multiplayerStore.setCurrentPlayerId(hostPlayerId)
         }
 
-        roomStore.handleRoomCreated(roomCode, hostPlayerId)
+        roomSetupStore.handleRoomCreated(roomCode, hostPlayerId)
       }
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create room'
-      roomStore.handleRoomCreationError(errorMessage)
+      roomSetupStore.handleRoomCreationError(errorMessage)
     }
-  }, [roomStore, multiplayer, multiplayerStore, generatePlayerId, generateRoomCode, generateRoomCodeFromId])
+  }, [roomSetupStore, roomStore, playerStore, multiplayer, multiplayerStore, generatePlayerId, generateRoomCode, generateRoomCodeFromId])
 
   const joinRoom = useCallback(async (roomCode: string, playerName: string) => {
     // Validation
-    if (!roomStore.isValidRoomCode(roomCode)) {
-      roomStore.handleRoomJoinError('Please enter a valid 4-character room code')
+    if (!roomSetupStore.isValidRoomCode(roomCode)) {
+      roomSetupStore.handleRoomJoinError('Please enter a valid 4-character room code')
       return
     }
 
     if (!playerName.trim()) {
-      roomStore.handleRoomJoinError('Please enter your name')
+      roomSetupStore.handleRoomJoinError('Please enter your name')
       return
     }
 
     if (!multiplayer.isConnected) {
-      roomStore.handleRoomJoinError('Not connected to server. Please check your connection.')
+      roomSetupStore.handleRoomJoinError('Not connected to server. Please check your connection.')
       return
     }
 
     try {
-      roomStore.setJoinRoomStatus('joining')
+      roomSetupStore.setJoinRoomStatus('joining')
 
       await multiplayer.joinRoom(roomCode.toUpperCase(), playerName.trim())
 
-      roomStore.handleRoomJoined(roomCode.toUpperCase())
+      roomSetupStore.handleRoomJoined(roomCode.toUpperCase())
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to join room'
-      roomStore.handleRoomJoinError(errorMessage)
+      roomSetupStore.handleRoomJoinError(errorMessage)
     }
-  }, [roomStore, multiplayer])
+  }, [roomSetupStore, multiplayer])
 
   return {
     // State
-    coPilotMode: roomStore.coPilotMode,
+    coPilotMode: roomSetupStore.coPilotMode,
     roomCode: roomStore.currentRoomCode,
-    isHost: roomStore.coPilotMode === 'solo' ? true : roomStore.hostPlayerId === multiplayerStore.currentPlayerId,
-    isCreatingRoom: roomStore.roomCreationStatus === 'creating',
-    isJoiningRoom: roomStore.joinRoomStatus === 'joining',
-    error: roomStore.error,
-    setupProgress: roomStore.getRoomSetupProgress(),
+    isHost: roomSetupStore.coPilotMode === 'solo' ? true : roomStore.hostPlayerId === playerStore.currentPlayerId,
+    isCreatingRoom: roomSetupStore.roomCreationStatus === 'creating',
+    isJoiningRoom: roomSetupStore.joinRoomStatus === 'joining',
+    error: roomSetupStore.error,
+    setupProgress: roomSetupStore.getRoomSetupProgress(),
 
     // Actions
-    setCoPilotMode: roomStore.setCoPilotMode,
+    setCoPilotMode: roomSetupStore.setCoPilotMode,
     createRoom,
     joinRoom,
     generateRoomCode,
-    clearError: roomStore.clearError
+    clearError: roomSetupStore.clearError
   }
 }

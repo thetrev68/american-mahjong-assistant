@@ -25,7 +25,8 @@
       "Bash(find:*)",
       "Bash(timeout 5 npm run dev:backend)",
       "Bash(timeout 10 npm run build:*)",
-      "Bash(xargs sed:*)"
+      "Bash(xargs sed:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
     "ask": [],

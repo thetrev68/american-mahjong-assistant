@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
-import { type CoPilotMode } from '../../stores/room-store'
+import { type CoPilotMode } from '../../stores/room-setup.store'
 
 interface RoomCreationProps {
   hostName: string

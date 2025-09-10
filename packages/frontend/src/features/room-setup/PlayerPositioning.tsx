@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { type PlayerPosition } from '../../stores/room-store'
+import { type PlayerPosition } from '../../stores/player.store'
+import { usePlayerStore } from '../../stores/player.store'
 
 interface Player {
   id: string
@@ -9,9 +10,9 @@ interface Player {
 
 interface PlayerPositioningProps {
   players: Player[]
-  playerPositions: Record<string, PlayerPosition>
+  playerPositions?: Record<string, PlayerPosition> // Optional, will use store if not provided
   currentPlayerId: string | null
-  onPositionChange: (playerId: string, position: PlayerPosition) => void
+  onPositionChange?: (playerId: string, position: PlayerPosition) => void // Optional, will use store if not provided
   disabled?: boolean
   isSoloMode?: boolean
 }
@@ -32,13 +33,18 @@ const positions: PositionInfo[] = [
 
 export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
   players,
-  playerPositions,
+  playerPositions: propPlayerPositions,
   currentPlayerId,
-  onPositionChange,
+  onPositionChange: propOnPositionChange,
   disabled = false,
   isSoloMode = false
 }) => {
+  const playerStore = usePlayerStore()
   const [selectedPlayerForAssignment, setSelectedPlayerForAssignment] = useState<string | null>(null)
+  
+  // Use store if props not provided
+  const playerPositions = propPlayerPositions ?? playerStore.playerPositions
+  const onPositionChange = propOnPositionChange ?? playerStore.setPlayerPosition
   
   const getPlayerAtPosition = (position: PlayerPosition): Player | null => {
     const playerId = Object.entries(playerPositions).find(([, pos]) => pos === position)?.[0]

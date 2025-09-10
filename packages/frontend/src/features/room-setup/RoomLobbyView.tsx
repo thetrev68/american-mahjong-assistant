@@ -2,7 +2,8 @@
 // Pre-game lobby with complete player management and host controls
 
 import React, { useState } from 'react'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomStore } from '../../stores/room.store'
+import { usePlayerStore } from '../../stores/player.store'
 import { getRoomMultiplayerService } from '../../services/room-multiplayer'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
@@ -18,14 +19,15 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
   onLeaveRoom
 }) => {
   const roomStore = useRoomStore()
+  const playerStore = usePlayerStore()
   const [copySuccess, setCopySuccess] = useState(false)
 
   // Copy room code to clipboard
   const copyRoomCode = async () => {
-    if (!roomStore.currentRoomCode) return
+    if (!roomStore.room?.id) return
     
     try {
-      await navigator.clipboard.writeText(roomStore.currentRoomCode)
+      await navigator.clipboard.writeText(roomStore.room.id)
       setCopySuccess(true)
       setTimeout(() => setCopySuccess(false), 2000)
     } catch (err) {
@@ -71,11 +73,10 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
     }
   }
 
-  const isHost = roomStore.isCurrentPlayerHost()
-  const connectedPlayers = roomStore.getConnectedPlayers()
-  const disconnectedPlayers = roomStore.getDisconnectedPlayers()
-  const readyPlayers = connectedPlayers.filter(p => p.roomReadiness)
-  const notReadyPlayers = connectedPlayers.filter(p => !p.roomReadiness)
+  const isHost = playerStore.isCurrentPlayerHost()
+  const allPlayers = roomStore.players || []
+  const readyPlayers = allPlayers.filter(p => p.roomReadiness && p.isConnected)
+  const notReadyPlayers = allPlayers.filter(p => !p.roomReadiness && p.isConnected)
 
   if (!roomStore.room) {
     return (
@@ -94,7 +95,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold">
-            {roomStore.roomSettings.roomName || `Room ${roomStore.currentRoomCode}`}
+            {roomStore.roomSettings.roomName || `Room ${roomStore.room?.id}`}
           </h2>
           <div className="flex items-center space-x-2">
             {roomStore.room.isPrivate && (
@@ -112,7 +113,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
         <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg mb-4">
           <div>
             <p className="text-sm text-gray-600">Room Code</p>
-            <p className="font-mono text-lg font-bold">{roomStore.currentRoomCode}</p>
+            <p className="font-mono text-lg font-bold">{roomStore.room?.id}</p>
           </div>
           <Button
             onClick={copyRoomCode}
@@ -129,7 +130,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
           <div className="bg-gray-50 p-3 rounded-lg">
             <div className="text-gray-600">Players</div>
             <div className="font-semibold">
-              {connectedPlayers.length} / {roomStore.roomSettings.maxPlayers}
+              {allPlayers.filter(p => p.isConnected).length} / {roomStore.roomSettings.maxPlayers}
             </div>
           </div>
           <div className="bg-gray-50 p-3 rounded-lg">
@@ -145,7 +146,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
         
         {/* Connected Players */}
         <div className="space-y-3 mb-6">
-          {connectedPlayers.map((player) => (
+          {allPlayers.filter(p => p.isConnected).map((player) => (
             <div key={player.id} className="flex items-center justify-between p-3 border rounded-lg">
               <div className="flex items-center space-x-3">
                 {getConnectionStatus(player)}
@@ -181,11 +182,11 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
         </div>
 
         {/* Disconnected Players */}
-        {disconnectedPlayers.length > 0 && (
+        {allPlayers.filter(p => !p.isConnected).length > 0 && (
           <div>
             <h4 className="text-md font-medium text-gray-600 mb-2">Disconnected</h4>
             <div className="space-y-2">
-              {disconnectedPlayers.map((player) => (
+              {allPlayers.filter(p => !p.isConnected).map((player) => (
                 <div key={player.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg opacity-60">
                   <div className="flex items-center space-x-3">
                     {getConnectionStatus(player)}
@@ -236,7 +237,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
             <span className="text-gray-600">Ready: </span>
             <span className="font-semibold text-green-600">{readyPlayers.length}</span>
             <span className="text-gray-600"> / </span>
-            <span className="font-semibold">{connectedPlayers.length}</span>
+            <span className="font-semibold">{allPlayers.filter(p => p.isConnected).length}</span>
           </div>
           <div className="text-xs text-gray-500">
             {notReadyPlayers.length > 0 && (
@@ -255,7 +256,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
             className="flex-1"
             disabled={readyPlayers.length < 2 || notReadyPlayers.length > 0}
           >
-            Start Game ({readyPlayers.length}/{connectedPlayers.length} Ready)
+            Start Game ({readyPlayers.length}/{allPlayers.filter(p => p.isConnected).length} Ready)
           </Button>
         ) : (
           <Button
@@ -267,9 +268,9 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
             }}
             variant="primary"
             className="flex-1"
-            disabled={roomStore.phaseReadiness[roomStore.connectionStatus.connectionId || '']?.room}
+            disabled={readyPlayers.some(p => p.id === playerStore.currentPlayerId)}
           >
-            {roomStore.phaseReadiness[roomStore.connectionStatus.connectionId || '']?.room ? 'Ready ✓' : 'Mark Ready'}
+            {readyPlayers.some(p => p.id === playerStore.currentPlayerId) ? 'Ready ✓' : 'Mark Ready'}
           </Button>
         )}
         

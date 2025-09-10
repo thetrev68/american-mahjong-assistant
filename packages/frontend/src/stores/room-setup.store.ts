@@ -1,5 +1,8 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
+import { useRoomStore } from './room.store';
+import { usePlayerStore } from './player.store';
+import { useConnectionStore } from './connection.store';
 
 export type CoPilotMode = 'everyone' | 'solo';
 export type RoomStatus = 'idle' | 'creating' | 'joining' | 'success' | 'error';
@@ -91,9 +94,6 @@ export const useRoomSetupStore = create<RoomSetupStore>()(
           });
           
           // Update room store through actions
-          const { useRoomStore } = require('./room.store');
-          const { usePlayerStore } = require('./player.store');
-          
           useRoomStore.getState().updateRoom({ id: roomCode });
           usePlayerStore.getState().setCurrentPlayerId(hostPlayerId);
           
@@ -120,7 +120,6 @@ export const useRoomSetupStore = create<RoomSetupStore>()(
           });
           
           // Update room store
-          const { useRoomStore } = require('./room.store');
           useRoomStore.getState().updateRoom({ id: roomCode });
         },
 
@@ -150,11 +149,7 @@ export const useRoomSetupStore = create<RoomSetupStore>()(
           clearAll();
           
           // Also clear related stores
-          const { useRoomStore } = require('./room.store');
-          const { usePlayerStore } = require('./player.store');
-          const { useConnectionStore } = require('./connection.store');
-          
-          useRoomStore.getState().updateRoom({ id: null } as any);
+          useRoomStore.getState().updateRoom({ id: undefined });
           usePlayerStore.getState().clearPlayerData();
           useConnectionStore.getState().resetConnectionState();
         },
@@ -178,7 +173,6 @@ export const useRoomSetupStore = create<RoomSetupStore>()(
           }
           
           // Additional steps would be determined by room store state
-          const { useRoomStore } = require('./room.store');
           const { isRoomReadyForGame } = useRoomStore.getState();
           
           if (isRoomReadyForGame()) {
@@ -198,9 +192,9 @@ export const useRoomSetupStore = create<RoomSetupStore>()(
               return coPilotModeSelected;
             case 'room-creation':
               return roomCreationStatus === 'success' || joinRoomStatus === 'success';
-            case 'player-positioning':
-              const { useRoomStore } = require('./room.store');
+            case 'player-positioning': {
               return useRoomStore.getState().isRoomReadyForGame();
+            }
             case 'ready':
               return true;
             default:
