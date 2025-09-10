@@ -3,12 +3,12 @@
 import { renderHook, act } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { useCoPilotMode } from '../useCoPilotMode'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomSetupStore } from '../../stores/room-setup.store'
 
-// Mock the room store
-vi.mock('../../stores/room-store')
+// Mock the room setup store
+vi.mock('../../stores/room-setup.store')
 
-const mockRoomStore = {
+const mockRoomSetupStore = {
   coPilotMode: 'everyone',
   setCoPilotMode: vi.fn(),
   getCoPilotModeDescription: vi.fn()
@@ -18,11 +18,11 @@ describe('useCoPilotMode Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Reset mock store state
-    mockRoomStore.coPilotMode = 'everyone'
-    mockRoomStore.setCoPilotMode = vi.fn()
-    mockRoomStore.getCoPilotModeDescription = vi.fn()
+    mockRoomSetupStore.coPilotMode = 'everyone'
+    mockRoomSetupStore.setCoPilotMode = vi.fn()
+    mockRoomSetupStore.getCoPilotModeDescription = vi.fn()
     // @ts-expect-error - vi namespace not available in test config
-    ;(useRoomStore as vi.MockedFunction<typeof useRoomStore>).mockReturnValue(mockRoomStore)
+    ;(useRoomSetupStore as vi.MockedFunction<typeof useRoomSetupStore>).mockReturnValue(mockRoomSetupStore)
   })
 
   describe('Hook Initialization', () => {
@@ -53,7 +53,7 @@ describe('useCoPilotMode Hook', () => {
         result.current.setMode('everyone')
       })
 
-      expect(mockRoomStore.setCoPilotMode).toHaveBeenCalledWith('everyone')
+      expect(mockRoomSetupStore.setCoPilotMode).toHaveBeenCalledWith('everyone')
     })
 
     it('should set co-pilot mode to solo', () => {
@@ -63,51 +63,51 @@ describe('useCoPilotMode Hook', () => {
         result.current.setMode('solo')
       })
 
-      expect(mockRoomStore.setCoPilotMode).toHaveBeenCalledWith('solo')
+      expect(mockRoomSetupStore.setCoPilotMode).toHaveBeenCalledWith('solo')
     })
 
     it('should toggle between modes', () => {
-      mockRoomStore.coPilotMode = 'everyone'
+      mockRoomSetupStore.coPilotMode = 'everyone'
       const { result } = renderHook(() => useCoPilotMode())
 
       act(() => {
         result.current.toggleMode()
       })
 
-      expect(mockRoomStore.setCoPilotMode).toHaveBeenCalledWith('solo')
+      expect(mockRoomSetupStore.setCoPilotMode).toHaveBeenCalledWith('solo')
     })
 
     it('should toggle from solo to everyone', () => {
-      mockRoomStore.coPilotMode = 'solo'
+      mockRoomSetupStore.coPilotMode = 'solo'
       const { result } = renderHook(() => useCoPilotMode())
 
       act(() => {
         result.current.toggleMode()
       })
 
-      expect(mockRoomStore.setCoPilotMode).toHaveBeenCalledWith('everyone')
+      expect(mockRoomSetupStore.setCoPilotMode).toHaveBeenCalledWith('everyone')
     })
   })
 
   describe('Mode Descriptions', () => {
     it('should get description for current mode', () => {
-      mockRoomStore.coPilotMode = 'everyone' // Ensure we start with everyone mode
-      mockRoomStore.getCoPilotModeDescription.mockReturnValue('Test description')
+      mockRoomSetupStore.coPilotMode = 'everyone' // Ensure we start with everyone mode
+      mockRoomSetupStore.getCoPilotModeDescription.mockReturnValue('Test description')
       const { result } = renderHook(() => useCoPilotMode())
 
       const description = result.current.getDescription()
 
-      expect(mockRoomStore.getCoPilotModeDescription).toHaveBeenCalledWith('everyone')
+      expect(mockRoomSetupStore.getCoPilotModeDescription).toHaveBeenCalledWith('everyone')
       expect(description).toBe('Test description')
     })
 
     it('should get description for specific mode', () => {
-      mockRoomStore.getCoPilotModeDescription.mockReturnValue('Solo description')
+      mockRoomSetupStore.getCoPilotModeDescription.mockReturnValue('Solo description')
       const { result } = renderHook(() => useCoPilotMode())
 
       const description = result.current.getDescription('solo')
 
-      expect(mockRoomStore.getCoPilotModeDescription).toHaveBeenCalledWith('solo')
+      expect(mockRoomSetupStore.getCoPilotModeDescription).toHaveBeenCalledWith('solo')
       expect(description).toBe('Solo description')
     })
   })
@@ -140,7 +140,7 @@ describe('useCoPilotMode Hook', () => {
 
   describe('Mode Properties', () => {
     it('should check if current mode is everyone', () => {
-      mockRoomStore.coPilotMode = 'everyone'
+      mockRoomSetupStore.coPilotMode = 'everyone'
       const { result } = renderHook(() => useCoPilotMode())
 
       expect(result.current.isEveryone).toBe(true)
@@ -148,7 +148,7 @@ describe('useCoPilotMode Hook', () => {
     })
 
     it('should check if current mode is solo', () => {
-      mockRoomStore.coPilotMode = 'solo'
+      mockRoomSetupStore.coPilotMode = 'solo'
       const { result } = renderHook(() => useCoPilotMode())
 
       expect(result.current.isEveryone).toBe(false)
@@ -158,28 +158,28 @@ describe('useCoPilotMode Hook', () => {
 
   describe('Mode Features', () => {
     it('should indicate if AI assistance is enabled for current player', () => {
-      mockRoomStore.coPilotMode = 'everyone'
+      mockRoomSetupStore.coPilotMode = 'everyone'
       const { result } = renderHook(() => useCoPilotMode())
 
       expect(result.current.hasAIAssistance).toBe(true)
     })
 
     it('should indicate AI assistance in solo mode', () => {
-      mockRoomStore.coPilotMode = 'solo'
+      mockRoomSetupStore.coPilotMode = 'solo'
       const { result } = renderHook(() => useCoPilotMode())
 
       expect(result.current.hasAIAssistance).toBe(true)
     })
 
     it('should check if other players have AI assistance', () => {
-      mockRoomStore.coPilotMode = 'everyone'
+      mockRoomSetupStore.coPilotMode = 'everyone'
       const { result } = renderHook(() => useCoPilotMode())
 
       expect(result.current.othersHaveAI).toBe(true)
     })
 
     it('should indicate others do not have AI in solo mode', () => {
-      mockRoomStore.coPilotMode = 'solo'
+      mockRoomSetupStore.coPilotMode = 'solo'
       const { result } = renderHook(() => useCoPilotMode())
 
       expect(result.current.othersHaveAI).toBe(false)
@@ -196,7 +196,7 @@ describe('useCoPilotMode Hook', () => {
     })
 
     it('should provide mode options with descriptions', () => {
-      mockRoomStore.getCoPilotModeDescription
+      mockRoomSetupStore.getCoPilotModeDescription
         .mockReturnValueOnce('Everyone description')
         .mockReturnValueOnce('Solo description')
 
