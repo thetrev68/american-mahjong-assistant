@@ -4,3 +4,5 @@ export * from './room-types';
 export * from './game-state-types';
 export * from './socket-event-types';
 export * from './nmjl-types';
+export * from './game-types';
+export * from './multiplayer-types';

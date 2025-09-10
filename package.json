@@ -1,4 +1,17 @@
 {
+  "name": "american-mahjong-assistant",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:frontend": "npm run dev --workspace=packages/frontend",
+    "dev:backend": "npm run dev --workspace=packages/backend",
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces",
+    "test": "npm run test --workspaces"
+  },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
     "eslint": "^9.34.0",
