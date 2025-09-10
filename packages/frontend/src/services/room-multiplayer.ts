@@ -292,6 +292,8 @@ export class RoomMultiplayerService {
         id: data.spectatorId,
         name: data.spectatorName,
         isHost: false,
+        isConnected: true,
+        isReady: false,
         joinedAt: new Date()
       }
       roomStore.addSpectator(spectator)

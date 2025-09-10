@@ -33,6 +33,8 @@ export class RoomLifecycleManager {
         id: hostId,
         name: hostName,
         isHost: true,
+        isConnected: true,
+        isReady: false,
         joinedAt: new Date()
       }
 
@@ -111,6 +113,8 @@ export class RoomLifecycleManager {
         id: playerId,
         name: playerName,
         isHost: false,
+        isConnected: true,
+        isReady: false,
         joinedAt: new Date()
       }
 
@@ -139,6 +143,8 @@ export class RoomLifecycleManager {
       id: playerId,
       name: `${playerName} (Spectator)`,
       isHost: false,
+      isConnected: true,
+      isReady: false,
       joinedAt: new Date()
     }
 

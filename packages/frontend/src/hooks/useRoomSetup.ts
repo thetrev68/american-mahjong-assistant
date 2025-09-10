@@ -98,6 +98,8 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
             id: hostPlayerId,
             name: hostName.trim(),
             isHost: true,
+            isConnected: true,
+            isReady: false,
             joinedAt: new Date()
           }
         ]
@@ -110,6 +112,8 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
               id: generatePlayerId(),
               name: name.trim(),
               isHost: false,
+              isConnected: true,
+              isReady: false,
               joinedAt: new Date()
             })
           })

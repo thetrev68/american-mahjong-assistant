@@ -67,7 +67,9 @@ export class SocketHandlers {
         const player = {
           id: socket.id,
           name: playerName,
-          isHost: false
+          isHost: false,
+          isConnected: true,
+          isReady: false
         }
 
         const room = this.roomManager.joinRoom(roomId, player)

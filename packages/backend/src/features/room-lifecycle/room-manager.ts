@@ -19,6 +19,8 @@ export class RoomManager {
         id: hostPlayerId,
         name: config.hostName || 'Host',
         isHost: true,
+        isConnected: true,
+        isReady: false,
         joinedAt: new Date()
       }],
       phase: 'waiting',

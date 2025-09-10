@@ -1,5 +1,5 @@
 // frontend/src/utils/tile-utils.ts
-import type { TileValue } from './game-types';
+import type { TileValue } from 'shared-types';
 
 // Define tile-related types here
 export type TileSuit = 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers';

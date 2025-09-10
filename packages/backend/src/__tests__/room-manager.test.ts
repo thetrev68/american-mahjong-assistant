@@ -105,7 +105,7 @@ describe('RoomManager', () => {
     })
 
     it('should allow player to join room with space', () => {
-      const player: Player = { id: 'player2', name: 'Player 2', isHost: false }
+      const player: Player = { id: 'player2', name: 'Player 2', isHost: false, isConnected: true, isReady: false }
       
       const updatedRoom = roomManager.joinRoom(room.id, player)
       
@@ -118,10 +118,10 @@ describe('RoomManager', () => {
     it('should reject player when room is full', () => {
       // Fill room to capacity
       for (let i = 2; i <= 4; i++) {
-        roomManager.joinRoom(room.id, { id: `player${i}`, name: `Player ${i}`, isHost: false })
+        roomManager.joinRoom(room.id, { id: `player${i}`, name: `Player ${i}`, isHost: false, isConnected: true, isReady: false })
       }
       
-      const extraPlayer: Player = { id: 'extra', name: 'Extra', isHost: false }
+      const extraPlayer: Player = { id: 'extra', name: 'Extra', isHost: false, isConnected: true, isReady: false }
       
       expect(() => {
         roomManager.joinRoom(room.id, extraPlayer)
@@ -130,7 +130,7 @@ describe('RoomManager', () => {
 
     it('should reject player already in room', () => {
       expect(() => {
-        roomManager.joinRoom(room.id, { id: 'host', name: 'Host Again', isHost: false })
+        roomManager.joinRoom(room.id, { id: 'host', name: 'Host Again', isHost: false, isConnected: true, isReady: false })
       }).toThrow('Player is already in a room')
     })
 
@@ -153,8 +153,8 @@ describe('RoomManager', () => {
     
     beforeEach(() => {
       room = roomManager.createRoom('host', { maxPlayers: 4 })
-      roomManager.joinRoom(room.id, { id: 'player2', name: 'Player 2', isHost: false })
-      roomManager.joinRoom(room.id, { id: 'player3', name: 'Player 3', isHost: false })
+      roomManager.joinRoom(room.id, { id: 'player2', name: 'Player 2', isHost: false, isConnected: true, isReady: false })
+      roomManager.joinRoom(room.id, { id: 'player3', name: 'Player 3', isHost: false, isConnected: true, isReady: false })
     })
 
     it('should remove player from room', () => {
@@ -224,7 +224,7 @@ describe('RoomManager', () => {
     });
 
     it('should delete room completely', () => {
-      roomManager.joinRoom(room.id, { id: 'player2', name: 'Player 2', isHost: false })
+      roomManager.joinRoom(room.id, { id: 'player2', name: 'Player 2', isHost: false, isConnected: true, isReady: false })
       
       const success = roomManager.deleteRoom(room.id)
       expect(success).toBe(true)

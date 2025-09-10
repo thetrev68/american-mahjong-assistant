@@ -94,7 +94,7 @@ describe('StateSyncManager', () => {
 
     beforeEach(() => {
       const room = roomManager.createRoom('host', { maxPlayers: 4 })
-      roomManager.joinRoom(room.id, { id: 'player1', name: 'Player 1', isHost: false })
+      roomManager.joinRoom(room.id, { id: 'player1', name: 'Player 1', isHost: false, isConnected: true, isReady: false })
       roomId = room.id
       gameState = stateSyncManager.initializeGameState(roomId)
     })

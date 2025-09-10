@@ -1,8 +1,10 @@
 // Game state types for in-progress American Mahjong games
 
+// Import types that game state depends on
+import type { GameSettings } from './room-types';
+
 // Re-export types that game state depends on  
-export type { PlayerPosition, ActionType, ExposedSet, DiscardedTile, CharlestonState } from './room-types';
-// Note: GameSettings is exported from game-types.ts to avoid conflicts
+export type { PlayerPosition, ActionType, ExposedSet, DiscardedTile, CharlestonState, GameSettings } from './room-types';
 
 // Game state interfaces
 export interface PrivatePlayerState {

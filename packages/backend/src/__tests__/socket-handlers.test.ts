@@ -175,7 +175,7 @@ describe('SocketHandlers', () => {
     it('should reject joining full room', async () => {
       // Fill room to capacity
       for (let i = 2; i <= 4; i++) {
-        roomManager.joinRoom(roomId, { id: `player${i}`, name: `Player ${i}`, isHost: false })
+        roomManager.joinRoom(roomId, { id: `player${i}`, name: `Player ${i}`, isHost: false, isConnected: true, isReady: false })
       }
 
       const extraSocket = createMockSocket('extra-socket')
@@ -208,7 +208,7 @@ describe('SocketHandlers', () => {
       roomId = room.id
 
       playerSocket = createMockSocket('player2-socket')
-      roomManager.joinRoom(roomId, { id: 'player2-socket', name: 'Player 2', isHost: false })
+      roomManager.joinRoom(roomId, { id: 'player2-socket', name: 'Player 2', isHost: false, isConnected: true, isReady: false })
     })
 
     it('should handle leave-room event successfully', async () => {
