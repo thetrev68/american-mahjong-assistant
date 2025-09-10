@@ -13,6 +13,12 @@ export {
   useTutorialDemo 
 } from './tutorial-store'
 
+// New decomposed room-related stores
+export { useRoomStore, type PlayerPosition } from './room.store'
+export { usePlayerStore } from './player.store'
+export { useConnectionStore } from './connection.store'
+export { useRoomSetupStore, type CoPilotMode, type RoomStatus } from './room-setup.store'
+
 // Store Selectors (commonly used combinations)
 import { useGameStore } from './game-store'
 import { useUIStore } from './ui-store'

@@ -1,5 +1,5 @@
 import React from 'react'
-import { type CoPilotMode } from '../../stores/room-store'
+import { type CoPilotMode } from '../../stores/room-setup.store'
 import { Button } from '../../ui-components/Button'
 
 interface CoPilotModeSelectorProps {
