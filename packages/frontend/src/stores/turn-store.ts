@@ -3,7 +3,8 @@
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { useRoomStore } from './room-store'
+import { useRoomStore } from './room.store'
+import { useRoomSetupStore } from './room-setup.store'
 import { useGameStore } from './game-store'
 import type { GameAction, CallType } from '../services/game-actions'
 import type { Tile } from '../types/tile-types'
@@ -354,13 +355,14 @@ export const useTurnStore = create<TurnStore>()(
           const { getTurnRealtime } = await import('../services/turn-realtime')
           const turnRealtime = getTurnRealtime()
           const roomStore = useRoomStore.getState()
+          const roomSetupStore = useRoomSetupStore.getState()
           
           try {
             // Phase 4B: Check if multiplayer mode - broadcast to server first
-            if (roomStore.coPilotMode === 'everyone' && roomStore.currentRoomCode) {
+            if (roomSetupStore.coPilotMode === 'everyone' && roomStore.room?.id) {
               const broadcastSuccess = await turnRealtime.broadcastTurnAction({
                 playerId,
-                roomId: roomStore.currentRoomCode,
+                roomId: roomStore.room.id,
                 action,
                 data,
                 timestamp: new Date(),

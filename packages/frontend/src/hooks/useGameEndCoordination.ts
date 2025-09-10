@@ -2,7 +2,7 @@
 // Handles multiplayer game end synchronization and client-side coordination
 
 import { useEffect, useState } from 'react'
-import { useRoomStore } from '../stores/room-store'
+import { useRoomSetupStore } from '../stores/room-setup.store'
 import { usePatternStore } from '../stores/pattern-store'
 import { useTileStore } from '../stores/tile-store'
 import { useGameStore } from '../stores/game-store'
@@ -35,7 +35,7 @@ export const useGameEndCoordination = () => {
 
   const [pendingRequests, setPendingRequests] = useState<GameEndRequest[]>([])
   
-  const roomStore = useRoomStore()
+  const roomSetupStore = useRoomSetupStore()
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
   const gameStore = useGameStore()
@@ -161,6 +161,6 @@ export const useGameEndCoordination = () => {
     pendingRequests,
     clearGameEndState,
     navigateToPostGame,
-    isMultiplayerSession: roomStore.coPilotMode === 'everyone'
+    isMultiplayerSession: roomSetupStore.coPilotMode === 'everyone'
   }
 }

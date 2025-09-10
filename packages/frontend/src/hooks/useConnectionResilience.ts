@@ -51,13 +51,15 @@ const DEFAULT_CONFIG: ConnectionResilienceConfig = {
 
 export function useConnectionResilience(config: ConnectionResilienceConfig = {}) {
   const roomStore = useRoomStore()
+  const roomSetupStore = useRoomSetupStore()
+  const connectionStore = useConnectionStore()
   const gameStore = useGameStore()
   const finalConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config])
   
   // Only auto-connect if we're in multiplayer context (not solo mode)
   const shouldAutoConnect = Boolean(
-    (roomStore.currentRoomCode || roomStore.hostPlayerId) && 
-    roomStore.coPilotMode !== 'solo'
+    (roomStore.room?.id || roomStore.hostPlayerId) && 
+    roomSetupStore.coPilotMode !== 'solo'
   )
   const socket = useSocket({ autoConnect: shouldAutoConnect })
   
@@ -78,7 +80,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     if (!resilienceService) {
       // Only warn if we're actually in multiplayer mode (not solo or landing page)
       const roomStore = useRoomStore.getState()
-      if ((roomStore.currentRoomCode || roomStore.hostPlayerId) && roomStore.coPilotMode !== 'solo') {
+      if ((roomStore.room?.id || roomStore.hostPlayerId) && roomSetupStore.coPilotMode !== 'solo') {
         console.warn('Connection resilience service not initialized in multiplayer context.')
       }
       return
@@ -139,7 +141,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     
     // Only run frequent updates if we're in multiplayer context
     const roomStore = useRoomStore.getState()
-    const updateInterval = (roomStore.currentRoomCode || roomStore.hostPlayerId) ? 2000 : 10000
+    const updateInterval = (roomStore.room?.id || roomStore.hostPlayerId) ? 2000 : 10000
     const interval = setInterval(updateResilienceState, updateInterval)
 
     return () => clearInterval(interval)
@@ -213,7 +215,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
       },
       network: networkHandler.getNetworkHealth(),
       resilience: resilienceService?.getConnectionHealth(),
-      room: roomStore.connectionStatus
+      room: connectionStore.connectionStatus
     }
   }, [socket.socketId, socket.isConnected, socket.connectionHealth, roomStore.connectionStatus])
 

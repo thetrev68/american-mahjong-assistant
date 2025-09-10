@@ -6,7 +6,9 @@ import { useNavigate } from 'react-router-dom'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomStore } from '../../stores/room.store'
+import { useRoomSetupStore } from '../../stores/room-setup.store'
+import { usePlayerStore } from '../../stores/player.store'
 import { useGameStore } from '../../stores/game-store'
 import { useCharlestonStore, useCharlestonSelectors } from '../../stores/charleston-store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
@@ -24,7 +26,10 @@ export function CharlestonView() {
   const { currentAnalysis, isAnalyzing, analyzeHand } = useIntelligenceStore()
   const { getTargetPatterns } = usePatternStore()
   const { playerHand = [], clearHand, addTile, moveToSelection, selectedForAction } = useTileStore()
-  const { coPilotMode, otherPlayerNames, currentRoomCode } = useRoomStore()
+  const roomStore = useRoomStore()
+  const { coPilotMode } = useRoomSetupStore()
+  const { otherPlayerNames } = usePlayerStore()
+  const currentRoomCode = roomStore.room?.id
   
   // Charleston state management
   const charlestonStore = useCharlestonStore()

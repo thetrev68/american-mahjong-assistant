@@ -2,19 +2,19 @@
 // Separate file to avoid Fast Refresh issues
 
 import { useSocket } from './useSocket'
-import { useRoomStore } from '../stores/room-store'
+import { useConnectionStore } from '../stores/connection.store'
 
 // Hook for connection status data
 export function useConnectionStatus() {
   const socket = useSocket()
-  const roomStore = useRoomStore()
+  const connectionStore = useConnectionStore()
   
   return {
     isConnected: socket.isConnected,
     isHealthy: socket.connectionHealth.isHealthy,
     latency: socket.connectionHealth.latency,
     socketId: socket.socketId,
-    reconnectAttempts: roomStore.connectionStatus.reconnectionAttempts,
+    reconnectAttempts: connectionStore.connectionStatus.reconnectionAttempts,
     queuedEvents: socket.eventQueue.length,
     lastError: socket.lastError,
     canRetry: !socket.isConnected
