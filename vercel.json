@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "npm run build --workspace=packages/frontend",
   "installCommand": "npm install",
-  "outputDirectory": "dist",
+  "outputDirectory": "packages/frontend/dist",
   "framework": "vite",
   "rewrites": [
     {
@@ -19,18 +19,6 @@
           "value": "DENY"
         }
       ]
-    }
-  ],
-  "builds": [
-    {
-      "src": "packages/frontend/package.json",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/packages/frontend/$1"
     }
   ]
 }
