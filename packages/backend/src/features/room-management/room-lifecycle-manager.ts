@@ -268,7 +268,7 @@ export class RoomLifecycleManager {
   }
 
   // Update room settings (host only)
-  updateRoomSettings(roomId: string, hostId: string, newSettings: Partial<RoomSettings>): { success: boolean; error?: string } {
+  updateRoomSettings(roomId: string, hostId: string, newSettings: Partial<RoomSettings & RoomConfig>): { success: boolean; error?: string } {
     try {
       const room = this.rooms.get(roomId)
       if (!room) {
@@ -286,7 +286,7 @@ export class RoomLifecycleManager {
         this.roomSettings.set(roomId, updatedSettings)
         
         // Update room properties that mirror settings
-        if (newSettings.maxPlayers) room.maxPlayers = newSettings.maxPlayers
+        if (newSettings.maxPlayers !== undefined) room.maxPlayers = newSettings.maxPlayers
         if (newSettings.isPrivate !== undefined) room.isPrivate = newSettings.isPrivate
         if (newSettings.roomName !== undefined) room.roomName = newSettings.roomName
         if (newSettings.allowSpectators !== undefined) room.allowSpectators = newSettings.allowSpectators

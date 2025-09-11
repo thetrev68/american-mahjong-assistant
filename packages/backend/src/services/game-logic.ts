@@ -646,7 +646,7 @@ export class GameLogicService {
     
     // Find the exposed set containing the joker
     const exposedSet = player.exposedSets.find(set => 
-      set.tiles.some(tile => tile.id === 'joker')
+      set.tiles.some((tile: Tile) => tile.id === 'joker')
     )
     
     if (!exposedSet) {
@@ -660,7 +660,7 @@ export class GameLogicService {
     }
     
     // Replace joker with actual tile
-    const jokerIndex = exposedSet.tiles.findIndex(tile => tile.id === 'joker')
+    const jokerIndex = exposedSet.tiles.findIndex((tile: Tile) => tile.id === 'joker')
     exposedSet.tiles[jokerIndex] = replacementTile
     
     // Add joker to hand

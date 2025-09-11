@@ -224,7 +224,7 @@ export class SocketHandlers {
         }
 
         // Check if player was in room
-        const existingPlayer = room.players.find(p => p.id === playerId)
+        const existingPlayer = room.players.find((p: Player) => p.id === playerId)
         if (!existingPlayer) {
           socket.emit('room-reconnect-response', {
             success: false,
@@ -432,7 +432,7 @@ export class SocketHandlers {
           return
         }
 
-        if (!room.players.find(p => p.id === socket.id)) {
+        if (!room.players.find((p: Player) => p.id === socket.id)) {
           socket.emit('state-updated', {
             success: false,
             error: 'Player not in room'
@@ -503,7 +503,7 @@ export class SocketHandlers {
           return
         }
 
-        if (!room.players.find(p => p.id === playerId)) {
+        if (!room.players.find((p: Player) => p.id === playerId)) {
           socket.emit('charleston-error', {
             success: false,
             error: 'Player not in room'
@@ -552,7 +552,7 @@ export class SocketHandlers {
         })
 
         // Check if all players are ready
-        const allPlayersReady = room.players.every(player => {
+        const allPlayersReady = room.players.every((player: Player) => {
           const playerState = gameState.playerStates[player.id]
           return playerState && playerState.isReady
         })
@@ -584,7 +584,7 @@ export class SocketHandlers {
         }
 
         const playerReadiness: Record<string, boolean> = {}
-        room.players.forEach(player => {
+        room.players.forEach((player: Player) => {
           const playerState = gameState.playerStates[player.id]
           playerReadiness[player.id] = playerState?.isReady || false
         })
@@ -717,7 +717,7 @@ export class SocketHandlers {
         }
 
         // Validate first player is in room
-        if (!room.players.find(p => p.id === firstPlayer)) {
+        if (!room.players.find((p: Player) => p.id === firstPlayer)) {
           socket.emit('turn-start-game-response', {
             success: false,
             error: 'First player not in room'
@@ -727,7 +727,7 @@ export class SocketHandlers {
 
         // Validate all turn order players are in room
         const invalidPlayers = turnOrder.filter((playerId: string) => 
-          !room.players.find(p => p.id === playerId)
+          !room.players.find((p: Player) => p.id === playerId)
         )
         if (invalidPlayers.length > 0) {
           socket.emit('turn-start-game-response', {
@@ -804,7 +804,7 @@ export class SocketHandlers {
         }
 
         // Validate next player is in room
-        if (!room.players.find(p => p.id === nextPlayerId)) {
+        if (!room.players.find((p: Player) => p.id === nextPlayerId)) {
           socket.emit('turn-advance-response', {
             success: false,
             error: 'Next player not in room'
@@ -1041,7 +1041,7 @@ export class SocketHandlers {
 
           // Broadcast game end to all players
           this.io.to(roomId).emit('game-ended', {
-            winner: room.players.find(p => p.id === playerId),
+            winner: room.players.find((p: Player) => p.id === playerId),
             winningHand,
             pattern: selectedPattern.Hand_Description,
             finalScores,
@@ -1113,7 +1113,7 @@ export class SocketHandlers {
           // Broadcast game end to all players
           this.io.to(roomId).emit('game-ended', {
             winner: undefined,
-            finalScores: room.players.map(player => ({
+            finalScores: room.players.map((player: Player) => ({
               playerId: player.id,
               playerName: player.name,
               score: 0
@@ -1180,20 +1180,20 @@ export class SocketHandlers {
 
         // Count remaining active players
         const passedOutCount = Object.values(gameState.playerStates)
-          .filter(state => state.passedOut).length
+          .filter((state: any) => state.passedOut).length
         const activePlayers = room.players.length - passedOutCount
 
         // Broadcast pass out to all players
         this.io.to(roomId).emit('player-passed-out', {
           playerId,
-          playerName: room.players.find(p => p.id === playerId)?.name,
+          playerName: room.players.find((p: Player) => p.id === playerId)?.name,
           reason,
           activePlayers
         })
 
         // Check if game should end (only 1 or 0 active players)
         if (activePlayers <= 1) {
-          const remainingPlayer = room.players.find(p => 
+          const remainingPlayer = room.players.find((p: Player) => 
             !gameState.playerStates[p.id]?.passedOut
           )
 
@@ -1201,7 +1201,7 @@ export class SocketHandlers {
 
           this.io.to(roomId).emit('game-ended', {
             winner: remainingPlayer || undefined,
-            finalScores: room.players.map(player => ({
+            finalScores: room.players.map((player: Player) => ({
               playerId: player.id,
               playerName: player.name,
               score: player.id === remainingPlayer?.id ? 25 : 0 // Default score for last player
@@ -1340,7 +1340,7 @@ export class SocketHandlers {
     }
 
     // Normal turn advancement - find next player in turn order
-    const currentPlayerIndex = room.players.findIndex(p => p.id === gameState.sharedState.currentPlayer)
+    const currentPlayerIndex = room.players.findIndex((p: Player) => p.id === gameState.sharedState.currentPlayer)
     const nextPlayerIndex = (currentPlayerIndex + 1) % room.players.length
     
     return room.players[nextPlayerIndex].id
