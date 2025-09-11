@@ -1,13 +1,15 @@
-// Jest setup file for backend tests
+// Vitest setup file for backend tests
 // Global test configuration and mocks
 
+import { vi } from 'vitest'
+
 // Mock socket.io for testing
-jest.mock('socket.io', () => ({
-  Server: jest.fn().mockImplementation(() => ({
-    on: jest.fn(),
-    emit: jest.fn(),
-    to: jest.fn().mockReturnThis(),
-    in: jest.fn().mockReturnThis(),
+vi.mock('socket.io', () => ({
+  Server: vi.fn().mockImplementation(() => ({
+    on: vi.fn(),
+    emit: vi.fn(),
+    to: vi.fn().mockReturnThis(),
+    in: vi.fn().mockReturnThis(),
     sockets: {
       adapter: {
         rooms: new Map()
@@ -16,5 +18,4 @@ jest.mock('socket.io', () => ({
   }))
 }))
 
-// Global test timeout
-jest.setTimeout(10000)
+// Global test timeout is handled by vitest.config.ts

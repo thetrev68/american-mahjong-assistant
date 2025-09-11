@@ -1,5 +1,6 @@
 // Socket Handlers Test Suite - Comprehensive TDD for WebSocket event handling
 
+import { vi } from 'vitest'
 import { Server as SocketIOServer } from 'socket.io'
 import { SocketHandlers } from '../features/socket-communication/socket-handlers'
 import { RoomManager } from '../features/room-lifecycle/room-manager'
@@ -8,17 +9,17 @@ import { StateSyncManager } from '../features/state-sync/state-sync-manager'
 // Mock socket for testing
 const createMockSocket = (id: string = 'test-socket') => ({
   id,
-  join: jest.fn().mockResolvedValue(undefined),
-  leave: jest.fn().mockResolvedValue(undefined),
-  emit: jest.fn(),
-  on: jest.fn(),
-  to: jest.fn().mockReturnThis(),
+  join: vi.fn().mockResolvedValue(undefined),
+  leave: vi.fn().mockResolvedValue(undefined),
+  emit: vi.fn(),
+  on: vi.fn(),
+  to: vi.fn().mockReturnThis(),
   data: {}
 } as any)
 
 const createMockIO = () => ({
-  to: jest.fn().mockReturnThis(),
-  emit: jest.fn(),
+  to: vi.fn().mockReturnThis(),
+  emit: vi.fn(),
   sockets: {
     adapter: {
       rooms: new Map()
@@ -347,16 +348,16 @@ describe('SocketHandlers', () => {
 
   describe('Periodic Cleanup', () => {
     it('should start periodic cleanup', () => {
-      jest.useFakeTimers()
+      vi.useFakeTimers()
       
       socketHandlers.startPeriodicCleanup()
       
       // Fast-forward time
-      jest.advanceTimersByTime(5 * 60 * 1000) // 5 minutes
+      vi.advanceTimersByTime(5 * 60 * 1000) // 5 minutes
       
       // Cleanup should have run (no specific assertion needed as it's a background process)
       
-      jest.useRealTimers()
+      vi.useRealTimers()
     })
   })
 })

@@ -31,7 +31,9 @@
       "Bash(mkdir:*)",
       "Bash(dir \"C:\\Repos\\american-mahjong-assistant\\packages\\frontend\\src\\__tests__\")",
       "Bash(dir \"C:\\Repos\\american-mahjong-assistant\\packages\\frontend\\src\\__tests__\\factories\")",
-      "Bash(dir \"C:\\Repos\\american-mahjong-assistant\\packages\\frontend\\src\\features\")"
+      "Bash(dir \"C:\\Repos\\american-mahjong-assistant\\packages\\frontend\\src\\features\")",
+      "Bash(npm uninstall:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": [],

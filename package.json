@@ -9,8 +9,12 @@
     "dev:frontend": "npm run dev --workspace=packages/frontend",
     "dev:backend": "npm run dev --workspace=packages/backend",
     "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces",
-    "test": "npm run test --workspaces"
+    "test": "npm run test --workspaces",
+    "test:watch": "npm run test:watch --workspaces",
+    "test:coverage": "npm run test:coverage --workspaces",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:workspaces": "npm run lint --workspaces"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
