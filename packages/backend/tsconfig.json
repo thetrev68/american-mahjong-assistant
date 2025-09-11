@@ -21,6 +21,16 @@
       "@backend/*": ["./backend/*"]
     }
   },
-  "include": ["src/**/*", "../shared/**/*"],
-  "exclude": ["node_modules", "dist", "**/*.test.ts", "**/__tests__/**/*"]
+  "include": [
+    "src/**/*.ts",
+    "../shared/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "src/**/*.test.ts",
+    "src/**/__tests__/**/*",
+    "../shared/**/*.test.ts",
+    "../shared/**/__tests__/**/*"
+  ]
 }
