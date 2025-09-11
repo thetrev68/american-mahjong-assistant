@@ -428,7 +428,6 @@ export const useTileStore = create<TileState>()(
         // Bulk Operations
         importTilesFromString: (tileString: string) => {
           console.log('🔧 importTilesFromString called with:', tileString)
-          // Parse tile string format like "1D 2D 3B 4B east south"
           const tileIds = tileString.trim().split(/\s+/)
           console.log('🔧 Parsed tile IDs:', tileIds)
           

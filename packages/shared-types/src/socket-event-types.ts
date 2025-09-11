@@ -1,61 +1,81 @@
 // Socket Event Schema & Communication Protocol for American Mahjong
+import type {
+  Player,
+  Room,
+  RoomConfig,
+  PlayerPosition,
+  ExposedSet,
+  CharlestonState,
+  CharlestonPhase,
+  GameSettings,
+  PlayerAction,
+  ActionType,
+} from './room-types';
+import type {
+  GameState,
+  PlayerGameState,
+  PrivatePlayerState,
+  HandAnalysis,
+} from './game-state-types';
+import type { Tile } from './tile-types';
+import type { NMJL2025Pattern } from './nmjl-types';
 
 // Consolidated socket events interface merging all definitions
 export interface SocketEventMap {
   // Connection & Room Management
   'join-room': { roomId: string; playerName: string; reconnectToken?: string };
   'leave-room': { roomId: string; playerId: string };
-  'player-connected': any; // Will be Player when imported
+  'player-connected': Player;
   'player-disconnected': { playerId: string };
-  'player-joined': { player: any; roomState?: any }; // Will be Player and Room when imported
-  'player-left': { playerId: string; roomId: string; roomState?: any }; // Will be Room when imported
+  'player-joined': { player: Player; roomState?: Room };
+  'player-left': { playerId: string; roomId: string; roomState?: Room };
   'connection-established': { playerId: string; roomId: string; reconnected: boolean };
   'player-connection-changed': { playerId: string; isConnected: boolean; timestamp: number };
   
   // Room management events
-  'create-room': { hostName: string; config?: any }; // Will be RoomConfig when imported
-  'room-created': { success: boolean; room?: any; error?: string }; // Will be Room when imported
-  'room-joined': { success: boolean; room?: any; error?: string }; // Will be Room when imported
+  'create-room': { hostName: string; config?: RoomConfig };
+  'room-created': { success: boolean; room?: Room; error?: string };
+  'room-joined': { success: boolean; room?: Room; error?: string };
   'room-left': { success: boolean; roomId: string };
   'room-deleted': { roomId: string };
-  'room-update-settings': { roomId: string; settings: any };
+  'room-update-settings': { roomId: string; settings: Partial<GameSettings> };
   'room-settings-updated': { success: boolean; error?: string };
-  'room-settings-changed': { room: any; settings: any }; // Will be Room when imported
+  'room-settings-changed': { room: Room; settings: Partial<GameSettings> };
   'room-transfer-host': { roomId: string; newHostId: string };
   'room-host-transferred': { success: boolean; error?: string };
-  'room-host-changed': { room: any; newHostId: string }; // Will be Room when imported
+  'room-host-changed': { room: Room; newHostId: string };
   'room-kick-player': { roomId: string; playerId: string };
   'room-player-kicked': { success: boolean; error?: string };
   'room-kicked': { roomId: string; kickedBy: string };
   'room-reconnect': { roomId: string; playerId: string; playerName: string };
-  'room-reconnect-response': { success: boolean; room?: any; playerStates?: any[]; gameState?: any; error?: string };
+  'room-reconnect-response': { success: boolean; room?: Room; playerStates?: PlayerGameState[]; gameState?: GameState; error?: string };
   'player-reconnected': { playerId: string; playerName: string };
-  'room-list-updated': { rooms: any[] }; // Will be Room[] when imported
+  'room-list-updated': { rooms: Room[] };
   
   // Game Setup & Flow
-  'update-settings': { roomId: string; settings: any }; // Will be Partial<GameSettings> when imported
-  'settings-updated': { settings: any; updatedBy: string }; // Will be GameSettings when imported
+  'update-settings': { roomId: string; settings: Partial<GameSettings> };
+  'settings-updated': { settings: GameSettings; updatedBy: string };
   'start-game': { roomId: string };
-  'game-started': { gameRoom: any; dealerPosition?: string; startTime: number }; // Will be Room, PlayerPosition when imported
-  'game-state-update': any; // Will be GameRoom when imported
+  'game-started': { gameRoom: Room; dealerPosition?: PlayerPosition; startTime: number };
+  'game-state-update': GameState;
   'phase-change': { newPhase: string; previousPhase?: string; data?: Record<string, unknown>; timestamp?: number };
   'phase-transition': { roomId: string; fromPhase: string; toPhase: string };
-  'phase-transition-response': { success: boolean; allReady?: boolean; readinessSummary?: any; error?: string };
+  'phase-transition-response': { success: boolean; allReady?: boolean; readinessSummary?: Record<string, string[]>; error?: string };
   'phase-changed': { fromPhase: string; toPhase: string; triggeredBy: string };
   
   // Turn & Action Events
-  'turn-change': { newTurn?: string; currentTurn?: string; previousTurn?: string; timeLimit: number; turnStartTime?: number; actionRequired?: string[] };
-  'player-action': any; // Will be PlayerAction when imported
-  'action-processed': { action: any; success: boolean; gameState?: any; affectedPlayers?: string[] };
+  'turn-change': { newTurn?: PlayerPosition; currentTurn?: PlayerPosition; previousTurn?: PlayerPosition; timeLimit: number; turnStartTime?: number; actionRequired?: ActionType[] };
+  'player-action': PlayerAction;
+  'action-processed': { action: PlayerAction; success: boolean; gameState?: GameState; affectedPlayers?: string[] };
   'turn-timer-warning': { playerId: string; timeRemaining: number; urgencyLevel: 'low' | 'medium' | 'high' };
-  'turn-timeout': { playerId: string; autoAction?: any; newGameState?: any };
-  'player-state-sync': { roomId: string; phase: string; state: any };
+  'turn-timeout': { playerId: string; autoAction?: PlayerAction; newGameState?: GameState };
+  'player-state-sync': { roomId: string; phase: string; state: Partial<PlayerGameState> };
   'player-state-sync-response': { success: boolean; error?: string };
   'player-state-updated': { playerId: string; phase: string; isReady?: boolean; isConnected: boolean };
   
   // Turn management events
   'turn-start-game': { roomId: string; firstPlayer: string; turnOrder: string[] };
-  'turn-start-game-response': { success: boolean; gameState?: any; error?: string };
+  'turn-start-game-response': { success: boolean; gameState?: GameState; error?: string };
   'turn-advance': { roomId: string; currentPlayerId: string; nextPlayerId: string; turnNumber: number };
   'turn-advance-response': { success: boolean; error?: string };
   'turn-update': { roomId: string; currentPlayer: string; turnNumber: number; roundNumber: number; currentWind: string };
@@ -64,74 +84,74 @@ export interface SocketEventMap {
   'turn-error': { success: boolean; error: string };
   
   // Tile Events
-  'update-tiles': { roomId: string; playerId: string; tiles: any[]; requestAnalysis?: boolean }; // Will be Tile[] when imported
-  'tile-discarded': { tile: any; playerId?: string; discardedBy?: string; discardPile?: any[]; callableBy?: string[]; timeLimit?: number }; // Will be Tile, PlayerPosition when imported
-  'tile-called': { tile: any; callerId: string; callerPosition?: string; discarderId?: string; callType: string; exposedSet?: any; newTurn?: string; gameState?: any }; // Will be Tile, PlayerPosition, ExposedSet, Room when imported
+  'update-tiles': { roomId: string; playerId: string; tiles: Tile[]; requestAnalysis?: boolean };
+  'tile-discarded': { tile: Tile; playerId?: string; discardedBy?: PlayerPosition; discardPile?: Tile[]; callableBy?: PlayerPosition[]; timeLimit?: number };
+  'tile-called': { tile: Tile; callerId: string; callerPosition?: PlayerPosition; discarderId?: string; callType: string; exposedSet?: ExposedSet; newTurn?: PlayerPosition; gameState?: GameState };
   'tiles-updated': { playerId: string; count: number }; // Private tile count only
-  'call-tile': { roomId: string; playerId: string; tileId: string; callType: 'pung' | 'kong' | 'exposure'; exposedTiles: any[] }; // Will be Tile[] when imported
+  'call-tile': { roomId: string; playerId: string; tileId: string; callType: 'pung' | 'kong' | 'exposure'; exposedTiles: Tile[] };
   'pass-on-tile': { roomId: string; playerId: string; tileId: string };
-  'all-passed': { tileId: string; nextTurn: string; gameState?: any }; // Will be PlayerPosition, Room when imported
-  'private-tiles-updated': { playerState: any; analysis?: any }; // Will be PlayerGameState, HandAnalysis when imported
+  'all-passed': { tileId: string; nextTurn: PlayerPosition; gameState?: GameState };
+  'private-tiles-updated': { playerState: PlayerGameState; analysis?: HandAnalysis };
   
   // Charleston Events
-  'charleston-started': { charlestonState: any; phase: string; timeLimit: number }; // Will be CharlestonState, CharlestonPhase when imported
-  'charleston-selection': { roomId: string; playerId: string; selectedTiles?: any[]; ready?: boolean; isReady?: boolean }; // Will be Tile[] when imported
-  'charleston-player-ready': { roomId: string; playerId: string; selectedTiles: any[]; phase: string }; // Will be Tile[] when imported
+  'charleston-started': { charlestonState: CharlestonState; phase: CharlestonPhase; timeLimit: number };
+  'charleston-selection': { roomId: string; playerId: string; selectedTiles?: Tile[]; ready?: boolean; isReady?: boolean };
+  'charleston-player-ready': { roomId: string; playerId: string; selectedTiles: Tile[]; phase: string };
   'charleston-player-ready-confirmed': { success: boolean; playerId: string; phase: string };
   'charleston-player-ready-update': { playerId: string; isReady: boolean; phase: string };
-  'charleston-selection-status': { playerId: string; isReady: boolean; readyPlayers: string[]; allReady: boolean }; // Will be PlayerPosition[] when imported
-  'charleston-pass': { roomId: string; playerId?: string; fromPlayer?: string; toPlayer?: string; tiles?: any[]; tilesToPass?: any[] }; // Will be Tile[] when imported
-  'charleston-tile-exchange': { roomId: string; phase: string; tilesReceived: any[]; nextPhase: string }; // Will be Tile[] when imported
-  'charleston-tiles-received': { playerId: string; tilesReceived: any[]; fromPlayer: string; phase: string }; // Will be Tile[], PlayerPosition, CharlestonPhase when imported
-  'charleston-phase-complete': { completedPhase: string; nextPhase?: string; charlestonState?: any }; // Will be CharlestonPhase, CharlestonState when imported
-  'charleston-complete': any; // Will be CharlestonState when imported
+  'charleston-selection-status': { playerId: string; isReady: boolean; readyPlayers: PlayerPosition[]; allReady: boolean };
+  'charleston-pass': { roomId: string; playerId?: string; fromPlayer?: PlayerPosition; toPlayer?: PlayerPosition; tiles?: Tile[]; tilesToPass?: Tile[] };
+  'charleston-tile-exchange': { roomId: string; phase: string; tilesReceived: Tile[]; nextPhase: string };
+  'charleston-tiles-received': { playerId: string; tilesReceived: Tile[]; fromPlayer: PlayerPosition; phase: CharlestonPhase };
+  'charleston-phase-complete': { completedPhase: CharlestonPhase; nextPhase?: CharlestonPhase; charlestonState?: CharlestonState };
+  'charleston-complete': CharlestonState;
   'charleston-request-status': { roomId: string };
   'charleston-status': { success: boolean; playerReadiness?: Record<string, boolean>; roomId?: string; error?: string };
   'charleston-error': { success: boolean; error: string };
   
   // Analysis & Recommendation Events
-  'request-analysis': { roomId: string; playerId: string; tiles: any[]; context: 'general' | 'charleston' | 'defensive' }; // Will be Tile[] when imported
-  'analysis-result': { playerId: string; analysis: any; context: string; timestamp: number }; // Will be HandAnalysis when imported
-  'request-charleston-advice': { roomId: string; playerId: string; currentTiles: any[]; charlestonPhase: string }; // Will be Tile[], CharlestonPhase when imported
-  'charleston-advice': { playerId: string; recommendations: { pass: any[]; keep: any[]; reasoning: string[] }; confidence: number }; // Will be Tile[] when imported
-  'private-hand-update': any; // Will be PrivatePlayerState when imported
-  'private-recommendations': any; // Will be HandAnalysis when imported
+  'request-analysis': { roomId: string; playerId: string; tiles: Tile[]; context: 'general' | 'charleston' | 'defensive' };
+  'analysis-result': { playerId: string; analysis: HandAnalysis; context: string; timestamp: number };
+  'request-charleston-advice': { roomId: string; playerId: string; currentTiles: Tile[]; charlestonPhase: CharlestonPhase };
+  'charleston-advice': { playerId: string; recommendations: { pass: Tile[]; keep: Tile[]; reasoning: string[] }; confidence: number };
+  'private-hand-update': PrivatePlayerState;
+  'private-recommendations': HandAnalysis;
   
   // Game State Events
-  'state-update': { roomId: string; update: any };
-  'state-updated': { success: boolean; gameState?: any; error?: string }; // Will be GameState when imported
-  'game-state-changed': { roomId: string; gameState: any; update: any }; // Will be GameState when imported
+  'state-update': { roomId: string; update: Partial<GameState> };
+  'state-updated': { success: boolean; gameState?: GameState; error?: string };
+  'game-state-changed': { roomId: string; gameState: GameState; update: Partial<GameState> };
   'request-game-state': { roomId: string };
-  'game-state': { success: boolean; gameState?: any; error?: string }; // Will be GameState when imported
+  'game-state': { success: boolean; gameState?: GameState; error?: string };
   'game-state-recovery': { roomId: string };
-  'game-state-recovery-response': { success: boolean; room?: any; playerStates?: any[]; gameState?: any; readinessSummary?: any; recoveredAt?: Date; error?: string };
+  'game-state-recovery-response': { success: boolean; room?: Room; playerStates?: PlayerGameState[]; gameState?: GameState; readinessSummary?: Record<string, string[]>; recoveredAt?: Date; error?: string };
   
   // Spectator Events
   'room-spectator-join': { roomId: string; spectatorName: string };
-  'room-spectator-joined': { success: boolean; room?: any; isSpectator?: boolean; error?: string }; // Will be Room when imported
+  'room-spectator-joined': { success: boolean; room?: Room; isSpectator?: boolean; error?: string };
   'spectator-joined': { spectatorId: string; spectatorName: string };
   
   // Game End & Scoring Events
-  'declare-mahjong': { roomId?: string; playerId: string; winningHand?: any[]; pattern?: any; hand?: any[] }; // Will be Tile[], HandPattern when imported
-  'mahjong-declared': { playerId?: string; winner?: string; winningHand?: any[]; pattern?: string; isValid: boolean; validationDetails?: string; score?: number }; // Will be Tile[] when imported
-  'game-ended': { winner?: any; endReason: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'; finalScores?: Array<{ playerId: string; playerName?: string; score: number; pattern?: string }>; gameStats?: { duration?: number; totalTurns?: number; charlestonPasses?: number }; scores?: any[]; timestamp?: Date }; // Will be Player when imported
+  'declare-mahjong': { roomId?: string; playerId: string; winningHand?: Tile[]; pattern?: NMJL2025Pattern; hand?: Tile[] };
+  'mahjong-declared': { playerId?: string; winner?: string; winningHand?: Tile[]; pattern?: string; isValid: boolean; validationDetails?: string; score?: number };
+  'game-ended': { winner?: Player; endReason: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'; finalScores?: Array<{ playerId: string; playerName?: string; score: number; pattern?: string }>; gameStats?: { duration?: number; totalTurns?: number; charlestonPasses?: number }; scores?: any[]; timestamp?: Date };
   'multiplayer-game-ended': { roomId: string; endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date };
   'game-end-coordinated': { endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date };
   
   // Multiplayer Game End Coordination
   'request-final-hand': { requestingPlayerId: string; targetPlayerId: string; gameId: string };
-  'final-hand-response': { playerId: string; hand: any[]; success: boolean; error?: string }; // Will be Tile[] when imported
+  'final-hand-response': { playerId: string; hand: Tile[]; success: boolean; error?: string };
   'provide-final-hand': { requestingPlayerId: string; gameId: string; responseId: string };
-  'provide-final-hand-response': { hand: any[]; responseId: string }; // Will be Tile[] when imported
-  'final-hand-provided': { playerId: string; hand: any[]; responseId: string }; // Will be Tile[] when imported
+  'provide-final-hand-response': { hand: Tile[]; responseId: string };
+  'final-hand-provided': { playerId: string; hand: Tile[]; responseId: string };
   'request-selected-patterns': { requestingPlayerId: string; targetPlayerId: string; gameId: string };
-  'selected-patterns-response': { playerId: string; patterns: any[]; success: boolean; error?: string };
+  'selected-patterns-response': { playerId: string; patterns: NMJL2025Pattern[]; success: boolean; error?: string };
   'provide-selected-patterns': { requestingPlayerId: string; gameId: string; responseId: string };
-  'provide-patterns-response': { patterns: any[]; responseId: string };
-  'selected-patterns-provided': { playerId: string; patterns: any[]; responseId: string };
+  'provide-patterns-response': { patterns: NMJL2025Pattern[]; responseId: string };
+  'selected-patterns-provided': { playerId: string; patterns: NMJL2025Pattern[]; responseId: string };
   
   // Error & Validation Events
-  'invalid-action': { playerId?: string; attemptedAction?: any; reason: string; action?: any; validActions?: string[] }; // Will be PlayerAction, ActionType[] when imported
+  'invalid-action': { playerId?: string; attemptedAction?: PlayerAction; reason: string; action?: PlayerAction; validActions?: ActionType[] };
   'error': { type?: 'connection' | 'validation' | 'game' | 'server'; message: string; code?: string; details?: unknown; recoverable?: boolean };
   'warning': { type: 'timing' | 'connection' | 'action'; message: string; autoResolve?: boolean; timeoutMs?: number };
   
@@ -193,8 +213,8 @@ export interface RateLimitMiddleware {
 }
 
 export interface ValidationMiddleware {
-  validateGameAction: (action: any, gameState: any) => boolean; // Will be PlayerAction, Room when imported
-  validateTileOperation: (tiles: any[], playerId: string) => boolean; // Will be Tile[] when imported
+  validateGameAction: (action: PlayerAction, gameState: GameState) => boolean;
+  validateTileOperation: (tiles: Tile[], playerId: string) => boolean;
 }
 
 // Legacy SocketEvents interface for backward compatibility (deprecated)
@@ -202,30 +222,30 @@ export interface SocketEvents {
   // Connection events
   'join-room': { roomId: string; playerName: string };
   'leave-room': { roomId: string; playerId: string };
-  'player-connected': any; // Will be Player when imported
+  'player-connected': Player;
   'player-disconnected': { playerId: string };
   
   // Game flow events
-  'game-state-update': any; // Will be GameRoom when imported
-  'player-action': any; // Will be PlayerAction when imported
-  'turn-change': { newTurn: string; timeLimit: number }; // Will be PlayerPosition when imported
-  'phase-change': { newPhase: string; data?: Record<string, unknown> }; // Will be GamePhase when imported
+  'game-state-update': GameState;
+  'player-action': PlayerAction;
+  'turn-change': { newTurn: PlayerPosition; timeLimit: number };
+  'phase-change': { newPhase: GameState['phase']; data?: Record<string, unknown> };
   
   // Tile events
-  'tile-discarded': { tile: any; playerId: string }; // Will be Tile when imported
-  'tile-called': { tile: any; callerId: string; callType: string }; // Will be Tile, ActionType when imported
+  'tile-discarded': { tile: Tile; playerId: string };
+  'tile-called': { tile: Tile; callerId: string; callType: ActionType };
   'tiles-updated': { playerId: string; count: number };
   
   // Charleston events
   'charleston-selection': { playerId: string; ready: boolean };
-  'charleston-pass': { fromPlayer: string; toPlayer: string; tiles: any[] }; // Will be Tile[] when imported
-  'charleston-complete': any; // Will be CharlestonState when imported
+  'charleston-pass': { fromPlayer: PlayerPosition; toPlayer: PlayerPosition; tiles: Tile[] };
+  'charleston-complete': CharlestonState;
   
   // Private events
-  'private-hand-update': any; // Will be PrivatePlayerState when imported
-  'private-recommendations': any; // Will be HandAnalysis when imported
+  'private-hand-update': PrivatePlayerState;
+  'private-recommendations': HandAnalysis;
   
   // Error events
   'error': { message: string; code?: string };
-  'invalid-action': { reason: string; action: any }; // Will be PlayerAction when imported
+  'invalid-action': { reason: string; action: PlayerAction };
 }

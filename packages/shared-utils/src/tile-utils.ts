@@ -1,17 +1,5 @@
 // frontend/src/utils/tile-utils.ts
-import type { TileValue } from 'shared-types';
-
-// Define tile-related types here
-export type TileSuit = 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers';
-
-export type Tile = {
-  id: string;
-  suit: TileSuit;
-  value: TileValue;
-  isJoker?: boolean;
-};
-
-export type PlayerPosition = 'east' | 'south' | 'west' | 'north';
+import type { Tile, TileValue, TileSuit, PlayerPosition } from 'shared-types';
 
 // Mock these functions for now since dealer-logic doesn't exist
 export const getTargetTileCount = (_position: PlayerPosition): number => 14;

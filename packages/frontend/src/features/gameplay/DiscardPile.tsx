@@ -1,6 +1,6 @@
 import React from 'react'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
-import type { Tile as TileType } from '../../types/tile-types'
+import type { Tile } from 'shared-types';
 
 interface DiscardEntry {
   tile: TileType

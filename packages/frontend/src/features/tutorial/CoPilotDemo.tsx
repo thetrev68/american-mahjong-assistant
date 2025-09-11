@@ -7,17 +7,17 @@ import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { tileService } from '../../lib/services/tile-service'
 import type { CoPilotDemoProps } from './types'
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { Tile } from 'shared-types'
 
 // Simple helper to create mock tiles for the demo
 const createMockTile = (id: string): PlayerTile => {
   const tileData = tileService.getTileById(id)
   return {
-    id,
+    id: tileData?.id || id,
     suit: tileData?.suit || 'dots',
     value: tileData?.value || '1',
-    displayName: tileData?.displayName || 'Unknown Tile',
-    instanceId: `demo_${id}`,
+    instanceId: `mock_${id}`,
     isSelected: false,
   }
 }
@@ -40,8 +40,7 @@ const generateSampleHand = (): PlayerTile[] => {
       id: tileId,
       suit: tileData?.suit || 'dots',
       value: tileData?.value || '1',
-      displayName: tileData?.displayName || 'Unknown Tile',
-      instanceId: `demo_${tileId}_${index}`,
+      instanceId: `demo_${tileId}`,
       isSelected: false,
     }
   })

@@ -1,4 +1,5 @@
 // Room and Player types for American Mahjong
+import type { Tile } from './tile-types';
 
 export type PlayerPosition = 'east' | 'south' | 'west' | 'north';
 
@@ -72,14 +73,14 @@ export interface RoomConfig {
 
 // Game state types that are room-related
 export interface ExposedSet {
-  tiles: any[]; // Will be Tile[] when tile-types are imported
+  tiles: Tile[];
   type: 'pung' | 'kong' | 'exposure' | 'pair';
   calledFrom?: PlayerPosition;  // Which player discarded the called tile
   timestamp: number;
 }
 
 export interface DiscardedTile {
-  tile: any; // Will be Tile when tile-types are imported
+  tile: Tile;
   discardedBy: PlayerPosition;
   timestamp: number;
   canBeCalled: boolean;
@@ -99,8 +100,8 @@ export interface PlayerAction {
   playerId: string;
   type: ActionType;
   timestamp: number;
-  tile?: any; // Will be Tile when tile-types are imported
-  tiles?: any[]; // Will be Tile[] when tile-types are imported
+  tile?: Tile;
+  tiles?: Tile[];
   targetPlayerId?: string; // Who they're calling from
 }
 

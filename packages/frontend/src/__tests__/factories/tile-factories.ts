@@ -29,7 +29,7 @@ export function createTile(options: TileFactoryOptions = {}): PlayerTile {
     value,
     id,
     instanceId: options.instanceId || `${id}-inst-${Math.random().toString(36).substr(2, 9)}`,
-    displayName: options.displayName || generateDisplayName(suit, value),
+    displayName: options.displayName || `${value} ${suit}`, // Simplified for test data
     isSelected: options.isSelected || false,
     isJoker: options.isJoker || false
   }

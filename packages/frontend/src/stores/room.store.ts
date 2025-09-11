@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
-import type { Room, Player } from 'shared-types';
-
-export type PlayerPosition = 'north' | 'east' | 'south' | 'west';
+import type { Room, Player, PlayerPosition } from 'shared-types';
 
 interface CrossPhasePlayerState {
   id: string;

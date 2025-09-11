@@ -18,7 +18,13 @@ import { SelectionArea } from '../gameplay/SelectionArea'
 import { Button } from '../../ui-components/Button'
 import { tileService } from '../../lib/services/tile-service'
 import { useCharlestonMultiplayer } from '../charleston/services/charleston-multiplayer'
-import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { Tile } from 'shared-types'
 
 
 export function CharlestonView() {
@@ -143,7 +149,7 @@ export function CharlestonView() {
           id: tile.id,
           suit: tile.suit || 'unknown',
           value: tile.value || tile.id,
-          displayName: tile.displayName || tile.id
+          displayName: tile.id
         } : null
       }).filter((tile): tile is NonNullable<typeof tile> => tile !== null)
       

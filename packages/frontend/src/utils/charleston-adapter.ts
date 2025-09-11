@@ -3,18 +3,10 @@
 
 import type { PatternSelectionOption } from 'shared-types'
 import type { PlayerTile } from '../types/tile-types'
+import type { Tile, TileValue } from 'shared-types'
 
 // Modern simplified types for Charleston in co-pilot architecture
 export type CharlestonPhase = 'right' | 'across' | 'left' | 'optional' | 'complete'
-
-export interface Tile {
-  id: string
-  suit: string
-  value: string
-  isJoker?: boolean
-  display?: string
-  instanceId?: string // Unique identifier for this tile instance
-}
 
 export interface CharlestonRecommendation {
   tilesToPass: Tile[]
@@ -389,7 +381,7 @@ export class CharlestonAdapter {
     // Pattern-specific advice
     if (targetPatterns.length > 0) {
       const topPattern = targetPatterns[0]
-      advice.push(`Focusing on: ${topPattern.displayName} (${topPattern.points} points)`)
+      advice.push(`Focusing on: ${topPattern.Hand_Description} (${topPattern.points} points)`)
       
       if (targetPatterns.length > 1) {
         advice.push(`Backup options: ${targetPatterns.length - 1} alternative patterns selected`)

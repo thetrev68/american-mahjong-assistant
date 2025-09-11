@@ -1,11 +1,11 @@
 // Game Actions Service
 // Complete action system for American Mahjong gameplay with validation and coordination
 
-import type { Tile } from '../../../types/tile-types'
-import type { NMJL2025Pattern } from 'shared-types'
+import type { Tile, NMJL2025Pattern } from 'shared-types'
 import { useGameStore } from '../../../stores/game-store'
 import { useTileStore } from '../../../stores/tile-store'
 import { useTurnStore } from '../../../stores/turn-store'
+import { useRoomSetupStore } from '../../../stores/room-setup.store'
 import { useRoomStore } from '../../../stores/room.store'
 import { useIntelligenceStore } from '../../../stores/intelligence-store'
 import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
@@ -84,7 +84,7 @@ export class GameActionsService {
 
     try {
       // In multiplayer mode, request from server
-      if (useRoomStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
+      if (useRoomSetupStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
         const success = await this.multiplayerManager.emitToService('turn', 'draw-tile-request', {
           playerId,
           roomId: useRoomStore.getState().currentRoomCode
@@ -112,7 +112,7 @@ export class GameActionsService {
           this.updateAvailableActions(playerId)
         }
 
-        console.log(`Player ${playerId} drew tile:`, tile.displayName)
+        console.log(`Player ${playerId} drew tile:`, tile.id)
       }
 
       return tile
@@ -147,7 +147,7 @@ export class GameActionsService {
       this.addToDiscardPile(tile, playerId)
       
       // In multiplayer mode, broadcast discard and check for call opportunities
-      if (useRoomStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
+      if (useRoomSetupStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
         const success = await this.multiplayerManager.emitToService('turn', 'discard-tile', {
           playerId,
           roomId: useRoomStore.getState().currentRoomCode,
@@ -155,7 +155,6 @@ export class GameActionsService {
             id: tile.id,
             suit: tile.suit,
             value: tile.value,
-            displayName: tile.displayName,
             isJoker: tile.isJoker
           }
         }, { priority: 'high' })
@@ -173,7 +172,7 @@ export class GameActionsService {
       this.updateAvailableActions(playerId)
 
       // Check for call opportunities (solo mode simulation)
-      if (useRoomStore.getState().coPilotMode !== 'everyone') {
+      if (useRoomSetupStore.getState().coPilotMode !== 'everyone') {
         this.simulateCallOpportunities(tile, playerId)
       }
 
@@ -182,7 +181,7 @@ export class GameActionsService {
       const currentHand = useTileStore.getState().playerHand
       intelligenceStore.analyzeHand(currentHand, [])
 
-      console.log(`Player ${playerId} discarded:`, tile.displayName)
+      console.log(`Player ${playerId} discarded:`, tile.id)
       return true
     } catch (error) {
       console.error('Error discarding tile:', error)
@@ -221,7 +220,7 @@ export class GameActionsService {
       )
       
       // In multiplayer mode, broadcast call
-      if (useRoomStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
+      if (useRoomSetupStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
         const success = await this.multiplayerManager.emitToService('turn', 'player-call', {
           playerId,
           roomId: useRoomStore.getState().currentRoomCode,
@@ -230,7 +229,7 @@ export class GameActionsService {
             id: tile.id,
             suit: tile.suit,
             value: tile.value,
-            displayName: tile.displayName
+            displayName: tile.id
           }))
         }, { priority: 'critical' })
 
@@ -246,7 +245,7 @@ export class GameActionsService {
       // Update available actions (must discard after call)
       this.updateAvailableActions(playerId)
 
-      console.log(`Player ${playerId} called ${callType} with:`, tiles.map(t => t.displayName))
+      console.log(`Player ${playerId} called ${callType} with:`, tiles.map(t => t.id))
       
       useGameStore.getState().addAlert({
         type: 'success',
@@ -296,9 +295,8 @@ export class GameActionsService {
           // Add joker to hand
           const jokerTile: Tile = {
             id: 'joker',
-            suit: 'special',
+            suit: 'jokers',
             value: 'joker',
-            displayName: 'Joker',
             isJoker: true
           }
           
@@ -307,7 +305,7 @@ export class GameActionsService {
         }
       } else {
         // Opponent joker swap - would need multiplayer coordination
-        if (useRoomStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
+        if (useRoomSetupStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
           const success = await this.multiplayerManager.emitToService('turn', 'joker-swap-request', {
             playerId,
             roomId: useRoomStore.getState().currentRoomCode,
@@ -315,7 +313,7 @@ export class GameActionsService {
               id: targetTile.id,
               suit: targetTile.suit,
               value: targetTile.value,
-              displayName: targetTile.displayName,
+              displayName: targetTile.id,
               isJoker: targetTile.isJoker
             }
           }, { priority: 'medium' })
@@ -327,12 +325,12 @@ export class GameActionsService {
         }
       }
 
-      console.log(`Player ${playerId} swapped joker for:`, targetTile.displayName)
+      console.log(`Player ${playerId} swapped joker for:`, targetTile.id)
       
       useGameStore.getState().addAlert({
         type: 'success',
         title: 'Joker Swapped',
-        message: `Joker swapped for ${targetTile.displayName}`
+        message: `Joker swapped for ${targetTile.id}`
       })
       
       return true
@@ -361,7 +359,7 @@ export class GameActionsService {
 
     try {
       // In multiplayer mode, broadcast mahjong claim
-      if (useRoomStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
+      if (useRoomSetupStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
         const success = await this.multiplayerManager.emitToService('turn', 'mahjong-claim', {
           playerId,
           roomId: useRoomStore.getState().currentRoomCode,
@@ -374,7 +372,6 @@ export class GameActionsService {
             id: tile.id,
             suit: tile.suit,
             value: tile.value,
-            displayName: tile.displayName,
             isJoker: tile.isJoker
           }))
         }, { priority: 'critical', requiresAck: true })
@@ -410,7 +407,7 @@ export class GameActionsService {
   async declarePassOut(playerId: string, reason: string): Promise<boolean> {
     try {
       // In multiplayer mode, broadcast pass out
-      if (useRoomStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
+      if (useRoomSetupStore.getState().coPilotMode === 'everyone' && this.multiplayerManager) {
         const success = await this.multiplayerManager.emitToService('turn', 'player-pass-out', {
           playerId,
           roomId: useRoomStore.getState().currentRoomCode,
@@ -672,14 +669,13 @@ export class GameActionsService {
       id: `${randomValue}${randomSuit[0]}`,
       suit: randomSuit,
       value: randomValue,
-      displayName: `${randomValue}${randomSuit[0].toUpperCase()}`,
       isJoker: false
     }
   }
 
   private addToDiscardPile(tile: Tile, playerId: string): void {
     // Discard pile management is handled by turn store actions
-    console.log(`Discarded: ${tile.displayName} from ${playerId}`)
+    console.log(`Discarded: ${tile.id} from ${playerId}`)
   }
 
   private markPlayerAction(playerId: string, action: string, value: boolean): void {
@@ -697,7 +693,7 @@ export class GameActionsService {
   private simulateCallOpportunities(tile: Tile): void {
     // In solo mode, simulate call opportunities for co-pilot experience
     // This would normally create UI notifications in multiplayer scenarios
-    console.log(`Simulating call opportunity for tile: ${tile.displayName}`)
+    console.log(`Simulating call opportunity for tile: ${tile.id}`)
   }
 
   private validateMahjongClaim(hand: Tile[]): ActionValidationResult {

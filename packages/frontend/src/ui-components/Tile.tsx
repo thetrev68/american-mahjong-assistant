@@ -2,7 +2,8 @@
 // Interactive tile wrapper for PlayerTile objects with basic functionality
 
 import type { ReactNode } from 'react'
-import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../types/tile-types';
+import type { Tile } from 'shared-types';
 import { TileSprite } from './TileSprite'
 
 interface TileProps {

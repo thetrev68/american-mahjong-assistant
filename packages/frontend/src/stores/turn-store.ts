@@ -7,7 +7,7 @@ import { useRoomStore } from './room.store'
 import { useRoomSetupStore } from './room-setup.store'
 import { useGameStore } from './game-store'
 import type { GameAction, CallType } from '../features/gameplay/services/game-actions'
-import type { Tile } from '../types/tile-types'
+import type { Tile } from 'shared-types';
 import type { NMJL2025Pattern } from 'shared-types'
 
 export type PlayerPosition = 'east' | 'north' | 'west' | 'south'

@@ -1,7 +1,8 @@
 // Tile Service - Core tile management and validation
 // Handles all tile-related operations with proper validation
 
-import type { Tile, PlayerTile, TileCount, HandValidation, TileSuit, TileValue } from '../../types/tile-types'
+import type { PlayerTile } from '../../types/tile-types'
+import type { Tile, TileSuit, TileValue } from 'shared-types'
 import tilesData from '../../assets/tiles.json'
 
 class TileService {

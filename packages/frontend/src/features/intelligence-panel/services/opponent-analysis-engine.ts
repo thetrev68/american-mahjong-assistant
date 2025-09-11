@@ -1,7 +1,7 @@
 // Opponent Analysis Engine
 // Hand reading and opponent behavior analysis based on visible actions
 
-import type { Tile } from '../../../types/tile-types'
+import type { Tile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { GameState, GameAction, ExposedTileSet } from './turn-intelligence-engine'
 

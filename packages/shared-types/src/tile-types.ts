@@ -13,6 +13,7 @@ export interface Tile {
   id: string;           // Unique identifier (e.g., "1D", "east", "joker")
   suit: TileSuit;
   value: TileValue;
+  displayName: string; // Human-readable name (e.g., "One Dot", "East Wind")
   isJoker?: boolean;    // True if being used as joker
   jokerFor?: Tile;      // What this joker represents
 }

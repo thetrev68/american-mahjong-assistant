@@ -9,6 +9,28 @@ import type {
   PlayerPosition 
 } from 'shared-types'
 
+// Helper function to generate display names for tiles
+const getDisplayName = (suit: string, value: string): string => {
+  switch (suit) {
+    case 'dots':
+      return `${value} Dot${value === '1' ? '' : 's'}`
+    case 'bams':
+      return `${value} Bam${value === '1' ? '' : 's'}`
+    case 'cracks':
+      return `${value} Crack${value === '1' ? '' : 's'}`
+    case 'winds':
+      return `${value.charAt(0).toUpperCase() + value.slice(1)} Wind`
+    case 'dragons':
+      return `${value.charAt(0).toUpperCase() + value.slice(1)} Dragon`
+    case 'flowers':
+      return `Flower ${value.slice(1)}`
+    case 'jokers':
+      return 'Joker'
+    default:
+      return `${value}`
+  }
+}
+
 export interface GameWall {
   remainingTiles: Tile[]
   totalTiles: number
@@ -96,6 +118,7 @@ export class GameLogicService {
             id: `${value}${suit.charAt(0).toUpperCase()}`,
             suit,
             value,
+            displayName: getDisplayName(suit, value),
             isJoker: false
           })
         }
@@ -110,6 +133,7 @@ export class GameLogicService {
           id: wind,
           suit: 'winds',
           value: wind,
+          displayName: getDisplayName('winds', wind),
           isJoker: false
         })
       }
@@ -123,6 +147,7 @@ export class GameLogicService {
           id: dragon,
           suit: 'dragons',
           value: dragon,
+          displayName: getDisplayName('dragons', dragon),
           isJoker: false
         })
       }
@@ -135,6 +160,7 @@ export class GameLogicService {
         id: flower,
         suit: 'flowers',
         value: flower,
+        displayName: getDisplayName('flowers', flower),
         isJoker: false
       })
     }
@@ -145,6 +171,7 @@ export class GameLogicService {
         id: 'joker',
         suit: 'jokers',
         value: 'joker',
+        displayName: getDisplayName('jokers', 'joker'),
         isJoker: true
       })
     }
@@ -641,6 +668,7 @@ export class GameLogicService {
       id: 'joker',
       suit: 'jokers',
       value: 'joker',
+      displayName: getDisplayName('jokers', 'joker'),
       isJoker: true
     })
     
@@ -663,7 +691,7 @@ export class GameLogicService {
    * Execute: Mahjong Declaration
    */
   private executeMahjongAction(playerId: string, actionData: any): GameActionResult {
-    const _player = this.playerData.get(playerId)!
+    // const player = this.playerData.get(playerId)!
     
     // In a full implementation, this would integrate with MahjongValidator
     // For now, we'll assume the frontend has already validated the win
@@ -686,7 +714,7 @@ export class GameLogicService {
    * Execute: Pass Out Action
    */
   private executePassOutAction(playerId: string, actionData: any): GameActionResult {
-    const _player = this.playerData.get(playerId)!
+    // const player = this.playerData.get(playerId)!
     
     // Mark player as passed out
     // In the socket handler, this will be tracked in game state

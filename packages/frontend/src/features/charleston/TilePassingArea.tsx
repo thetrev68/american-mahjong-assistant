@@ -2,7 +2,7 @@
 // Interactive tile selection interface for Charleston passing
 
 import { useState, useMemo } from 'react'
-import type { Tile } from '../../utils/charleston-adapter'
+import type { Tile } from 'shared-types';
 
 interface TilePassingAreaProps {
   availableTiles: Tile[]

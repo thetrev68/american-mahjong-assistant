@@ -1,7 +1,8 @@
 // Game state types for in-progress American Mahjong games
 
 // Import types that game state depends on
-import type { GameSettings } from './room-types';
+import type { GameSettings, PlayerAction } from './room-types';
+import type { Tile } from './tile-types';
 
 // Re-export types that game state depends on  
 export type { PlayerPosition, ActionType, ExposedSet, DiscardedTile, CharlestonState, GameSettings } from './room-types';
@@ -9,16 +10,16 @@ export type { PlayerPosition, ActionType, ExposedSet, DiscardedTile, CharlestonS
 // Game state interfaces
 export interface PrivatePlayerState {
   playerId: string;
-  tiles: any[];                // Private to this player only - will be Tile[] when tile-types imported
+  tiles: Tile[];                // Private to this player only
   recommendations: HandAnalysis;
-  charlestonSelection: any[];  // Tiles selected for passing - will be Tile[] when tile-types imported
+  charlestonSelection: Tile[];  // Tiles selected for passing
 }
 
 export interface PlayerGameState {
   handTileCount?: number;
   isReady?: boolean;
   selectedPatterns?: string[];
-  selectedTiles?: any[];
+  selectedTiles?: Tile[];
   position?: number;
   score?: number;
   isDealer?: boolean;
@@ -28,7 +29,7 @@ export interface PlayerGameState {
 }
 
 export interface SharedState {
-  discardPile: any[]; // Will be Tile[] when tile-types imported
+  discardPile: Tile[];
   wallTilesRemaining: number;
   currentPlayer: string | null;
   currentWind?: 'east' | 'south' | 'west' | 'north';
@@ -51,8 +52,8 @@ export interface HandPattern {
   id: string;
   name: string;           // "LIKE NUMBERS", "2025", etc.
   description: string;
-  requiredTiles: any[];   // Will be Tile[] when tile-types imported
-  optionalTiles: any[];   // Will be Tile[] when tile-types imported
+  requiredTiles: Tile[];
+  optionalTiles: Tile[];
   points: number;
   difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   completion?: number;    // 0-1, how close to completing (optional for backward compatibility)
@@ -61,9 +62,9 @@ export interface HandPattern {
 export interface HandAnalysis {
   bestPatterns: PatternMatch[];
   recommendations: {
-    keep: any[];        // Will be Tile[] when tile-types imported
-    discard: any[];     // Will be Tile[] when tile-types imported
-    charleston: any[];  // Will be Tile[] when tile-types imported
+    keep: Tile[];
+    discard: Tile[];
+    charleston: Tile[];
     // Enhanced recommendation data (optional for backward compatibility)
     reasoning?: {
       keepReasons: string[];
@@ -71,10 +72,10 @@ export interface HandAnalysis {
       charlestonReasons: string[];
     };
     priorityTiles?: {
-      mostCritical: any[];  // Will be Tile[] when tile-types imported
-      highValue: any[];     // Will be Tile[] when tile-types imported
-      flexible: any[];      // Will be Tile[] when tile-types imported
-      expendable: any[];    // Will be Tile[] when tile-types imported
+      mostCritical: Tile[];
+      highValue: Tile[];
+      flexible: Tile[];
+      expendable: Tile[];
     };
   };
   probabilities: {
@@ -87,14 +88,14 @@ export interface HandAnalysis {
 export interface PatternMatch {
   pattern: HandPattern;
   completion: number;       // 0-1, how close to completing
-  missingTiles: any[];      // Will be Tile[] when tile-types imported
-  blockedBy: any[];         // Will be Tile[] when tile-types imported - Tiles that prevent this pattern
+  missingTiles: Tile[];
+  blockedBy: Tile[];         // Tiles that prevent this pattern
   confidence: number;       // 0-1, algorithm confidence
 }
 
 export interface DefensiveAnalysis {
-  dangerousTiles: any[];   // Will be Tile[] when tile-types imported - Tiles likely to help opponents
-  safeTiles: any[];        // Will be Tile[] when tile-types imported - Tiles safe to discard
+  dangerousTiles: Tile[];   // Tiles likely to help opponents
+  safeTiles: Tile[];        // Tiles safe to discard
   opponentThreats: {
     playerId: string;
     suspectedPatterns: string[];
@@ -107,7 +108,7 @@ export type ViewMode = 'shared' | 'private' | 'charleston';
 
 export interface UIState {
   currentView: ViewMode;
-  selectedTiles: any[];    // Will be Tile[] when tile-types imported
+  selectedTiles: Tile[];
   showRecommendations: boolean;
   showTimer: boolean;
   notifications: Notification[];
@@ -149,13 +150,13 @@ export interface JoinRoomRequest {
 
 export interface UpdateTilesRequest {
   playerId: string;
-  tiles: any[];  // Will be Tile[] when tile-types imported
+  tiles: Tile[];
 }
 
 export interface MakeActionRequest {
   roomId: string;
   playerId: string;
-  action: any;   // Will be PlayerAction when imported from room-types
+  action: PlayerAction;
 }
 
 // Utility types

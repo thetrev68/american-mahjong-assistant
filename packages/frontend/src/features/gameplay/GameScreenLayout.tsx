@@ -4,7 +4,8 @@ import YourHandZone from './YourHandZone'
 import DiscardPileZone from './DiscardPileZone'
 import OpponentExposedZone from './OpponentExposedZone'
 import IntelligencePanel from './IntelligencePanel'
-import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { Tile } from 'shared-types'
 import type { PatternSelectionOption } from 'shared-types'
 
 interface GameScreenLayoutProps {

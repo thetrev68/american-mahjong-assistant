@@ -6,7 +6,7 @@ import { Button } from './Button'
 import { Card } from './Card'
 import { AnimatedTile } from './tiles/AnimatedTile'
 import type { CallType } from '../features/gameplay/services/game-actions'
-import type { Tile } from '../types/tile-types'
+import type { Tile } from 'shared-types';
 
 export interface CallOpportunityData {
   tile: Tile

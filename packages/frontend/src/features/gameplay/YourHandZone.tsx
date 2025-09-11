@@ -3,7 +3,8 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
-import type { PlayerTile, Tile as TileType } from '../../types/tile-types'
+import type { PlayerTile } from '../types/tile-types'
+import type { Tile } from 'shared-types'
 import { useTileStore } from '../../stores/tile-store'
 import { tileService } from '../../lib/services/tile-service'
 
@@ -98,7 +99,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         id: tile.id,
         suit: tile.suit,
         value: tile.value,
-        displayName: tile.displayName,
+                                                        displayName: tile.id,
         unicodeSymbol: tile.unicodeSymbol
       }
       handleDiscardTile(tileForDiscard)

@@ -1,71 +1,48 @@
-// Modern Tile System Types
-// Clean, type-safe definitions for American Mahjong tiles
 
-export type TileSuit = 'dots' | 'bams' | 'cracks' | 'winds' | 'dragons' | 'flowers' | 'jokers' | 'special'
 
-export type TileValue = 
-  | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9'  // Numbers
-  | 'east' | 'south' | 'west' | 'north'                 // Winds
-  | 'red' | 'green' | 'white'                           // Dragons  
-  | 'f1' | 'f2' | 'f3' | 'f4'                          // Flowers
-  | 'joker'                                             // Joker
-
-export interface Tile {
-  id: string           // Unique identifier (e.g., "1D", "east", "joker")
-  suit: TileSuit
-  value: TileValue
-  displayName: string  // Human-readable name (e.g., "One Dot", "East Wind")
-  unicodeSymbol?: string // Unicode representation for display
-  
-  // Compatibility properties for game actions
-  display?: string     // Alias for displayName for backward compatibility
-  isJoker?: boolean    // True if this is a joker tile
-}
-
-export interface PlayerTile extends Tile {
-  instanceId: string   // Unique instance for multiple same tiles
-  isSelected: boolean  // UI selection state
-  // Future enhancement: animation and recommendation features
-  animation?: TileAnimation
-  recommendation?: TileRecommendation
-}
+export type PlayerTile = Tile & {
+  instanceId: string;
+  isSelected: boolean;
+  animation?: TileAnimation;
+  recommendation?: TileRecommendation;
+};
 
 // Future enhancement: Tile animation system
 export interface TileAnimation {
-  type: 'keep' | 'pass' | 'discard' | 'joker' | 'dragon' | 'select' | 'deselect'
-  duration: number     // Animation duration in ms
-  delay?: number       // Optional delay before animation starts
+  type: 'keep' | 'pass' | 'discard' | 'joker' | 'dragon' | 'select' | 'deselect';
+  duration: number;
+  delay?: number;
 }
 
 // Future enhancement: AI recommendation system for tiles
 export interface TileRecommendation {
-  action: 'keep' | 'pass' | 'discard' | 'neutral'
-  confidence: number   // 0-100
-  reasoning: string    // Why this recommendation was made
-  priority: number     // Higher = more important
+  action: 'keep' | 'pass' | 'discard' | 'neutral';
+  confidence: number;
+  reasoning: string;
+  priority: number;
 }
 
 export interface TileCount {
-  tileId: string
-  count: number
-  remaining: number    // How many left in play
+  tileId: string;
+  count: number;
+  remaining: number;
 }
 
 export interface HandValidation {
-  isValid: boolean
-  errors: string[]
-  warnings: string[]
-  tileCount: number
-  expectedCount: number
-  duplicateErrors: string[]
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+  tileCount: number;
+  expectedCount: number;
+  duplicateErrors: string[];
 }
 
-export type TileInputMode = 'select' | 'count' | 'quick-input'
+export type TileInputMode = 'select' | 'count' | 'quick-input';
 
 export interface TileInputState {
-  selectedTiles: PlayerTile[]
-  inputMode: TileInputMode
-  isValidating: boolean
-  validation: HandValidation
-  showRecommendations: boolean
+  selectedTiles: PlayerTile[];
+  inputMode: TileInputMode;
+  isValidating: boolean;
+  validation: HandValidation;
+  showRecommendations: boolean;
 }

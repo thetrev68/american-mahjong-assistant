@@ -5,7 +5,7 @@ import type { Socket } from 'socket.io-client'
 import { useCharlestonStore } from '../../../stores/charleston-store'
 import { useMultiplayerStore } from '../../../stores/multiplayer-store'
 // import { useSocket } from '../hooks/useSocket' // Unused until service refactor
-import type { Tile } from '../../../utils/charleston-adapter'
+import type { Tile } from 'shared-types';
 
 type CharlestonStore = ReturnType<typeof useCharlestonStore.getState>
 type MultiplayerStore = ReturnType<typeof useMultiplayerStore.getState>

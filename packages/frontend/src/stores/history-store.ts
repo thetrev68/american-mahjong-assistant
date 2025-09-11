@@ -4,7 +4,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
-import type { Tile } from 'shared-utils'
+import type { Tile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
 
 // Game outcome types

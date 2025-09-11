@@ -1,0 +1,1 @@
+{"version":3,"file":"socket-event-types.js","sourceRoot":"","sources":["socket-event-types.ts"],"names":[],"mappings":";;;AA4LA,0BAA0B;AACb,QAAA,mBAAmB,GAAG;IACjC,cAAc,EAAW,0BAA0B;IACnD,kBAAkB,EAAO,+BAA+B;IACxD,sBAAsB,EAAG,yBAAyB;IAClD,WAAW,CAAa,8BAA8B;CAC9C,CAAC;AAEE,QAAA,yBAAyB,GAAG;IACvC,WAAW;IACX,eAAe;IACf,WAAW;IACX,iBAAiB;CACT,CAAC"}

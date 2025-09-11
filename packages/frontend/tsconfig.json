@@ -1,16 +1,10 @@
 {
+  "extends": "../../tsconfig.base.json",
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
-  ],
-  "compilerOptions": {
-    "baseUrl": "..",
-    "paths": {
-      "@shared/*": ["./shared/*"],
-      "@frontend/*": ["./frontend/*"],
-      "@backend/*": ["./backend/*"],
-      "@intelligence/*": ["./intelligence/*"]
-    }
-  }
+    { "path": "./tsconfig.node.json" },
+    { "path": "../shared-types" },
+    { "path": "../shared-utils" }
+  ]
 }

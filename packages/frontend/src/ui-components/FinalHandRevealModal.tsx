@@ -92,7 +92,7 @@ export const FinalHandRevealModal: React.FC<FinalHandRevealModalProps> = ({
                     {/* Player's Hand */}
                     <div className="flex flex-wrap gap-1">
                       {tiles.map((tile, index) => (
-                        <div key={`${playerId}-${tile.id}-${index}`} className="transform scale-75">
+                        <div key={`${playerId}-${tile.id}-${index}`}>
                           <AnimatedTile
                             tile={tile}
                             onClick={() => {}}
