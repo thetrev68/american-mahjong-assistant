@@ -75,7 +75,7 @@ export class RoomManager {
       return false
     }
 
-    const playerIndex = room.players.findIndex(p => p.id === playerId)
+    const playerIndex = room.players.findIndex((p: Player) => p.id === playerId)
     if (playerIndex === -1) {
       return false
     }
@@ -104,7 +104,7 @@ export class RoomManager {
       return false
     }
 
-    room.players.forEach(player => {
+    room.players.forEach((player: Player) => {
       this.playerToRoom.delete(player.id)
     })
 

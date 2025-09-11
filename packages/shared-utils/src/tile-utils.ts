@@ -5,62 +5,104 @@ import type { Tile, TileValue, TileSuit, PlayerPosition } from 'shared-types';
 export const getTargetTileCount = (_position: PlayerPosition): number => 14;
 export const validatePositionTileCount = (_position: PlayerPosition, count: number): boolean => count === 14;
 
+// Helper function to generate display names for tiles
+const getDisplayName = (suit: TileSuit, value: TileValue): string => {
+  switch (suit) {
+    case 'dots':
+      return `${value} Dot${value === '1' ? '' : 's'}`
+    case 'bams':
+      return `${value} Bam${value === '1' ? '' : 's'}`
+    case 'cracks':
+      return `${value} Crack${value === '1' ? '' : 's'}`
+    case 'winds':
+      return `${value.charAt(0).toUpperCase() + value.slice(1)} Wind`
+    case 'dragons':
+      return `${value.charAt(0).toUpperCase() + value.slice(1)} Dragon`
+    case 'flowers':
+      return `Flower ${value.substring(1)}`
+    case 'jokers':
+      return 'Joker'
+    default:
+      return `${value}`
+  }
+}
+
 // Create all available tiles for selection
 export const createAllTiles = (): Tile[] => {
   const tiles: Tile[] = [];
 
   // Dots (1D-9D)
   for (let i = 1; i <= 9; i++) {
+    const suit: TileSuit = 'dots';
+    const value = i.toString() as TileValue;
     tiles.push({
       id: `${i}D`,
-      suit: 'dots',
-      value: i.toString() as TileValue
+      suit,
+      value,
+      displayName: getDisplayName(suit, value)
     });
   }
 
   // Bams (1B-9B)
   for (let i = 1; i <= 9; i++) {
+    const suit: TileSuit = 'bams';
+    const value = i.toString() as TileValue;
     tiles.push({
       id: `${i}B`,
-      suit: 'bams',
-      value: i.toString() as TileValue
+      suit,
+      value,
+      displayName: getDisplayName(suit, value)
     });
   }
 
   // Cracks (1C-9C)
   for (let i = 1; i <= 9; i++) {
+    const suit: TileSuit = 'cracks';
+    const value = i.toString() as TileValue;
     tiles.push({
       id: `${i}C`,
-      suit: 'cracks',
-      value: i.toString() as TileValue
+      suit,
+      value,
+      displayName: getDisplayName(suit, value)
     });
   }
 
   // Winds
-  tiles.push(
-    { id: 'east', suit: 'winds', value: 'east' },
-    { id: 'south', suit: 'winds', value: 'south' },
-    { id: 'west', suit: 'winds', value: 'west' },
-    { id: 'north', suit: 'winds', value: 'north' }
-  );
+  const windTiles = [
+    { id: 'east', suit: 'winds' as TileSuit, value: 'east' as TileValue },
+    { id: 'south', suit: 'winds' as TileSuit, value: 'south' as TileValue },
+    { id: 'west', suit: 'winds' as TileSuit, value: 'west' as TileValue },
+    { id: 'north', suit: 'winds' as TileSuit, value: 'north' as TileValue }
+  ];
+  windTiles.forEach(tile => {
+    tiles.push({ ...tile, displayName: getDisplayName(tile.suit, tile.value) });
+  });
 
   // Dragons
-  tiles.push(
-    { id: 'red', suit: 'dragons', value: 'red' },
-    { id: 'green', suit: 'dragons', value: 'green' },
-    { id: 'white', suit: 'dragons', value: 'white' }
-  );
+  const dragonTiles = [
+    { id: 'red', suit: 'dragons' as TileSuit, value: 'red' as TileValue },
+    { id: 'green', suit: 'dragons' as TileSuit, value: 'green' as TileValue },
+    { id: 'white', suit: 'dragons' as TileSuit, value: 'white' as TileValue }
+  ];
+  dragonTiles.forEach(tile => {
+    tiles.push({ ...tile, displayName: getDisplayName(tile.suit, tile.value) });
+  });
 
   // Flowers
-  tiles.push(
-    { id: 'f1', suit: 'flowers', value: 'f1' },
-    { id: 'f2', suit: 'flowers', value: 'f2' },
-    { id: 'f3', suit: 'flowers', value: 'f3' },
-    { id: 'f4', suit: 'flowers', value: 'f4' }
-  );
+  const flowerTiles = [
+    { id: 'f1', suit: 'flowers' as TileSuit, value: 'f1' as TileValue },
+    { id: 'f2', suit: 'flowers' as TileSuit, value: 'f2' as TileValue },
+    { id: 'f3', suit: 'flowers' as TileSuit, value: 'f3' as TileValue },
+    { id: 'f4', suit: 'flowers' as TileSuit, value: 'f4' as TileValue }
+  ];
+  flowerTiles.forEach(tile => {
+    tiles.push({ ...tile, displayName: getDisplayName(tile.suit, tile.value) });
+  });
 
   // Jokers
-  tiles.push({ id: 'joker', suit: 'jokers', value: 'joker' });
+  const suit: TileSuit = 'jokers';
+  const value: TileValue = 'joker';
+  tiles.push({ id: 'joker', suit, value, displayName: getDisplayName(suit, value) });
 
   return tiles;
 };

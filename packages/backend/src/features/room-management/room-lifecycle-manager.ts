@@ -102,7 +102,7 @@ export class RoomLifecycleManager {
       }
 
       // Check if player already in room
-      const existingPlayer = room.players.find(p => p.id === playerId)
+      const existingPlayer = room.players.find((p: Player) => p.id === playerId)
       if (existingPlayer) {
         // Reconnection scenario
         return { success: true, room }
@@ -161,7 +161,7 @@ export class RoomLifecycleManager {
       }
 
       // Remove from players
-      const playerIndex = room.players.findIndex(p => p.id === playerId)
+      const playerIndex = room.players.findIndex((p: Player) => p.id === playerId)
       if (playerIndex !== -1) {
         const leavingPlayer = room.players[playerIndex]
         room.players.splice(playerIndex, 1)
@@ -245,8 +245,8 @@ export class RoomLifecycleManager {
       }
 
       // Find new host player
-      const newHost = room.players.find(p => p.id === newHostId)
-      const currentHost = room.players.find(p => p.id === currentHostId)
+      const newHost = room.players.find((p: Player) => p.id === newHostId)
+      const currentHost = room.players.find((p: Player) => p.id === currentHostId)
       
       if (!newHost || !currentHost) {
         return { success: false, error: 'Player not found' }

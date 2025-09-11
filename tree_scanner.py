@@ -60,7 +60,7 @@ class TreeScanner:
         """
         self.excludes = excludes or {
             "node_modules", ".git", ".ruff_cache", "docs", ".github", "public", "__pycache__",
-            ".vscode", ".idea", "dist", "build", "legacy", "logs", ".pytest_cache", "venv"
+            ".vscode", ".idea", ".vite", "dist", "build", "legacy", "logs", ".pytest_cache", "venv"
         }
         
         self.count_lines_for = count_lines_for or {
