@@ -20,5 +20,17 @@
         }
       ]
     }
+  ],
+  "builds": [
+    {
+      "src": "packages/frontend/package.json",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/packages/frontend/$1"
+    }
   ]
 }
