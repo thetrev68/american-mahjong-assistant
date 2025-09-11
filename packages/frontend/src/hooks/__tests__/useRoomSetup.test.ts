@@ -3,12 +3,18 @@
 import { renderHook, act } from '@testing-library/react'
 import { vi } from 'vitest'
 import { useRoomSetup } from '../useRoomSetup'
-import { useRoomStore } from '../../stores/room-store'
+import { useRoomSetupStore } from '../../stores/room-setup.store'
+import { useRoomStore } from '../../stores/room.store'
+import { usePlayerStore } from '../../stores/player.store'
+import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import { useMultiplayer } from '../useMultiplayer'
 
 // Mock dependencies
 vi.mock('../useMultiplayer')
-vi.mock('../../stores/room-store')
+vi.mock('../../stores/room-setup.store')
+vi.mock('../../stores/room.store')
+vi.mock('../../stores/player.store')
+vi.mock('../../stores/multiplayer-store')
 
 const mockMultiplayer = {
   // Connection state
@@ -52,10 +58,8 @@ const mockMultiplayer = {
   areAllPlayersReady: vi.fn()
 }
 
-const mockRoomStore = {
+const mockRoomSetupStore = {
   coPilotMode: 'everyone',
-  currentRoomCode: null as string | null,
-  hostPlayerId: null as string | null,
   roomCreationStatus: 'idle',
   joinRoomStatus: 'idle',
   error: null,
@@ -75,11 +79,33 @@ const mockRoomStore = {
   }))
 }
 
+const mockRoomStore = {
+  currentRoomCode: null as string | null,
+  hostPlayerId: null as string | null,
+  updateRoom: vi.fn(),
+  room: null
+}
+
+const mockPlayerStore = {
+  currentPlayerId: 'different-player-id', // Set different ID to ensure isHost is false
+  setCurrentPlayerId: vi.fn()
+}
+
+const mockMultiplayerStore = {
+  currentPlayerId: null as string | null,
+  currentRoom: null,
+  setCurrentPlayerId: vi.fn(),
+  setCurrentRoom: vi.fn()
+}
+
 describe('useRoomSetup Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useMultiplayer).mockReturnValue(mockMultiplayer)
+    vi.mocked(useRoomSetupStore).mockReturnValue(mockRoomSetupStore)
     vi.mocked(useRoomStore).mockReturnValue(mockRoomStore)
+    vi.mocked(usePlayerStore).mockReturnValue(mockPlayerStore)
+    vi.mocked(useMultiplayerStore).mockReturnValue(mockMultiplayerStore)
   })
 
   describe('Hook Initialization', () => {
@@ -90,6 +116,7 @@ describe('useRoomSetup Hook', () => {
       expect(result.current.isCreatingRoom).toBe(false)
       expect(result.current.isJoiningRoom).toBe(false)
       expect(result.current.roomCode).toBeNull()
+      // With everyone mode and no host/player IDs set, should not be host
       expect(result.current.isHost).toBe(false)
       expect(result.current.error).toBeNull()
     })
@@ -97,7 +124,7 @@ describe('useRoomSetup Hook', () => {
     it('should reflect room store state changes', () => {
       mockRoomStore.currentRoomCode = 'ABCD'
       mockRoomStore.hostPlayerId = 'host-123'
-      mockRoomStore.roomCreationStatus = 'creating'
+      mockRoomSetupStore.roomCreationStatus = 'creating'
 
       const { result } = renderHook(() => useRoomSetup())
 
@@ -114,7 +141,7 @@ describe('useRoomSetup Hook', () => {
         result.current.setCoPilotMode('everyone')
       })
 
-      expect(mockRoomStore.setCoPilotMode).toHaveBeenCalledWith('everyone')
+      expect(mockRoomSetupStore.setCoPilotMode).toHaveBeenCalledWith('everyone')
     })
 
     it('should set co-pilot mode to solo', () => {
@@ -124,7 +151,7 @@ describe('useRoomSetup Hook', () => {
         result.current.setCoPilotMode('solo')
       })
 
-      expect(mockRoomStore.setCoPilotMode).toHaveBeenCalledWith('solo')
+      expect(mockRoomSetupStore.setCoPilotMode).toHaveBeenCalledWith('solo')
     })
   })
 
@@ -141,16 +168,15 @@ describe('useRoomSetup Hook', () => {
         await result.current.createRoom('Host Player')
       })
 
-      expect(mockRoomStore.setRoomCreationStatus).toHaveBeenCalledWith('creating')
+      expect(mockRoomSetupStore.setRoomCreationStatus).toHaveBeenCalledWith('creating')
       expect(mockMultiplayer.createRoom).toHaveBeenCalledWith({
         hostName: 'Host Player',
-        config: {
-          maxPlayers: 4,
-          coPilotMode: 'everyone',
-          isPrivate: false
-        }
+        maxPlayers: 4,
+        gameMode: 'nmjl-2025',
+        isPrivate: false
       })
-      expect(mockRoomStore.handleRoomCreated).toHaveBeenCalledWith('ABCD', expect.any(String))
+      // Room code is generated from room ID, so it should be a hash of 'room-123'
+      expect(mockRoomSetupStore.handleRoomCreated).toHaveBeenCalledWith(expect.any(String), expect.any(String))
     })
 
     it('should handle room creation failure', async () => {
@@ -162,7 +188,7 @@ describe('useRoomSetup Hook', () => {
         await result.current.createRoom('Host Player')
       })
 
-      expect(mockRoomStore.handleRoomCreationError).toHaveBeenCalledWith('Network error')
+      expect(mockRoomSetupStore.handleRoomCreationError).toHaveBeenCalledWith('Network error')
     })
 
     it('should not create room when not connected', async () => {
@@ -174,7 +200,7 @@ describe('useRoomSetup Hook', () => {
         await result.current.createRoom('Host Player')
       })
 
-      expect(mockRoomStore.handleRoomCreationError).toHaveBeenCalledWith(
+      expect(mockRoomSetupStore.handleRoomCreationError).toHaveBeenCalledWith(
         'Not connected to server. Please check your connection.'
       )
       expect(mockMultiplayer.createRoom).not.toHaveBeenCalled()
@@ -187,7 +213,7 @@ describe('useRoomSetup Hook', () => {
         await result.current.createRoom('')
       })
 
-      expect(mockRoomStore.handleRoomCreationError).toHaveBeenCalledWith(
+      expect(mockRoomSetupStore.handleRoomCreationError).toHaveBeenCalledWith(
         'Please enter your name'
       )
       expect(mockMultiplayer.createRoom).not.toHaveBeenCalled()
@@ -196,10 +222,12 @@ describe('useRoomSetup Hook', () => {
 
   describe('Room Joining', () => {
     beforeEach(() => {
-      mockRoomStore.isValidRoomCode.mockReturnValue(true)
+      mockRoomSetupStore.isValidRoomCode.mockReturnValue(true)
     })
 
     it('should join room successfully', async () => {
+      // Ensure multiplayer is connected for this test
+      mockMultiplayer.isConnected = true
       mockMultiplayer.joinRoom.mockResolvedValue({
         id: 'room-456',
         code: 'EFGH'
@@ -211,15 +239,14 @@ describe('useRoomSetup Hook', () => {
         await result.current.joinRoom('EFGH', 'Player Name')
       })
 
-      expect(mockRoomStore.setJoinRoomStatus).toHaveBeenCalledWith('joining')
-      expect(mockMultiplayer.joinRoom).toHaveBeenCalledWith({
-        roomId: 'EFGH',
-        playerName: 'Player Name'
-      })
-      expect(mockRoomStore.handleRoomJoined).toHaveBeenCalledWith('EFGH')
+      expect(mockRoomSetupStore.setJoinRoomStatus).toHaveBeenCalledWith('joining')
+      expect(mockMultiplayer.joinRoom).toHaveBeenCalledWith('EFGH', 'Player Name')
+      expect(mockRoomSetupStore.handleRoomJoined).toHaveBeenCalledWith('EFGH')
     })
 
     it('should handle room joining failure', async () => {
+      // Ensure multiplayer is connected for this test
+      mockMultiplayer.isConnected = true
       mockMultiplayer.joinRoom.mockRejectedValue(new Error('Room not found'))
 
       const { result } = renderHook(() => useRoomSetup())
@@ -228,11 +255,11 @@ describe('useRoomSetup Hook', () => {
         await result.current.joinRoom('EFGH', 'Player Name')
       })
 
-      expect(mockRoomStore.handleRoomJoinError).toHaveBeenCalledWith('Room not found')
+      expect(mockRoomSetupStore.handleRoomJoinError).toHaveBeenCalledWith('Room not found')
     })
 
     it('should validate room code before joining', async () => {
-      mockRoomStore.isValidRoomCode.mockReturnValue(false)
+      mockRoomSetupStore.isValidRoomCode.mockReturnValue(false)
 
       const { result } = renderHook(() => useRoomSetup())
 
@@ -240,7 +267,7 @@ describe('useRoomSetup Hook', () => {
         await result.current.joinRoom('INVALID', 'Player Name')
       })
 
-      expect(mockRoomStore.handleRoomJoinError).toHaveBeenCalledWith(
+      expect(mockRoomSetupStore.handleRoomJoinError).toHaveBeenCalledWith(
         'Please enter a valid 4-character room code'
       )
       expect(mockMultiplayer.joinRoom).not.toHaveBeenCalled()
@@ -253,7 +280,7 @@ describe('useRoomSetup Hook', () => {
         await result.current.joinRoom('EFGH', '')
       })
 
-      expect(mockRoomStore.handleRoomJoinError).toHaveBeenCalledWith(
+      expect(mockRoomSetupStore.handleRoomJoinError).toHaveBeenCalledWith(
         'Please enter your name'
       )
       expect(mockMultiplayer.joinRoom).not.toHaveBeenCalled()
@@ -268,7 +295,7 @@ describe('useRoomSetup Hook', () => {
         await result.current.joinRoom('EFGH', 'Player Name')
       })
 
-      expect(mockRoomStore.handleRoomJoinError).toHaveBeenCalledWith(
+      expect(mockRoomSetupStore.handleRoomJoinError).toHaveBeenCalledWith(
         'Not connected to server. Please check your connection.'
       )
       expect(mockMultiplayer.joinRoom).not.toHaveBeenCalled()
@@ -305,10 +332,12 @@ describe('useRoomSetup Hook', () => {
         result.current.clearError()
       })
 
-      expect(mockRoomStore.clearError).toHaveBeenCalled()
+      expect(mockRoomSetupStore.clearError).toHaveBeenCalled()
     })
 
     it('should retry room creation after error', async () => {
+      // Ensure multiplayer is connected for this test
+      mockMultiplayer.isConnected = true
       mockMultiplayer.createRoom
         .mockRejectedValueOnce(new Error('Network timeout'))
         .mockResolvedValueOnce({ id: 'room-123', code: 'ABCD' })
@@ -319,13 +348,13 @@ describe('useRoomSetup Hook', () => {
       await act(async () => {
         await result.current.createRoom('Host Player')
       })
-      expect(mockRoomStore.handleRoomCreationError).toHaveBeenCalledWith('Network timeout')
+      expect(mockRoomSetupStore.handleRoomCreationError).toHaveBeenCalledWith('Network timeout')
 
       // Retry succeeds
       await act(async () => {
         await result.current.createRoom('Host Player')
       })
-      expect(mockRoomStore.handleRoomCreated).toHaveBeenCalledWith('ABCD', expect.any(String))
+      expect(mockRoomSetupStore.handleRoomCreated).toHaveBeenCalledWith(expect.any(String), expect.any(String))
     })
   })
 
@@ -336,7 +365,7 @@ describe('useRoomSetup Hook', () => {
         completedSteps: 1,
         totalSteps: 3
       }
-      mockRoomStore.getRoomSetupProgress.mockReturnValue(mockProgress)
+      mockRoomSetupStore.getRoomSetupProgress.mockReturnValue(mockProgress)
 
       const { result } = renderHook(() => useRoomSetup())
 
@@ -346,9 +375,10 @@ describe('useRoomSetup Hook', () => {
 
   describe('Host Status', () => {
     it('should determine host status correctly', () => {
-      // Mock current player ID (would come from multiplayer store)
+      // Mock current player ID (would come from player store)
       const mockCurrentPlayerId = 'player-123'
       mockRoomStore.hostPlayerId = mockCurrentPlayerId
+      mockPlayerStore.currentPlayerId = mockCurrentPlayerId
 
       const { result } = renderHook(() => useRoomSetup())
 

@@ -1,4 +1,17 @@
-// Room Store Test Suite - Comprehensive TDD for room setup state management
+// DEPRECATED: Room Store Test Suite - This test file has been deprecated
+// 
+// The monolithic room-store.ts has been decomposed into focused stores:
+// - room-setup.store.ts (Co-pilot mode, room creation/join status)
+// - room.store.ts (Core room data and server state)  
+// - player.store.ts (Player positioning and identity)
+// - connection.store.ts (Socket connection management)
+//
+// Tests have been migrated to:
+// - useRoomSetup.test.ts (hook tests with new store structure)
+// - RoomSetupView.test.tsx (component tests)
+// - PlayerPositioning.test.tsx (positioning tests)
+//
+// This file is kept for reference only and should not be executed.
 
 import { useRoomStore } from '../room-store'
 

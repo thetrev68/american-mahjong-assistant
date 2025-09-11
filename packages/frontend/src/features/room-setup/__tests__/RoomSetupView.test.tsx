@@ -4,13 +4,13 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi } from 'vitest'
 import { RoomSetupView } from '../RoomSetupView'
 import { useRoomSetup } from '../../../hooks/useRoomSetup'
-import type { CoPilotMode } from '../../../stores/room-store'
-import { useRoomStore } from '../../../stores/room-store'
+import type { CoPilotMode } from '../../../stores/room-setup.store'
+import { useRoomSetupStore } from '../../../stores/room-setup.store'
 import { useMultiplayerStore } from '../../../stores/multiplayer-store'
 
 // Mock dependencies
 vi.mock('../../../hooks/useRoomSetup')
-vi.mock('../../../stores/room-store')
+vi.mock('../../../stores/room-setup.store')
 vi.mock('../../../stores/multiplayer-store')
 
 interface MockRoomSetup {
@@ -51,6 +51,18 @@ const mockRoomSetup: MockRoomSetup = {
   clearError: vi.fn()
 }
 
+const mockRoomSetupStore = {
+  resetCoPilotModeSelection: vi.fn(),
+  setRoomCreationStatus: vi.fn(),
+  setJoinRoomStatus: vi.fn(),
+  clearError: vi.fn(),
+  getRoomSetupProgress: vi.fn(() => ({
+    currentStep: 'mode-selection' as const,
+    completedSteps: 0,
+    totalSteps: 3
+  }))
+}
+
 const mockRoomStore = {
   playerPositions: {},
   setPlayerPosition: vi.fn(),
@@ -81,7 +93,7 @@ describe('RoomSetupView Component', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useRoomSetup).mockReturnValue(mockRoomSetup)
-    vi.mocked(useRoomStore).mockReturnValue(mockRoomStore)
+    vi.mocked(useRoomSetupStore).mockReturnValue(mockRoomSetupStore)
     vi.mocked(useMultiplayerStore).mockReturnValue(mockMultiplayerStore)
   })
 
