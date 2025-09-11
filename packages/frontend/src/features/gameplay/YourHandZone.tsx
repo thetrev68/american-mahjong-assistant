@@ -5,7 +5,7 @@ import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { PlayerTile, Tile as TileType } from '../../types/tile-types'
 import { useTileStore } from '../../stores/tile-store'
-import { tileService } from '../../services/tile-service'
+import { tileService } from '../../lib/services/tile-service'
 
 interface YourHandZoneProps {
   currentHand: PlayerTile[]

@@ -6,7 +6,7 @@ import { devtools, persist } from 'zustand/middleware'
 import { useRoomStore } from './room.store'
 import { useRoomSetupStore } from './room-setup.store'
 import { useGameStore } from './game-store'
-import type { GameAction, CallType } from '../services/game-actions'
+import type { GameAction, CallType } from '../features/gameplay/services/game-actions'
 import type { Tile } from '../types/tile-types'
 import type { NMJL2025Pattern } from 'shared-types'
 
@@ -351,8 +351,8 @@ export const useTurnStore = create<TurnStore>()(
         },
 
         executeAction: async (playerId: string, action: GameAction, data?: unknown) => {
-          const { gameActions } = await import('../services/game-actions')
-          const { getTurnRealtime } = await import('../services/turn-realtime')
+          const { gameActions } = await import('../features/gameplay/services/game-actions')
+          const { getTurnRealtime } = await import('../features/gameplay/services/turn-realtime')
           const turnRealtime = getTurnRealtime()
           const roomStore = useRoomStore.getState()
           const roomSetupStore = useRoomSetupStore.getState()
@@ -521,7 +521,7 @@ export const useTurnStore = create<TurnStore>()(
         },
 
         respondToCall: async (response: 'call' | 'pass', callType?: CallType, tiles?: Tile[]) => {
-          const { getTurnRealtime } = await import('../services/turn-realtime')
+          const { getTurnRealtime } = await import('../features/gameplay/services/turn-realtime')
           const turnRealtime = getTurnRealtime()
           
           try {

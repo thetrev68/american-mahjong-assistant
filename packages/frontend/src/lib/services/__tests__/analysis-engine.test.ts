@@ -1,22 +1,22 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AnalysisEngine } from '../analysis-engine'
 import { nmjlService } from '../nmjl-service'
-import { PatternAnalysisEngine } from '../pattern-analysis-engine'
-import { PatternRankingEngine } from '../pattern-ranking-engine'
-import { TileRecommendationEngine } from '../tile-recommendation-engine'
+import { PatternAnalysisEngine } from '../../../features/intelligence-panel/services/pattern-analysis-engine'
+import { PatternRankingEngine } from '../../../features/intelligence-panel/services/pattern-ranking-engine'
+import { TileRecommendationEngine } from '../../../features/intelligence-panel/services/tile-recommendation-engine'
 import {
   createTile,
   createPatternSelection,
   createAnalysisFacts,
   createRankedPatternResults,
   TilePresets,
-} from '../../__tests__/factories'
+} from '../../../__tests__/factories'
 
 // Mock the service dependencies
 vi.mock('../nmjl-service')
-vi.mock('../pattern-analysis-engine')
-vi.mock('../pattern-ranking-engine') 
-vi.mock('../tile-recommendation-engine')
+vi.mock('../../../features/intelligence-panel/services/pattern-analysis-engine')
+vi.mock('../../../features/intelligence-panel/services/pattern-ranking-engine') 
+vi.mock('../../../features/intelligence-panel/services/tile-recommendation-engine')
 
 describe('Analysis Engine', () => {
   beforeEach(() => {

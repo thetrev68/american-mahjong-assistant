@@ -2,8 +2,8 @@
 // Real-time synchronization for turn rotation in 4-player American Mahjong
 
 import { Socket } from 'socket.io-client'
-import { useTurnStore, type TurnPlayer } from '../stores/turn-store'
-import { useGameStore } from '../stores/game-store'
+import { useTurnStore, type TurnPlayer } from '../../../stores/turn-store'
+import { useGameStore } from '../../../stores/game-store'
 
 export class TurnMultiplayerService {
   private socket: Socket | null = null

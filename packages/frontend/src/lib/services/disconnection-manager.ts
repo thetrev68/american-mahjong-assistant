@@ -1,10 +1,10 @@
 // Graceful Disconnection Manager
 // Handles clean disconnection, state preservation, and graceful degradation
 
-import { useRoomStore } from '../stores/room.store'
-import { useGameStore } from '../stores/game-store'
-import { useTurnStore } from '../stores/turn-store'
-import { useCharlestonStore } from '../stores/charleston-store'
+import { useRoomStore } from '../../stores/room.store'
+import { useGameStore } from '../../stores/game-store'
+import { useTurnStore } from '../../stores/turn-store'
+import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService, destroyRoomMultiplayerService } from './room-multiplayer'
 import { destroyConnectionResilience } from './connection-resilience'
 

@@ -6,19 +6,19 @@ import { useSocket } from './useSocket'
 import { 
   getConnectionResilienceService,
   destroyConnectionResilience 
-} from '../services/connection-resilience'
+} from '../lib/services/connection-resilience'
 import { 
   getNetworkErrorHandler, 
   handleSocketError,
   onConnectionSuccess,
   isNetworkHealthy 
-} from '../services/network-error-handler'
+} from '../lib/services/network-error-handler'
 import { 
   getDisconnectionManager,
   initiateLeaveRoom,
   handleNetworkError,
   handleServerShutdown 
-} from '../services/disconnection-manager'
+} from '../lib/services/disconnection-manager'
 import { useRoomStore } from '../stores/room.store'
 import { useGameStore } from '../stores/game-store'
 

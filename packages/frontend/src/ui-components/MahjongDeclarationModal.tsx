@@ -6,10 +6,10 @@ import { Button } from './Button'
 import { Card } from './Card'
 import { LoadingSpinner } from './LoadingSpinner'
 import { AnimatedTile } from './tiles/AnimatedTile'
-import { MahjongValidator, type MahjongDeclaration, type MahjongValidationResult } from '../services/mahjong-validator'
+import { MahjongValidator, type MahjongDeclaration, type MahjongValidationResult } from '../lib/services/mahjong-validator'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { PlayerTile } from '../types/tile-types'
-import type { GameContext } from '../services/pattern-analysis-engine'
+import type { GameContext } from '../features/intelligence-panel/services/pattern-analysis-engine'
 
 interface MahjongDeclarationModalProps {
   isOpen: boolean

@@ -2,9 +2,9 @@
 // Tests for all game end scenarios and statistics generation
 
 import { GameEndCoordinator, type GameEndContext, getWallExhaustionWarning, shouldGameEnd } from '../game-end-coordinator'
-import { GameStatisticsEngine } from '../game-statistics'
+import { GameStatisticsEngine } from '../../../post-game/services/game-statistics'
 import type { NMJL2025Pattern } from 'shared-types'
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from '../../../lib/types/tile-types'
 
 describe('GameEndCoordinator', () => {
   const mockPattern: NMJL2025Pattern = {

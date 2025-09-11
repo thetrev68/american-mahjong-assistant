@@ -5,7 +5,7 @@
  */
 
 import type { NMJL2025Pattern, PatternSelectionOption, PatternGroup } from 'shared-types'
-import type { PatternVariation } from '../../services/pattern-variation-loader'
+import type { PatternVariation } from '../intelligence-panel/services/pattern-variation-loader'
 
 export interface PatternFactoryOptions {
   id?: number

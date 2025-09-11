@@ -1,11 +1,11 @@
 // Connection Resilience Service
 // Comprehensive reconnection handling, state recovery, and network error management
 
-import { useSocket } from '../hooks/useSocket'
-import { useRoomStore } from '../stores/room.store'
-import { useGameStore } from '../stores/game-store'
-import { useTurnStore } from '../stores/turn-store'
-import { useCharlestonStore } from '../stores/charleston-store'
+import { useSocket } from '../../hooks/useSocket'
+import { useRoomStore } from '../../stores/room.store'
+import { useGameStore } from '../../stores/game-store'
+import { useTurnStore } from '../../stores/turn-store'
+import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
 
 // Global state to prevent repeated disconnection logging and multiple service instances

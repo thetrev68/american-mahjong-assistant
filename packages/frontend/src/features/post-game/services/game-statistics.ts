@@ -1,9 +1,9 @@
 // Game Statistics Engine - Generate comprehensive game statistics
 // Tracks game flow, performance metrics, and completion data
 
-import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../../../types/tile-types'
 import type { NMJL2025Pattern } from 'shared-types'
-import type { GameDecision, PatternAnalysis, GamePerformance, GameInsights } from '../stores/history-store'
+import type { GameDecision, PatternAnalysis, GamePerformance, GameInsights } from '../../../stores/history-store'
 
 export interface GameEndScenario {
   type: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'

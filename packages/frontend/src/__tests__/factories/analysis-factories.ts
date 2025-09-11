@@ -5,8 +5,8 @@
  */
 
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
-import type { PatternAnalysisFacts, TileContribution, GameContext } from '../../services/pattern-analysis-engine'
-import type { RankedPatternResults } from '../../services/pattern-ranking-engine'
+import type { PatternAnalysisFacts, TileContribution, GameContext } from '../../features/intelligence-panel/services/pattern-analysis-engine'
+import type { RankedPatternResults } from '../../features/intelligence-panel/services/pattern-ranking-engine'
 import type { PatternSelectionOption } from 'shared-types'
 import { createPatternSelection } from './pattern-factories'
 

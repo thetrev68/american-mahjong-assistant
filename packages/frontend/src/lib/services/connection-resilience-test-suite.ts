@@ -5,7 +5,7 @@ import { getUnifiedMultiplayerManager, initializeUnifiedMultiplayerManager } fro
 import { getConnectionResilienceService } from './connection-resilience'
 import { getNetworkErrorHandler } from './network-error-handler'
 import { getEventQueueManager } from './event-queue-manager'
-import { getCharlestonResilientService } from './charleston-resilient'
+import { getCharlestonResilientService } from '../features/charleston/services/charleston-resilient'
 import type { Socket } from 'socket.io-client'
 
 interface MockSocket {

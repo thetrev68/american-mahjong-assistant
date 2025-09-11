@@ -1,6 +1,6 @@
 import React from 'react'
 import { CallOpportunitySection } from './CallOpportunitySection'
-import type { CallOpportunity, CallRecommendation } from '../../../services/call-opportunity-analyzer'
+import type { CallOpportunity, CallRecommendation } from '../../intelligence-panel/services/call-opportunity-analyzer'
 
 interface CallOpportunityOverlayProps {
   opportunity: CallOpportunity

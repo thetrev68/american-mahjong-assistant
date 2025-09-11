@@ -1,12 +1,12 @@
 // Turn Real-time Synchronization Service
 // Coordinates turn actions across multiplayer sessions with connection resilience
 
-import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
-import { useGameStore } from '../stores/game-store'
-import { useTurnStore } from '../stores/turn-store'
-import { useRoomStore } from '../stores/room.store'
+import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
+import { useGameStore } from '../../../stores/game-store'
+import { useTurnStore } from '../../../stores/turn-store'
+import { useRoomStore } from '../../../stores/room.store'
 import type { GameAction, CallType } from './game-actions'
-import type { Tile } from '../types/tile-types'
+import type { Tile } from '../../../types/tile-types'
 
 export interface TurnActionEvent {
   playerId: string

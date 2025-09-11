@@ -4,8 +4,8 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { PlayerTile, TileInputState, HandValidation, TileInputMode, TileAnimation, TileRecommendation } from '../types/tile-types'
-import { tileService } from '../services/tile-service'
-import { AnalysisEngine } from '../services/analysis-engine'
+import { tileService } from '../lib/services/tile-service'
+import { AnalysisEngine } from '../lib/services/analysis-engine'
 
 interface TileState extends TileInputState {
   // Hand Management
@@ -353,8 +353,8 @@ export const useTileStore = create<TileState>()(
           
           try {
             // Import real-time analysis service
-            const { RealTimeAnalysisService } = await import('../services/real-time-analysis-service')
-            const { nmjlService } = await import('../services/nmjl-service')
+            const { RealTimeAnalysisService } = await import('../features/intelligence-panel/services/real-time-analysis-service')
+            const { nmjlService } = await import('../lib/services/nmjl-service')
             
             // Get available patterns
             const patterns = await nmjlService.loadPatterns()

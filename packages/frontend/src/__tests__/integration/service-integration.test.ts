@@ -4,9 +4,9 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { nmjlService } from '../../services/nmjl-service'
-import { AnalysisEngine } from '../../services/analysis-engine'
-import { gameActions } from '../../services/game-actions'
+import { nmjlService } from '../../lib/services/nmjl-service'
+import { AnalysisEngine } from '../../lib/services/analysis-engine'
+import { gameActions } from '../gameplay/services/game-actions'
 import type { NMJL2025Pattern, PatternSelectionOption } from 'shared-types'
 
 // Import test factories

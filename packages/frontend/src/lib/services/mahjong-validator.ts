@@ -1,9 +1,9 @@
 // Mahjong Validation Service - Real pattern validation using NMJL rules
 // Integrates with PatternAnalysisEngine for authentic American Mahjong validation
 
-import { PatternAnalysisEngine, type GameContext, type TileMatchResult } from './pattern-analysis-engine'
+import { PatternAnalysisEngine, type GameContext, type TileMatchResult } from '../../features/intelligence-panel/services/pattern-analysis-engine'
 import type { NMJL2025Pattern } from 'shared-types'
-import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from '../../types/tile-types'
 
 export interface MahjongValidationResult {
   isValid: boolean

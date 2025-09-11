@@ -5,8 +5,8 @@ import { CallOpportunitySection } from './components/CallOpportunitySection'
 import { OpponentInsightsSection } from './components/OpponentInsightsSection'
 import { DefensivePlaySection } from './components/DefensivePlaySection'
 import type { HandAnalysis } from '../../stores/intelligence-store'
-import type { GameState } from '../../services/turn-intelligence-engine'
-import type { CallOpportunity } from '../../services/call-opportunity-analyzer'
+import type { GameState } from '../intelligence-panel/services/turn-intelligence-engine'
+import type { CallOpportunity } from '../intelligence-panel/services/call-opportunity-analyzer'
 
 interface EnhancedIntelligencePanelProps {
   analysis: HandAnalysis | null

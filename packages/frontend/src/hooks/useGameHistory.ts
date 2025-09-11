@@ -3,8 +3,8 @@
 
 import { useCallback, useMemo, useEffect } from 'react'
 import { useHistoryStore, type CompletedGame, type GameOutcome, type GameDifficulty } from '../stores/history-store'
-import { AnalysisEngine } from '../services/analysis-engine'
-import { PatternAnalysisEngine } from '../services/pattern-analysis-engine'
+import { AnalysisEngine } from '../lib/services/analysis-engine'
+import { PatternAnalysisEngine } from '../features/intelligence-panel/services/pattern-analysis-engine'
 import type { Tile } from 'shared-utils'
 import type { NMJL2025Pattern } from 'shared-types'
 

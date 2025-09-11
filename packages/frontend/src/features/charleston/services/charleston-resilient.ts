@@ -1,11 +1,11 @@
 // Charleston Resilient Service
 // Multiplayer Charleston coordination with connection resilience and event queuing
 
-import { useCharlestonStore } from '../stores/charleston-store'
-import { useRoomStore } from '../stores/room.store'
-import { getConnectionResilienceService } from './connection-resilience'
-import { getNetworkErrorHandler } from './network-error-handler'
-import type { Tile } from '../utils/charleston-adapter'
+import { useCharlestonStore } from '../../../stores/charleston-store'
+import { useRoomStore } from '../../../stores/room.store'
+import { getConnectionResilienceService } from '../../../lib/services/connection-resilience'
+import { getNetworkErrorHandler } from '../../../lib/services/network-error-handler'
+import type { Tile } from '../../../utils/charleston-adapter'
 
 export interface QueuedCharlestonOperation {
   type: 'player-ready' | 'tile-exchange' | 'phase-advance'

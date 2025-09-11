@@ -1,7 +1,7 @@
 import React from 'react'
 import { TileSprite } from '../../../ui-components/TileSprite'
 import { ConfidenceBadge } from '../../../ui-components/ConfidenceBadge'
-import type { TurnRecommendations } from '../../../services/turn-intelligence-engine'
+import type { TurnRecommendations } from '../../intelligence-panel/services/turn-intelligence-engine'
 
 interface TurnRecommendationsSectionProps {
   recommendations: TurnRecommendations

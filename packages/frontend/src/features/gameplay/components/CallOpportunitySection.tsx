@@ -2,7 +2,7 @@ import React from 'react'
 import { TileSprite } from '../../../ui-components/TileSprite'
 import { ConfidenceBadge } from '../../../ui-components/ConfidenceBadge'
 import { CountdownTimer } from '../../../ui-components/CountdownTimer'
-import type { CallOpportunity, CallRecommendation } from '../../../services/call-opportunity-analyzer'
+import type { CallOpportunity, CallRecommendation } from '../../intelligence-panel/services/call-opportunity-analyzer'
 
 interface CallOpportunitySectionProps {
   opportunity: CallOpportunity

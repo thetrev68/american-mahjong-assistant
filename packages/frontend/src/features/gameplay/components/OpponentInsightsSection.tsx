@@ -1,7 +1,7 @@
 import React from 'react'
 import { TileSprite } from '../../../ui-components/TileSprite'
 import { ThreatBadge } from '../../../ui-components/ThreatBadge'
-import type { OpponentProfile, DangerousTileAnalysis } from '../../../services/opponent-analysis-engine'
+import type { OpponentProfile, DangerousTileAnalysis } from '../../intelligence-panel/services/opponent-analysis-engine'
 
 interface OpponentInsightsSectionProps {
   opponents: OpponentProfile[]

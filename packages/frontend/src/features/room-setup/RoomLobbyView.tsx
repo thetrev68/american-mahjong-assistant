@@ -4,7 +4,7 @@
 import React, { useState } from 'react'
 import { useRoomStore } from '../../stores/room.store'
 import { usePlayerStore } from '../../stores/player.store'
-import { getRoomMultiplayerService } from '../../services/room-multiplayer'
+import { getRoomMultiplayerService } from '../../lib/services/room-multiplayer'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import HostControls from '../../ui-components/HostControls'

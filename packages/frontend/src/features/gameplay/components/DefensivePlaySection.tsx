@@ -1,5 +1,5 @@
 import React from 'react'
-import type { DefensiveAnalysis, PatternSwitchSuggestion } from '../../../services/turn-intelligence-engine'
+import type { DefensiveAnalysis, PatternSwitchSuggestion } from '../../intelligence-panel/services/turn-intelligence-engine'
 
 interface DefensivePlaySectionProps {
   defensiveAnalysis: DefensiveAnalysis

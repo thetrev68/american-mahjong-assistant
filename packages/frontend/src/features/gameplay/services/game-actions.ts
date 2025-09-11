@@ -1,14 +1,14 @@
 // Game Actions Service
 // Complete action system for American Mahjong gameplay with validation and coordination
 
-import type { Tile } from '../types/tile-types'
+import type { Tile } from '../../../types/tile-types'
 import type { NMJL2025Pattern } from 'shared-types'
-import { useGameStore } from '../stores/game-store'
-import { useTileStore } from '../stores/tile-store'
-import { useTurnStore } from '../stores/turn-store'
-import { useRoomStore } from '../stores/room.store'
-import { useIntelligenceStore } from '../stores/intelligence-store'
-import { getUnifiedMultiplayerManager } from './unified-multiplayer-manager'
+import { useGameStore } from '../../../stores/game-store'
+import { useTileStore } from '../../../stores/tile-store'
+import { useTurnStore } from '../../../stores/turn-store'
+import { useRoomStore } from '../../../stores/room.store'
+import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
 
 export type GameAction = 'draw' | 'discard' | 'call' | 'joker-swap' | 'mahjong' | 'declare-mahjong' | 'pass-out' | 'other-player-mahjong' | 'game-drawn'
 export type CallType = 'pung' | 'kong' | 'quint' | 'sextet'

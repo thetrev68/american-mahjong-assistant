@@ -27,7 +27,11 @@
       "Bash(timeout 10 npm run build:*)",
       "Bash(xargs sed:*)",
       "Bash(xargs ls:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(mkdir:*)",
+      "Bash(dir \"C:\\Repos\\american-mahjong-assistant\\packages\\frontend\\src\\__tests__\")",
+      "Bash(dir \"C:\\Repos\\american-mahjong-assistant\\packages\\frontend\\src\\__tests__\\factories\")",
+      "Bash(dir \"C:\\Repos\\american-mahjong-assistant\\packages\\frontend\\src\\features\")"
     ],
     "deny": [],
     "ask": [],

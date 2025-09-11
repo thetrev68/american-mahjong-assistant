@@ -6,7 +6,7 @@ import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore } from '../../stores'
-import { tileService } from '../../services/tile-service'
+import { tileService } from '../../lib/services/tile-service'
 import type { TileSuit, PlayerTile, Tile as BaseTile } from '../../types/tile-types'
 
 interface TileSelectorProps {

@@ -6,8 +6,8 @@
  */
 
 import { vi } from 'vitest'
-import { PatternVariationLoader } from '../../services/pattern-variation-loader'
-import { nmjlService } from '../../services/nmjl-service'
+import { PatternVariationLoader } from '../../features/intelligence-panel/services/pattern-variation-loader'
+import { nmjlService } from '../../lib/services/nmjl-service'
 import { createPatternSet, PatternPresets } from './pattern-factories'
 import { createMultipleAnalysisFacts } from './analysis-factories'
 

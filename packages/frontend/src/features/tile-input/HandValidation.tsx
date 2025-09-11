@@ -5,7 +5,7 @@ import { useMemo } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { useTileStore } from '../../stores'
-import { tileService } from '../../services/tile-service'
+import { tileService } from '../../lib/services/tile-service'
 
 interface HandValidationProps {
   onCollapse?: () => void

@@ -16,8 +16,8 @@ import GameScreenLayout from '../gameplay/GameScreenLayout'
 import { TileInputModal } from '../shared/TileInputModal'
 import { SelectionArea } from '../gameplay/SelectionArea'
 import { Button } from '../../ui-components/Button'
-import { tileService } from '../../services/tile-service'
-import { useCharlestonMultiplayer } from '../../services/charleston-multiplayer'
+import { tileService } from '../../lib/services/tile-service'
+import { useCharlestonMultiplayer } from '../charleston/services/charleston-multiplayer'
 import type { Tile as TileType, PlayerTile } from '../../types/tile-types'
 
 

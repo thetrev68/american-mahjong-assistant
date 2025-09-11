@@ -1,8 +1,8 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { GameAlert } from '../features/gameplay/AlertSystem'
-import { getTurnMultiplayerService, destroyTurnMultiplayerService } from '../services/turn-multiplayer'
-import { shouldGameEnd, getWallExhaustionWarning, type GameEndContext } from '../services/game-end-coordinator'
+import { getTurnMultiplayerService, destroyTurnMultiplayerService } from '../features/gameplay/services/turn-multiplayer'
+import { shouldGameEnd, getWallExhaustionWarning, type GameEndContext } from '../features/gameplay/services/game-end-coordinator'
 import { usePatternStore } from './pattern-store'
 import { useTileStore } from './tile-store'
 

@@ -6,8 +6,8 @@ import { useSocket } from '../hooks/useSocket'
 import { useRoomSetupStore } from '../stores/room-setup.store'
 import { useRoomStore } from '../stores/room.store'
 import { useConnectionStore } from '../stores/connection.store'
-import { getNetworkErrorHandler } from '../services/network-error-handler'
-import { getConnectionResilienceService } from '../services/connection-resilience'
+import { getNetworkErrorHandler } from '../lib/services/network-error-handler'
+import { getConnectionResilienceService } from '../lib/services/connection-resilience'
 
 interface ConnectionStatusProps {
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'

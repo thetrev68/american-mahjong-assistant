@@ -2,8 +2,8 @@
 // React hook for easy integration testing of connection resilience features
 
 import { useState, useCallback } from 'react'
-import { runConnectionResilienceTests, runConnectionResilienceTestCategory } from '../services/connection-resilience-test-suite'
-import type { TestSuiteResult, TestResult } from '../services/connection-resilience-test-suite'
+import { runConnectionResilienceTests, runConnectionResilienceTestCategory } from '../lib/services/connection-resilience-test-suite'
+import type { TestSuiteResult, TestResult } from '../lib/services/connection-resilience-test-suite'
 
 export interface TestStatus {
   isRunning: boolean

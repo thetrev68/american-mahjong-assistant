@@ -5,7 +5,7 @@ import React, { useState, useEffect } from 'react'
 import { Button } from './Button'
 import { Card } from './Card'
 import { AnimatedTile } from './tiles/AnimatedTile'
-import type { CallType } from '../services/game-actions'
+import type { CallType } from '../features/gameplay/services/game-actions'
 import type { Tile } from '../types/tile-types'
 
 export interface CallOpportunityData {

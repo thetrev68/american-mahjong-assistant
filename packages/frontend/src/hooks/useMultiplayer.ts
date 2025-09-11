@@ -2,8 +2,8 @@ import { useEffect, useState, useCallback, useRef } from 'react'
 import { useSocket } from './useSocket'
 import { useConnectionResilience } from './useConnectionResilience'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
-import { getNetworkErrorHandler } from '../services/network-error-handler'
-import { getRoomMultiplayerService, initializeRoomMultiplayerService } from '../services/room-multiplayer'
+import { getNetworkErrorHandler } from '../lib/services/network-error-handler'
+import { getRoomMultiplayerService, initializeRoomMultiplayerService } from '../lib/services/room-multiplayer'
 import type { Room, Player, GameState, PlayerGameState, RoomConfig } from 'shared-types'
 
 interface CreateRoomData {

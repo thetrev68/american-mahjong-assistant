@@ -1,10 +1,10 @@
 // Phase Transition Manager
 // Seamless integration between all game phases with proper state management
 
-import { useRoomStore } from '../stores/room.store'
-import { useGameStore } from '../stores/game-store'
-import { useTurnStore } from '../stores/turn-store'
-import { useCharlestonStore } from '../stores/charleston-store'
+import { useRoomStore } from '../../stores/room.store'
+import { useGameStore } from '../../stores/game-store'
+import { useTurnStore } from '../../stores/turn-store'
+import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
 // Turn multiplayer service integration would go here if needed
 

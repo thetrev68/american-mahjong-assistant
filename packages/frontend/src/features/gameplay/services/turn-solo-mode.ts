@@ -1,8 +1,8 @@
 // Solo Mode Turn Management Service
 // Single player using AI assistant while 3 other players play normally
 
-import { useTurnStore, type TurnPlayer } from '../stores/turn-store'
-import { useGameStore } from '../stores/game-store'
+import { useTurnStore, type TurnPlayer } from '../../../stores/turn-store'
+import { useGameStore } from '../../../stores/game-store'
 
 export class TurnSoloModeService {
   private humanPlayerId: string | null = null

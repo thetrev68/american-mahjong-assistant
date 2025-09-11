@@ -5,7 +5,7 @@ import React, { useState, useMemo } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
-import { tileService } from '../../services/tile-service'
+import { tileService } from '../../lib/services/tile-service'
 import type { CoPilotDemoProps } from './types'
 import type { PlayerTile } from '../../types/tile-types'
 

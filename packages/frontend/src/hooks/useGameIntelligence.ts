@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useIntelligenceStore } from '../stores/intelligence-store'
-import type { GameState } from '../services/turn-intelligence-engine'
+import type { GameState } from '../features/intelligence-panel/services/turn-intelligence-engine'
 
 export const useGameIntelligence = (gameState: GameState | null, playerId: string | null) => {
   const [lastAnalysisUpdate, setLastAnalysisUpdate] = useState<number>(0)

@@ -4,7 +4,7 @@
 import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { PatternSelectionOption, PatternProgress, NMJL2025Pattern } from 'shared-types'
-import { nmjlService } from '../services/nmjl-service'
+import { nmjlService } from '../lib/services/nmjl-service'
 
 interface PatternState {
   // Data

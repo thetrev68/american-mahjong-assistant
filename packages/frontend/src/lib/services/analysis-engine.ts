@@ -3,12 +3,12 @@
 // Engine 1: Pattern Analysis (Facts), Engine 2: Pattern Ranking (Scoring), Engine 3: Tile Recommendations (Actions)
 
 import type { PatternSelectionOption } from 'shared-types'
-import type { PlayerTile } from '../types/tile-types'
-import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../stores/intelligence-store'
+import type { PlayerTile } from '../../types/tile-types'
+import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
 import { nmjlService } from './nmjl-service'
-import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from './pattern-analysis-engine'
-import { PatternRankingEngine, type RankedPatternResults } from './pattern-ranking-engine'
-import { TileRecommendationEngine } from './tile-recommendation-engine'
+import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from '../../features/intelligence-panel/services/pattern-analysis-engine'
+import { PatternRankingEngine, type RankedPatternResults } from '../../features/intelligence-panel/services/pattern-ranking-engine'
+import { TileRecommendationEngine } from '../../features/intelligence-panel/services/tile-recommendation-engine'
 
 // Legacy interfaces removed - now using the new 3-engine system
 

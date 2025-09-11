@@ -4,7 +4,7 @@
 import { Card } from '../../ui-components/Card'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 import { renderPatternVariation, getTileCharClasses, getTileDisplayChar } from '../../utils/tile-display-utils'
-import { tileService } from '../../services/tile-service'
+import { tileService } from '../../lib/services/tile-service'
 import { useTileStore } from '../../stores/tile-store'
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
 

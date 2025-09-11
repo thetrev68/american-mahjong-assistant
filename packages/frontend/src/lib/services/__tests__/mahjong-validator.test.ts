@@ -4,7 +4,7 @@
 import { MahjongValidator, type MahjongDeclaration } from '../mahjong-validator'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { PlayerTile } from '../../types/tile-types'
-import type { GameContext } from '../pattern-analysis-engine'
+import type { GameContext } from '../../../features/intelligence-panel/services/pattern-analysis-engine'
 
 describe('MahjongValidator', () => {
   const mockPattern: NMJL2025Pattern = {

@@ -13,8 +13,8 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { useTileStore } from '../tile-store'
-import { tileService } from '../../services/tile-service'
-import { AnalysisEngine } from '../../services/analysis-engine'
+import { tileService } from '../../lib/services/tile-service'
+import { AnalysisEngine } from '../../lib/services/analysis-engine'
 import { 
   createTile, 
   createTiles, 

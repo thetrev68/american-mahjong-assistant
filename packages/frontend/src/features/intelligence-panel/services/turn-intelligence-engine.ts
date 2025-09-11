@@ -1,9 +1,9 @@
 // Turn Intelligence Engine
 // Context-sensitive AI analysis for turn-aware strategic recommendations
 
-import type { Tile, PlayerTile } from '../types/tile-types'
+import type { Tile, PlayerTile } from '../../../types/tile-types'
 import type { NMJL2025Pattern } from 'shared-types'
-import { AnalysisEngine } from './analysis-engine'
+import { AnalysisEngine } from '../../../lib/services/analysis-engine'
 
 export interface GameState {
   currentPlayer: string | null

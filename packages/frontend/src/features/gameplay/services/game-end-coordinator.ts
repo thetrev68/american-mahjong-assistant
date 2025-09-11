@@ -1,11 +1,11 @@
 // Game End Coordinator - Manages all game end scenarios and transitions
 // Integrates with GameStatisticsEngine and handles multiplayer coordination
 
-import { GameStatisticsEngine, type GameEndScenario, type GameStatistics } from './game-statistics'
-import type { PlayerTile } from '../types/tile-types'
+import { GameStatisticsEngine, type GameEndScenario, type GameStatistics } from '../../post-game/services/game-statistics'
+import type { PlayerTile } from '../../../types/tile-types'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { TileSuit } from 'shared-utils'
-import type { CompletedGame } from '../stores/history-store'
+import type { CompletedGame } from '../../../stores/history-store'
 
 export interface GameEndResult {
   scenario: GameEndScenario

@@ -6,7 +6,7 @@ import { useRoomSetupStore } from '../stores/room-setup.store'
 import { usePatternStore } from '../stores/pattern-store'
 import { useTileStore } from '../stores/tile-store'
 import { useGameStore } from '../stores/game-store'
-import { getUnifiedMultiplayerManager } from '../services/unified-multiplayer-manager'
+import { getUnifiedMultiplayerManager } from '../lib/services/unified-multiplayer-manager'
 import type { PlayerTile } from '../types/tile-types'
 
 interface GameEndCoordinationState {

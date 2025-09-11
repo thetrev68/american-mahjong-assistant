@@ -13,8 +13,8 @@ import App from '../../App'
 import { useGameStore } from '../../stores/game-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
-import { nmjlService } from '../../services/nmjl-service'
-import { AnalysisEngine } from '../../services/analysis-engine'
+import { nmjlService } from '../../lib/services/nmjl-service'
+import { AnalysisEngine } from '../../lib/services/analysis-engine'
 import type { NMJL2025Pattern } from 'shared-types'
 
 // Test wrapper
