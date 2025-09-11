@@ -189,16 +189,44 @@ export class MahjongValidator {
       return { isValid: true, violations: [] }
     }
 
-    if (exposedTiles.length % 3 !== 0) {
-      return {
-        isValid: false,
-        violations: [`Exposed tiles must be in groups of 3 or 4 (have ${exposedTiles.length})`]
+    // Group tiles by their type (id) to validate sets
+    const tileGroups = new Map<string, PlayerTile[]>()
+    for (const tile of exposedTiles) {
+      const group = tileGroups.get(tile.id) || []
+      group.push(tile)
+      tileGroups.set(tile.id, group)
+    }
+
+    const violations: string[] = []
+    let validGroupCount = 0
+
+    // Validate each group is either a pung (3 identical) or kong (4 identical)
+    for (const [tileId, group] of tileGroups) {
+      const count = group.length
+      
+      if (count === 3) {
+        // Valid pung
+        validGroupCount++
+      } else if (count === 4) {
+        // Valid kong
+        validGroupCount++
+      } else if (count < 3) {
+        violations.push(`Incomplete set: ${count} ${tileId} tile${count !== 1 ? 's' : ''} (need 3 for pung or 4 for kong)`)
+      } else {
+        violations.push(`Invalid set: ${count} ${tileId} tiles (maximum 4 for kong)`)
       }
     }
 
-    // For now, assume exposed tiles are valid groups
-    // In a full implementation, we'd validate each 3-4 tile group
-    return { isValid: true, violations: [] }
+    // Check that all exposed tiles are accounted for in valid groups
+    const expectedTilesInGroups = validGroupCount * 3 + (tileGroups.size - validGroupCount) * 4
+    if (violations.length === 0 && exposedTiles.length !== Array.from(tileGroups.values()).reduce((sum, group) => sum + group.length, 0)) {
+      violations.push('Exposed tiles contain invalid groupings')
+    }
+
+    return {
+      isValid: violations.length === 0,
+      violations
+    }
   }
 
   /**

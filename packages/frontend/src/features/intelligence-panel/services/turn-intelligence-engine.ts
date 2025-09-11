@@ -390,49 +390,50 @@ export class TurnIntelligenceEngine {
   }
 
   private async analyzePatternSwitches(hand: PlayerTile[], gameState: GameState): Promise<PatternSwitchSuggestion[]> {
-    // This would integrate with the existing pattern analysis system
-    // For now, return basic suggestions
-    const suggestions: PatternSwitchSuggestion[] = []
-    
-    if (hand.length >= 10 && gameState.roundNumber >= 5) {
-      // Suggest considering pattern switches in mid-game
-      suggestions.push({
-        fromPattern: {
-          Year: 2025,
-          Section: 'SWITCH',
-          Line: 1,
-          'Pattern ID': 1,
-          Hands_Key: 'current',
-          Hand_Pattern: 'CURRENT TARGET',
-          Hand_Description: 'Current target',
-          Hand_Points: 25,
-          Hand_Conceiled: false,
-          Hand_Difficulty: 'medium' as const,
-          Hand_Notes: null,
-          Groups: []
-        } as NMJL2025Pattern,
-        toPattern: {
-          Year: 2025,
-          Section: 'SWITCH',
-          Line: 2,
-          'Pattern ID': 2,
-          Hands_Key: 'alternative',
-          Hand_Pattern: 'ALTERNATIVE PATTERN',
-          Hand_Description: 'Alternative pattern',
-          Hand_Points: 25,
-          Hand_Conceiled: false,
-          Hand_Difficulty: 'medium' as const,
-          Hand_Notes: null,
-          Groups: []
-        } as NMJL2025Pattern,
-        improvement: 0.15,
-        reasoning: 'Consider alternative patterns in mid-game',
-        confidence: 0.6,
-        requiredTiles: []
+    // Use the existing AnalysisEngine to get real pattern analysis instead of placeholder data
+    try {
+      const { AnalysisEngine } = await import('../../../lib/services/analysis-engine')
+      const analysis = await AnalysisEngine.analyzeHand(hand, [], {
+        currentPhase: gameState.phase || 'playing',
+        wallTilesRemaining: gameState.wallTilesRemaining || 70,
+        roundNumber: gameState.roundNumber || 1
       })
+      
+      const suggestions: PatternSwitchSuggestion[] = []
+      
+      // Only suggest pattern switches in mid-game when current patterns aren't performing well
+      if (hand.length >= 10 && gameState.roundNumber >= 3) {
+        const bestPatterns = analysis.bestPatterns?.slice(0, 3) || []
+        const currentlyTargeted = analysis.recommendedPatterns?.slice(0, 2) || []
+        
+        // Look for better alternatives to current patterns
+        for (const current of currentlyTargeted) {
+          const betterAlternatives = bestPatterns.filter(alt => 
+            alt.patternId !== current.patternId &&
+            alt.completionPercentage > current.completionPercentage + 15 && // Significant improvement
+            alt.completionPercentage > 30 // Must be reasonably viable
+          )
+          
+          for (const alternative of betterAlternatives.slice(0, 2)) { // Limit suggestions
+            const improvement = (alternative.completionPercentage - current.completionPercentage) / 100
+            
+            suggestions.push({
+              fromPattern: current.pattern,
+              toPattern: alternative.pattern,
+              improvement,
+              reasoning: `Switch from ${current.completionPercentage.toFixed(0)}% to ${alternative.completionPercentage.toFixed(0)}% completion`,
+              confidence: Math.min(0.9, Math.abs(improvement) * 2 + 0.3), // Scale confidence based on improvement
+              requiredTiles: [] // Could be enhanced to calculate specific tiles needed
+            })
+          }
+        }
+      }
+      
+      return suggestions
+    } catch (error) {
+      console.warn('Pattern switch analysis failed, using fallback:', error)
+      return [] // Return empty array instead of mock data on error
     }
-
-    return suggestions
   }
 
   private calculateOverallConfidence(recommendations: TurnRecommendations): number {

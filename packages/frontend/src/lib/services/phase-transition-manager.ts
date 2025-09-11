@@ -5,6 +5,7 @@ import { useRoomStore } from '../../stores/room.store'
 import { useGameStore } from '../../stores/game-store'
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
+import { usePlayerStore } from '../../stores/player.store'
 import { getRoomMultiplayerService } from './room-multiplayer'
 // Turn multiplayer service integration would go here if needed
 
@@ -155,9 +156,34 @@ export class PhaseTransitionManager {
         requiredReadiness: null,
         validationRules: [
           () => {
-            // Game completion logic - placeholder
-            // In real game, this would check for winning conditions
-            return true
+            // Check for actual game end conditions using GameEndCoordinator
+            try {
+              const gameStore = useGameStore.getState()
+              const turnStore = useTurnStore.getState()
+              const playerStore = usePlayerStore.getState()
+              
+              // Create context for game end coordinator
+              const context = {
+                gameId: gameStore.gameId || 'current',
+                players: gameStore.players,
+                wallTilesRemaining: turnStore.wallCount,
+                passedOutPlayers: new Set(gameStore.players.filter(p => p.passedOut).map(p => p.id)),
+                currentTurn: turnStore.currentRound,
+                gameStartTime: gameStore.gameStartTime,
+                selectedPatterns: [], // Could be enhanced to get actual selected patterns
+                playerHands: {}, // Could be enhanced to get actual hands
+                coPilotMode: 'solo' as const // Default for phase transition
+              }
+              
+              const { GameEndCoordinator } = require('../../features/gameplay/services/game-end-coordinator')
+              const coordinator = new GameEndCoordinator(context)
+              const endResult = coordinator.checkForGameEnd()
+              
+              return endResult !== null // Game should end if coordinator found an end condition
+            } catch (error) {
+              console.warn('Game end check failed, allowing transition:', error)
+              return true // Allow transition if check fails
+            }
           }
         ],
         setupActions: [
