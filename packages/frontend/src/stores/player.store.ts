@@ -58,8 +58,7 @@ export const usePlayerStore = create<PlayerStore>()(
         }),
 
         clearPlayerPosition: (playerId) => set((state) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { [playerId]: _removed, ...remaining } = state.playerPositions;
+          const { [playerId]: _, ...remaining } = state.playerPositions;
           return { playerPositions: remaining };
         }),
 

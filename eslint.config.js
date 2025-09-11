@@ -24,9 +24,19 @@ export default tseslint.config([
     ]
   },
   
-  // Base configuration for all TypeScript/JavaScript files
+  // Base JavaScript configuration
   {
-    files: ['**/*.{js,mjs,cjs,ts,mts,cts}'],
+    files: ['**/*.{js,mjs,cjs}'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+    }
+  },
+
+  // TypeScript-specific configuration
+  {
+    files: ['**/*.{ts,mts,cts}'],
     extends: [
       js.configs.recommended,
       ...tseslint.configs.recommended,

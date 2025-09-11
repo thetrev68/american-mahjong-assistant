@@ -97,7 +97,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     return () => {
       destroyConnectionResilience()
     }
-  }, [finalConfig, socket]) // Include socket but prevent reinitializing with service singleton
+  }, [finalConfig, socket, roomSetupStore.coPilotMode]) // Include socket but prevent reinitializing with service singleton
 
   // Monitor connection state changes
   useEffect(() => {
@@ -217,7 +217,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
       resilience: resilienceService?.getConnectionHealth(),
       room: connectionStore.connectionStatus
     }
-  }, [socket.socketId, socket.isConnected, socket.connectionHealth, roomStore.connectionStatus])
+  }, [socket.socketId, socket.isConnected, socket.connectionHealth, connectionStore.connectionStatus])
 
   // Recovery functions
   const attemptRecovery = useCallback(async () => {

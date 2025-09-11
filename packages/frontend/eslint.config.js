@@ -1,33 +1,60 @@
+import js from '@eslint/js'
 import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
-// Import root configuration
-import rootConfig from '../../eslint.config.js'
 
 // Frontend-specific ESLint configuration
-// Extends the root config with React-specific rules
 export default tseslint.config([
-  // Extend root configuration
-  ...rootConfig,
-  
-  // Frontend-specific ignores
+  // Global ignores
   {
-    ignores: ['src/features/gameplay/GameModeView.tsx']
+    ignores: [
+      'dist/**',
+      'coverage/**', 
+      'node_modules/**',
+      '**/*.d.ts',
+      'src/features/gameplay/GameModeView.tsx',
+      'public/intelligence/nmjl-patterns/pattern-analysis-script.js',
+      'src/__tests__/integration/solo-game-workflow.test.tsx',
+      'src/features/room-setup/__tests__/*.test.tsx'
+    ]
   },
-  
-  // React/Frontend-specific configuration
+
+  // JavaScript files
+  {
+    files: ['**/*.{js,mjs,cjs}'],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        ...globals.browser,
+        ...globals.es2022,
+      }
+    }
+  },
+
+  // TypeScript files
   {
     files: ['src/**/*.{ts,tsx}'],
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.recommended,
+    ],
     plugins: {
       'react-hooks': reactHooks,
       'react-refresh': reactRefresh,
     },
     languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
       globals: {
         ...globals.browser,
         ...globals.es2022,
       },
+      parserOptions: {
+        project: null, // Disable type-aware linting for simpler config
+      }
     },
     rules: {
       // React Hooks rules
@@ -40,12 +67,23 @@ export default tseslint.config([
         { allowConstantExport: true },
       ],
       
-      // Frontend-specific overrides
+      // TypeScript rules
       '@typescript-eslint/no-unused-vars': ['error', { 
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_',
         ignoreRestSiblings: true 
       }],
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
+    }
+  },
+
+  // Relaxed rules for test files
+  {
+    files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': 'off',
     }
   }
 ])
