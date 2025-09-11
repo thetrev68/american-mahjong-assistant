@@ -17,6 +17,9 @@ export default tseslint.config([
       '**/node_modules/**',
       '**/*.d.ts',
       'packages/*/dist/**',
+      // Build/config scripts need special Node.js environment
+      'scripts/**/*.js',
+      'setup-test.js',
       // Exclude files with parsing issues for now
       'packages/frontend/public/intelligence/nmjl-patterns/pattern-analysis-script.js',
       'packages/frontend/src/__tests__/integration/solo-game-workflow.test.tsx',
@@ -55,6 +58,34 @@ export default tseslint.config([
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/no-explicit-any': 'warn',
       // Disable type-aware rules that cause issues in monorepo
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+    }
+  },
+  
+  // TypeScript React/JSX configuration
+  {
+    files: ['**/*.{tsx,jsx}'],
+    extends: [
+      js.configs.recommended,
+      ...tseslint.configs.recommended,
+    ],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      parserOptions: {
+        project: null,
+        tsconfigRootDir: __dirname,
+        ecmaFeatures: {
+          jsx: true
+        }
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/explicit-function-return-type': 'off',
+      '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
