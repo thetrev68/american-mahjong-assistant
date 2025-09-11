@@ -2,379 +2,400 @@ american-mahjong-assistant/
 ├── .claude/
 │   ├── agents/
 │   │   └── code-reviewer.md
-│   └── settings.local.json (31 lines)
-├── backend/
-│   ├── src/
-│   │   ├── __tests__/
-│   │   │   ├── room-manager.test.ts (204 lines)
-│   │   │   ├── setup.ts (18 lines)
-│   │   │   ├── socket-handlers.test.ts (290 lines)
-│   │   │   └── state-sync.test.ts (295 lines)
-│   │   ├── features/
-│   │   │   ├── game-coordination/
-│   │   │   ├── room-lifecycle/
-│   │   │   │   └── room-manager.ts (166 lines)
-│   │   │   ├── room-management/
-│   │   │   │   ├── player-coordination-manager.ts (265 lines)
-│   │   │   │   └── room-lifecycle-manager.ts (304 lines)
-│   │   │   ├── socket-communication/
-│   │   │   │   └── socket-handlers.ts (1373 lines)
-│   │   │   └── state-sync/
-│   │   │       └── state-sync-manager.ts (261 lines)
-│   │   ├── services/
-│   │   │   ├── __tests__/
-│   │   │   │   ├── game-logic.test.ts (203 lines)
-│   │   │   │   └── mahjong-validation-bridge.test.ts (253 lines)
-│   │   │   ├── game-logic.ts (685 lines)
-│   │   │   └── mahjong-validation-bridge.ts (327 lines)
-│   │   ├── types/
-│   │   │   ├── room-types.ts (28 lines)
-│   │   │   └── sync-types.ts (47 lines)
-│   │   ├── utils/
-│   │   └── server.ts (51 lines)
-│   ├── jest.config.js (18 lines)
-│   ├── package-lock.json (6157 lines)
-│   ├── package.json (41 lines)
-│   ├── README.md
-│   └── tsconfig.json (25 lines)
-├── frontend/
-│   ├── src/
-│   │   ├── __tests__/
-│   │   │   ├── factories/
-│   │   │   │   ├── analysis-factories.ts (456 lines)
-│   │   │   │   ├── game-state-factories.ts (278 lines)
-│   │   │   │   ├── index.ts (16 lines)
-│   │   │   │   ├── mock-service-factories.ts (304 lines)
-│   │   │   │   ├── pattern-factories.ts (236 lines)
-│   │   │   │   └── tile-factories.ts (187 lines)
-│   │   │   └── integration/
-│   │   │       ├── error-handling.test.ts (406 lines)
-│   │   │       ├── infrastructure-validation.test.ts (155 lines)
-│   │   │       ├── README.md
-│   │   │       ├── service-integration.test.ts (176 lines)
-│   │   │       ├── simple-integration.test.ts (228 lines)
-│   │   │       ├── solo-game-workflow.test.tsx (290 lines)
-│   │   │       ├── store-integration.test.ts (284 lines)
-│   │   │       └── test-runner.test.ts (119 lines)
-│   │   ├── assets/
-│   │   │   ├── react.svg
-│   │   │   └── tiles.json (912 lines)
-│   │   ├── features/
-│   │   │   ├── charleston/
-│   │   │   │   ├── CharlestonView.tsx (512 lines)
-│   │   │   │   ├── index.ts (6 lines)
-│   │   │   │   ├── PassingRecommendations.tsx (175 lines)
-│   │   │   │   ├── StrategyExplanation.tsx (303 lines)
-│   │   │   │   ├── TargetPatternDisplay.tsx (154 lines)
-│   │   │   │   └── TilePassingArea.tsx (209 lines)
-│   │   │   ├── gameplay/
-│   │   │   │   ├── components/
-│   │   │   │   │   ├── CallOpportunityOverlay.tsx (33 lines)
-│   │   │   │   │   ├── CallOpportunitySection.tsx (109 lines)
-│   │   │   │   │   ├── DefensivePlaySection.tsx (70 lines)
-│   │   │   │   │   ├── OpponentInsightsSection.tsx (87 lines)
-│   │   │   │   │   └── TurnRecommendationsSection.tsx (87 lines)
-│   │   │   │   ├── AlertSystem.tsx (194 lines)
-│   │   │   │   ├── DiscardPile.tsx (94 lines)
-│   │   │   │   ├── DiscardPileZone.tsx (53 lines)
-│   │   │   │   ├── EnhancedIntelligencePanel.tsx (127 lines)
-│   │   │   │   ├── GameModeView.tsx (1156 lines)
-│   │   │   │   ├── GameScreenLayout.tsx (150 lines)
-│   │   │   │   ├── GameTimer.tsx (33 lines)
-│   │   │   │   ├── index.ts (3 lines)
-│   │   │   │   ├── IntelligencePanel.tsx (287 lines)
-│   │   │   │   ├── OpponentExposedZone.tsx (49 lines)
-│   │   │   │   ├── SelectionArea.tsx (170 lines)
-│   │   │   │   ├── TileStates.tsx (26 lines)
-│   │   │   │   ├── TopZone.tsx (155 lines)
-│   │   │   │   └── YourHandZone.tsx (188 lines)
-│   │   │   ├── intelligence-panel/
-│   │   │   │   ├── AdvancedPatternAnalysis.tsx (95 lines)
-│   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   ├── IntelligencePanelPage.tsx (390 lines)
-│   │   │   │   ├── PatternRecommendations.tsx (233 lines)
-│   │   │   │   ├── PatternSwitchModal.tsx (210 lines)
-│   │   │   │   └── PrimaryAnalysisCard.tsx (266 lines)
-│   │   │   ├── landing/
-│   │   │   │   └── LandingPage.tsx (210 lines)
-│   │   │   ├── pattern-selection/
-│   │   │   │   ├── index.ts (6 lines)
-│   │   │   │   ├── PatternAnalysisModal.tsx (384 lines)
-│   │   │   │   ├── PatternCard.tsx (125 lines)
-│   │   │   │   ├── PatternFilters.tsx (158 lines)
-│   │   │   │   ├── PatternGrid.tsx (119 lines)
-│   │   │   │   ├── PatternSelectionPage.tsx (129 lines)
-│   │   │   │   └── SelectedPatternsPanel.tsx (158 lines)
-│   │   │   ├── post-game/
-│   │   │   │   └── PostGameView.tsx (758 lines)
-│   │   │   ├── room-setup/
-│   │   │   │   ├── __tests__/
-│   │   │   │   │   ├── CoPilotModeSelector.test.tsx (154 lines)
-│   │   │   │   │   ├── PlayerPositioning.test.tsx (216 lines)
-│   │   │   │   │   ├── RoomCreation.test.tsx (224 lines)
-│   │   │   │   │   ├── RoomJoining.test.tsx (239 lines)
-│   │   │   │   │   └── RoomSetupView.test.tsx (298 lines)
-│   │   │   │   ├── CoPilotModeSelector.tsx (154 lines)
-│   │   │   │   ├── PlayerPositioning.tsx (335 lines)
-│   │   │   │   ├── RoomCreation.tsx (212 lines)
-│   │   │   │   ├── RoomJoining.tsx (204 lines)
-│   │   │   │   ├── RoomLobbyView.tsx (265 lines)
-│   │   │   │   └── RoomSetupView.tsx (344 lines)
-│   │   │   ├── shared/
-│   │   │   │   └── TileInputModal.tsx (273 lines)
-│   │   │   ├── tile-input/
-│   │   │   │   ├── HandDisplay.tsx (251 lines)
-│   │   │   │   ├── HandValidation.tsx (208 lines)
-│   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   ├── TileInputPage.tsx (219 lines)
-│   │   │   │   └── TileSelector.tsx (176 lines)
-│   │   │   ├── tutorial/
-│   │   │   │   ├── CoPilotDemo.tsx (275 lines)
-│   │   │   │   ├── index.ts (14 lines)
-│   │   │   │   ├── PatternLearning.tsx (134 lines)
-│   │   │   │   ├── PreferenceSetup.tsx (341 lines)
-│   │   │   │   ├── SkillAssessment.tsx (263 lines)
-│   │   │   │   ├── TutorialView.tsx (329 lines)
-│   │   │   │   └── types.ts (129 lines)
-│   │   │   └── README.md
-│   │   ├── hooks/
-│   │   │   ├── __tests__/
-│   │   │   │   ├── useAnimations.simple.test.ts (32 lines)
-│   │   │   │   ├── useAnimations.test.ts (352 lines)
-│   │   │   │   ├── useCoPilotMode.test.ts (164 lines)
-│   │   │   │   ├── useHapticFeedback.test.ts (90 lines)
-│   │   │   │   ├── useMultiplayer.test.ts (338 lines)
-│   │   │   │   ├── usePerformance.test.ts (424 lines)
-│   │   │   │   ├── useRoomSetup.test.ts (285 lines)
-│   │   │   │   └── useSocket.test.ts (201 lines)
-│   │   │   ├── useAccessibility.ts (252 lines)
-│   │   │   ├── useAnimations.ts (265 lines)
-│   │   │   ├── useConnectionResilience.ts (289 lines)
-│   │   │   ├── useConnectionResilienceTest.ts (200 lines)
-│   │   │   ├── useConnectionStatus.ts (19 lines)
-│   │   │   ├── useCoPilotMode.ts (68 lines)
-│   │   │   ├── useGameEndCoordination.ts (141 lines)
-│   │   │   ├── useGameHistory.ts (555 lines)
-│   │   │   ├── useGameIntelligence.ts (40 lines)
-│   │   │   ├── useHapticFeedback.ts (274 lines)
-│   │   │   ├── useMultiplayer.ts (358 lines)
-│   │   │   ├── usePerformance.ts (306 lines)
-│   │   │   ├── usePerformanceMonitor.ts (264 lines)
-│   │   │   ├── useRoomSetup.ts (178 lines)
-│   │   │   ├── useShare.ts (84 lines)
-│   │   │   ├── useSocket.ts (188 lines)
-│   │   │   ├── useTileEffects.ts (42 lines)
-│   │   │   ├── useTileSprites.ts (151 lines)
-│   │   │   └── useTutorial.ts (406 lines)
-│   │   ├── services/
-│   │   │   ├── __tests__/
-│   │   │   │   ├── analysis-engine-cache-simple.test.ts (41 lines)
-│   │   │   │   ├── analysis-engine.test.ts (429 lines)
-│   │   │   │   ├── game-end-coordinator.test.ts (176 lines)
-│   │   │   │   ├── improved-scoring-verification.test.ts (167 lines)
-│   │   │   │   ├── intelligence-integration.test.ts (364 lines)
-│   │   │   │   ├── mahjong-validator.test.ts (135 lines)
-│   │   │   │   ├── nmjl-service.test.ts (295 lines)
-│   │   │   │   ├── pattern-analysis-engine.test.ts (357 lines)
-│   │   │   │   ├── pattern-ranking-engine.test.ts (422 lines)
-│   │   │   │   ├── pattern-variation-loader.test.ts (559 lines)
-│   │   │   │   └── tile-recommendation-engine.test.ts (965 lines)
-│   │   │   ├── analysis-engine.ts (437 lines)
-│   │   │   ├── call-opportunity-analyzer.ts (389 lines)
-│   │   │   ├── charleston-multiplayer.ts (173 lines)
-│   │   │   ├── charleston-resilient.ts (390 lines)
-│   │   │   ├── connection-resilience-test-suite.ts (396 lines)
-│   │   │   ├── connection-resilience.ts (417 lines)
-│   │   │   ├── disconnection-manager.ts (433 lines)
-│   │   │   ├── event-queue-manager.ts (372 lines)
-│   │   │   ├── game-actions.ts (627 lines)
-│   │   │   ├── game-end-coordinator.ts (283 lines)
-│   │   │   ├── game-statistics.ts (380 lines)
-│   │   │   ├── mahjong-validator.ts (347 lines)
-│   │   │   ├── multiplayer-game-end.ts (501 lines)
-│   │   │   ├── network-error-handler.ts (410 lines)
-│   │   │   ├── nmjl-service.ts (165 lines)
-│   │   │   ├── opponent-analysis-engine.ts (393 lines)
-│   │   │   ├── pattern-analysis-engine.ts (364 lines)
-│   │   │   ├── pattern-ranking-engine.ts (414 lines)
-│   │   │   ├── pattern-variation-loader.ts (165 lines)
-│   │   │   ├── phase-transition-manager.ts (343 lines)
-│   │   │   ├── real-time-analysis-service.ts (289 lines)
-│   │   │   ├── room-multiplayer.ts (447 lines)
-│   │   │   ├── tile-recommendation-engine.ts (962 lines)
-│   │   │   ├── tile-service.ts (206 lines)
-│   │   │   ├── turn-intelligence-engine.ts (396 lines)
-│   │   │   ├── turn-multiplayer.ts (185 lines)
-│   │   │   ├── turn-realtime.ts (486 lines)
-│   │   │   ├── turn-solo-mode.ts (125 lines)
-│   │   │   └── unified-multiplayer-manager.ts (525 lines)
-│   │   ├── stores/
-│   │   │   ├── __tests__/
-│   │   │   │   ├── charleston-store.test.ts (529 lines)
-│   │   │   │   ├── game-store.test.ts (360 lines)
-│   │   │   │   ├── intelligence-store.test.ts (436 lines)
-│   │   │   │   ├── multiplayer-store.test.ts (314 lines)
-│   │   │   │   ├── pattern-store.test.ts (243 lines)
-│   │   │   │   ├── room-store.test.ts (219 lines)
-│   │   │   │   └── tile-store.test.ts (637 lines)
-│   │   │   ├── charleston-store.ts (440 lines)
-│   │   │   ├── game-store.ts (293 lines)
-│   │   │   ├── history-store.ts (484 lines)
-│   │   │   ├── index.ts (28 lines)
-│   │   │   ├── intelligence-store.ts (413 lines)
-│   │   │   ├── multiplayer-store.ts (239 lines)
-│   │   │   ├── pattern-store.ts (201 lines)
-│   │   │   ├── room-store.ts (468 lines)
-│   │   │   ├── tile-store.ts (523 lines)
-│   │   │   ├── turn-store.ts (530 lines)
-│   │   │   ├── tutorial-store.ts (260 lines)
-│   │   │   └── ui-store.ts (76 lines)
-│   │   ├── styles/
-│   │   │   └── accessibility.css (308 lines)
-│   │   ├── test/
-│   │   │   └── setup.ts (161 lines)
-│   │   ├── types/
-│   │   │   └── tile-types.ts (60 lines)
-│   │   ├── ui-components/
-│   │   │   ├── __tests__/
-│   │   │   │   └── Button.test.tsx (72 lines)
-│   │   │   ├── accessibility/
-│   │   │   │   ├── accessibility-utils.ts (38 lines)
-│   │   │   │   ├── AccessibilityProvider.tsx (90 lines)
-│   │   │   │   ├── AccessibilitySettings.tsx (267 lines)
-│   │   │   │   ├── AccessibleTile.tsx (207 lines)
-│   │   │   │   └── FocusManager.tsx (187 lines)
-│   │   │   ├── analysis/
-│   │   │   │   ├── ConfidenceMeter.tsx (148 lines)
-│   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   ├── PatternProgressRing.tsx (221 lines)
-│   │   │   │   ├── RecommendationBadge.tsx (103 lines)
-│   │   │   │   └── ThreatIndicator.tsx (181 lines)
-│   │   │   ├── layout/
-│   │   │   │   ├── AppLayout.tsx (28 lines)
-│   │   │   │   ├── Container.tsx (36 lines)
-│   │   │   │   ├── Header.tsx (54 lines)
-│   │   │   │   └── NavigationSidebar.tsx (173 lines)
-│   │   │   ├── mobile/
-│   │   │   │   ├── MobileNavigation.tsx (366 lines)
-│   │   │   │   └── TouchOptimizedTile.tsx (279 lines)
-│   │   │   ├── patterns/
-│   │   │   │   └── PatternVariationDisplay.tsx (239 lines)
-│   │   │   ├── performance/
-│   │   │   │   ├── lazy-utils.ts (78 lines)
-│   │   │   │   ├── LazyWrapper.tsx (176 lines)
-│   │   │   │   └── PerformanceMonitor.tsx (260 lines)
-│   │   │   ├── status/
-│   │   │   │   ├── GamePhaseStatusIndicator.tsx (317 lines)
-│   │   │   │   ├── notification-utils.ts (73 lines)
-│   │   │   │   └── NotificationSystem.tsx (260 lines)
-│   │   │   ├── tiles/
-│   │   │   │   ├── AnimatedTile.tsx (263 lines)
-│   │   │   │   ├── animation-utils.ts (218 lines)
-│   │   │   │   ├── index.ts (6 lines)
-│   │   │   │   ├── tile-animation-constants.ts (203 lines)
-│   │   │   │   ├── tile-animation-exports.ts (39 lines)
-│   │   │   │   ├── TileAnimations.tsx (37 lines)
-│   │   │   │   └── TileEffectsController.tsx (203 lines)
-│   │   │   ├── Button.tsx (52 lines)
-│   │   │   ├── CallOpportunityModal.tsx (137 lines)
-│   │   │   ├── Card.tsx (45 lines)
-│   │   │   ├── ConfidenceBadge.tsx (30 lines)
-│   │   │   ├── ConnectionStatusIndicator.tsx (298 lines)
-│   │   │   ├── CountdownTimer.tsx (42 lines)
-│   │   │   ├── FinalHandRevealModal.tsx (131 lines)
-│   │   │   ├── GameActionsPanel.tsx (226 lines)
-│   │   │   ├── HostControls.tsx (261 lines)
-│   │   │   ├── index.ts (12 lines)
-│   │   │   ├── LoadingSpinner.tsx (43 lines)
-│   │   │   ├── MahjongDeclarationModal.tsx (307 lines)
-│   │   │   ├── ShareButton.tsx (77 lines)
-│   │   │   ├── ThreatBadge.tsx (29 lines)
-│   │   │   ├── Tile.tsx (59 lines)
-│   │   │   ├── TileSprite.tsx (152 lines)
-│   │   │   ├── TurnManagementPanel.tsx (177 lines)
-│   │   │   └── TurnStatus.tsx (69 lines)
-│   │   ├── utils/
-│   │   │   ├── __tests__/
-│   │   │   │   ├── animation-config.test.ts (227 lines)
-│   │   │   │   └── reduced-motion.test.ts (238 lines)
-│   │   │   ├── monitoring/
-│   │   │   │   ├── error-tracker.ts (209 lines)
-│   │   │   │   ├── index.ts (40 lines)
-│   │   │   │   ├── performance-monitor.ts (260 lines)
-│   │   │   │   └── ProductionErrorBoundary.tsx (204 lines)
-│   │   │   ├── animation-config.ts (265 lines)
-│   │   │   ├── bundle-analyzer.ts (257 lines)
-│   │   │   ├── charleston-adapter.ts (439 lines)
-│   │   │   ├── feature-flags.ts (110 lines)
-│   │   │   ├── pattern-color-utils.ts (58 lines)
-│   │   │   ├── reduced-motion.ts (272 lines)
-│   │   │   ├── RouteGuard.tsx (38 lines)
-│   │   │   ├── router.tsx (44 lines)
-│   │   │   └── tile-display-utils.ts (256 lines)
-│   │   ├── App.tsx (6 lines)
-│   │   ├── index.css (190 lines)
-│   │   ├── main.tsx (9 lines)
-│   │   └── vite-env.d.ts (1 lines)
-│   ├── .env.development
-│   ├── .env.development.example
-│   ├── .env.production
-│   ├── .env.production.example
-│   ├── dev.log
-│   ├── eslint.config.js (22 lines)
-│   ├── index.html (13 lines)
-│   ├── package-lock.json (6251 lines)
-│   ├── package.json (50 lines)
-│   ├── postcss.config.js (6 lines)
-│   ├── README.md
-│   ├── tailwind.config.js.backup
-│   ├── tsconfig.app.json (46 lines)
-│   ├── tsconfig.json (16 lines)
-│   ├── tsconfig.node.json (23 lines)
-│   ├── tsconfig.test.json (26 lines)
-│   ├── tsconfig.tsbuildinfo
-│   ├── vite.config.ts (80 lines)
-│   └── vitest.config.ts (30 lines)
+│   └── settings.local.json (44 lines)
 ├── intelligence/
 │   └── nmjl-patterns/
 │       └── nmjl-card-2025.json (4367 lines)
+├── packages/
+│   ├── backend/
+│   │   ├── src/
+│   │   │   ├── __tests__/
+│   │   │   │   ├── room-manager.test.ts (204 lines)
+│   │   │   │   ├── setup.ts (18 lines)
+│   │   │   │   ├── socket-handlers.test.ts (291 lines)
+│   │   │   │   └── state-sync.test.ts (295 lines)
+│   │   │   ├── features/
+│   │   │   │   ├── game-coordination/
+│   │   │   │   ├── room-lifecycle/
+│   │   │   │   │   └── room-manager.ts (168 lines)
+│   │   │   │   ├── room-management/
+│   │   │   │   │   ├── player-coordination-manager.ts (265 lines)
+│   │   │   │   │   └── room-lifecycle-manager.ts (310 lines)
+│   │   │   │   ├── socket-communication/
+│   │   │   │   │   └── socket-handlers.ts (1375 lines)
+│   │   │   │   └── state-sync/
+│   │   │   │       └── state-sync-manager.ts (261 lines)
+│   │   │   ├── services/
+│   │   │   │   ├── __tests__/
+│   │   │   │   │   ├── game-logic.test.ts (203 lines)
+│   │   │   │   │   └── mahjong-validation-bridge.test.ts (253 lines)
+│   │   │   │   ├── game-logic.ts (685 lines)
+│   │   │   │   └── mahjong-validation-bridge.ts (327 lines)
+│   │   │   ├── types/
+│   │   │   │   ├── room-types.ts (28 lines)
+│   │   │   │   └── sync-types.ts (47 lines)
+│   │   │   ├── utils/
+│   │   │   └── server.ts (51 lines)
+│   │   ├── eslint.config.js (31 lines)
+│   │   ├── package.json (44 lines)
+│   │   ├── README.md
+│   │   ├── tsconfig.json (25 lines)
+│   │   └── vitest.config.ts (28 lines)
+│   ├── frontend/
+│   │   ├── src/
+│   │   │   ├── __tests__/
+│   │   │   │   ├── factories/
+│   │   │   │   │   ├── analysis-factories.ts (456 lines)
+│   │   │   │   │   ├── game-state-factories.ts (278 lines)
+│   │   │   │   │   ├── index.ts (16 lines)
+│   │   │   │   │   ├── mock-service-factories.ts (304 lines)
+│   │   │   │   │   ├── pattern-factories.ts (236 lines)
+│   │   │   │   │   └── tile-factories.ts (187 lines)
+│   │   │   │   └── integration/
+│   │   │   │       ├── error-handling.test.ts (406 lines)
+│   │   │   │       ├── infrastructure-validation.test.ts (155 lines)
+│   │   │   │       ├── README.md
+│   │   │   │       ├── service-integration.test.ts (176 lines)
+│   │   │   │       ├── simple-integration.test.ts (228 lines)
+│   │   │   │       ├── solo-game-workflow.test.tsx (290 lines)
+│   │   │   │       ├── store-integration.test.ts (284 lines)
+│   │   │   │       └── test-runner.test.ts (119 lines)
+│   │   │   ├── assets/
+│   │   │   │   ├── react.svg
+│   │   │   │   └── tiles.json (912 lines)
+│   │   │   ├── features/
+│   │   │   │   ├── charleston/
+│   │   │   │   │   ├── services/
+│   │   │   │   │   │   ├── charleston-multiplayer.ts (173 lines)
+│   │   │   │   │   │   └── charleston-resilient.ts (390 lines)
+│   │   │   │   │   ├── CharlestonView.tsx (517 lines)
+│   │   │   │   │   ├── index.ts (6 lines)
+│   │   │   │   │   ├── PassingRecommendations.tsx (175 lines)
+│   │   │   │   │   ├── StrategyExplanation.tsx (303 lines)
+│   │   │   │   │   ├── TargetPatternDisplay.tsx (154 lines)
+│   │   │   │   │   └── TilePassingArea.tsx (209 lines)
+│   │   │   │   ├── gameplay/
+│   │   │   │   │   ├── components/
+│   │   │   │   │   │   ├── CallOpportunityOverlay.tsx (33 lines)
+│   │   │   │   │   │   ├── CallOpportunitySection.tsx (109 lines)
+│   │   │   │   │   │   ├── DefensivePlaySection.tsx (70 lines)
+│   │   │   │   │   │   ├── OpponentInsightsSection.tsx (87 lines)
+│   │   │   │   │   │   └── TurnRecommendationsSection.tsx (87 lines)
+│   │   │   │   │   ├── services/
+│   │   │   │   │   │   ├── __tests__/
+│   │   │   │   │   │   │   └── game-end-coordinator.test.ts (176 lines)
+│   │   │   │   │   │   ├── game-actions.ts (627 lines)
+│   │   │   │   │   │   ├── game-end-coordinator.ts (283 lines)
+│   │   │   │   │   │   ├── multiplayer-game-end.ts (501 lines)
+│   │   │   │   │   │   ├── turn-multiplayer.ts (185 lines)
+│   │   │   │   │   │   ├── turn-realtime.ts (486 lines)
+│   │   │   │   │   │   └── turn-solo-mode.ts (125 lines)
+│   │   │   │   │   ├── AlertSystem.tsx (194 lines)
+│   │   │   │   │   ├── DiscardPile.tsx (94 lines)
+│   │   │   │   │   ├── DiscardPileZone.tsx (53 lines)
+│   │   │   │   │   ├── EnhancedIntelligencePanel.tsx (127 lines)
+│   │   │   │   │   ├── GameModeView.tsx (1158 lines)
+│   │   │   │   │   ├── GameScreenLayout.tsx (150 lines)
+│   │   │   │   │   ├── GameTimer.tsx (33 lines)
+│   │   │   │   │   ├── index.ts (3 lines)
+│   │   │   │   │   ├── IntelligencePanel.tsx (287 lines)
+│   │   │   │   │   ├── OpponentExposedZone.tsx (49 lines)
+│   │   │   │   │   ├── SelectionArea.tsx (170 lines)
+│   │   │   │   │   ├── TileStates.tsx (26 lines)
+│   │   │   │   │   ├── TopZone.tsx (155 lines)
+│   │   │   │   │   └── YourHandZone.tsx (188 lines)
+│   │   │   │   ├── intelligence-panel/
+│   │   │   │   │   ├── services/
+│   │   │   │   │   │   ├── __tests__/
+│   │   │   │   │   │   │   ├── improved-scoring-verification.test.ts (167 lines)
+│   │   │   │   │   │   │   ├── intelligence-integration.test.ts (364 lines)
+│   │   │   │   │   │   │   ├── pattern-analysis-engine.test.ts (357 lines)
+│   │   │   │   │   │   │   ├── pattern-ranking-engine.test.ts (422 lines)
+│   │   │   │   │   │   │   ├── pattern-variation-loader.test.ts (559 lines)
+│   │   │   │   │   │   │   └── tile-recommendation-engine.test.ts (965 lines)
+│   │   │   │   │   │   ├── call-opportunity-analyzer.ts (389 lines)
+│   │   │   │   │   │   ├── opponent-analysis-engine.ts (393 lines)
+│   │   │   │   │   │   ├── pattern-analysis-engine.ts (364 lines)
+│   │   │   │   │   │   ├── pattern-ranking-engine.ts (414 lines)
+│   │   │   │   │   │   ├── pattern-variation-loader.ts (165 lines)
+│   │   │   │   │   │   ├── real-time-analysis-service.ts (289 lines)
+│   │   │   │   │   │   ├── tile-recommendation-engine.ts (962 lines)
+│   │   │   │   │   │   └── turn-intelligence-engine.ts (396 lines)
+│   │   │   │   │   ├── AdvancedPatternAnalysis.tsx (95 lines)
+│   │   │   │   │   ├── index.ts (5 lines)
+│   │   │   │   │   ├── IntelligencePanelPage.tsx (390 lines)
+│   │   │   │   │   ├── PatternRecommendations.tsx (233 lines)
+│   │   │   │   │   ├── PatternSwitchModal.tsx (210 lines)
+│   │   │   │   │   └── PrimaryAnalysisCard.tsx (266 lines)
+│   │   │   │   ├── landing/
+│   │   │   │   │   └── LandingPage.tsx (210 lines)
+│   │   │   │   ├── pattern-selection/
+│   │   │   │   │   ├── index.ts (6 lines)
+│   │   │   │   │   ├── PatternAnalysisModal.tsx (384 lines)
+│   │   │   │   │   ├── PatternCard.tsx (125 lines)
+│   │   │   │   │   ├── PatternFilters.tsx (158 lines)
+│   │   │   │   │   ├── PatternGrid.tsx (119 lines)
+│   │   │   │   │   ├── PatternSelectionPage.tsx (129 lines)
+│   │   │   │   │   └── SelectedPatternsPanel.tsx (158 lines)
+│   │   │   │   ├── post-game/
+│   │   │   │   │   ├── services/
+│   │   │   │   │   │   └── game-statistics.ts (380 lines)
+│   │   │   │   │   └── PostGameView.tsx (758 lines)
+│   │   │   │   ├── room-setup/
+│   │   │   │   │   ├── __tests__/
+│   │   │   │   │   │   ├── CoPilotModeSelector.test.tsx (154 lines)
+│   │   │   │   │   │   ├── PlayerPositioning.test.tsx (220 lines)
+│   │   │   │   │   │   ├── RoomCreation.test.tsx (224 lines)
+│   │   │   │   │   │   ├── RoomJoining.test.tsx (239 lines)
+│   │   │   │   │   │   └── RoomSetupView.test.tsx (401 lines)
+│   │   │   │   │   ├── CoPilotModeSelector.tsx (154 lines)
+│   │   │   │   │   ├── PlayerPositioning.tsx (340 lines)
+│   │   │   │   │   ├── RoomCreation.tsx (212 lines)
+│   │   │   │   │   ├── RoomJoining.tsx (204 lines)
+│   │   │   │   │   ├── RoomLobbyView.tsx (266 lines)
+│   │   │   │   │   └── RoomSetupView.tsx (342 lines)
+│   │   │   │   ├── shared/
+│   │   │   │   │   └── TileInputModal.tsx (273 lines)
+│   │   │   │   ├── tile-input/
+│   │   │   │   │   ├── HandDisplay.tsx (251 lines)
+│   │   │   │   │   ├── HandValidation.tsx (208 lines)
+│   │   │   │   │   ├── index.ts (5 lines)
+│   │   │   │   │   ├── TileInputPage.tsx (219 lines)
+│   │   │   │   │   └── TileSelector.tsx (176 lines)
+│   │   │   │   ├── tutorial/
+│   │   │   │   │   ├── CoPilotDemo.tsx (275 lines)
+│   │   │   │   │   ├── index.ts (14 lines)
+│   │   │   │   │   ├── PatternLearning.tsx (134 lines)
+│   │   │   │   │   ├── PreferenceSetup.tsx (341 lines)
+│   │   │   │   │   ├── SkillAssessment.tsx (263 lines)
+│   │   │   │   │   ├── TutorialView.tsx (329 lines)
+│   │   │   │   │   └── types.ts (129 lines)
+│   │   │   │   └── README.md
+│   │   │   ├── hooks/
+│   │   │   │   ├── __tests__/
+│   │   │   │   │   ├── useAnimations.simple.test.ts (32 lines)
+│   │   │   │   │   ├── useAnimations.test.ts (352 lines)
+│   │   │   │   │   ├── useCoPilotMode.test.ts (164 lines)
+│   │   │   │   │   ├── useHapticFeedback.test.ts (90 lines)
+│   │   │   │   │   ├── useMultiplayer.test.ts (338 lines)
+│   │   │   │   │   ├── usePerformance.test.ts (424 lines)
+│   │   │   │   │   ├── useRoomSetup.test.ts (312 lines)
+│   │   │   │   │   └── useSocket.test.ts (201 lines)
+│   │   │   │   ├── useAccessibility.ts (252 lines)
+│   │   │   │   ├── useAnimations.ts (265 lines)
+│   │   │   │   ├── useConnectionResilience.ts (291 lines)
+│   │   │   │   ├── useConnectionResilienceTest.ts (200 lines)
+│   │   │   │   ├── useConnectionStatus.ts (19 lines)
+│   │   │   │   ├── useCoPilotMode.ts (68 lines)
+│   │   │   │   ├── useGameEndCoordination.ts (141 lines)
+│   │   │   │   ├── useGameHistory.ts (555 lines)
+│   │   │   │   ├── useGameIntelligence.ts (40 lines)
+│   │   │   │   ├── useHapticFeedback.ts (274 lines)
+│   │   │   │   ├── useMultiplayer.ts (358 lines)
+│   │   │   │   ├── usePerformance.ts (306 lines)
+│   │   │   │   ├── usePerformanceMonitor.ts (264 lines)
+│   │   │   │   ├── useRoomSetup.ts (189 lines)
+│   │   │   │   ├── useShare.ts (84 lines)
+│   │   │   │   ├── useSocket.ts (188 lines)
+│   │   │   │   ├── useTileEffects.ts (42 lines)
+│   │   │   │   ├── useTileSprites.ts (151 lines)
+│   │   │   │   └── useTutorial.ts (406 lines)
+│   │   │   ├── lib/
+│   │   │   │   └── services/
+│   │   │   │       ├── __tests__/
+│   │   │   │       │   ├── analysis-engine-cache-simple.test.ts (41 lines)
+│   │   │   │       │   ├── analysis-engine.test.ts (429 lines)
+│   │   │   │       │   ├── mahjong-validator.test.ts (135 lines)
+│   │   │   │       │   └── nmjl-service.test.ts (295 lines)
+│   │   │   │       ├── analysis-engine.ts (437 lines)
+│   │   │   │       ├── connection-resilience-test-suite.ts (396 lines)
+│   │   │   │       ├── connection-resilience.ts (417 lines)
+│   │   │   │       ├── disconnection-manager.ts (433 lines)
+│   │   │   │       ├── event-queue-manager.ts (372 lines)
+│   │   │   │       ├── mahjong-validator.ts (347 lines)
+│   │   │   │       ├── network-error-handler.ts (410 lines)
+│   │   │   │       ├── nmjl-service.ts (165 lines)
+│   │   │   │       ├── phase-transition-manager.ts (343 lines)
+│   │   │   │       ├── room-multiplayer.ts (449 lines)
+│   │   │   │       ├── tile-service.ts (206 lines)
+│   │   │   │       └── unified-multiplayer-manager.ts (525 lines)
+│   │   │   ├── services/
+│   │   │   │   └── __tests__/
+│   │   │   ├── stores/
+│   │   │   │   ├── __tests__/
+│   │   │   │   │   ├── charleston-store.test.ts (529 lines)
+│   │   │   │   │   ├── game-store.test.ts (360 lines)
+│   │   │   │   │   ├── intelligence-store.test.ts (436 lines)
+│   │   │   │   │   ├── multiplayer-store.test.ts (314 lines)
+│   │   │   │   │   ├── pattern-store.test.ts (243 lines)
+│   │   │   │   │   ├── room-store.test.deprecated.ts (232 lines)
+│   │   │   │   │   └── tile-store.test.ts (637 lines)
+│   │   │   │   ├── charleston-store.ts (440 lines)
+│   │   │   │   ├── connection.store.ts (98 lines)
+│   │   │   │   ├── game-store.ts (293 lines)
+│   │   │   │   ├── history-store.ts (484 lines)
+│   │   │   │   ├── index.ts (33 lines)
+│   │   │   │   ├── intelligence-store.ts (413 lines)
+│   │   │   │   ├── multiplayer-store.ts (239 lines)
+│   │   │   │   ├── pattern-store.ts (201 lines)
+│   │   │   │   ├── player.store.ts (94 lines)
+│   │   │   │   ├── room-setup.store.ts (190 lines)
+│   │   │   │   ├── room-store.deprecated.ts (480 lines)
+│   │   │   │   ├── room-store.ts (13 lines)
+│   │   │   │   ├── room.store.ts (193 lines)
+│   │   │   │   ├── tile-store.ts (523 lines)
+│   │   │   │   ├── turn-store.ts (532 lines)
+│   │   │   │   ├── tutorial-store.ts (260 lines)
+│   │   │   │   └── ui-store.ts (76 lines)
+│   │   │   ├── styles/
+│   │   │   │   └── accessibility.css (308 lines)
+│   │   │   ├── test/
+│   │   │   │   └── setup.ts (161 lines)
+│   │   │   ├── types/
+│   │   │   │   └── tile-types.ts (60 lines)
+│   │   │   ├── ui-components/
+│   │   │   │   ├── __tests__/
+│   │   │   │   │   └── Button.test.tsx (72 lines)
+│   │   │   │   ├── accessibility/
+│   │   │   │   │   ├── accessibility-utils.ts (38 lines)
+│   │   │   │   │   ├── AccessibilityProvider.tsx (90 lines)
+│   │   │   │   │   ├── AccessibilitySettings.tsx (267 lines)
+│   │   │   │   │   ├── AccessibleTile.tsx (207 lines)
+│   │   │   │   │   └── FocusManager.tsx (187 lines)
+│   │   │   │   ├── analysis/
+│   │   │   │   │   ├── ConfidenceMeter.tsx (148 lines)
+│   │   │   │   │   ├── index.ts (5 lines)
+│   │   │   │   │   ├── PatternProgressRing.tsx (221 lines)
+│   │   │   │   │   ├── RecommendationBadge.tsx (103 lines)
+│   │   │   │   │   └── ThreatIndicator.tsx (181 lines)
+│   │   │   │   ├── layout/
+│   │   │   │   │   ├── AppLayout.tsx (28 lines)
+│   │   │   │   │   ├── Container.tsx (36 lines)
+│   │   │   │   │   ├── Header.tsx (54 lines)
+│   │   │   │   │   └── NavigationSidebar.tsx (175 lines)
+│   │   │   │   ├── mobile/
+│   │   │   │   │   ├── MobileNavigation.tsx (366 lines)
+│   │   │   │   │   └── TouchOptimizedTile.tsx (279 lines)
+│   │   │   │   ├── patterns/
+│   │   │   │   │   └── PatternVariationDisplay.tsx (239 lines)
+│   │   │   │   ├── performance/
+│   │   │   │   │   ├── lazy-utils.ts (78 lines)
+│   │   │   │   │   ├── LazyWrapper.tsx (176 lines)
+│   │   │   │   │   └── PerformanceMonitor.tsx (260 lines)
+│   │   │   │   ├── status/
+│   │   │   │   │   ├── GamePhaseStatusIndicator.tsx (317 lines)
+│   │   │   │   │   ├── notification-utils.ts (73 lines)
+│   │   │   │   │   └── NotificationSystem.tsx (260 lines)
+│   │   │   │   ├── tiles/
+│   │   │   │   │   ├── AnimatedTile.tsx (263 lines)
+│   │   │   │   │   ├── animation-utils.ts (218 lines)
+│   │   │   │   │   ├── index.ts (6 lines)
+│   │   │   │   │   ├── tile-animation-constants.ts (203 lines)
+│   │   │   │   │   ├── tile-animation-exports.ts (39 lines)
+│   │   │   │   │   ├── TileAnimations.tsx (37 lines)
+│   │   │   │   │   └── TileEffectsController.tsx (203 lines)
+│   │   │   │   ├── Button.tsx (52 lines)
+│   │   │   │   ├── CallOpportunityModal.tsx (137 lines)
+│   │   │   │   ├── Card.tsx (45 lines)
+│   │   │   │   ├── ConfidenceBadge.tsx (30 lines)
+│   │   │   │   ├── ConnectionStatusIndicator.tsx (302 lines)
+│   │   │   │   ├── CountdownTimer.tsx (42 lines)
+│   │   │   │   ├── FinalHandRevealModal.tsx (131 lines)
+│   │   │   │   ├── GameActionsPanel.tsx (226 lines)
+│   │   │   │   ├── HostControls.tsx (265 lines)
+│   │   │   │   ├── index.ts (12 lines)
+│   │   │   │   ├── LoadingSpinner.tsx (43 lines)
+│   │   │   │   ├── MahjongDeclarationModal.tsx (307 lines)
+│   │   │   │   ├── ShareButton.tsx (77 lines)
+│   │   │   │   ├── ThreatBadge.tsx (29 lines)
+│   │   │   │   ├── Tile.tsx (59 lines)
+│   │   │   │   ├── TileSprite.tsx (152 lines)
+│   │   │   │   ├── TurnManagementPanel.tsx (177 lines)
+│   │   │   │   └── TurnStatus.tsx (69 lines)
+│   │   │   ├── utils/
+│   │   │   │   ├── __tests__/
+│   │   │   │   │   ├── animation-config.test.ts (227 lines)
+│   │   │   │   │   └── reduced-motion.test.ts (238 lines)
+│   │   │   │   ├── monitoring/
+│   │   │   │   │   ├── error-tracker.ts (209 lines)
+│   │   │   │   │   ├── index.ts (40 lines)
+│   │   │   │   │   ├── performance-monitor.ts (260 lines)
+│   │   │   │   │   └── ProductionErrorBoundary.tsx (204 lines)
+│   │   │   │   ├── animation-config.ts (265 lines)
+│   │   │   │   ├── bundle-analyzer.ts (257 lines)
+│   │   │   │   ├── charleston-adapter.ts (439 lines)
+│   │   │   │   ├── feature-flags.ts (110 lines)
+│   │   │   │   ├── pattern-color-utils.ts (58 lines)
+│   │   │   │   ├── reduced-motion.ts (272 lines)
+│   │   │   │   ├── RouteGuard.tsx (40 lines)
+│   │   │   │   ├── router.tsx (44 lines)
+│   │   │   │   └── tile-display-utils.ts (256 lines)
+│   │   │   ├── App.tsx (6 lines)
+│   │   │   ├── index.css (190 lines)
+│   │   │   ├── main.tsx (9 lines)
+│   │   │   └── vite-env.d.ts (1 lines)
+│   │   ├── .env.development
+│   │   ├── .env.development.example
+│   │   ├── .env.production
+│   │   ├── .env.production.example
+│   │   ├── dev.log
+│   │   ├── eslint.config.js (46 lines)
+│   │   ├── index.html (13 lines)
+│   │   ├── package.json (52 lines)
+│   │   ├── postcss.config.js (6 lines)
+│   │   ├── README.md
+│   │   ├── tailwind.config.js.backup
+│   │   ├── tsconfig.app.json (46 lines)
+│   │   ├── tsconfig.json (16 lines)
+│   │   ├── tsconfig.node.json (23 lines)
+│   │   ├── tsconfig.test.json (26 lines)
+│   │   ├── tsconfig.tsbuildinfo
+│   │   ├── vite.config.ts (80 lines)
+│   │   └── vitest.config.ts (30 lines)
+│   ├── shared-types/
+│   │   ├── src/
+│   │   │   ├── game-state-types.ts (146 lines)
+│   │   │   ├── game-types.ts (290 lines)
+│   │   │   ├── index.ts (56 lines)
+│   │   │   ├── multiplayer-types.ts (140 lines)
+│   │   │   ├── nmjl-types.ts (52 lines)
+│   │   │   ├── room-types.ts (126 lines)
+│   │   │   ├── socket-event-types.ts (202 lines)
+│   │   │   ├── socket-events.ts (188 lines)
+│   │   │   └── tile-types.ts (33 lines)
+│   │   └── package.json (12 lines)
+│   └── shared-utils/
+│       ├── src/
+│       │   ├── index.ts (1 lines)
+│       │   └── tile-utils.ts (188 lines)
+│       └── package.json (12 lines)
 ├── scripts/
 │   └── convert-csv-to-json.js (241 lines)
-├── shared/
-│   ├── game-types.ts (290 lines)
-│   ├── multiplayer-types.d.ts (124 lines)
-│   ├── multiplayer-types.d.ts.map
-│   ├── multiplayer-types.js (4 lines)
-│   ├── multiplayer-types.js.map
-│   ├── multiplayer-types.ts (140 lines)
-│   ├── nmjl-types.ts (52 lines)
-│   ├── socket-events.ts (188 lines)
-│   └── tile-utils.ts (188 lines)
 ├── .gitignore
 ├── ARCHITECTURE_VISUALIZATIONS.md
 ├── CLAUDE.md
 ├── code-inventory.json (719 lines)
 ├── CODE_INVENTORY.csv
 ├── CODE_INVENTORY.md
-├── eslint.config.mts
+├── eslint.config.js (42 lines)
 ├── GEMINI.md
+├── Gemini_Audit_20250910.md
 ├── NMJL 2025 Card JSON prep 20250808.xlsx
-├── package-lock.json (4028 lines)
-├── package.json (11 lines)
+├── package-lock.json (9691 lines)
+├── package.json (28 lines)
 ├── README.md
 ├── setup-test.js (17 lines)
-├── TECHNICAL_DEBT_AUDIT.md
 ├── tree.txt
 ├── tree_scanner.py (250 lines)
-└── vercel.json (24 lines)
+└── vercel.json (36 lines)
 
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 60
-Total files: 308
-Files with line counts: 282
-Total lines of code: 83,448
+Total directories: 73
+Total files: 316
+Files with line counts: 293
+Total lines of code: 78,120
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv

@@ -197,7 +197,7 @@ export class RoomLifecycleManager {
       }
 
       return { success: false }
-    } catch (error) {
+    } catch {
       return { success: false }
     }
   }

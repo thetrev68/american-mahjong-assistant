@@ -246,7 +246,7 @@ export class MahjongValidationBridge {
    */
   private static estimatePatternCompletion(
     tiles: Tile[],
-    pattern: NMJL2025Pattern
+    _pattern: NMJL2025Pattern
   ): number {
     // This is a simplified estimation
     // In production, you'd use the PatternAnalysisEngine

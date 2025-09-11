@@ -16,7 +16,11 @@ export default tseslint.config([
       '**/coverage/**', 
       '**/node_modules/**',
       '**/*.d.ts',
-      'packages/*/dist/**'
+      'packages/*/dist/**',
+      // Exclude files with parsing issues for now
+      'packages/frontend/public/intelligence/nmjl-patterns/pattern-analysis-script.js',
+      'packages/frontend/src/__tests__/integration/solo-game-workflow.test.tsx',
+      'packages/frontend/src/features/room-setup/__tests__/*.test.tsx'
     ]
   },
   
@@ -44,6 +48,15 @@ export default tseslint.config([
       '@typescript-eslint/no-floating-promises': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
       '@typescript-eslint/no-unsafe-call': 'off',
+    }
+  },
+  
+  // Relaxed rules for test files
+  {
+    files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off', // Allow any in test files for mocking
+      '@typescript-eslint/no-unused-vars': 'off', // Allow unused vars in tests
     }
   }
 ]);

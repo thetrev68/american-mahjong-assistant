@@ -5,8 +5,18 @@ import { RoomLifecycleManager } from '../room-management/room-lifecycle-manager'
 import { PlayerCoordinationManager } from '../room-management/player-coordination-manager'
 import { GameLogicService } from '../../services/game-logic'
 import { MahjongValidationBridge } from '../../services/mahjong-validation-bridge'
-import type { SocketEvents } from 'shared-types'
-import type { ActionType } from 'shared-types'
+import type { Room, Player, GameState } from 'shared-types'
+
+interface FinalHandResponse {
+  responseId: string
+  hand: unknown[]
+}
+
+
+interface PatternsResponse {
+  responseId: string
+  patterns: unknown[]
+}
 
 export class SocketHandlers {
   private roomLifecycleManager = new RoomLifecycleManager()
@@ -32,11 +42,6 @@ export class SocketHandlers {
     socket.on('create-room', async (data) => {
       try {
         const { hostName, config } = data
-        const hostPlayer = {
-          id: socket.id,
-          name: hostName,
-          isHost: true
-        }
 
         const room = this.roomManager.createRoom(socket.id, {
           ...config,
@@ -126,7 +131,7 @@ export class SocketHandlers {
           })
         }
 
-      } catch (error) {
+      } catch {
         socket.emit('room-left', {
           success: false,
           roomId: data.roomId
@@ -349,7 +354,6 @@ export class SocketHandlers {
     socket.on('game-state-recovery', (data) => {
       try {
         const { roomId } = data
-        const playerId = socket.id
         
         const room = this.roomLifecycleManager.getRoom(roomId)
         const playerStates = this.playerCoordinationManager.getRoomPlayerStates(roomId)
@@ -600,13 +604,13 @@ export class SocketHandlers {
     })
   }
 
-  private handleCharlestonTileExchange(roomId: string, room: any, gameState: any, phase: string): void {
+  private handleCharlestonTileExchange(roomId: string, room: Room, gameState: GameState, phase: string): void {
     try {
       // Calculate tile exchanges based on phase
       const tileExchanges = this.calculateTileExchanges(room.players, gameState, phase)
       
       // Reset player readiness for next phase
-      room.players.forEach((player: any) => {
+      room.players.forEach((player: Player) => {
         if (gameState.playerStates[player.id]) {
           gameState.playerStates[player.id].isReady = false
           gameState.playerStates[player.id].selectedTiles = []
@@ -614,7 +618,7 @@ export class SocketHandlers {
       })
 
       // Broadcast tile exchanges to all players
-      room.players.forEach((player: any) => {
+      room.players.forEach((player: Player) => {
         const exchange = tileExchanges[player.id]
         if (exchange) {
           this.io.to(player.id).emit('charleston-tile-exchange', {
@@ -1239,7 +1243,7 @@ export class SocketHandlers {
     })
   }
 
-  private handlePlayerDisconnect(playerId: string, reason: string): void {
+  private handlePlayerDisconnect(playerId: string, _reason: string): void {
     const room = this.roomManager.getPlayerRoom(playerId)
     
     if (room) {
@@ -1425,7 +1429,7 @@ export class SocketHandlers {
         bonusPoints
       }
 
-    } catch (error) {
+    } catch {
       return {
         isValid: false,
         reason: 'Validation system error'
@@ -1434,7 +1438,7 @@ export class SocketHandlers {
   }
 
   // Calculate final scores for all players
-  private calculateFinalScores(roomId: string, winnerId: string, winningPattern: any, winningHand: any[]): Array<{
+  private calculateFinalScores(roomId: string, winnerId: string, winningPattern: any, _winningHand: any[]): Array<{
     playerId: string
     playerName: string
     score: number
@@ -1481,7 +1485,7 @@ export class SocketHandlers {
         })
         
         // Set up response handler
-        const responseHandler = (responseData: any) => {
+        const responseHandler = (responseData: FinalHandResponse) => {
           if (responseData.responseId === `hand-${socket.id}-${Date.now()}`) {
             socket.emit('final-hand-response', {
               playerId: targetPlayerId,
@@ -1505,7 +1509,7 @@ export class SocketHandlers {
           socket.off('final-hand-provided', responseHandler)
         }, 5000)
         
-      } catch (error) {
+      } catch {
         socket.emit('final-hand-response', {
           playerId: data.targetPlayerId,
           hand: [],
@@ -1537,7 +1541,7 @@ export class SocketHandlers {
         })
         
         // Set up response handler
-        const responseHandler = (responseData: any) => {
+        const responseHandler = (responseData: PatternsResponse) => {
           if (responseData.responseId === `patterns-${socket.id}-${Date.now()}`) {
             socket.emit('selected-patterns-response', {
               playerId: targetPlayerId,
@@ -1561,7 +1565,7 @@ export class SocketHandlers {
           socket.off('selected-patterns-provided', responseHandler)
         }, 3000)
         
-      } catch (error) {
+      } catch {
         socket.emit('selected-patterns-response', {
           playerId: data.targetPlayerId,
           patterns: [],

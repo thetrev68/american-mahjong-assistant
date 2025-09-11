@@ -313,7 +313,7 @@ export class StateSyncManager {
     }
   }
 
-  private defaultConflictResolution(current: GameState, incoming: StateUpdate, history: StateUpdate[]): GameState {
+  private defaultConflictResolution(current: GameState, incoming: StateUpdate, _history: StateUpdate[]): GameState {
     return incoming.timestamp > current.lastUpdated ? incoming.data : current
   }
 }

@@ -90,13 +90,12 @@ describe('StateSyncManager', () => {
 
   describe('State Updates', () => {
     let roomId: string
-    let gameState: GameState
 
     beforeEach(() => {
       const room = roomManager.createRoom('host', { maxPlayers: 4 })
       roomManager.joinRoom(room.id, { id: 'player1', name: 'Player 1', isHost: false, isConnected: true, isReady: false })
       roomId = room.id
-      gameState = stateSyncManager.initializeGameState(roomId)
+      stateSyncManager.initializeGameState(roomId)
     })
 
     it('should process valid state update', async () => {

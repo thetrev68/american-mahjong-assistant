@@ -3,7 +3,6 @@
 
 import type { 
   Tile, 
-  PlayerAction, 
   ActionType, 
   ExposedSet,
   GamePhase,
@@ -204,7 +203,6 @@ export class GameLogicService {
    */
   validateAction(playerId: string, action: string, actionData?: any): GameActionValidation {
     const player = this.playerData.get(playerId)
-    const violations: string[] = []
     
     if (!player) {
       return {
@@ -471,7 +469,7 @@ export class GameLogicService {
   /**
    * Validation: Pass Out Action
    */
-  private validatePassOutAction(player: PlayerGameData): GameActionValidation {
+  private validatePassOutAction(_player: PlayerGameData): GameActionValidation {
     // Pass out is always valid - it's a forfeit action
     return {
       isValid: true,
@@ -617,7 +615,7 @@ export class GameLogicService {
    */
   private executeJokerSwapAction(playerId: string, actionData: any): GameActionResult {
     const player = this.playerData.get(playerId)!
-    const { jokerTile, replacementTile } = actionData
+    const { replacementTile } = actionData
     
     // Find the exposed set containing the joker
     const exposedSet = player.exposedSets.find(set => 
@@ -665,7 +663,7 @@ export class GameLogicService {
    * Execute: Mahjong Declaration
    */
   private executeMahjongAction(playerId: string, actionData: any): GameActionResult {
-    const player = this.playerData.get(playerId)!
+    const _player = this.playerData.get(playerId)!
     
     // In a full implementation, this would integrate with MahjongValidator
     // For now, we'll assume the frontend has already validated the win
@@ -688,7 +686,7 @@ export class GameLogicService {
    * Execute: Pass Out Action
    */
   private executePassOutAction(playerId: string, actionData: any): GameActionResult {
-    const player = this.playerData.get(playerId)!
+    const _player = this.playerData.get(playerId)!
     
     // Mark player as passed out
     // In the socket handler, this will be tracked in game state
