@@ -2,11 +2,11 @@
   "name": "mahjong-co-pilot-backend",
   "version": "1.0.0",
   "description": "Backend server for Mahjong Co-Pilot application",
-  "main": "dist/server.js",
+  "main": "dist/backend/src/server.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc",
-    "start": "node dist/server.js",
+    "start": "node dist/backend/src/server.js",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
