@@ -1,7 +1,6 @@
 // Socket Handlers Test Suite - Comprehensive TDD for WebSocket event handling
 
 import { vi } from 'vitest'
-import { Server as SocketIOServer } from 'socket.io'
 import { SocketHandlers } from '../features/socket-communication/socket-handlers'
 import { RoomManager } from '../features/room-lifecycle/room-manager'
 import { StateSyncManager } from '../features/state-sync/state-sync-manager'

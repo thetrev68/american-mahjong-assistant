@@ -1,6 +1,10 @@
 import js from "@eslint/js";
-import globals from "globals";
 import tseslint from "typescript-eslint";
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 // Root ESLint configuration for the monorepo
 // Contains shared rules that apply to all packages
@@ -28,6 +32,7 @@ export default tseslint.config([
       sourceType: 'module',
       parserOptions: {
         project: null, // Disable type-aware linting to fix path issues
+        tsconfigRootDir: __dirname, // Explicitly set root directory to resolve path ambiguity
       },
     },
     rules: {
