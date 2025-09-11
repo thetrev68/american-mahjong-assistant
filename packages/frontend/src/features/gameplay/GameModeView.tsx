@@ -10,6 +10,7 @@ import { usePatternStore } from '../../stores/pattern-store'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { useTileStore } from '../../stores/tile-store'
 import { useTurnStore, useTurnSelectors } from '../../stores/turn-store'
+import { useCharlestonStore } from '../../stores/charleston-store'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
@@ -71,6 +72,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
   const turnStore = useTurnStore()
+  const charlestonStore = useCharlestonStore()
   const turnSelectors = useTurnSelectors()
   const historyStore = useHistoryStore()
   
@@ -975,6 +977,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setIsPaused(!isPaused)
   }, [isPaused])
 
+  // Advance from Charleston to Gameplay phase
+  const handleAdvanceToGameplay = useCallback(() => {
+    gameStore.setGamePhase('playing')
+  }, [gameStore])
+
   // Handle Charleston tile passing
   const handleCharlestonPass = useCallback(() => {
     const selectedTiles = tileStore.selectedForAction
@@ -993,15 +1000,27 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Clear selection
       tileStore.clearSelection()
       
+      // Complete the current Charleston phase
+      charlestonStore.completePhase()
+      
       // Show alert prompting user to input the tiles they received
+      const currentPhase = charlestonStore.currentPhase
+      const isCharlestonComplete = currentPhase === 'complete'
+      
       gameStore.addAlert({
         type: 'info',
-        title: 'Charleston Pass Complete',
-        message: 'Now enter the 3 tiles you received from other players using the tile input'
+        title: isCharlestonComplete ? 'Charleston Complete!' : 'Charleston Pass Complete',
+        message: isCharlestonComplete 
+          ? 'Charleston is complete! Moving to gameplay phase.'
+          : 'Now enter the 3 tiles you received from other players using the tile input'
       })
       
-      // The user will need to manually add the tiles they received via tile input
-      // For now, keep in Charleston phase - user can advance to gameplay when ready
+      // If Charleston is complete, advance to gameplay phase
+      if (isCharlestonComplete) {
+        setTimeout(() => {
+          handleAdvanceToGameplay()
+        }, 1500) // Give user time to read the completion message
+      }
       
     } else {
       // Navigate to Charleston phase for multiplayer
@@ -1009,12 +1028,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         onNavigateToCharleston()
       }
     }
-  }, [tileStore, roomSetupStore.coPilotMode, gameStore, onNavigateToCharleston])
-  
-  // Advance from Charleston to Gameplay phase
-  const handleAdvanceToGameplay = useCallback(() => {
-    gameStore.setGamePhase('playing')
-  }, [gameStore])
+  }, [tileStore, roomSetupStore.coPilotMode, gameStore, onNavigateToCharleston, charlestonStore, handleAdvanceToGameplay])
 
   const findAlternativePatterns = useCallback(() => {
     if (!currentAnalysis || !currentAnalysis.bestPatterns) return
