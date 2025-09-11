@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build --workspace=packages/frontend",
+  "buildCommand": "cd packages/frontend && npm install && npm run build",
   "installCommand": "npm install",
   "outputDirectory": "packages/frontend/dist",
   "framework": "vite",
