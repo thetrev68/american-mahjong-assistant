@@ -423,6 +423,14 @@ export const useCharlestonStore = create<CharlestonStore>()(
 
 // Helper function to determine next phase
 function getNextPhase(currentPhase: CharlestonPhase, playerCount: number): CharlestonPhase {
+  // TODO: Fix Charleston flow - current implementation is incorrect
+  // Correct flow should be:
+  // 1. Initial Charleston: right → across → left → DECISION POINT
+  // 2. Optional Charleston 1: right → across → left → DECISION POINT  
+  // 3. Optional Charleston 2: right → across → left → complete
+  // Maximum 9 passes total (3 Charleston rounds), not 4 passes
+  // Currently treating 'optional' as single 4th pass instead of decision point
+  
   switch (currentPhase) {
     case 'right':
       return playerCount === 3 ? 'left' : 'across' // Skip across in 3-player games
