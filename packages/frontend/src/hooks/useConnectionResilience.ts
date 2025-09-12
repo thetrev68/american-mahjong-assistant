@@ -20,6 +20,8 @@ import {
   handleServerShutdown 
 } from '../lib/services/disconnection-manager'
 import { useRoomStore } from '../stores/room.store'
+import { useRoomSetupStore } from '../stores/room-setup.store'
+import { useConnectionStore } from '../stores/connection.store'
 import { useGameStore } from '../stores/game-store'
 
 export interface ConnectionResilienceConfig {

@@ -145,7 +145,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                   key={tile.instanceId}
                   tile={updatedTile}
                   size="md"
-                  onClick={() => isMyTurn && handleTileClick(tile)}
+                  onClick={(clickedTile) => isMyTurn && handleTileClick(clickedTile)}
                   className={`cursor-pointer hover:scale-105 transition-transform min-w-12 min-h-16 ${highlightClass}`}
                   context={isCharleston ? "charleston" : "gameplay"}
                 />

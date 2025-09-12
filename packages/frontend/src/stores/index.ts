@@ -18,6 +18,7 @@ export { useRoomStore, type PlayerPosition } from './room.store'
 export { usePlayerStore } from './player.store'
 export { useConnectionStore } from './connection.store'
 export { useRoomSetupStore, type CoPilotMode, type RoomStatus } from './room-setup.store'
+export { useTurnStore, useTurnSelectors, type TurnPlayer } from './turn-store'
 
 // Store Selectors (commonly used combinations)
 import { useGameStore } from './game-store'

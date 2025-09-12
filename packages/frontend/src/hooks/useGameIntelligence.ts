@@ -6,6 +6,9 @@ export const useGameIntelligence = (gameState: GameState | null, playerId: strin
   const [lastAnalysisUpdate, setLastAnalysisUpdate] = useState<number>(0)
   const intelligenceStore = useIntelligenceStore()
   
+  // Extract stable functions
+  const { analyzeTurnSituation, analyzeOpponents, updateDefensiveAnalysis } = intelligenceStore
+  
   // Trigger intelligence updates on game state changes
   useEffect(() => {
     if (!gameState || !playerId) return
@@ -20,9 +23,9 @@ export const useGameIntelligence = (gameState: GameState | null, playerId: strin
       try {
         // Parallel intelligence updates
         await Promise.all([
-          intelligenceStore.analyzeTurnSituation(playerId, gameState),
-          intelligenceStore.analyzeOpponents(gameState, playerId),
-          intelligenceStore.updateDefensiveAnalysis(gameState, playerId)
+          analyzeTurnSituation(playerId, gameState),
+          analyzeOpponents(gameState, playerId),
+          updateDefensiveAnalysis(gameState, playerId)
         ])
         
         setLastAnalysisUpdate(currentTime)
@@ -34,9 +37,11 @@ export const useGameIntelligence = (gameState: GameState | null, playerId: strin
     updateIntelligence()
   }, [
     gameState,
-    intelligenceStore,
     playerId,
-    lastAnalysisUpdate
+    lastAnalysisUpdate,
+    analyzeTurnSituation,
+    analyzeOpponents, 
+    updateDefensiveAnalysis
   ])
   
   // Return current intelligence state

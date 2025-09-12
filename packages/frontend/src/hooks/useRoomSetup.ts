@@ -138,6 +138,22 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
         
         // Set the room in stores
         roomStore.updateRoom(room)
+        
+        // Convert Player objects to CrossPhasePlayerState objects for room store
+        const crossPhasePlayerStates = players.map(player => ({
+          id: player.id,
+          name: player.name,
+          isHost: player.isHost,
+          isConnected: player.isConnected,
+          lastSeen: new Date(),
+          roomReadiness: false, // Will be set to true when positioned
+          charlestonReadiness: false,
+          gameplayReadiness: false,
+          position: undefined,
+          isCurrentTurn: false
+        }))
+        
+        roomStore.updatePlayers(crossPhasePlayerStates)
         multiplayerStore.setCurrentRoom(room)
         
         roomSetupStore.handleRoomCreated(roomCode, hostPlayerId, otherPlayerNames)

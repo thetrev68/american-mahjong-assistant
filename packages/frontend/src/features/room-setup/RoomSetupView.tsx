@@ -39,6 +39,7 @@ export const RoomSetupView: React.FC = () => {
   const [playerName, setPlayerName] = useState('')
   const [roomCodeInput, setRoomCodeInput] = useState('')
   const [forceStep, setForceStep] = useState<string | null>(null)
+  const [isStartingGame, setIsStartingGame] = useState(false)
 
   // Check for URL parameters to auto-fill room code and switch to join mode
   useEffect(() => {
@@ -57,14 +58,21 @@ export const RoomSetupView: React.FC = () => {
   const currentStep = forceStep || roomSetup.setupProgress.currentStep
   const currentStepNumber = steps.findIndex(s => s.title.toLowerCase().includes(currentStep.split('-')[0])) + 1
   
-  const handleStartGame = () => {
-    // Starting game - first need to input tiles
+  const handleStartGame = async () => {
+    setIsStartingGame(true)
     
-    // Mark the game as started in game store for route guards
-    gameStore.setGamePhase('tile-input')
-    
-    // Always go to tile input first, then Charleston, then game
-    navigate('/tiles')
+    try {
+      // Starting game - first need to input tiles
+      // Mark the game as started in game store for route guards
+      gameStore.setGamePhase('tile-input')
+      
+      // Always go to tile input first, then Charleston, then game
+      navigate('/tiles')
+      
+    } catch (error) {
+      console.error('Error starting game:', error)
+      setIsStartingGame(false)
+    }
   }
 
   const handleBackStep = () => {
@@ -276,8 +284,16 @@ export const RoomSetupView: React.FC = () => {
                 variant="primary"
                 size="lg"
                 className="w-full max-w-md mx-auto"
+                disabled={isStartingGame}
               >
-                Start Game
+                {isStartingGame ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    <span>Starting Game...</span>
+                  </div>
+                ) : (
+                  'Start Game'
+                )}
               </Button>
             ) : (
               <Card variant="default" className="bg-blue-50 border-blue-200">

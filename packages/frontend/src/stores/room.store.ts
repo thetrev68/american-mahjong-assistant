@@ -161,13 +161,25 @@ export const useRoomStore = create<RoomStore>()(
       setCurrentPhase: (phase) => set({ currentPhase: phase }),
 
       setPlayerReadiness: (playerId, phase, ready) => set((state) => ({
+        // Update the phaseReadiness tracking object
         phaseReadiness: {
           ...state.phaseReadiness,
           [playerId]: {
             ...state.phaseReadiness[playerId],
             [phase]: ready
           }
-        }
+        },
+        // Also update the individual player's readiness properties
+        players: state.players.map(player => 
+          player.id === playerId 
+            ? {
+                ...player,
+                roomReadiness: phase === 'room' ? ready : player.roomReadiness,
+                charlestonReadiness: phase === 'charleston' ? ready : player.charlestonReadiness,
+                gameplayReadiness: phase === 'gameplay' ? ready : player.gameplayReadiness,
+              }
+            : player
+        )
       })),
 
       setPhaseReadiness: (phase, ready) => set((state) => ({

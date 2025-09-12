@@ -6,6 +6,7 @@ import { PatternVariationDisplay } from '../../ui-components/patterns/PatternVar
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
+import { getPatternCompletionSummary } from '../../utils/tile-display-utils'
 import type { PatternSelectionOption } from 'shared-types'
 
 interface IntelligencePanelProps {
@@ -46,24 +47,29 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
   useEffect(() => {
     if (!hasPatternSelected && currentAnalysis?.recommendedPatterns && currentAnalysis.recommendedPatterns.length > 0) {
       const topPattern = currentAnalysis.recommendedPatterns[0]
-      // Add as primary pattern without re-analyzing
-      clearSelection()
+      // Add as primary pattern without clearing existing patterns
       addTargetPattern(topPattern.pattern.id)
     }
-  }, [hasPatternSelected, currentAnalysis, clearSelection, addTargetPattern])
+  }, [hasPatternSelected, currentAnalysis]) // Removed clearSelection and addTargetPattern from deps
   
 
   const handlePatternSelect = async (patternId: string) => {
     if (selectedPatterns.some(p => p.id === patternId)) return // Already selected
     
-    // Add as primary pattern
-    clearSelection()
+    // Add pattern to existing selection (don't clear other patterns)
     addTargetPattern(patternId)
     
-    // Re-analyze with new pattern
-    const pattern = currentAnalysis?.recommendedPatterns?.find(rec => rec.pattern.id === patternId)?.pattern
-    if (pattern) {
-      await analyzeHand(playerHand, [pattern])
+    // Re-analyze with all selected patterns
+    const allSelectedPatterns = getTargetPatterns()
+    const newPattern = currentAnalysis?.recommendedPatterns?.find(rec => rec.pattern.id === patternId)?.pattern
+    
+    if (newPattern) {
+      // Include the new pattern along with existing ones
+      const patternsToAnalyze = allSelectedPatterns.some(p => p.id === patternId) 
+        ? allSelectedPatterns 
+        : [...allSelectedPatterns, newPattern]
+      
+      await analyzeHand(playerHand, patternsToAnalyze)
     }
   }
 
@@ -117,7 +123,7 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                     <div className="text-xl font-bold text-gray-900 mb-2">
                       {currentAnalysis.recommendedPatterns[0]?.pattern ? (
                         <PatternVariationDisplay
-                          patternTiles={currentAnalysis.recommendedPatterns[0].pattern.pattern.split(' ').join('').split('')}
+                          patternTiles={currentAnalysis.recommendedPatterns[0].pattern.pattern.split(' ')}
                           playerTiles={playerHand.map(t => t.id)}
                           showMatches={true}
                           invertMatches={true}
@@ -142,7 +148,19 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                       <div className="text-2xl font-bold text-green-600">
                         {Math.round(currentAnalysis.recommendedPatterns[0]?.completionPercentage || 0)}%
                       </div>
-                      <div className="text-sm text-gray-600">complete</div>
+                      <div className="text-sm text-gray-600">
+                        {(() => {
+                          const pattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                          if (pattern) {
+                            const completion = getPatternCompletionSummary(
+                              pattern.pattern.split(' '), 
+                              playerHand.map(t => t.id)
+                            )
+                            return `complete (${completion.matchedTiles}/${completion.totalTiles})`
+                          }
+                          return 'complete'
+                        })()}
+                      </div>
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="text-lg font-bold text-blue-600">
@@ -225,28 +243,31 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                     }`}
                     onClick={() => handlePatternSelect(patternRec.pattern.id)}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1">
-                            <PatternVariationDisplay
-                              patternTiles={patternRec.pattern.pattern.split(' ').join('').split('')}
-                              playerTiles={playerHand.map(t => t.id)}
-                              showMatches={true}
-                              invertMatches={true}
-                              showCompletion={false}
-                              spacing={true}
-                              size="sm"
-                              patternGroups={patternRec.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
-                            />
-                          </div>
+                    <div className="space-y-2">
+                      {/* Pattern display gets full width */}
+                      <div className="w-full">
+                        <div className="flex items-center gap-2 mb-1">
+                          <PatternVariationDisplay
+                            patternTiles={patternRec.pattern.pattern.split(' ')}
+                            playerTiles={playerHand.map(t => t.id)}
+                            showMatches={true}
+                            invertMatches={true}
+                            showCompletion={false}
+                            spacing={true}
+                            size="sm"
+                            patternGroups={patternRec.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
+                          />
                           {isPrimary && isSelected && (
                             <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
                               Primary
                             </span>
                           )}
                         </div>
-                        <div className="flex items-center gap-3 mt-1">
+                      </div>
+                      
+                      {/* Pattern info and select button on separate line */}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
                           <span className="text-xs text-gray-500 font-medium">
                             {patternRec.pattern.section} - {patternRec.pattern.line}
                           </span>
@@ -257,29 +278,35 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                             {patternRec.difficulty}
                           </span>
                           <span className="text-xs text-gray-500">
-                            {Math.round(completionPercentage)}% complete
+                            {(() => {
+                              const completion = getPatternCompletionSummary(
+                                patternRec.pattern.pattern.split(' '), 
+                                playerHand.map(t => t.id)
+                              )
+                              return `${Math.round(completionPercentage)}% complete (${completion.matchedTiles}/${completion.totalTiles})`
+                            })()}
                           </span>
                         </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {isSelected ? (
-                          <div className="flex items-center gap-1">
-                            <div className="text-purple-600">✓</div>
-                            <span className="text-xs text-purple-600">Selected</span>
-                          </div>
-                        ) : (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-blue-600 border-blue-300 hover:bg-blue-50 text-xs px-2 py-1"
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handlePatternSelect(patternRec.pattern.id)
-                            }}
-                          >
-                            Select
-                          </Button>
-                        )}
+                        <div className="flex items-center gap-2">
+                          {isSelected ? (
+                            <div className="flex items-center gap-1">
+                              <div className="text-purple-600">✓</div>
+                              <span className="text-xs text-purple-600">Selected</span>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-blue-600 border-blue-300 hover:bg-blue-50 text-xs px-2 py-1"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handlePatternSelect(patternRec.pattern.id)
+                              }}
+                            >
+                              Select
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                     
@@ -295,6 +322,21 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                   </div>
                 )
               })}
+              
+              {/* Link to see more matching patterns */}
+              <div className="mt-4 text-center">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-blue-600 hover:text-blue-800 text-sm"
+                  onClick={() => {
+                    // TODO: Navigate to full pattern browser or analysis page
+                    console.log('Navigate to more patterns')
+                  }}
+                >
+                  🔍 Browse All Matching Patterns →
+                </Button>
+              </div>
             </div>
 
           </>

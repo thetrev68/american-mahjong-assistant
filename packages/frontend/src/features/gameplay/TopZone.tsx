@@ -1,5 +1,6 @@
 import React from 'react'
 import { Button } from '../../ui-components/Button'
+import { useCharlestonStore } from '../../stores/charleston-store'
 
 interface TopZoneProps {
   gamePhase: 'charleston' | 'gameplay'
@@ -56,18 +57,95 @@ const DramaticTimer: React.FC<{
   )
 }
 
+const getCharlestonPassingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
+  const currentIndex = playerNames.findIndex(name => name === currentPlayer)
+  if (currentIndex === -1) return playerNames[1] || 'Next Player'
+  
+  // Charleston passing patterns
+  switch (charlestonPhase) {
+    case 'right': // Turn 1: Pass RIGHT (counter-clockwise)
+      const rightIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
+      return playerNames[rightIndex]
+    
+    case 'across': // Turn 2: Pass ACROSS (opposite player)
+      const acrossIndex = (currentIndex + 2) % playerNames.length
+      return playerNames[acrossIndex]
+    
+    case 'left': // Turn 3: Pass LEFT (clockwise) 
+      const leftIndex = (currentIndex + 1) % playerNames.length
+      return playerNames[leftIndex]
+    
+    // For optional round, directions are reversed except across
+    case 'optional-left': // Optional Turn 1: Pass LEFT (clockwise)
+      const optLeftIndex = (currentIndex + 1) % playerNames.length
+      return playerNames[optLeftIndex]
+    
+    case 'optional-across': // Optional Turn 2: Pass ACROSS (opposite player)
+      const optAcrossIndex = (currentIndex + 2) % playerNames.length
+      return playerNames[optAcrossIndex]
+    
+    case 'optional-right': // Optional Turn 3: Pass RIGHT (counter-clockwise)
+      const optRightIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
+      return playerNames[optRightIndex]
+    
+    default:
+      // Fallback to next player clockwise
+      const defaultIndex = (currentIndex + 1) % playerNames.length
+      return playerNames[defaultIndex]
+  }
+}
+
+const getCharlestonReceivingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
+  const currentIndex = playerNames.findIndex(name => name === currentPlayer)
+  if (currentIndex === -1) return playerNames[playerNames.length - 1] || 'Previous Player'
+  
+  // Charleston receiving patterns (opposite of passing)
+  switch (charlestonPhase) {
+    case 'right': // Turn 1: Receive from LEFT (clockwise)
+      const rightReceiveIndex = (currentIndex + 1) % playerNames.length
+      return playerNames[rightReceiveIndex]
+    
+    case 'across': // Turn 2: Receive from ACROSS (opposite player) 
+      const acrossReceiveIndex = (currentIndex + 2) % playerNames.length
+      return playerNames[acrossReceiveIndex]
+    
+    case 'left': // Turn 3: Receive from RIGHT (counter-clockwise)
+      const leftReceiveIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
+      return playerNames[leftReceiveIndex]
+    
+    // Optional round receiving
+    case 'optional-left': // Optional Turn 1: Receive from RIGHT (counter-clockwise)
+      const optLeftReceiveIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
+      return playerNames[optLeftReceiveIndex]
+    
+    case 'optional-across': // Optional Turn 2: Receive from ACROSS (opposite player)
+      const optAcrossReceiveIndex = (currentIndex + 2) % playerNames.length
+      return playerNames[optAcrossReceiveIndex]
+    
+    case 'optional-right': // Optional Turn 3: Receive from LEFT (clockwise)
+      const optRightReceiveIndex = (currentIndex + 1) % playerNames.length
+      return playerNames[optRightReceiveIndex]
+    
+    default:
+      // Fallback to previous player counter-clockwise
+      const defaultReceiveIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
+      return playerNames[defaultReceiveIndex]
+  }
+}
+
 const getNextPlayer = (currentPlayer: string, playerNames: string[], gamePhase?: 'charleston' | 'gameplay'): string => {
   if (gamePhase === 'charleston') {
-    // For Charleston, show who will receive tiles (next player in order)
+    // For Charleston, we need to know which Charleston phase we're in
+    // This is a fallback - should be passed as a parameter
     const currentIndex = playerNames.findIndex(name => name === currentPlayer)
     if (currentIndex !== -1) {
       const nextIndex = (currentIndex + 1) % playerNames.length
       return playerNames[nextIndex]
     }
-    return playerNames[1] || 'Next Player' // Fallback to second player
+    return playerNames[1] || 'Next Player'
   }
   
-  // Regular gameplay: counterclockwise turn order
+  // Regular gameplay: clockwise turn order
   const currentIndex = playerNames.findIndex(name => name === currentPlayer)
   const nextIndex = (currentIndex + 1) % playerNames.length
   return playerNames[nextIndex]
@@ -98,8 +176,20 @@ const TopZone: React.FC<TopZoneProps> = ({
   nextPlayer: providedNextPlayer,
 }) => {
 
+  const { currentPhase } = useCharlestonStore()
+  
+  // Get appropriate next player based on game phase
   const nextPlayer = providedNextPlayer || getNextPlayer(currentPlayer, playerNames, gamePhase)
   const phaseDisplayName = gamePhase === 'charleston' ? 'Charleston' : 'Game Mode'
+  
+  // Charleston-specific passing directions
+  const passingToPlayer = gamePhase === 'charleston' 
+    ? getCharlestonPassingDirection(currentPhase, currentPlayer, playerNames)
+    : nextPlayer
+  
+  const receivingFromPlayer = gamePhase === 'charleston' 
+    ? getCharlestonReceivingDirection(currentPhase, currentPlayer, playerNames)
+    : getReceivingFromPlayer(currentPlayer, playerNames)
 
   return (
     <>
@@ -112,8 +202,8 @@ const TopZone: React.FC<TopZoneProps> = ({
             {gamePhase === 'charleston' ? (
               <div className="text-sm md:text-base text-gray-600 space-y-1">
                 <div className="flex flex-wrap items-center gap-4">
-                  <span>📤 Passing to: <span className="font-semibold text-blue-600">{nextPlayer}</span></span>
-                  <span>📥 Receiving from: <span className="font-semibold text-green-600">{getReceivingFromPlayer(currentPlayer, playerNames)}</span></span>
+                  <span>📤 Passing to: <span className="font-semibold text-blue-600">{passingToPlayer}</span></span>
+                  <span>📥 Receiving from: <span className="font-semibold text-green-600">{receivingFromPlayer}</span></span>
                 </div>
                 <div className="text-xs text-gray-500">
                   All players select 3 tiles simultaneously

@@ -1,6 +1,7 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { type PlayerPosition } from '../../stores/player.store'
 import { usePlayerStore } from '../../stores/player.store'
+import { useRoomStore } from '../../stores/room.store'
 
 interface Player {
   id: string
@@ -40,11 +41,28 @@ export const PlayerPositioning: React.FC<PlayerPositioningProps> = ({
   isSoloMode = false
 }) => {
   const playerStore = usePlayerStore()
+  const roomStore = useRoomStore()
   const [selectedPlayerForAssignment, setSelectedPlayerForAssignment] = useState<string | null>(null)
+  const processedPlayersRef = useRef<Set<string>>(new Set())
   
   // Use store if props not provided
   const playerPositions = propPlayerPositions ?? playerStore.playerPositions
   const onPositionChange = propOnPositionChange ?? playerStore.setPlayerPosition
+
+  // Auto-mark players as ready in solo mode when they get positioned
+  useEffect(() => {
+    if (isSoloMode) {
+      const positionedPlayerIds = Object.keys(playerPositions)
+      
+      positionedPlayerIds.forEach(playerId => {
+        // Only process players we haven't already processed
+        if (!processedPlayersRef.current.has(playerId)) {
+          roomStore.setPlayerReadiness(playerId, 'room', true)
+          processedPlayersRef.current.add(playerId)
+        }
+      })
+    }
+  }, [isSoloMode, playerPositions, roomStore])
   
   const getPlayerAtPosition = (position: PlayerPosition): Player | null => {
     const playerId = Object.entries(playerPositions).find(([, pos]) => pos === position)?.[0]
