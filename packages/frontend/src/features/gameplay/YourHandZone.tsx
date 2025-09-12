@@ -10,17 +10,17 @@ import { tileService } from '../../lib/services/tile-service'
 
 interface YourHandZoneProps {
   currentHand: PlayerTile[]
-  lastDrawnTile: TileType | null
+  lastDrawnTile: Tile | null
   exposedTiles: Array<{
     type: 'pung' | 'kong' | 'quint' | 'sextet'
-    tiles: TileType[]
+    tiles: Tile[]
     timestamp: Date
   }>
-  selectedDiscardTile: TileType | null
+  selectedDiscardTile: Tile | null
   isMyTurn: boolean
   isAnalyzing: boolean
   handleDrawTile: () => void
-  handleDiscardTile: (tile: TileType) => void
+  handleDiscardTile: (tile: Tile) => void
   gamePhase: 'charleston' | 'gameplay'
   onAdvanceToGameplay?: () => void
   currentAnalysis?: {
@@ -70,11 +70,11 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
     
     switch (action) {
       case 'keep':
-        return 'ring-2 ring-green-400 ring-opacity-60 bg-green-50' // Green for keep
+        return 'shadow-[0_0_0_2px_rgba(34,197,94,0.6),0_0_8px_rgba(34,197,94,0.3)]' // Green glow for keep
       case 'pass':
-        return 'ring-2 ring-orange-400 ring-opacity-60 bg-orange-50' // Orange for pass
+        return 'shadow-[0_0_0_2px_rgba(251,146,60,0.6),0_0_8px_rgba(251,146,60,0.3)]' // Orange glow for pass
       case 'discard':
-        return 'ring-2 ring-red-400 ring-opacity-60 bg-red-50' // Red for discard
+        return 'shadow-[0_0_0_2px_rgba(239,68,68,0.6),0_0_8px_rgba(239,68,68,0.3)]' // Red glow for discard
       default:
         return ''
     }
@@ -94,8 +94,8 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         moveToSelection(instanceId)
       }
     } else {
-      // Gameplay mode: discard tile - convert PlayerTile to TileType
-      const tileForDiscard: TileType = {
+      // Gameplay mode: discard tile - convert PlayerTile to Tile
+      const tileForDiscard: Tile = {
         id: tile.id,
         suit: tile.suit,
         value: tile.value,
@@ -127,7 +127,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         {/* Concealed Hand */}
         <div>
           <div className="text-sm text-gray-600 mb-2">Concealed ({sortedCurrentHand.length} tiles)</div>
-          <div className="flex flex-wrap gap-1 sm:gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
+          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
             {sortedCurrentHand.length > 0 ? sortedCurrentHand.map((tile) => {
               const isSelected = isCharleston 
                 ? selectedForAction.some(t => t.instanceId === tile.instanceId)

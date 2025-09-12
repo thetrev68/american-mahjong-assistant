@@ -26,8 +26,8 @@ const DramaticTimer: React.FC<{
   const minutes = Math.floor(timeElapsed / 60)
   const seconds = timeElapsed % 60
   
-  // Phase-aware positioning and styling - moved to avoid header overlap
-  const position = gamePhase === 'charleston' ? 'top-20 right-4' : 'top-20 right-4'
+  // Phase-aware positioning and styling - moved down to avoid covering player names
+  const position = gamePhase === 'charleston' ? 'top-32 right-4' : 'top-32 right-4'
   const priority = gamePhase === 'charleston' ? 'low' : 'high'
   const size = priority === 'low' ? 'text-base px-3 py-2' : 'text-lg px-4 py-3'
   
@@ -58,79 +58,27 @@ const DramaticTimer: React.FC<{
 }
 
 const getCharlestonPassingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
-  const currentIndex = playerNames.findIndex(name => name === currentPlayer)
-  if (currentIndex === -1) return playerNames[1] || 'Next Player'
+  // Exclude "You" from the calculation - find actual player names only
+  const actualPlayers = playerNames.filter(name => name !== 'You')
+  if (actualPlayers.length === 0) return 'Next Player'
   
-  // Charleston passing patterns
-  switch (charlestonPhase) {
-    case 'right': // Turn 1: Pass RIGHT (counter-clockwise)
-      const rightIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
-      return playerNames[rightIndex]
-    
-    case 'across': // Turn 2: Pass ACROSS (opposite player)
-      const acrossIndex = (currentIndex + 2) % playerNames.length
-      return playerNames[acrossIndex]
-    
-    case 'left': // Turn 3: Pass LEFT (clockwise) 
-      const leftIndex = (currentIndex + 1) % playerNames.length
-      return playerNames[leftIndex]
-    
-    // For optional round, directions are reversed except across
-    case 'optional-left': // Optional Turn 1: Pass LEFT (clockwise)
-      const optLeftIndex = (currentIndex + 1) % playerNames.length
-      return playerNames[optLeftIndex]
-    
-    case 'optional-across': // Optional Turn 2: Pass ACROSS (opposite player)
-      const optAcrossIndex = (currentIndex + 2) % playerNames.length
-      return playerNames[optAcrossIndex]
-    
-    case 'optional-right': // Optional Turn 3: Pass RIGHT (counter-clockwise)
-      const optRightIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
-      return playerNames[optRightIndex]
-    
-    default:
-      // Fallback to next player clockwise
-      const defaultIndex = (currentIndex + 1) % playerNames.length
-      return playerNames[defaultIndex]
-  }
+  // For Charleston, we rotate through actual player names based on phase
+  const phaseIndex = ['right', 'across', 'left', 'optional-left', 'optional-across', 'optional-right'].indexOf(charlestonPhase)
+  const targetIndex = phaseIndex >= 0 ? phaseIndex % actualPlayers.length : 0
+  
+  return actualPlayers[targetIndex] || 'Next Player'
 }
 
 const getCharlestonReceivingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
-  const currentIndex = playerNames.findIndex(name => name === currentPlayer)
-  if (currentIndex === -1) return playerNames[playerNames.length - 1] || 'Previous Player'
+  // Exclude "You" from the calculation - find actual player names only
+  const actualPlayers = playerNames.filter(name => name !== 'You')
+  if (actualPlayers.length === 0) return 'Previous Player'
   
-  // Charleston receiving patterns (opposite of passing)
-  switch (charlestonPhase) {
-    case 'right': // Turn 1: Receive from LEFT (clockwise)
-      const rightReceiveIndex = (currentIndex + 1) % playerNames.length
-      return playerNames[rightReceiveIndex]
-    
-    case 'across': // Turn 2: Receive from ACROSS (opposite player) 
-      const acrossReceiveIndex = (currentIndex + 2) % playerNames.length
-      return playerNames[acrossReceiveIndex]
-    
-    case 'left': // Turn 3: Receive from RIGHT (counter-clockwise)
-      const leftReceiveIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
-      return playerNames[leftReceiveIndex]
-    
-    // Optional round receiving
-    case 'optional-left': // Optional Turn 1: Receive from RIGHT (counter-clockwise)
-      const optLeftReceiveIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
-      return playerNames[optLeftReceiveIndex]
-    
-    case 'optional-across': // Optional Turn 2: Receive from ACROSS (opposite player)
-      const optAcrossReceiveIndex = (currentIndex + 2) % playerNames.length
-      return playerNames[optAcrossReceiveIndex]
-    
-    case 'optional-right': // Optional Turn 3: Receive from LEFT (clockwise)
-      const optRightReceiveIndex = (currentIndex + 1) % playerNames.length
-      return playerNames[optRightReceiveIndex]
-    
-    default:
-      // Fallback to previous player counter-clockwise
-      const defaultReceiveIndex = (currentIndex - 1 + playerNames.length) % playerNames.length
-      return playerNames[defaultReceiveIndex]
-  }
+  // For Charleston, receiving is from different players based on phase
+  const phaseIndex = ['right', 'across', 'left', 'optional-left', 'optional-across', 'optional-right'].indexOf(charlestonPhase)
+  const targetIndex = phaseIndex >= 0 ? (phaseIndex + 1) % actualPlayers.length : (actualPlayers.length - 1)
+  
+  return actualPlayers[targetIndex] || 'Previous Player'
 }
 
 const getNextPlayer = (currentPlayer: string, playerNames: string[], gamePhase?: 'charleston' | 'gameplay'): string => {

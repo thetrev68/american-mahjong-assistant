@@ -4,7 +4,7 @@
 
 This is a full-stack TypeScript project that provides an "intelligent co-pilot" for American Mahjong. The application is designed to run on a local network, allowing multiple players to connect from their own devices. It features a sophisticated "3-Engine AI System" that analyzes a player's hand and provides real-time strategic recommendations.
 
-The project is structured as a monorepo with a `frontend`, `backend`, and `shared` directory.
+The project is structured as a monorepo with packages for `frontend`, `backend`, `shared-types`, and `shared-utils`.
 
 ### Key Technologies
 
@@ -20,10 +20,11 @@ The project is structured as a monorepo with a `frontend`, `backend`, and `share
     *   **Framework:** Node.js with Express
     *   **Language:** TypeScript
     *   **Real-time Communication:** Socket.IO
-    *   **Testing:** Jest
+    *   **Testing:** Vitest
 
 *   **Shared:**
-    *   Contains TypeScript types and utility functions used by both the frontend and backend.
+    *   `shared-types`: Contains TypeScript types used across the monorepo.
+    *   `shared-utils`: Contains utility functions used across the monorepo.
 
 ### Architecture
 
@@ -47,37 +48,29 @@ The backend is primarily responsible for multiplayer functionality, managing gam
     ```bash
     npm install
     ```
-2.  **Install frontend dependencies:**
+2.  **Install dependencies for all packages:**
     ```bash
-    cd frontend
-    npm install
-    ```
-3.  **Install backend dependencies:**
-    ```bash
-    cd backend
-    npm install
+    npm install --workspaces
     ```
 
 ### Running the Application
 
 *   **Frontend:**
     ```bash
-    cd frontend
-    npm run dev
+    npm run dev --workspace=frontend
     ```
     The frontend will be available at `http://localhost:5173`.
 
 *   **Backend:**
     ```bash
-    cd backend
-    npm run dev
+    npm run dev --workspace=backend
     ```
     The backend server will start on port 5000.
 
 ## Development Conventions
 
-*   **Code Style:** The project uses ESLint to enforce a consistent code style. Run `npm run lint` in the root, `frontend`, and `backend` directories to check for linting errors.
+*   **Code Style:** The project uses ESLint to enforce a consistent code style. Run `npm run lint --workspaces` to check for linting errors in all packages.
 *   **Testing:**
-    *   Frontend tests are written with Vitest. Run `npm test` in the `frontend` directory to run the tests.
-    *   Backend tests are written with Jest. Run `npm test` in the `backend` directory to run the tests.
+    *   Frontend tests are written with Vitest. Run `npm test --workspace=frontend` to run the tests.
+    *   Backend tests are written with Vitest. Run `npm test --workspace=backend` to run the tests.
 *   **Commits:** Commit messages should be clear and descriptive.

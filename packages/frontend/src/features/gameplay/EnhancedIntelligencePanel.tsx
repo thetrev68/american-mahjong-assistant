@@ -1,9 +1,14 @@
 import React from 'react'
 import { Button } from '../../ui-components/Button'
+import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
+import { PatternVariationDisplay } from '../../ui-components/patterns/PatternVariationDisplay'
 import { TurnRecommendationsSection } from './components/TurnRecommendationsSection'
 import { CallOpportunitySection } from './components/CallOpportunitySection'
 import { OpponentInsightsSection } from './components/OpponentInsightsSection'
 import { DefensivePlaySection } from './components/DefensivePlaySection'
+import { usePatternStore } from '../../stores/pattern-store'
+import { useTileStore } from '../../stores/tile-store'
+import { getPatternCompletionSummary } from '../../utils/tile-display-utils'
 import type { HandAnalysis } from '../../stores/intelligence-store'
 import type { GameState } from '../intelligence-panel/services/turn-intelligence-engine'
 import type { CallOpportunity } from '../intelligence-panel/services/call-opportunity-analyzer'
@@ -14,8 +19,10 @@ interface EnhancedIntelligencePanelProps {
   playerId: string
   isCurrentTurn: boolean
   callOpportunity: CallOpportunity | null
-  onClose: () => void
-  onActionRecommendation: (action: string, data: Record<string, unknown>) => void
+  onClose?: () => void
+  onActionRecommendation?: (action: string, data: Record<string, unknown>) => void
+  gamePhase?: 'charleston' | 'gameplay'
+  isAnalyzing?: boolean
 }
 
 export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps> = ({
@@ -23,16 +30,31 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   isCurrentTurn,
   callOpportunity,
   onClose,
-  onActionRecommendation
+  onActionRecommendation,
+  gamePhase = 'gameplay',
+  isAnalyzing = false
 }) => {
+  const { getTargetPatterns } = usePatternStore()
+  const { playerHand } = useTileStore()
+  
+  const selectedPatterns = getTargetPatterns()
+  const hasPatternSelected = selectedPatterns.length > 0
   return (
     <div className="enhanced-intelligence-panel bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-200/50 max-h-[80vh] overflow-y-auto">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-purple-800">🧠 Enhanced AI Co-Pilot</h2>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          ✕
-        </Button>
+        <h2 className="text-xl font-bold text-purple-800">
+          {gamePhase === 'charleston' 
+            ? (hasPatternSelected ? '🎯 Charleston Strategy' : '🤔 Choose Your Target Pattern')
+            : '🧠 AI Co-Pilot'
+          }
+        </h2>
+        {onClose && (
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            ✕
+          </Button>
+        )}
+        {isAnalyzing && <LoadingSpinner size="sm" />}
       </div>
 
       {/* Turn-Aware Recommendations Section */}
@@ -68,71 +90,180 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
         />
       )}
       
-      {/* Existing Pattern Analysis - Basic fallback */}
-      {analysis && (
-        <div className="pattern-analysis">
-          <h3 className="section-title text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
-            📋 Pattern Analysis
-          </h3>
+      {/* Enhanced Pattern Analysis */}
+      {analysis ? (
+        <div className="pattern-analysis space-y-4">
+          {/* Charleston/Gameplay Recommendations */}
+          {gamePhase === 'charleston' && (
+            <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+              <div className="text-sm font-medium text-blue-800 mb-2">🎯 Charleston Strategy</div>
+              <div className="text-sm text-gray-700">
+                {hasPatternSelected
+                  ? `Focus on collecting tiles for ${selectedPatterns[0]?.displayName}. Keep tiles that advance this pattern and pass tiles that don't contribute.`
+                  : 'Select a target pattern to get specific Charleston passing recommendations.'}
+              </div>
+            </div>
+          )}
           
-          {/* Overall Score */}
-          {analysis.overallScore && (
-            <div className="overall-score p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg mb-4">
-              <div className="flex items-center justify-between">
-                <div className="text-sm font-medium text-green-800">Overall Hand Score</div>
-                <div className="text-xl font-bold text-green-600">
-                  {Math.round(analysis.overallScore)}/100
-                </div>
+          {gamePhase === 'gameplay' && analysis.recommendations?.discard && (
+            <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+              <div className="text-sm font-medium text-blue-800 mb-2">💡 Gameplay Recommendation</div>
+              <div className="text-sm text-gray-700">
+                {analysis.recommendations.discard.reasoning}
               </div>
             </div>
           )}
 
-          {/* Top Recommended Patterns */}
+          {/* PRIMARY PATTERN DETAILS */}
           {analysis.recommendedPatterns && analysis.recommendedPatterns.length > 0 && (
-            <div className="recommended-patterns space-y-2">
-              <div className="text-sm font-medium text-gray-700">Top Patterns</div>
-              {analysis.recommendedPatterns.slice(0, 3).map((rec, idx) => (
-                <div key={rec.pattern.id} className="pattern-card p-3 bg-gray-50 rounded-lg">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{rec.pattern.displayName}</div>
-                      <div className="text-sm text-gray-600">
-                        {Math.round(rec.completionPercentage)}% complete • {rec.pattern.points} pts
-                      </div>
+            <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+              <div className="space-y-3">
+                <div>
+                  <h4 className="text-lg font-bold text-purple-800 mb-1">PRIMARY PATTERN</h4>
+                  {/* Pattern name above visual representation - full width */}
+                  {analysis.recommendedPatterns[0]?.pattern && (
+                    <div className="text-base font-semibold text-gray-900 mb-2 w-full">
+                      <span className="font-bold">{analysis.recommendedPatterns[0].pattern.section} #{analysis.recommendedPatterns[0].pattern.line}</span>
+                      {analysis.recommendedPatterns[0].pattern.displayName && (
+                        <span className="font-normal"> ({analysis.recommendedPatterns[0].pattern.displayName})</span>
+                      )}
                     </div>
-                    {idx === 0 && (
-                      <span className="px-2 py-1 bg-purple-100 text-purple-700 text-xs rounded-full">
-                        Primary
-                      </span>
+                  )}
+                  {/* Pattern representation - ensure exactly 14 digits */}
+                  <div className="text-xl font-bold text-gray-900 mb-2">
+                    {analysis.recommendedPatterns[0]?.pattern ? (
+                      <PatternVariationDisplay
+                        patternTiles={(() => {
+                          const tiles = analysis.recommendedPatterns[0].pattern.pattern.split(' ')
+                          // Ensure exactly 14 digits
+                          if (tiles.length < 14) {
+                            return [...tiles, ...Array(14 - tiles.length).fill('?')]
+                          }
+                          return tiles.slice(0, 14)
+                        })()}
+                        playerTiles={playerHand.map(t => t.id)}
+                        showMatches={true}
+                        invertMatches={true}
+                        showCompletion={false}
+                        spacing={true}
+                        size="lg"
+                        patternGroups={analysis.recommendedPatterns[0].pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
+                      />
+                    ) : (
+                      'Selected Pattern'
                     )}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
-
-          {/* Strategic Advice */}
-          {analysis.strategicAdvice && analysis.strategicAdvice.length > 0 && (
-            <div className="strategic-advice mt-4 p-3 bg-blue-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-2">💡 Strategic Advice</div>
-              <div className="space-y-1">
-                {analysis.strategicAdvice.map((advice, idx) => (
-                  <div key={idx} className="text-sm text-blue-700">• {advice}</div>
-                ))}
+                
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="text-2xl font-bold text-green-600">
+                      {(() => {
+                        const pattern = analysis.recommendedPatterns[0]?.pattern
+                        if (pattern) {
+                          const patternTiles = pattern.pattern.split(' ')
+                          const normalizedTiles = patternTiles.length < 14 
+                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                            : patternTiles.slice(0, 14)
+                          const completion = getPatternCompletionSummary(
+                            normalizedTiles, 
+                            playerHand.map(t => t.id)
+                          )
+                          return `${completion.matchedTiles}/14`
+                        }
+                        return '0/14'
+                      })()}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      tiles ({Math.round((() => {
+                        const pattern = analysis.recommendedPatterns[0]?.pattern
+                        if (pattern) {
+                          const patternTiles = pattern.pattern.split(' ')
+                          const normalizedTiles = patternTiles.length < 14 
+                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                            : patternTiles.slice(0, 14)
+                          const completion = getPatternCompletionSummary(
+                            normalizedTiles, 
+                            playerHand.map(t => t.id)
+                          )
+                          return (completion.matchedTiles / 14) * 100
+                        }
+                        return 0
+                      })() || 0)}% complete)
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="text-lg font-bold text-blue-600">
+                      AI Score: {Math.round(analysis.overallScore || 0)}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-gray-700">Progress:</span>
+                  <div className="flex-1 bg-gray-200 rounded-full h-3">
+                    <div 
+                      className="bg-green-500 h-3 rounded-full transition-all duration-300"
+                      style={{ width: `${Math.min((() => {
+                        const pattern = analysis.recommendedPatterns[0]?.pattern
+                        if (pattern) {
+                          const patternTiles = pattern.pattern.split(' ')
+                          const normalizedTiles = patternTiles.length < 14 
+                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                            : patternTiles.slice(0, 14)
+                          const completion = getPatternCompletionSummary(
+                            normalizedTiles, 
+                            playerHand.map(t => t.id)
+                          )
+                          return (completion.matchedTiles / 14) * 100
+                        }
+                        return 0
+                      })() || 0, 100)}%` }}
+                    />
+                  </div>
+                </div>
+                
+                {/* AI Score Breakdown */}
+                <div className="text-sm text-gray-700 bg-white/80 p-3 rounded">
+                  <div className="font-medium mb-2">AI Score Breakdown:</div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>Pattern Completion: {Math.round((() => {
+                      const pattern = analysis.recommendedPatterns[0]?.pattern
+                      if (pattern) {
+                        const patternTiles = pattern.pattern.split(' ')
+                        const normalizedTiles = patternTiles.length < 14 
+                          ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                          : patternTiles.slice(0, 14)
+                        const completion = getPatternCompletionSummary(
+                          normalizedTiles, 
+                          playerHand.map(t => t.id)
+                        )
+                        return (completion.matchedTiles / 14) * 60 // 60 pts max for completion
+                      }
+                      return 0
+                    })())}/60</div>
+                    <div>Pattern Difficulty: {Math.round((analysis.recommendedPatterns[0]?.difficulty === 'easy' ? 20 : analysis.recommendedPatterns[0]?.difficulty === 'medium' ? 15 : 10))}/20</div>
+                    <div>Strategic Value: {Math.round((analysis.overallScore || 0) * 0.2)}/20</div>
+                    <div className="col-span-2 font-medium">Total Score: {Math.round(analysis.overallScore || 0)}/100</div>
+                  </div>
+                </div>
+                
+                {analysis.recommendedPatterns[0]?.reasoning && (
+                  <div className="text-sm text-gray-700 bg-white/80 p-2 rounded">
+                    <span className="font-medium">Strategy:</span> {analysis.recommendedPatterns[0].reasoning}
+                  </div>
+                )}
               </div>
             </div>
           )}
         </div>
-      )}
-
-      {/* No Analysis Available */}
-      {!analysis && (
+      ) : (
         <div className="text-center text-gray-500 py-8">
           <div className="text-2xl mb-2">🤔</div>
-          <p className="text-sm">No intelligence data available</p>
-          <p className="text-xs text-gray-400 mt-1">Analysis will appear during gameplay</p>
+          <p className="text-sm">Draw tiles to see AI recommendations</p>
         </div>
       )}
+
     </div>
   )
 }

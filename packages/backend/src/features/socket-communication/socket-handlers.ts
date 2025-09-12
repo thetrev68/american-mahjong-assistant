@@ -5,13 +5,61 @@ import { RoomLifecycleManager } from '../room-management/room-lifecycle-manager'
 import { PlayerCoordinationManager } from '../room-management/player-coordination-manager'
 import { GameLogicService } from '../../services/game-logic'
 import { MahjongValidationBridge } from '../../services/mahjong-validation-bridge'
-import type { Room, Player, GameState } from 'shared-types'
+import type { Room, Player, GameState, RoomConfig, Tile, NMJL2025Pattern } from 'shared-types'
+import type { StateUpdate } from '../state-sync/state-sync-manager'
+
+type SocketHandler = (data: unknown) => Promise<void> | void
+
+interface ActionResult {
+  success: boolean
+  error?: string
+  playerId?: string
+  [key: string]: unknown
+}
+
+function withSocketErrorHandling(
+  socket: Socket,
+  eventName: string,
+  handler: SocketHandler
+): SocketHandler {
+  return async (data) => {
+    try {
+      await handler(data)
+    } catch (error) {
+      socket.emit(eventName, {
+        success: false,
+        error: error instanceof Error ? error.message : `Failed to handle ${eventName.replace('-', ' ')}`
+      })
+    }
+  }
+}
+
+interface ValidationResult {
+  isValid: boolean
+  room?: Room
+  gameState?: GameState
+  error?: string
+}
+
+function validateRoomAccess(roomManager: RoomManager, roomId: string, playerId: string): ValidationResult {
+  const room = roomManager.getRoom(roomId)
+  if (!room) {
+    return { isValid: false, error: 'Room not found' }
+  }
+
+  const player = room.players.find((p: Player) => p.id === playerId)
+  if (!player) {
+    return { isValid: false, error: 'Player not in room' }
+  }
+
+  return { isValid: true, room }
+}
+
 
 interface FinalHandResponse {
   responseId: string
   hand: unknown[]
 }
-
 
 interface PatternsResponse {
   responseId: string
@@ -39,66 +87,50 @@ export class SocketHandlers {
   }
 
   private registerRoomHandlers(socket: Socket): void {
-    socket.on('create-room', async (data) => {
-      try {
-        const { hostName, config } = data
+    socket.on('create-room', withSocketErrorHandling(socket, 'room-created', async (data) => {
+      const { hostName, config } = data as { hostName: string, config: RoomConfig }
 
-        const room = this.roomManager.createRoom(socket.id, {
-          ...config,
-          hostName: hostName
-        })
+      const room = this.roomManager.createRoom(socket.id, {
+        ...config,
+        hostName: hostName
+      })
 
-        await socket.join(room.id)
+      await socket.join(room.id)
 
-        socket.emit('room-created', {
-          success: true,
-          room
-        })
+      socket.emit('room-created', {
+        success: true,
+        room
+      })
 
-        this.broadcastRoomListUpdate()
+      this.broadcastRoomListUpdate()
+    }))
 
-      } catch (error) {
-        socket.emit('room-created', {
-          success: false,
-          error: error instanceof Error ? error.message : 'Failed to create room'
-        })
+    socket.on('join-room', withSocketErrorHandling(socket, 'room-joined', async (data) => {
+      const { roomId, playerName } = data as { roomId: string, playerName: string }
+
+      const player = {
+        id: socket.id,
+        name: playerName,
+        isHost: false,
+        isConnected: true,
+        isReady: false
       }
-    })
 
-    socket.on('join-room', async (data) => {
-      try {
-        const { roomId, playerName } = data
+      const room = this.roomManager.joinRoom(roomId, player)
+      await socket.join(roomId)
 
-        const player = {
-          id: socket.id,
-          name: playerName,
-          isHost: false,
-          isConnected: true,
-          isReady: false
-        }
+      socket.emit('room-joined', {
+        success: true,
+        room
+      })
 
-        const room = this.roomManager.joinRoom(roomId, player)
-        await socket.join(roomId)
+      socket.to(roomId).emit('player-joined', {
+        player,
+        room
+      })
 
-        socket.emit('room-joined', {
-          success: true,
-          room
-        })
-
-        socket.to(roomId).emit('player-joined', {
-          player,
-          room
-        })
-
-        this.broadcastRoomListUpdate()
-
-      } catch (error) {
-        socket.emit('room-joined', {
-          success: false,
-          error: error instanceof Error ? error.message : 'Failed to join room'
-        })
-      }
-    })
+      this.broadcastRoomListUpdate()
+    }))
 
     socket.on('leave-room', async (data) => {
       try {
@@ -419,49 +451,33 @@ export class SocketHandlers {
   }
 
   private registerGameStateHandlers(socket: Socket): void {
-    socket.on('state-update', async (data) => {
-      try {
-        const { roomId, update } = data
-        
-        const room = this.roomManager.getRoom(roomId)
-        if (!room) {
-          socket.emit('state-updated', {
-            success: false,
-            error: 'Room not found'
-          })
-          return
-        }
-
-        if (!room.players.find((p: Player) => p.id === socket.id)) {
-          socket.emit('state-updated', {
-            success: false,
-            error: 'Player not in room'
-          })
-          return
-        }
-
-        const gameState = await this.stateSyncManager.processUpdate(roomId, socket.id, update)
-        
-        socket.emit('state-updated', {
-          success: true,
-          gameState
-        })
-
-        socket.to(roomId).emit('game-state-changed', {
-          roomId,
-          gameState,
-          update
-        })
-
-        this.roomManager.updateRoomActivity(roomId)
-
-      } catch (error) {
+    socket.on('state-update', withSocketErrorHandling(socket, 'state-updated', async (data) => {
+      const { roomId, update } = data as { roomId: string, update: StateUpdate }
+      
+      const validation = validateRoomAccess(this.roomManager, roomId, socket.id)
+      if (!validation.isValid) {
         socket.emit('state-updated', {
           success: false,
-          error: error instanceof Error ? error.message : 'Failed to update state'
+          error: validation.error
         })
+        return
       }
-    })
+
+      const gameState = await this.stateSyncManager.processUpdate(roomId, socket.id, update)
+      
+      socket.emit('state-updated', {
+        success: true,
+        gameState
+      })
+
+      socket.to(roomId).emit('game-state-changed', {
+        roomId,
+        gameState,
+        update
+      })
+
+      this.roomManager.updateRoomActivity(roomId)
+    }))
 
     socket.on('request-game-state', (data) => {
       try {
@@ -490,84 +506,70 @@ export class SocketHandlers {
   }
 
   private registerCharlestonHandlers(socket: Socket): void {
-    socket.on('charleston-player-ready', async (data) => {
-      try {
-        const { roomId, playerId, selectedTiles, phase } = data
-        
-        const room = this.roomManager.getRoom(roomId)
-        if (!room) {
-          socket.emit('charleston-error', {
-            success: false,
-            error: 'Room not found'
-          })
-          return
-        }
-
-        if (!room.players.find((p: Player) => p.id === playerId)) {
-          socket.emit('charleston-error', {
-            success: false,
-            error: 'Player not in room'
-          })
-          return
-        }
-
-        // Validate selected tiles (exactly 3)
-        if (!selectedTiles || selectedTiles.length !== 3) {
-          socket.emit('charleston-error', {
-            success: false,
-            error: 'Must select exactly 3 tiles'
-          })
-          return
-        }
-
-        // Store player's tile selection and readiness
-        const gameState = this.stateSyncManager.getGameState(roomId) || this.stateSyncManager.initializeGameState(roomId)
-        
-        if (!gameState.playerStates[playerId]) {
-          gameState.playerStates[playerId] = {}
-        }
-
-        gameState.playerStates[playerId] = {
-          ...gameState.playerStates[playerId],
-          isReady: true,
-          selectedTiles: selectedTiles
-        }
-
-        this.stateSyncManager.updatePlayerState(roomId, playerId, {
-          isReady: true,
-          selectedTiles: selectedTiles
-        })
-
-        // Notify all players that this player is ready
-        socket.to(roomId).emit('charleston-player-ready-update', {
-          playerId,
-          isReady: true,
-          phase
-        })
-
-        socket.emit('charleston-player-ready-confirmed', {
-          success: true,
-          playerId,
-          phase
-        })
-
-        // Check if all players are ready
-        const allPlayersReady = room.players.every((player: Player) => {
-          const playerState = gameState.playerStates[player.id]
-          return playerState && playerState.isReady
-        })
-
-        if (allPlayersReady) {
-          this.handleCharlestonTileExchange(roomId, room, gameState, phase)
-        }
-
-      } catch (error) {
+    socket.on('charleston-player-ready', withSocketErrorHandling(socket, 'charleston-error', async (data) => {
+      const { roomId, playerId, selectedTiles, phase } = data as { 
+        roomId: string, playerId: string, selectedTiles: Tile[], phase: string 
+      }
+      
+      const validation = validateRoomAccess(this.roomManager, roomId, playerId)
+      if (!validation.isValid) {
         socket.emit('charleston-error', {
           success: false,
-          error: error instanceof Error ? error.message : 'Charleston ready failed'
+          error: validation.error
         })
+        return
       }
-    })
+
+      // Validate selected tiles (exactly 3)
+      if (!selectedTiles || selectedTiles.length !== 3) {
+        socket.emit('charleston-error', {
+          success: false,
+          error: 'Must select exactly 3 tiles'
+        })
+        return
+      }
+
+      // Store player's tile selection and readiness
+      const gameState = this.stateSyncManager.getGameState(roomId) || this.stateSyncManager.initializeGameState(roomId)
+      
+      if (!gameState.playerStates[playerId]) {
+        gameState.playerStates[playerId] = {}
+      }
+
+      gameState.playerStates[playerId] = {
+        ...gameState.playerStates[playerId],
+        isReady: true,
+        selectedTiles: selectedTiles
+      }
+
+      this.stateSyncManager.updatePlayerState(roomId, playerId, {
+        isReady: true,
+        selectedTiles: selectedTiles
+      })
+
+      // Notify all players that this player is ready
+      socket.to(roomId).emit('charleston-player-ready-update', {
+        playerId,
+        isReady: true,
+        phase
+      })
+
+      socket.emit('charleston-player-ready-confirmed', {
+        success: true,
+        playerId,
+        phase
+      })
+
+      // Check if all players are ready
+      const allPlayersReady = validation.room!.players.every((player: Player) => {
+        const playerState = gameState.playerStates[player.id]
+        return playerState && playerState.isReady
+      })
+
+      if (allPlayersReady) {
+        this.handleCharlestonTileExchange(roomId, validation.room!, gameState, phase)
+      }
+    }))
 
     socket.on('charleston-request-status', (data) => {
       try {
@@ -641,8 +643,8 @@ export class SocketHandlers {
     }
   }
 
-  private calculateTileExchanges(players: any[], gameState: any, phase: string): Record<string, { tilesReceived: any[] }> {
-    const exchanges: Record<string, { tilesReceived: any[] }> = {}
+  private calculateTileExchanges(players: Player[], gameState: GameState, phase: string): Record<string, { tilesReceived: unknown[] }> {
+    const exchanges: Record<string, { tilesReceived: unknown[] }> = {}
     
     // Create a mapping of player positions (East=0, North=1, West=2, South=3)
     const playersByPosition = players.sort((a, b) => {
@@ -1000,7 +1002,12 @@ export class SocketHandlers {
     // Mahjong Declaration Handler
     socket.on('declare-mahjong', async (data) => {
       try {
-        const { roomId, playerId, winningHand, selectedPattern } = data
+        const { roomId, playerId, winningHand, selectedPattern } = data as {
+          roomId: string
+          playerId: string
+          winningHand: Tile[]
+          selectedPattern: NMJL2025Pattern
+        }
         
         const room = this.roomManager.getRoom(roomId)
         if (!room) {
@@ -1180,7 +1187,7 @@ export class SocketHandlers {
 
         // Count remaining active players
         const passedOutCount = Object.values(gameState.playerStates)
-          .filter((state: any) => state.passedOut).length
+          .filter((state: unknown) => (state as { passedOut?: boolean }).passedOut).length
         const activePlayers = room.players.length - passedOutCount
 
         // Broadcast pass out to all players
@@ -1288,7 +1295,7 @@ export class SocketHandlers {
 
   // Phase 4B: Turn Action Validation and Execution Methods
 
-  private validateTurnAction(action: string, gameState: any, playerId: string): boolean {
+  private validateTurnAction(action: string, gameState: GameState, playerId: string): boolean {
     // Get game logic service for this room
     const roomId = this.findRoomIdForPlayer(playerId)
     if (!roomId) {
@@ -1302,7 +1309,7 @@ export class SocketHandlers {
     return validation.isValid
   }
 
-  private async executeTurnAction(roomId: string, playerId: string, action: string, actionData: any): Promise<any> {
+  private async executeTurnAction(roomId: string, playerId: string, action: string, actionData: unknown): Promise<ActionResult> {
     try {
       // Execute action using real game logic
       const gameLogic = this.getOrCreateGameLogic(roomId)
@@ -1321,7 +1328,7 @@ export class SocketHandlers {
     }
   }
 
-  private determineNextPlayer(roomId: string, action: string, actionResult: any): string {
+  private determineNextPlayer(roomId: string, action: string, actionResult: ActionResult): string {
     const gameState = this.stateSyncManager.getGameState(roomId)
     const room = this.roomManager.getRoom(roomId)
     
@@ -1331,7 +1338,7 @@ export class SocketHandlers {
 
     // If someone called, they get the next turn
     if (action === 'call') {
-      return actionResult.playerId
+      return actionResult.playerId || ''
     }
 
     // If someone won, game is over
@@ -1346,7 +1353,7 @@ export class SocketHandlers {
     return room.players[nextPlayerIndex].id
   }
 
-  private async handleCallInterruption(roomId: string, callingPlayerId: string, callType: string, tiles: any[]): Promise<void> {
+  private async handleCallInterruption(roomId: string, callingPlayerId: string, callType: string, tiles: unknown[]): Promise<void> {
     try {
       // Update game state to give turn to calling player
       await this.stateSyncManager.updateSharedState(roomId, {
@@ -1368,7 +1375,7 @@ export class SocketHandlers {
   }
 
   // Mahjong validation helper method
-  private validateMahjongDeclaration(winningHand: any[], selectedPattern: any): {
+  private validateMahjongDeclaration(winningHand: Tile[], selectedPattern: NMJL2025Pattern): {
     isValid: boolean
     score?: number
     bonusPoints?: string[]
@@ -1438,7 +1445,7 @@ export class SocketHandlers {
   }
 
   // Calculate final scores for all players
-  private calculateFinalScores(roomId: string, winnerId: string, winningPattern: any, _winningHand: any[]): Array<{
+  private calculateFinalScores(roomId: string, winnerId: string, winningPattern: NMJL2025Pattern, _winningHand: Tile[]): Array<{
     playerId: string
     playerName: string
     score: number

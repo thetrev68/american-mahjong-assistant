@@ -3,9 +3,8 @@ import TopZone from './TopZone'
 import YourHandZone from './YourHandZone'
 import DiscardPileZone from './DiscardPileZone'
 import OpponentExposedZone from './OpponentExposedZone'
-import IntelligencePanel from './IntelligencePanel'
+import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
 import type { PlayerTile } from '../types/tile-types'
-import type { Tile } from 'shared-types'
 import type { PatternSelectionOption } from 'shared-types'
 
 interface GameScreenLayoutProps {
@@ -146,10 +145,19 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
       />
 
       {/* ZONES 4-5: AI INTELLIGENCE PANEL */}
-      <IntelligencePanel
-        isAnalyzing={isAnalyzing}
-        currentAnalysis={currentAnalysis}
+      <EnhancedIntelligencePanel
+        analysis={currentAnalysis}
+        gameState={{
+          currentPhase: gamePhase,
+          players: playerNames.map(name => ({ name, isActive: name === currentPlayer })),
+          wallTilesRemaining: 144 - (gameRound * 4 * 4), // Estimate
+          jokersInPlay: 0 // Would need to be tracked
+        }}
+        playerId="You" 
+        isCurrentTurn={isMyTurn}
+        callOpportunity={null}
         gamePhase={gamePhase}
+        isAnalyzing={isAnalyzing}
       />
     </div>
   )

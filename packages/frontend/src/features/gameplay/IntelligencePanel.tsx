@@ -37,7 +37,7 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
 }) => {
   const [showAllPatterns, setShowAllPatterns] = useState(false)
   const { analyzeHand } = useIntelligenceStore()
-  const { getTargetPatterns, addTargetPattern, clearSelection } = usePatternStore()
+  const { getTargetPatterns, addTargetPattern } = usePatternStore()
   const { playerHand } = useTileStore()
   
   const selectedPatterns = getTargetPatterns()
@@ -56,20 +56,16 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
   const handlePatternSelect = async (patternId: string) => {
     if (selectedPatterns.some(p => p.id === patternId)) return // Already selected
     
-    // Add pattern to existing selection (don't clear other patterns)
+    // Add pattern to existing selection, making it the new primary
     addTargetPattern(patternId)
     
-    // Re-analyze with all selected patterns
-    const allSelectedPatterns = getTargetPatterns()
+    // Keep all existing patterns and add the new one - they should swap places with primary
+    // The intelligence store should handle making the newly selected pattern the primary
     const newPattern = currentAnalysis?.recommendedPatterns?.find(rec => rec.pattern.id === patternId)?.pattern
     
-    if (newPattern) {
-      // Include the new pattern along with existing ones
-      const patternsToAnalyze = allSelectedPatterns.some(p => p.id === patternId) 
-        ? allSelectedPatterns 
-        : [...allSelectedPatterns, newPattern]
-      
-      await analyzeHand(playerHand, patternsToAnalyze)
+    if (newPattern && playerHand.length > 0) {
+      // Re-analyze with updated pattern selection
+      await analyzeHand(playerHand, [...selectedPatterns, newPattern])
     }
   }
 
@@ -120,10 +116,27 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                 <div className="space-y-3">
                   <div>
                     <h4 className="text-lg font-bold text-purple-800 mb-1">PRIMARY PATTERN</h4>
+                    {/* Pattern name above visual representation - full width */}
+                    {currentAnalysis.recommendedPatterns[0]?.pattern && (
+                      <div className="text-base font-semibold text-gray-900 mb-2 w-full">
+                        <span className="font-bold">{currentAnalysis.recommendedPatterns[0].pattern.section} #{currentAnalysis.recommendedPatterns[0].pattern.line}</span>
+                        {currentAnalysis.recommendedPatterns[0].pattern.displayName && (
+                          <span className="font-normal"> ({currentAnalysis.recommendedPatterns[0].pattern.displayName})</span>
+                        )}
+                      </div>
+                    )}
+                    {/* Pattern representation - ensure exactly 14 digits */}
                     <div className="text-xl font-bold text-gray-900 mb-2">
                       {currentAnalysis.recommendedPatterns[0]?.pattern ? (
                         <PatternVariationDisplay
-                          patternTiles={currentAnalysis.recommendedPatterns[0].pattern.pattern.split(' ')}
+                          patternTiles={(() => {
+                            const tiles = currentAnalysis.recommendedPatterns[0].pattern.pattern.split(' ')
+                            // Ensure exactly 14 digits
+                            if (tiles.length < 14) {
+                              return [...tiles, ...Array(14 - tiles.length).fill('?')]
+                            }
+                            return tiles.slice(0, 14)
+                          })()}
                           playerTiles={playerHand.map(t => t.id)}
                           showMatches={true}
                           invertMatches={true}
@@ -136,30 +149,43 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                         'Selected Pattern'
                       )}
                     </div>
-                    {currentAnalysis.recommendedPatterns[0]?.pattern && (
-                      <div className="text-sm text-gray-600 font-medium mt-1">
-                        {currentAnalysis.recommendedPatterns[0].pattern.section} - {currentAnalysis.recommendedPatterns[0].pattern.line}
-                      </div>
-                    )}
                   </div>
                   
                   <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
                       <div className="text-2xl font-bold text-green-600">
-                        {Math.round(currentAnalysis.recommendedPatterns[0]?.completionPercentage || 0)}%
-                      </div>
-                      <div className="text-sm text-gray-600">
                         {(() => {
                           const pattern = currentAnalysis.recommendedPatterns[0]?.pattern
                           if (pattern) {
+                            const patternTiles = pattern.pattern.split(' ')
+                            const normalizedTiles = patternTiles.length < 14 
+                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                              : patternTiles.slice(0, 14)
                             const completion = getPatternCompletionSummary(
-                              pattern.pattern.split(' '), 
+                              normalizedTiles, 
                               playerHand.map(t => t.id)
                             )
-                            return `complete (${completion.matchedTiles}/${completion.totalTiles})`
+                            return `${completion.matchedTiles}/14`
                           }
-                          return 'complete'
+                          return '0/14'
                         })()}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        tiles ({Math.round((() => {
+                          const pattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                          if (pattern) {
+                            const patternTiles = pattern.pattern.split(' ')
+                            const normalizedTiles = patternTiles.length < 14 
+                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                              : patternTiles.slice(0, 14)
+                            const completion = getPatternCompletionSummary(
+                              normalizedTiles, 
+                              playerHand.map(t => t.id)
+                            )
+                            return (completion.matchedTiles / 14) * 100
+                          }
+                          return 0
+                        })() || 0)}% complete)
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -174,8 +200,47 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                     <div className="flex-1 bg-gray-200 rounded-full h-3">
                       <div 
                         className="bg-green-500 h-3 rounded-full transition-all duration-300"
-                        style={{ width: `${Math.min(currentAnalysis.recommendedPatterns[0]?.completionPercentage || 0, 100)}%` }}
+                        style={{ width: `${Math.min((() => {
+                          const pattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                          if (pattern) {
+                            const patternTiles = pattern.pattern.split(' ')
+                            const normalizedTiles = patternTiles.length < 14 
+                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                              : patternTiles.slice(0, 14)
+                            const completion = getPatternCompletionSummary(
+                              normalizedTiles, 
+                              playerHand.map(t => t.id)
+                            )
+                            return (completion.matchedTiles / 14) * 100
+                          }
+                          return 0
+                        })() || 0, 100)}%` }}
                       />
+                    </div>
+                  </div>
+                  
+                  {/* AI Score Breakdown */}
+                  <div className="text-sm text-gray-700 bg-white/80 p-3 rounded">
+                    <div className="font-medium mb-2">AI Score Breakdown:</div>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>Pattern Completion: {Math.round((() => {
+                        const pattern = currentAnalysis.recommendedPatterns[0]?.pattern
+                        if (pattern) {
+                          const patternTiles = pattern.pattern.split(' ')
+                          const normalizedTiles = patternTiles.length < 14 
+                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                            : patternTiles.slice(0, 14)
+                          const completion = getPatternCompletionSummary(
+                            normalizedTiles, 
+                            playerHand.map(t => t.id)
+                          )
+                          return (completion.matchedTiles / 14) * 60 // 60 pts max for completion
+                        }
+                        return 0
+                      })())}/60</div>
+                      <div>Pattern Difficulty: {Math.round((currentAnalysis.recommendedPatterns[0]?.difficulty === 'easy' ? 20 : currentAnalysis.recommendedPatterns[0]?.difficulty === 'medium' ? 15 : 10))}/20</div>
+                      <div>Strategic Value: {Math.round((currentAnalysis.overallScore || 0) * 0.2)}/20</div>
+                      <div className="col-span-2 font-medium">Total Score: {Math.round(currentAnalysis.overallScore || 0)}/100</div>
                     </div>
                   </div>
                   
@@ -188,22 +253,22 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
               </div>
             )}
 
-            {/* Overall Analysis Score - when no primary pattern */}
-            {!hasPatternSelected && currentAnalysis.overallScore && (
-              <div className="p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-medium text-green-800">Overall Hand Score</div>
-                  <div className="text-xl font-bold text-green-600">
-                    {Math.round(currentAnalysis.overallScore)}/100
-                  </div>
+
+            {/* Charleston/Gameplay Recommendations */}
+            {gamePhase === 'charleston' && (
+              <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
+                <div className="text-sm font-medium text-blue-800 mb-2">🎯 Charleston Strategy</div>
+                <div className="text-sm text-gray-700">
+                  {hasPatternSelected
+                    ? `Focus on collecting tiles for ${selectedPatterns[0]?.displayName}. Keep tiles that advance this pattern and pass tiles that don't contribute.`
+                    : 'Select a target pattern to get specific Charleston passing recommendations.'}
                 </div>
               </div>
             )}
-
-            {/* Primary Recommendation */}
-            {currentAnalysis.recommendations?.discard && (
+            
+            {gamePhase === 'gameplay' && currentAnalysis.recommendations?.discard && (
               <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-                <div className="text-sm font-medium text-blue-800 mb-2">💡 AI Recommendation</div>
+                <div className="text-sm font-medium text-blue-800 mb-2">💡 Gameplay Recommendation</div>
                 <div className="text-sm text-gray-700">
                   {currentAnalysis.recommendations.discard.reasoning}
                 </div>
@@ -229,7 +294,6 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
               </div>
               
               {currentAnalysis.recommendedPatterns?.slice(0, showAllPatterns ? undefined : 5).map((patternRec, index) => {
-                const completionPercentage = patternRec.completionPercentage || 0
                 const isSelected = selectedPatterns.some(p => p.id === patternRec.pattern.id)
                 const isPrimary = patternRec.isPrimary || index === 0
                 
@@ -244,11 +308,29 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                     onClick={() => handlePatternSelect(patternRec.pattern.id)}
                   >
                     <div className="space-y-2">
-                      {/* Pattern display gets full width */}
+                      {/* Pattern name above pattern display */}
                       <div className="w-full">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="text-sm font-medium text-gray-800">
+                            {patternRec.pattern.section} - {patternRec.pattern.line}: {patternRec.pattern.displayName}
+                          </span>
+                          {isPrimary && isSelected && (
+                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+                              Primary
+                            </span>
+                          )}
+                        </div>
+                        {/* Pattern display - ensure exactly 14 digits */}
+                        <div className="flex items-center gap-2">
                           <PatternVariationDisplay
-                            patternTiles={patternRec.pattern.pattern.split(' ')}
+                            patternTiles={(() => {
+                              const tiles = patternRec.pattern.pattern.split(' ')
+                              // Ensure exactly 14 digits
+                              if (tiles.length < 14) {
+                                return [...tiles, ...Array(14 - tiles.length).fill('?')]
+                              }
+                              return tiles.slice(0, 14)
+                            })()}
                             playerTiles={playerHand.map(t => t.id)}
                             showMatches={true}
                             invertMatches={true}
@@ -257,55 +339,46 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                             size="sm"
                             patternGroups={patternRec.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
                           />
-                          {isPrimary && isSelected && (
-                            <span className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
-                              Primary
-                            </span>
-                          )}
                         </div>
                       </div>
                       
-                      {/* Pattern info and select button on separate line */}
+                      {/* Pattern info layout */}
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className="text-xs text-gray-500 font-medium">
-                            {patternRec.pattern.section} - {patternRec.pattern.line}
+                          <span className="text-lg font-bold text-green-600">
+                            {(() => {
+                              const patternTiles = patternRec.pattern.pattern.split(' ')
+                              const normalizedTiles = patternTiles.length < 14 
+                                ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                                : patternTiles.slice(0, 14)
+                              const completion = getPatternCompletionSummary(
+                                normalizedTiles, 
+                                playerHand.map(t => t.id)
+                              )
+                              return `${completion.matchedTiles}/14`
+                            })()}
                           </span>
+                          <span className="text-xs text-gray-500">
+                            tiles ({Math.round((() => {
+                              const patternTiles = patternRec.pattern.pattern.split(' ')
+                              const normalizedTiles = patternTiles.length < 14 
+                                ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                                : patternTiles.slice(0, 14)
+                              const completion = getPatternCompletionSummary(
+                                normalizedTiles, 
+                                playerHand.map(t => t.id)
+                              )
+                              return (completion.matchedTiles / 14) * 100
+                            })() || 0)}% complete)
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-3 text-right">
                           <span className="text-xs text-gray-500">
                             {patternRec.pattern.points || 0} pts
                           </span>
                           <span className="text-xs text-gray-500">
                             {patternRec.difficulty}
                           </span>
-                          <span className="text-xs text-gray-500">
-                            {(() => {
-                              const completion = getPatternCompletionSummary(
-                                patternRec.pattern.pattern.split(' '), 
-                                playerHand.map(t => t.id)
-                              )
-                              return `${Math.round(completionPercentage)}% complete (${completion.matchedTiles}/${completion.totalTiles})`
-                            })()}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          {isSelected ? (
-                            <div className="flex items-center gap-1">
-                              <div className="text-purple-600">✓</div>
-                              <span className="text-xs text-purple-600">Selected</span>
-                            </div>
-                          ) : (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="text-blue-600 border-blue-300 hover:bg-blue-50 text-xs px-2 py-1"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handlePatternSelect(patternRec.pattern.id)
-                              }}
-                            >
-                              Select
-                            </Button>
-                          )}
                         </div>
                       </div>
                     </div>
@@ -316,7 +389,17 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                         className={`h-2 rounded-full transition-all duration-300 ${
                           isSelected ? 'bg-purple-500' : 'bg-blue-500'
                         }`}
-                        style={{ width: `${Math.min(completionPercentage, 100)}%` }}
+                        style={{ width: `${Math.min((() => {
+                          const patternTiles = patternRec.pattern.pattern.split(' ')
+                          const normalizedTiles = patternTiles.length < 14 
+                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                            : patternTiles.slice(0, 14)
+                          const completion = getPatternCompletionSummary(
+                            normalizedTiles, 
+                            playerHand.map(t => t.id)
+                          )
+                          return (completion.matchedTiles / 14) * 100
+                        })() || 0, 100)}%` }}
                       />
                     </div>
                   </div>
@@ -330,8 +413,8 @@ const IntelligencePanel: React.FC<IntelligencePanelProps> = ({
                   size="sm"
                   className="text-blue-600 hover:text-blue-800 text-sm"
                   onClick={() => {
-                    // TODO: Navigate to full pattern browser or analysis page
-                    console.log('Navigate to more patterns')
+                    // Navigate to pattern selection page
+                    window.location.href = '/patterns'
                   }}
                 >
                   🔍 Browse All Matching Patterns →
