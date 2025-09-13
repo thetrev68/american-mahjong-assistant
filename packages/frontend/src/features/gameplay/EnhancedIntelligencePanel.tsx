@@ -134,8 +134,14 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                     {analysis.recommendedPatterns[0]?.pattern ? (
                       <PatternVariationDisplay
                         patternTiles={(() => {
+                          // Use expanded tiles if available, otherwise fall back to generic pattern
+                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
+                          if (expandedTiles && expandedTiles.length === 14) {
+                            return expandedTiles
+                          }
+                          
+                          // Fallback to generic pattern parsing (should be rare now)
                           const tiles = analysis.recommendedPatterns[0].pattern.pattern.split(' ')
-                          // Ensure exactly 14 digits
                           if (tiles.length < 14) {
                             return [...tiles, ...Array(14 - tiles.length).fill('?')]
                           }
@@ -161,10 +167,20 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                       {(() => {
                         const pattern = analysis.recommendedPatterns[0]?.pattern
                         if (pattern) {
-                          const patternTiles = pattern.pattern.split(' ')
-                          const normalizedTiles = patternTiles.length < 14 
-                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                            : patternTiles.slice(0, 14)
+                          // Use expanded tiles if available, otherwise fall back to generic pattern
+                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
+                          let normalizedTiles: string[]
+                          
+                          if (expandedTiles && expandedTiles.length === 14) {
+                            normalizedTiles = expandedTiles
+                          } else {
+                            // Fallback to generic pattern parsing
+                            const patternTiles = pattern.pattern.split(' ')
+                            normalizedTiles = patternTiles.length < 14 
+                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                              : patternTiles.slice(0, 14)
+                          }
+                          
                           const completion = getPatternCompletionSummary(
                             normalizedTiles, 
                             playerHand.map(t => t.id)
@@ -178,10 +194,20 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                       tiles ({Math.round((() => {
                         const pattern = analysis.recommendedPatterns[0]?.pattern
                         if (pattern) {
-                          const patternTiles = pattern.pattern.split(' ')
-                          const normalizedTiles = patternTiles.length < 14 
-                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                            : patternTiles.slice(0, 14)
+                          // Use expanded tiles if available, otherwise fall back to generic pattern
+                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
+                          let normalizedTiles: string[]
+                          
+                          if (expandedTiles && expandedTiles.length === 14) {
+                            normalizedTiles = expandedTiles
+                          } else {
+                            // Fallback to generic pattern parsing
+                            const patternTiles = pattern.pattern.split(' ')
+                            normalizedTiles = patternTiles.length < 14 
+                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                              : patternTiles.slice(0, 14)
+                          }
+                          
                           const completion = getPatternCompletionSummary(
                             normalizedTiles, 
                             playerHand.map(t => t.id)
@@ -207,10 +233,20 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                       style={{ width: `${Math.min((() => {
                         const pattern = analysis.recommendedPatterns[0]?.pattern
                         if (pattern) {
-                          const patternTiles = pattern.pattern.split(' ')
-                          const normalizedTiles = patternTiles.length < 14 
-                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                            : patternTiles.slice(0, 14)
+                          // Use expanded tiles if available, otherwise fall back to generic pattern
+                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
+                          let normalizedTiles: string[]
+                          
+                          if (expandedTiles && expandedTiles.length === 14) {
+                            normalizedTiles = expandedTiles
+                          } else {
+                            // Fallback to generic pattern parsing
+                            const patternTiles = pattern.pattern.split(' ')
+                            normalizedTiles = patternTiles.length < 14 
+                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                              : patternTiles.slice(0, 14)
+                          }
+                          
                           const completion = getPatternCompletionSummary(
                             normalizedTiles, 
                             playerHand.map(t => t.id)
@@ -230,10 +266,20 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                     <div>Pattern Completion: {Math.round((() => {
                       const pattern = analysis.recommendedPatterns[0]?.pattern
                       if (pattern) {
-                        const patternTiles = pattern.pattern.split(' ')
-                        const normalizedTiles = patternTiles.length < 14 
-                          ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                          : patternTiles.slice(0, 14)
+                        // Use expanded tiles if available, otherwise fall back to generic pattern
+                        const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
+                        let normalizedTiles: string[]
+                        
+                        if (expandedTiles && expandedTiles.length === 14) {
+                          normalizedTiles = expandedTiles
+                        } else {
+                          // Fallback to generic pattern parsing
+                          const patternTiles = pattern.pattern.split(' ')
+                          normalizedTiles = patternTiles.length < 14 
+                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
+                            : patternTiles.slice(0, 14)
+                        }
+                        
                         const completion = getPatternCompletionSummary(
                           normalizedTiles, 
                           playerHand.map(t => t.id)

@@ -285,6 +285,10 @@ export class AnalysisEngine {
       // Get actual completion percentage from pattern analysis facts (not AI score)
       const actualCompletion = Math.round((ranking.components.currentTileScore / 40) * 100) // currentTileScore is 0-40 based on actual tiles
       
+      // Get expanded tile arrays from Engine 1 facts
+      const engineFact = analysisFacts.find(f => f.patternId === ranking.patternId)
+      const expandedTiles = engineFact?.tileMatching?.bestVariation?.patternTiles || []
+      
       return {
         pattern: pattern || { id: ranking.patternId, displayName: ranking.patternId } as PatternSelectionOption,
         confidence: ranking.confidence,
@@ -292,6 +296,7 @@ export class AnalysisEngine {
         reasoning: this.generatePatternReasoning(ranking, index),
         difficulty: pattern?.difficulty || 'medium',
         isPrimary: index === 0,
+        expandedTiles: expandedTiles, // Include 14-tile expanded array from Engine 1
         
         // Enhanced analysis (using data from Engine 1)
         scoreBreakdown: {

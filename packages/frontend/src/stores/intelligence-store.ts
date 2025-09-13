@@ -50,6 +50,9 @@ export interface PatternRecommendation {
   difficulty: 'easy' | 'medium' | 'hard'
   isPrimary: boolean
   
+  // Expanded tile arrays from Engine 1 pattern analysis
+  expandedTiles?: string[] // 14-tile array like ["1B", "1B", "1B", "2B", "2B", ...]
+  
   // Enhanced analysis breakdown
   analysis?: {
     currentTiles: {
