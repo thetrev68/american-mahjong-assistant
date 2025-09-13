@@ -13,7 +13,7 @@ export const DefensivePlaySection: React.FC<DefensivePlaySectionProps> = ({
   return (
     <div className="defensive-play mb-6">
       <h3 className="section-title text-lg font-bold text-purple-800 mb-4 flex items-center gap-2">
-        🛡️ Defensive Analysis
+        Defensive Analysis
       </h3>
       
       {/* Threat Level Overview */}

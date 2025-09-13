@@ -40,13 +40,13 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const selectedPatterns = getTargetPatterns()
   const hasPatternSelected = selectedPatterns.length > 0
   return (
-    <div className="enhanced-intelligence-panel bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-200/50 max-h-[80vh] overflow-y-auto">
+    <div className="enhanced-intelligence-panel bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-200/50 w-full">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-purple-800">
           {gamePhase === 'charleston' 
-            ? (hasPatternSelected ? '🎯 Charleston Strategy' : '🤔 Choose Your Target Pattern')
-            : '🧠 AI Co-Pilot'
+            ? (hasPatternSelected ? 'Charleston Strategy' : 'Choose Your Target Pattern')
+            : 'AI Co-Pilot'
           }
         </h2>
         {onClose && (
@@ -300,6 +300,74 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                   </div>
                 )}
               </div>
+            </div>
+          )}
+
+          {/* TOP 5 ALTERNATE PATTERNS */}
+          {analysis?.recommendedPatterns && analysis.recommendedPatterns.length > 1 && (
+            <div className="alternate-patterns mt-6">
+              <h4 className="text-lg font-bold text-purple-800 mb-3">Top 5 Alternate Patterns</h4>
+              <div className="space-y-3">
+                {analysis.recommendedPatterns.slice(1, 6).map((pattern, index) => {
+                  const expandedTiles = pattern.expandedTiles
+                  const patternTiles = expandedTiles && expandedTiles.length === 14 
+                    ? expandedTiles 
+                    : pattern.pattern.pattern.split(' ')
+
+                  const completion = getPatternCompletionSummary(
+                    patternTiles,
+                    playerHand.map(t => t.id)
+                  )
+
+                  return (
+                    <div key={index + 1} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="font-semibold text-gray-900">
+                          #{index + 2}. {pattern.pattern.section} #{pattern.pattern.line}
+                          {pattern.pattern.displayName && (
+                            <span className="font-normal text-gray-600"> ({pattern.pattern.displayName})</span>
+                          )}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {completion.matchedTiles}/14 tiles ({Math.round((completion.matchedTiles / 14) * 100)}%)
+                        </div>
+                      </div>
+                      <div className="text-sm">
+                        <PatternVariationDisplay
+                          patternTiles={patternTiles}
+                          playerTiles={playerHand.map(t => t.id)}
+                          showMatches={true}
+                          invertMatches={false}
+                          showCompletion={false}
+                          spacing={true}
+                          size="sm"
+                          patternGroups={pattern.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
+                        />
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* PATTERN EXPLORATION BUTTON */}
+          {analysis?.recommendedPatterns && analysis.recommendedPatterns.length > 0 && (
+            <div className="pattern-exploration mt-6 text-center">
+              <Button 
+                variant="outline" 
+                size="md"
+                onClick={() => {
+                  // TODO: Open modal with all patterns matching 3+ tiles
+                  console.log('Pattern exploration modal - coming soon')
+                }}
+                className="text-purple-600 border-purple-300 hover:bg-purple-50"
+              >
+                View All Patterns (3+ tiles)
+              </Button>
+              <p className="text-xs text-gray-500 mt-1">
+                Explore patterns with at least 3 matching tiles
+              </p>
             </div>
           )}
         </div>

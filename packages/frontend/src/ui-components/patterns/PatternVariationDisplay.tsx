@@ -50,7 +50,7 @@ export const PatternVariationDisplay = ({
   return (
     <div className={`space-y-2 ${className}`}>
       {/* Pattern Display */}
-      <div className={`flex flex-wrap items-center ${sizeClasses[size]}`}>
+      <div className={`flex items-center ${sizeClasses[size]} overflow-x-auto whitespace-nowrap`}>
         {displayChars.map((char, index) => {
           if (char.char === ' ') {
             return <span key={index} className="mx-1" />
