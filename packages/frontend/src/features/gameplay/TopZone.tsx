@@ -74,11 +74,19 @@ const getCharlestonReceivingDirection = (charlestonPhase: string, currentPlayer:
   const actualPlayers = playerNames.filter(name => name !== 'You')
   if (actualPlayers.length === 0) return 'Previous Player'
   
-  // For Charleston, receiving is from different players based on phase
-  const phaseIndex = ['right', 'across', 'left', 'optional-left', 'optional-across', 'optional-right'].indexOf(charlestonPhase)
-  const targetIndex = phaseIndex >= 0 ? (phaseIndex + 1) % actualPlayers.length : (actualPlayers.length - 1)
+  // Charleston receiving direction is opposite of passing direction
+  // right pass = receive from left, across pass = receive from across, left pass = receive from right
+  const receivingDirection = {
+    'right': 2,        // receive from left (2 positions in 4-player game)
+    'across': 1,       // receive from across  
+    'left': 0,         // receive from right (0 positions in rotation)
+    'optional-left': 0,
+    'optional-across': 1, 
+    'optional-right': 2
+  }
   
-  return actualPlayers[targetIndex] || 'Previous Player'
+  const targetIndex = receivingDirection[charlestonPhase as keyof typeof receivingDirection] ?? 0
+  return actualPlayers[targetIndex % actualPlayers.length] || 'Previous Player'
 }
 
 const getNextPlayer = (currentPlayer: string, playerNames: string[], gamePhase?: 'charleston' | 'gameplay'): string => {

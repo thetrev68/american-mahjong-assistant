@@ -30,6 +30,11 @@ interface YourHandZoneProps {
       confidence: number
       reasoning: string
     }>
+    recommendedPatterns?: Array<{
+      pattern: any
+      expandedTiles?: string[]
+      isPrimary: boolean
+    }>
   } | null
 }
 
@@ -57,7 +62,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
     return currentAnalysis.tileRecommendations.find(rec => rec.tileId === tileId)
   }
   
-  // Get tile highlighting class based on recommendation
+  // Get tile highlighting class based on recommendation and pattern matching
   const getTileHighlightClass = (tileId: string, isSelected: boolean) => {
     if (isSelected) return '' // Let selection styling take precedence
     
@@ -68,11 +73,25 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
       (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'pass' ? 'pass' : null) :
       (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'discard' ? 'discard' : null)
     
+    // For Charleston, only highlight green if tile is actually in the primary pattern
+    const isInPrimaryPattern = () => {
+      if (!isCharleston || !currentAnalysis?.recommendedPatterns) return true
+      
+      const primaryPattern = currentAnalysis.recommendedPatterns.find(p => p.isPrimary)
+      if (!primaryPattern?.expandedTiles) return true // Fallback to old behavior if no expanded tiles
+      
+      // Check if the tile ID exists in the primary pattern's expanded tiles
+      return primaryPattern.expandedTiles.includes(tileId)
+    }
+    
     switch (action) {
       case 'keep':
-        return 'shadow-[0_0_0_2px_rgba(34,197,94,0.6),0_0_8px_rgba(34,197,94,0.3)]' // Green glow for keep
+        // Only show green if tile is actually needed for the primary pattern
+        return isInPrimaryPattern() 
+          ? 'shadow-[0_0_0_2px_rgba(34,197,94,0.6),0_0_8px_rgba(34,197,94,0.3)]' // Green glow for tiles in primary pattern
+          : '' // No highlighting for tiles not in pattern
       case 'pass':
-        return 'shadow-[0_0_0_2px_rgba(251,146,60,0.6),0_0_8px_rgba(251,146,60,0.3)]' // Orange glow for pass
+        return 'shadow-[0_0_0_2px_rgba(239,68,68,0.6),0_0_8px_rgba(239,68,68,0.3)]' // Red glow for pass
       case 'discard':
         return 'shadow-[0_0_0_2px_rgba(239,68,68,0.6),0_0_8px_rgba(239,68,68,0.3)]' // Red glow for discard
       default:
