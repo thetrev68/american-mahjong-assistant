@@ -18,7 +18,7 @@ interface AnimationState {
   queuedAnimations: string[]
 }
 
-export interface UseAnimationsReturn {
+interface UseAnimationsReturn {
   // State
   animationState: AnimationState
   isReducedMotion: boolean
