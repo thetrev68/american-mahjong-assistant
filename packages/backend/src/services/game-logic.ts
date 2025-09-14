@@ -31,14 +31,14 @@ const getDisplayName = (suit: string, value: string): string => {
   }
 }
 
-export interface GameWall {
+interface GameWall {
   remainingTiles: Tile[]
   totalTiles: number
   tilesDealt: number
   isExhausted: boolean
 }
 
-export interface DiscardPile {
+interface DiscardPile {
   tiles: Tile[]
   discardHistory: Array<{
     tile: Tile
@@ -53,13 +53,13 @@ export interface DiscardPile {
   }>
 }
 
-export interface GameActionValidation {
+interface GameActionValidation {
   isValid: boolean
   violations: string[]
   alternativeActions?: string[]
 }
 
-export interface GameActionResult {
+interface GameActionResult {
   success: boolean
   action: ActionType | string
   playerId: string
@@ -72,7 +72,7 @@ export interface GameActionResult {
   error?: string
 }
 
-export interface PlayerGameData {
+interface PlayerGameData {
   playerId: string
   position: PlayerPosition
   hand: Tile[]
