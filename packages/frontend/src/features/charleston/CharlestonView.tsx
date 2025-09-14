@@ -18,9 +18,7 @@ import { SelectionArea } from '../gameplay/SelectionArea'
 import { Button } from '../../ui-components/Button'
 import { tileService } from '../../lib/services/tile-service'
 import { useCharlestonMultiplayer } from '../charleston/services/charleston-multiplayer'
-import { PassingRecommendations } from './PassingRecommendations'
 import type { PlayerTile } from 'shared-types'
-import type { Tile } from 'shared-types'
 
 
 export function CharlestonView() {

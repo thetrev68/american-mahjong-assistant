@@ -218,7 +218,6 @@ export class MahjongValidator {
     }
 
     // Check that all exposed tiles are accounted for in valid groups
-    const expectedTilesInGroups = validGroupCount * 3 + (tileGroups.size - validGroupCount) * 4
     if (violations.length === 0 && exposedTiles.length !== Array.from(tileGroups.values()).reduce((sum, group) => sum + group.length, 0)) {
       violations.push('Exposed tiles contain invalid groupings')
     }

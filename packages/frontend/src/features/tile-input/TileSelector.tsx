@@ -7,7 +7,7 @@ import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore } from '../../stores'
 import { tileService } from '../../lib/services/tile-service'
-import type { Tile, TileSuit } from 'shared-types'
+import type { TileSuit } from 'shared-types'
 
 interface TileSelectorProps {
   onTileSelect?: (tileId: string) => void

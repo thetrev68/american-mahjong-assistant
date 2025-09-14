@@ -5,7 +5,6 @@ import { useRoomStore } from '../../stores/room.store'
 import { useGameStore } from '../../stores/game-store'
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
-import { usePlayerStore } from '../../stores/player.store'
 import { getRoomMultiplayerService } from './room-multiplayer'
 // Turn multiplayer service integration would go here if needed
 
@@ -160,7 +159,6 @@ export class PhaseTransitionManager {
             try {
               const gameStore = useGameStore.getState()
               const turnStore = useTurnStore.getState()
-              const playerStore = usePlayerStore.getState()
               
               // Create context for game end coordinator
               const context = {
@@ -175,7 +173,7 @@ export class PhaseTransitionManager {
                 coPilotMode: 'solo' as const // Default for phase transition
               }
               
-              const { GameEndCoordinator } = require('../../features/gameplay/services/game-end-coordinator')
+              const { GameEndCoordinator } = await import('../../features/gameplay/services/game-end-coordinator')
               const coordinator = new GameEndCoordinator(context)
               const endResult = coordinator.checkForGameEnd()
               

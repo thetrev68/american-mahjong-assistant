@@ -8,7 +8,6 @@ import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { tileService } from '../../lib/services/tile-service'
 import type { CoPilotDemoProps } from './types'
 import type { PlayerTile } from 'shared-types'
-import type { Tile } from 'shared-types'
 
 // Simple helper to create mock tiles for the demo
 const createMockTile = (id: string): PlayerTile => {
@@ -34,7 +33,7 @@ const generateSampleHand = (): PlayerTile[] => {
   const randomTileIds = shuffledPool.slice(0, 13)
   
   // Convert to PlayerTile objects
-  return randomTileIds.map((tileId, index) => {
+  return randomTileIds.map((tileId, _index) => {
     const tileData = tileService.getTileById(tileId)
     return {
       id: tileId,

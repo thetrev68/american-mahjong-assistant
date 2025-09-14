@@ -23,7 +23,10 @@ export default tseslint.config([
       // Exclude files with parsing issues for now
       'packages/frontend/public/intelligence/nmjl-patterns/pattern-analysis-script.js',
       'packages/frontend/src/__tests__/integration/solo-game-workflow.test.tsx',
-      'packages/frontend/src/features/room-setup/__tests__/*.test.tsx'
+      'packages/frontend/src/features/room-setup/__tests__/*.test.tsx',
+      // Exclude generated .js files that use CommonJS in ESM project
+      'packages/shared-types/src/**/*.js',
+      'packages/shared-utils/src/**/*.js'
     ]
   },
   

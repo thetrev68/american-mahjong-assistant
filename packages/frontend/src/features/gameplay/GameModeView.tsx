@@ -20,7 +20,6 @@ import { MahjongDeclarationModal } from '../../ui-components/MahjongDeclarationM
 import { FinalHandRevealModal, type FinalHandRevealData } from '../../ui-components/FinalHandRevealModal'
 import type { PlayerTile } from 'shared-types'
 import type { Tile } from 'shared-types'
-import type { PatternGroup } from 'shared-types'
 import type { GameAction, CallType } from '../gameplay/services/game-actions'
 import GameScreenLayout from './GameScreenLayout'
 import { SelectionArea } from './SelectionArea'
@@ -99,25 +98,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     return patternStore.getTargetPatterns()
   }, [patternStore])
 
-  // Helper function to check if a tile matches a pattern group
-  const checkTileMatchesPatternGroup = useCallback((tileId: string, group: PatternGroup) => {
-    const constraintValues = group.Constraint_Values || ''
-
-    // Basic matching logic based on constraint values
-    if (constraintValues === 'flower' && tileId.startsWith('f')) return true
-    if (constraintValues === 'joker' && tileId === 'joker') return true
-    
-    // For numeric constraints, check if tile matches
-    const values: string[] = constraintValues.split(',').map((v: string) => v.trim())
-    for (const value of values) {
-      if (value === '0') continue // Skip neutral positions
-      if (tileId.startsWith(value)) return true
-      if (['east', 'south', 'west', 'north', 'red', 'green', 'white'].includes(value.toLowerCase()) && 
-          tileId === value.toLowerCase()) return true
-    }
-    
-    return false
-  }, [])
 
   // Helper function to extract tiles from hand for call (pung/kong)
   const extractCallTiles = useCallback((hand: Tile[], callType: CallType, targetTile?: Tile): Tile[] => {
@@ -291,7 +271,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Action recommendation handler
   const handleActionRecommendation = useCallback((action: string, data: any) => {
     switch (action) {
-      case 'discard-suggestion':
+      case 'discard-suggestion': {
         // Highlight suggested discard tile
         const tileToHighlight = data.tile
         if (tileToHighlight) {
@@ -299,6 +279,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           setSelectedDiscardTile(tileToHighlight)
         }
         break
+      }
       case 'call':
         // Execute call action via turn store
         turnStore.executeAction(currentPlayerId, 'call', {
@@ -812,54 +793,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [turnSelectors.currentCallOpportunity])
 
-  // Evaluate call opportunities (pung, kong, etc.) - kept for future use
-  // @ts-ignore - kept for future use
-  const evaluateCallOpportunities = useCallback((discardedTile: Tile) => {
-    if (!currentHand || selectedPatterns.length === 0) return
-
-    const opportunities: CallOpportunity[] = []
-    
-    selectedPatterns.forEach(pattern => {
-      if (pattern.groups) {
-        pattern.groups.forEach(group => {
-          // Check if discarded tile matches this group's constraints
-          const tileMatchesGroup = checkTileMatchesPatternGroup(discardedTile.id, group)
-          if (tileMatchesGroup) {
-            // Count how many tiles we have that match this group
-            const matchingTilesInHand = currentHand.filter(tile => 
-              checkTileMatchesPatternGroup(tile.id, group)
-            )
-            
-            if (matchingTilesInHand.length >= 2) {
-              opportunities.push({
-                tile: discardedTile,
-                callType: matchingTilesInHand.length === 2 ? 'pung' : 'kong',
-                exposedTiles: [...matchingTilesInHand, discardedTile],
-                priority: matchingTilesInHand.length === 3 ? 'high' : 'medium',
-                reasoning: `Complete ${group.Constraint_Type} group for ${pattern.displayName}`,
-                patternProgress: 75
-              })
-            }
-          }
-        })
-      }
-    })
-
-    if (opportunities.length > 0) {
-      setCallOpportunities(opportunities)
-      setShowCallDialog(true)
-      
-      const timeoutId = setTimeout(() => {
-        // Call timeout - automatically passing
-        setShowCallDialog(false)
-        setCallOpportunities([])
-      }, 5000)
-      
-      setCallTimeoutId(timeoutId)
-    }
-
-    // Call opportunities evaluated
-  }, [currentHand, selectedPatterns, checkTileMatchesPatternGroup])
 
 
   // Handle call decision
