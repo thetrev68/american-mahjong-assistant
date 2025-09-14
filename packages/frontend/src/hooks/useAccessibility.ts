@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react'
 
-export interface AccessibilityOptions {
+interface AccessibilityOptions {
   reducedMotion?: boolean
   highContrast?: boolean
   screenReader?: boolean
