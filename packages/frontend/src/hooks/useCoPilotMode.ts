@@ -7,7 +7,7 @@ interface ModeOption {
   description: string
 }
 
-export interface UseCoPilotModeReturn {
+interface UseCoPilotModeReturn {
   // Current state
   mode: CoPilotMode
   isEveryone: boolean

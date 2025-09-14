@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react'
 import { runConnectionResilienceTests, runConnectionResilienceTestCategory } from '../lib/services/connection-resilience-test-suite'
 import type { TestSuiteResult, TestResult } from '../lib/services/connection-resilience-test-suite'
 
-export interface TestStatus {
+interface TestStatus {
   isRunning: boolean
   lastResults: TestSuiteResult | null
   categoryResults: Record<string, TestResult[]>
