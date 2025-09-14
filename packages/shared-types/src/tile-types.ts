@@ -18,6 +18,11 @@ export interface Tile {
   jokerFor?: Tile;      // What this joker represents
 }
 
+export interface PlayerTile extends Tile {
+  instanceId: string;   // Unique instance identifier for individual tile tracking
+  isSelected: boolean;  // Whether this tile is currently selected in the UI
+}
+
 export interface TileSprite {
   filename: string;     // From tiles.json
   x: number;           // Sprite coordinates
