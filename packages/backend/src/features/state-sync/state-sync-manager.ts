@@ -4,7 +4,7 @@ import type {
   SharedState 
 } from 'shared-types'
 
-export type StateUpdateType = 
+type StateUpdateType = 
   | 'phase-change'
   | 'player-state' 
   | 'shared-state'
@@ -18,7 +18,7 @@ export interface StateUpdate {
   timestamp: Date
 }
 
-export interface ConflictResolutionStrategy {
+interface ConflictResolutionStrategy {
   resolveConflict: (current: any, incoming: StateUpdate, history: StateUpdate[]) => any
 }
 
