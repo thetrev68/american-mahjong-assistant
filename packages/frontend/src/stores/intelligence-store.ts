@@ -129,7 +129,7 @@ export interface HandAnalysis {
   currentCallRecommendation?: CallRecommendation
 }
 
-export interface WhatIfScenario {
+interface WhatIfScenario {
   id: string
   name: string
   tileChanges: Array<{
@@ -140,7 +140,7 @@ export interface WhatIfScenario {
   comparisonScore: number // vs current hand
 }
 
-export interface IntelligenceState {
+interface IntelligenceState {
   // Analysis State
   currentAnalysis: HandAnalysis | null
   isAnalyzing: boolean
