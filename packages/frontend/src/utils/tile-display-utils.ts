@@ -276,12 +276,29 @@ export function getPatternCompletionSummary(
   completionPercentage: number
   matchedPositions: number[]
 } {
-  const playerTileSet = new Set(playerTiles)
+  // Use the same quantity-aware logic as getPatternDisplayChars
+  const normalizeId = (id: string): string => String(id).toLowerCase().trim()
+  const playerTileCounts = new Map<string, number>()
+  
+  playerTiles.forEach(tileId => {
+    const normalized = normalizeId(tileId)
+    playerTileCounts.set(normalized, (playerTileCounts.get(normalized) || 0) + 1)
+  })
+  
+  // Track how many of each tile type we've already matched in the pattern
+  const usedTileCounts = new Map<string, number>()
   const matchedPositions: number[] = []
   let matchedTiles = 0
   
   patternTiles.forEach((tileId, index) => {
-    if (playerTileSet.has(tileId)) {
+    const normalized = normalizeId(tileId)
+    const playerHasCount = playerTileCounts.get(normalized) || 0
+    const alreadyUsedCount = usedTileCounts.get(normalized) || 0
+    const canMatch = playerHasCount > alreadyUsedCount
+    
+    if (canMatch) {
+      // Mark this tile as used
+      usedTileCounts.set(normalized, alreadyUsedCount + 1)
       matchedTiles++
       matchedPositions.push(index)
     }
