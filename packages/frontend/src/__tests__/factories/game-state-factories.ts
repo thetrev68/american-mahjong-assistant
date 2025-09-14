@@ -4,7 +4,7 @@
  * Creates consistent game state objects for testing stores and game logic
  */
 
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import { createTile, createTestHand } from './tile-factories'
 
 /**

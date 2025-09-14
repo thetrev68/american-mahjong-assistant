@@ -2,7 +2,7 @@
 // Extends the basic Tile component with contextual animations
 
 import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import { Tile } from '../Tile'
 import { useTileAnimations, useSpecialTileAnimations } from '../../hooks/useAnimations'
 import { useHapticFeedback } from '../../hooks/useHapticFeedback'

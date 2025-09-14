@@ -6,7 +6,7 @@ import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore, useIntelligenceStore } from '../../stores'
 import { getTileStateClass } from '../gameplay/TileStates'
-import type { PlayerTile, TileRecommendation } from '../../types/tile-types'
+import type { PlayerTile, TileRecommendation } from 'shared-types'
 
 interface HandDisplayProps {
   showRecommendations?: boolean

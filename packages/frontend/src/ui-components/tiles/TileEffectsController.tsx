@@ -2,7 +2,7 @@
 // Provides unified interface for all tile visual and tactile feedback
 
 import React, { useCallback, useRef, useMemo } from 'react'
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import { useTileAnimations, useSpecialTileAnimations } from '../../hooks/useAnimations'
 import { useContextualHaptics } from '../../hooks/useHapticFeedback'
 import { useAdaptivePerformance } from '../../hooks/usePerformance'

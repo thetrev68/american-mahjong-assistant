@@ -5,7 +5,7 @@ import React from 'react'
 import { Button } from './Button'
 import { Card } from './Card'
 import { AnimatedTile } from './tiles/AnimatedTile'
-import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
 
 export interface FinalHandRevealData {

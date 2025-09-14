@@ -8,7 +8,7 @@ import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import type { CompletedGame } from '../../stores/history-store'
-import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import type { Tile, TileSuit, TileValue } from 'shared-types'
 
 interface PostGameViewProps {

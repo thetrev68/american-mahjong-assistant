@@ -2,7 +2,7 @@
 // Provides instant top-3 pattern recommendations with completion % and AI scores
 
 import { PatternAnalysisEngine, type GameContext } from './pattern-analysis-engine'
-import type { PlayerTile } from '../../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
 
 export interface RealTimeAnalysisResult {

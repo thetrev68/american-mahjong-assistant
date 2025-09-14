@@ -2,7 +2,7 @@
 // Integrates with GameStatisticsEngine and handles multiplayer coordination
 
 import { GameStatisticsEngine, type GameEndScenario, type GameStatistics } from '../../post-game/services/game-statistics'
-import type { PlayerTile } from '../../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { TileSuit } from 'shared-types'
 import type { CompletedGame } from '../../../stores/history-store'

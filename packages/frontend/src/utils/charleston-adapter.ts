@@ -2,7 +2,7 @@
 // Adapts the legacy Charleston recommendation engine for the modern co-pilot architecture
 
 import type { PatternSelectionOption } from 'shared-types'
-import type { PlayerTile } from '../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import type { Tile, TileValue } from 'shared-types'
 
 // Modern simplified types for Charleston in co-pilot architecture

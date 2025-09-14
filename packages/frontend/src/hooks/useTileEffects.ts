@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import type { PlayerTile } from '../types/tile-types';
+import type { PlayerTile } from 'shared-types';
 
 // Hook for using the tile effects controller
 export const useTileEffects = () => {

@@ -3,7 +3,7 @@
 // Engine 1: Pattern Analysis (Facts), Engine 2: Pattern Ranking (Scoring), Engine 3: Tile Recommendations (Actions)
 
 import type { PatternSelectionOption } from 'shared-types'
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
 import { nmjlService } from './nmjl-service'
 import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from '../../features/intelligence-panel/services/pattern-analysis-engine'

@@ -8,7 +8,7 @@ import { TileSelector } from '../tile-input/TileSelector'
 import { tileService } from '../../lib/services/tile-service'
 import { useTileStore } from '../../stores/tile-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 
 interface TileInputModalProps {
   isOpen: boolean

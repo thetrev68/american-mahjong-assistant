@@ -3,7 +3,7 @@
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { PlayerTile, TileInputState, HandValidation, TileInputMode, TileAnimation, TileRecommendation } from '../types/tile-types'
+import type { PlayerTile, TileInputState, HandValidation, TileInputMode, TileAnimation, TileRecommendation } from 'shared-types'
 import { tileService } from '../lib/services/tile-service'
 import { AnalysisEngine } from '../lib/services/analysis-engine'
 

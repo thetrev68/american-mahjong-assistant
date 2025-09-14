@@ -3,7 +3,7 @@
 
 import { PatternAnalysisEngine, type GameContext, type TileMatchResult } from '../../features/intelligence-panel/services/pattern-analysis-engine'
 import type { NMJL2025Pattern } from 'shared-types'
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 
 export interface MahjongValidationResult {
   isValid: boolean

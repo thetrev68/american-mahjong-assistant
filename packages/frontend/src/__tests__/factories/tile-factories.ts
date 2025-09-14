@@ -4,7 +4,7 @@
  * Creates consistent PlayerTile objects for testing
  */
 
-import type { PlayerTile, TileSuit, TileValue } from '../../types/tile-types'
+import type { PlayerTile, TileSuit, TileValue } from 'shared-types'
 
 export interface TileFactoryOptions {
   suit?: TileSuit

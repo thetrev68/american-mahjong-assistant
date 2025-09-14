@@ -1,7 +1,7 @@
 // Animation Utility Functions for Tiles
 // Helper functions for complex tile animations and sequences
 
-import type { PlayerTile } from '../../types/tile-types'
+import type { PlayerTile } from 'shared-types'
 import { TILE_KEYFRAMES, applyTileAnimation } from './tile-animation-constants'
 import { TILE_ANIMATIONS } from '../../utils/animation-config'
 
