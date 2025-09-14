@@ -32,7 +32,7 @@ export interface ConnectionResilienceConfig {
   showConnectionIndicator?: boolean
 }
 
-export interface ConnectionResilienceState {
+interface ConnectionResilienceState {
   isConnected: boolean
   isReconnecting: boolean
   connectionHealth: 'healthy' | 'degraded' | 'poor' | 'offline'

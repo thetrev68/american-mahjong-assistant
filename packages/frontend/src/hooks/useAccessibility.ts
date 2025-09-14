@@ -13,7 +13,7 @@ export interface AccessibilityOptions {
   fontSize?: 'small' | 'medium' | 'large' | 'extra-large'
 }
 
-export interface AriaLiveOptions {
+interface AriaLiveOptions {
   priority?: 'polite' | 'assertive' | 'off'
   atomic?: boolean
   relevant?: 'additions' | 'removals' | 'text' | 'all'

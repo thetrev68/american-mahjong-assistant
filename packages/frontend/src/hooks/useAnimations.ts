@@ -11,7 +11,7 @@ import {
 } from '../utils/animation-config'
 import { useReducedMotion } from '../utils/reduced-motion'
 
-export interface AnimationState {
+interface AnimationState {
   isAnimating: boolean
   currentAnimation: string | null
   progress: number
