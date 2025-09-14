@@ -22,7 +22,7 @@ american-mahjong-assistant/
 │   │   │   │   │   ├── player-coordination-manager.ts (265 lines)
 │   │   │   │   │   └── room-lifecycle-manager.ts (310 lines)
 │   │   │   │   ├── socket-communication/
-│   │   │   │   │   └── socket-handlers.ts (1376 lines)
+│   │   │   │   │   └── socket-handlers.ts (1382 lines)
 │   │   │   │   └── state-sync/
 │   │   │   │       └── state-sync-manager.ts (261 lines)
 │   │   │   ├── services/
@@ -36,7 +36,7 @@ american-mahjong-assistant/
 │   │   ├── eslint.config.js (31 lines)
 │   │   ├── package.json (44 lines)
 │   │   ├── README.md
-│   │   ├── tsconfig.json (14 lines)
+│   │   ├── tsconfig.json (15 lines)
 │   │   ├── tsconfig.tsbuildinfo
 │   │   └── vitest.config.ts (28 lines)
 │   ├── frontend/
@@ -66,7 +66,7 @@ american-mahjong-assistant/
 │   │   │   │   │   ├── services/
 │   │   │   │   │   │   ├── charleston-multiplayer.ts (173 lines)
 │   │   │   │   │   │   └── charleston-resilient.ts (390 lines)
-│   │   │   │   │   ├── CharlestonView.tsx (523 lines)
+│   │   │   │   │   ├── CharlestonView.tsx (519 lines)
 │   │   │   │   │   ├── index.ts (6 lines)
 │   │   │   │   │   ├── PassingRecommendations.tsx (175 lines)
 │   │   │   │   │   ├── StrategyExplanation.tsx (303 lines)
@@ -91,17 +91,16 @@ american-mahjong-assistant/
 │   │   │   │   │   ├── AlertSystem.tsx (194 lines)
 │   │   │   │   │   ├── DiscardPile.tsx (94 lines)
 │   │   │   │   │   ├── DiscardPileZone.tsx (53 lines)
-│   │   │   │   │   ├── EnhancedIntelligencePanel.tsx (127 lines)
+│   │   │   │   │   ├── EnhancedIntelligencePanel.tsx (355 lines)
 │   │   │   │   │   ├── GameModeView.tsx (1173 lines)
-│   │   │   │   │   ├── GameScreenLayout.tsx (151 lines)
+│   │   │   │   │   ├── GameScreenLayout.tsx (159 lines)
 │   │   │   │   │   ├── GameTimer.tsx (33 lines)
 │   │   │   │   │   ├── index.ts (3 lines)
-│   │   │   │   │   ├── IntelligencePanel.tsx (287 lines)
 │   │   │   │   │   ├── OpponentExposedZone.tsx (49 lines)
 │   │   │   │   │   ├── SelectionArea.tsx (170 lines)
 │   │   │   │   │   ├── TileStates.tsx (26 lines)
-│   │   │   │   │   ├── TopZone.tsx (155 lines)
-│   │   │   │   │   └── YourHandZone.tsx (189 lines)
+│   │   │   │   │   ├── TopZone.tsx (192 lines)
+│   │   │   │   │   └── YourHandZone.tsx (205 lines)
 │   │   │   │   ├── intelligence-panel/
 │   │   │   │   │   ├── services/
 │   │   │   │   │   │   ├── __tests__/
@@ -120,8 +119,7 @@ american-mahjong-assistant/
 │   │   │   │   │   │   ├── tile-recommendation-engine.ts (962 lines)
 │   │   │   │   │   │   └── turn-intelligence-engine.ts (393 lines)
 │   │   │   │   │   ├── AdvancedPatternAnalysis.tsx (95 lines)
-│   │   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   │   ├── IntelligencePanelPage.tsx (390 lines)
+│   │   │   │   │   ├── index.ts (4 lines)
 │   │   │   │   │   ├── PatternRecommendations.tsx (233 lines)
 │   │   │   │   │   ├── PatternSwitchModal.tsx (210 lines)
 │   │   │   │   │   └── PrimaryAnalysisCard.tsx (266 lines)
@@ -147,11 +145,11 @@ american-mahjong-assistant/
 │   │   │   │   │   │   ├── RoomJoining.test.tsx (239 lines)
 │   │   │   │   │   │   └── RoomSetupView.test.tsx (401 lines)
 │   │   │   │   │   ├── CoPilotModeSelector.tsx (154 lines)
-│   │   │   │   │   ├── PlayerPositioning.tsx (340 lines)
+│   │   │   │   │   ├── PlayerPositioning.tsx (356 lines)
 │   │   │   │   │   ├── RoomCreation.tsx (212 lines)
 │   │   │   │   │   ├── RoomJoining.tsx (204 lines)
 │   │   │   │   │   ├── RoomLobbyView.tsx (266 lines)
-│   │   │   │   │   └── RoomSetupView.tsx (342 lines)
+│   │   │   │   │   └── RoomSetupView.tsx (357 lines)
 │   │   │   │   ├── shared/
 │   │   │   │   │   └── TileInputModal.tsx (273 lines)
 │   │   │   │   ├── tile-input/
@@ -181,18 +179,18 @@ american-mahjong-assistant/
 │   │   │   │   │   └── useSocket.test.ts (201 lines)
 │   │   │   │   ├── useAccessibility.ts (252 lines)
 │   │   │   │   ├── useAnimations.ts (265 lines)
-│   │   │   │   ├── useConnectionResilience.ts (291 lines)
+│   │   │   │   ├── useConnectionResilience.ts (293 lines)
 │   │   │   │   ├── useConnectionResilienceTest.ts (200 lines)
 │   │   │   │   ├── useConnectionStatus.ts (19 lines)
 │   │   │   │   ├── useCoPilotMode.ts (68 lines)
 │   │   │   │   ├── useGameEndCoordination.ts (141 lines)
 │   │   │   │   ├── useGameHistory.ts (555 lines)
-│   │   │   │   ├── useGameIntelligence.ts (40 lines)
+│   │   │   │   ├── useGameIntelligence.ts (44 lines)
 │   │   │   │   ├── useHapticFeedback.ts (274 lines)
 │   │   │   │   ├── useMultiplayer.ts (358 lines)
 │   │   │   │   ├── usePerformance.ts (306 lines)
 │   │   │   │   ├── usePerformanceMonitor.ts (264 lines)
-│   │   │   │   ├── useRoomSetup.ts (189 lines)
+│   │   │   │   ├── useRoomSetup.ts (203 lines)
 │   │   │   │   ├── useShare.ts (84 lines)
 │   │   │   │   ├── useSocket.ts (188 lines)
 │   │   │   │   ├── useTileEffects.ts (42 lines)
@@ -205,7 +203,7 @@ american-mahjong-assistant/
 │   │   │   │       │   ├── analysis-engine.test.ts (429 lines)
 │   │   │   │       │   ├── mahjong-validator.test.ts (135 lines)
 │   │   │   │       │   └── nmjl-service.test.ts (295 lines)
-│   │   │   │       ├── analysis-engine.ts (437 lines)
+│   │   │   │       ├── analysis-engine.ts (441 lines)
 │   │   │   │       ├── connection-resilience-test-suite.ts.bak
 │   │   │   │       ├── connection-resilience.ts (417 lines)
 │   │   │   │       ├── disconnection-manager.ts (433 lines)
@@ -231,14 +229,13 @@ american-mahjong-assistant/
 │   │   │   │   ├── connection.store.ts (98 lines)
 │   │   │   │   ├── game-store.ts (293 lines)
 │   │   │   │   ├── history-store.ts (484 lines)
-│   │   │   │   ├── index.ts (33 lines)
-│   │   │   │   ├── intelligence-store.ts (413 lines)
+│   │   │   │   ├── index.ts (34 lines)
+│   │   │   │   ├── intelligence-store.ts (415 lines)
 │   │   │   │   ├── multiplayer-store.ts (239 lines)
 │   │   │   │   ├── pattern-store.ts (201 lines)
 │   │   │   │   ├── player.store.ts (94 lines)
 │   │   │   │   ├── room-setup.store.ts (190 lines)
-│   │   │   │   ├── room-store.ts (13 lines)
-│   │   │   │   ├── room.store.ts (192 lines)
+│   │   │   │   ├── room.store.ts (204 lines)
 │   │   │   │   ├── tile-store.ts (522 lines)
 │   │   │   │   ├── turn-store.ts (532 lines)
 │   │   │   │   ├── tutorial-store.ts (260 lines)
@@ -323,9 +320,9 @@ american-mahjong-assistant/
 │   │   │   │   ├── feature-flags.ts (110 lines)
 │   │   │   │   ├── pattern-color-utils.ts (58 lines)
 │   │   │   │   ├── reduced-motion.ts (272 lines)
-│   │   │   │   ├── RouteGuard.tsx (40 lines)
+│   │   │   │   ├── RouteGuard.tsx (51 lines)
 │   │   │   │   ├── router.tsx (44 lines)
-│   │   │   │   └── tile-display-utils.ts (256 lines)
+│   │   │   │   └── tile-display-utils.ts (270 lines)
 │   │   │   ├── App.tsx (6 lines)
 │   │   │   ├── index.css (190 lines)
 │   │   │   ├── main.tsx (9 lines)
@@ -350,22 +347,66 @@ american-mahjong-assistant/
 │   │   └── vitest.config.ts (30 lines)
 │   ├── shared-types/
 │   │   ├── src/
+│   │   │   ├── game-state-types.d.ts (139 lines)
+│   │   │   ├── game-state-types.d.ts.map
+│   │   │   ├── game-state-types.js (4 lines)
+│   │   │   ├── game-state-types.js.map
 │   │   │   ├── game-state-types.ts (147 lines)
+│   │   │   ├── game-types.d.ts (260 lines)
+│   │   │   ├── game-types.d.ts.map
+│   │   │   ├── game-types.js (27 lines)
+│   │   │   ├── game-types.js.map
 │   │   │   ├── game-types.ts (290 lines)
+│   │   │   ├── index.d.ts (8 lines)
+│   │   │   ├── index.d.ts.map
+│   │   │   ├── index.js (23 lines)
+│   │   │   ├── index.js.map
 │   │   │   ├── index.ts (56 lines)
+│   │   │   ├── multiplayer-types.d.ts (401 lines)
+│   │   │   ├── multiplayer-types.d.ts.map
+│   │   │   ├── multiplayer-types.js (4 lines)
+│   │   │   ├── multiplayer-types.js.map
 │   │   │   ├── multiplayer-types.ts (140 lines)
+│   │   │   ├── nmjl-types.d.ts (51 lines)
+│   │   │   ├── nmjl-types.d.ts.map
+│   │   │   ├── nmjl-types.js (5 lines)
+│   │   │   ├── nmjl-types.js.map
 │   │   │   ├── nmjl-types.ts (52 lines)
+│   │   │   ├── room-types.d.ts (95 lines)
+│   │   │   ├── room-types.d.ts.map
+│   │   │   ├── room-types.js (14 lines)
+│   │   │   ├── room-types.js.map
 │   │   │   ├── room-types.ts (127 lines)
+│   │   │   ├── socket-event-types.d.ts (656 lines)
+│   │   │   ├── socket-event-types.d.ts.map
+│   │   │   ├── socket-event-types.js (17 lines)
+│   │   │   ├── socket-event-types.js.map
 │   │   │   ├── socket-event-types.ts (222 lines)
+│   │   │   ├── socket-events.d.ts (290 lines)
+│   │   │   ├── socket-events.d.ts.map
+│   │   │   ├── socket-events.js (41 lines)
+│   │   │   ├── socket-events.js.map
 │   │   │   ├── socket-events.ts (188 lines)
+│   │   │   ├── tile-types.d.ts (27 lines)
+│   │   │   ├── tile-types.d.ts.map
+│   │   │   ├── tile-types.js (14 lines)
+│   │   │   ├── tile-types.js.map
 │   │   │   └── tile-types.ts (34 lines)
 │   │   ├── package.json (12 lines)
-│   │   ├── tsconfig.json (7 lines)
+│   │   ├── tsconfig.json (10 lines)
 │   │   └── tsconfig.tsbuildinfo
 │   └── shared-utils/
 │       ├── src/
+│       │   ├── index.d.ts (2 lines)
+│       │   ├── index.d.ts.map
+│       │   ├── index.js (18 lines)
+│       │   ├── index.js.map
 │       │   ├── index.ts (1 lines)
-│       │   └── tile-utils.ts (179 lines)
+│       │   ├── tile-utils.d.ts (18 lines)
+│       │   ├── tile-utils.d.ts.map
+│       │   ├── tile-utils.js (230 lines)
+│       │   ├── tile-utils.js.map
+│       │   └── tile-utils.ts (220 lines)
 │       ├── package.json (12 lines)
 │       ├── tsconfig.json (7 lines)
 │       └── tsconfig.tsbuildinfo
@@ -374,12 +415,9 @@ american-mahjong-assistant/
 ├── .gitignore
 ├── ARCHITECTURE_VISUALIZATIONS.md
 ├── CLAUDE.md
-├── code-inventory.json (719 lines)
-├── CODE_INVENTORY.csv
-├── CODE_INVENTORY.md
+├── COMPONENT_CONSOLIDATION_AUDIT.md
 ├── eslint.config.js (97 lines)
 ├── GEMINI.md
-├── Gemini_Audit_20250910.md
 ├── NMJL 2025 Card JSON prep 20250808.xlsx
 ├── package-lock.json (9691 lines)
 ├── package.json (29 lines)
@@ -395,9 +433,9 @@ american-mahjong-assistant/
 DIRECTORY TREE STATISTICS
 ==================================================
 Total directories: 72
-Total files: 319
-Files with line counts: 292
-Total lines of code: 77,104
+Total files: 357
+Files with line counts: 310
+Total lines of code: 78,469
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv
