@@ -4,7 +4,7 @@
 import type { NMJL2025Pattern } from 'shared-types'
 import type { Tile } from 'shared-types'
 
-export interface BackendMahjongValidation {
+interface BackendMahjongValidation {
   isValid: boolean
   score: number
   violations: string[]
@@ -17,7 +17,7 @@ export interface BackendMahjongValidation {
   }
 }
 
-export interface MahjongDeclarationData {
+interface MahjongDeclarationData {
   playerId: string
   winningHand: Tile[]
   exposedTiles: Tile[]
