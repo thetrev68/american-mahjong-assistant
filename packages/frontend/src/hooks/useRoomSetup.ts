@@ -6,7 +6,7 @@ import { useMultiplayer } from './useMultiplayer'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
 import type { Player, Room } from 'shared-types'
 
-export interface UseRoomSetupReturn {
+interface UseRoomSetupReturn {
   // State
   coPilotMode: CoPilotMode
   roomCode: string | null

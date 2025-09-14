@@ -108,7 +108,7 @@ export interface GameComment {
   votes: number
 }
 
-export interface PerformanceStats {
+interface PerformanceStats {
   totalGames: number
   gamesWon: number
   winRate: number

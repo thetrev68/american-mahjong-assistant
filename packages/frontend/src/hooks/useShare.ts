@@ -6,7 +6,7 @@ export interface ShareOptions {
   url?: string
 }
 
-export interface UseShareReturn {
+interface UseShareReturn {
   share: (options: ShareOptions) => Promise<void>
   copyToClipboard: (text: string) => Promise<void>
   isSharing: boolean

@@ -15,7 +15,7 @@ interface PerformanceWithMemory extends Performance {
 
 declare const performance: PerformanceWithMemory
 
-export interface PerformanceMetrics {
+interface PerformanceMetrics {
   fps: number
   frameTime: number
   memoryUsage?: number

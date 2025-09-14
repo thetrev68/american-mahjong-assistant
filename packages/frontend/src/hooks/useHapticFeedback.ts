@@ -29,7 +29,7 @@ export interface HapticOptions {
   pattern?: number[] // for complex vibration patterns
 }
 
-export interface UseHapticFeedbackReturn {
+interface UseHapticFeedbackReturn {
   // Core haptic functions
   triggerHaptic: (options?: HapticOptions) => Promise<boolean>
   triggerLight: () => Promise<boolean>

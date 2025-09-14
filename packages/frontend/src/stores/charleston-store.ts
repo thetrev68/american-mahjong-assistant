@@ -445,7 +445,7 @@ function getNextPhase(currentPhase: CharlestonPhase, playerCount: number): Charl
 }
 
 // Selectors for common derived state
-export type CharlestonSelectorState = {
+type CharlestonSelectorState = {
   isActive: boolean;
   isComplete: boolean;
   canAdvancePhase: boolean;
