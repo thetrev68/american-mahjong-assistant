@@ -61,4 +61,3 @@ server.listen(PORT, () => {
   console.log(`🏥 Health check available at http://localhost:${PORT}/health`);
 });
 
-export { io };
