@@ -1,6 +1,6 @@
 // Store Exports
-export { useGameStore, type GameState, type Player } from './game-store'
-export { useUIStore, type UIState } from './ui-store'
+export { type GameState, type Player } from './game-store'
+export { type UIState } from './ui-store'
 export { usePatternStore } from './pattern-store'
 export { useTileStore } from './tile-store'
 export { useIntelligenceStore } from './intelligence-store'

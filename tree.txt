@@ -32,7 +32,7 @@ american-mahjong-assistant/
 │   │   │   │   ├── game-logic.ts (710 lines)
 │   │   │   │   └── mahjong-validation-bridge.ts (327 lines)
 │   │   │   ├── utils/
-│   │   │   └── server.ts (51 lines)
+│   │   │   └── server.ts (50 lines)
 │   │   ├── eslint.config.js (31 lines)
 │   │   ├── package.json (44 lines)
 │   │   ├── README.md
@@ -245,7 +245,6 @@ american-mahjong-assistant/
 │   │   │   ├── test/
 │   │   │   │   └── setup.ts (161 lines)
 │   │   │   ├── types/
-│   │   │   │   └── tile-types.ts (40 lines)
 │   │   │   ├── ui-components/
 │   │   │   │   ├── __tests__/
 │   │   │   │   │   └── Button.test.tsx (73 lines)
@@ -337,7 +336,6 @@ american-mahjong-assistant/
 │   │   ├── package.json (52 lines)
 │   │   ├── postcss.config.js (6 lines)
 │   │   ├── README.md
-│   │   ├── tailwind.config.js.backup
 │   │   ├── tsconfig.app.json (39 lines)
 │   │   ├── tsconfig.json (10 lines)
 │   │   ├── tsconfig.node.json (23 lines)
@@ -351,7 +349,7 @@ american-mahjong-assistant/
 │   │   │   ├── game-state-types.d.ts.map
 │   │   │   ├── game-state-types.js (4 lines)
 │   │   │   ├── game-state-types.js.map
-│   │   │   ├── game-state-types.ts (147 lines)
+│   │   │   ├── game-state-types.ts (145 lines)
 │   │   │   ├── game-types.d.ts (260 lines)
 │   │   │   ├── game-types.d.ts.map
 │   │   │   ├── game-types.js (27 lines)
@@ -415,12 +413,14 @@ american-mahjong-assistant/
 ├── .gitignore
 ├── ARCHITECTURE_VISUALIZATIONS.md
 ├── CLAUDE.md
+├── CODE_CLEANUP_PLAN.md
+├── CODE_CLEANUP_PLAN_STATUS.md
 ├── COMPONENT_CONSOLIDATION_AUDIT.md
 ├── eslint.config.js (97 lines)
 ├── GEMINI.md
 ├── NMJL 2025 Card JSON prep 20250808.xlsx
-├── package-lock.json (9691 lines)
-├── package.json (29 lines)
+├── package-lock.json (9882 lines)
+├── package.json (30 lines)
 ├── README.md
 ├── setup-test.js (17 lines)
 ├── tree.txt
@@ -434,8 +434,8 @@ DIRECTORY TREE STATISTICS
 ==================================================
 Total directories: 72
 Total files: 357
-Files with line counts: 310
-Total lines of code: 78,469
+Files with line counts: 309
+Total lines of code: 78,618
 
 Configuration:
   Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv
