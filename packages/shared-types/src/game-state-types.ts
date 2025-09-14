@@ -5,7 +5,7 @@ import type { GameSettings, PlayerAction } from './room-types';
 import type { Tile } from './tile-types';
 
 // Re-export types that game state depends on  
-export type { PlayerPosition, ActionType, ExposedSet, DiscardedTile, CharlestonState, GameSettings } from './room-types';
+export type { PlayerPosition, ActionType, ExposedSet, DiscardedTile, CharlestonState } from './room-types';
 
 // Game state interfaces
 export interface PrivatePlayerState {
@@ -160,7 +160,7 @@ export interface MakeActionRequest {
 }
 
 // Utility types
-export type DeepPartial<T> = {
+type DeepPartial<T> = {
   [P in keyof T]?: T[P] extends object ? DeepPartial<T[P]> : T[P];
 };
 
