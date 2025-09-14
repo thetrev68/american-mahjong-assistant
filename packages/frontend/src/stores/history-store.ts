@@ -10,8 +10,8 @@ import type { NMJL2025Pattern } from 'shared-types'
 // Game outcome types
 export type GameOutcome = 'won' | 'lost' | 'draw' | 'incomplete' | 'mahjong' | 'wall' | 'pass-out' | 'forfeit'
 export type GameDifficulty = 'beginner' | 'intermediate' | 'expert'
-export type DecisionType = 'keep' | 'pass' | 'discard' | 'joker-placement' | 'charleston'
-export type DecisionQuality = 'excellent' | 'good' | 'fair' | 'poor'
+type DecisionType = 'keep' | 'pass' | 'discard' | 'joker-placement' | 'charleston'
+type DecisionQuality = 'excellent' | 'good' | 'fair' | 'poor'
 
 // Performance metrics interfaces
 export interface GameDecision {
@@ -99,7 +99,7 @@ export interface CompletedGame {
   coPilotMode?: 'everyone' | 'solo'
 }
 
-export interface GameComment {
+interface GameComment {
   id: string
   authorId: string
   authorName: string
@@ -136,7 +136,7 @@ interface PerformanceStats {
   progressToNext: number // 0-100%
 }
 
-export interface LearningRecommendation {
+interface LearningRecommendation {
   id: string
   type: 'pattern' | 'strategy' | 'charleston' | 'general'
   priority: 'high' | 'medium' | 'low'
