@@ -24,6 +24,9 @@ export { useTurnStore, useTurnSelectors, type TurnPlayer } from './turn-store'
 import { useGameStore } from './game-store'
 import { useUIStore } from './ui-store'
 
+// Export the imported stores
+export { useGameStore, useUIStore }
+
 export const useGamePhase = () => useGameStore((state) => state.gamePhase)
 export const useRoomCode = () => useGameStore((state) => state.roomCode)
 export const usePlayers = () => useGameStore((state) => state.players)
