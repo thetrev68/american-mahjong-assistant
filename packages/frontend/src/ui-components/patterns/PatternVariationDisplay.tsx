@@ -42,15 +42,15 @@ export const PatternVariationDisplay = ({
     : null
   
   const sizeClasses = {
-    sm: 'text-xs gap-0.5',
-    md: 'text-sm gap-1',
-    lg: 'text-base gap-1.5'
+    sm: 'text-[10px] sm:text-xs gap-0 sm:gap-0.5',
+    md: 'text-[11px] sm:text-sm gap-0 sm:gap-1',
+    lg: 'text-xs sm:text-base gap-0.5 sm:gap-1.5'
   }
   
   return (
     <div className={`space-y-2 ${className}`}>
       {/* Pattern Display */}
-      <div className={`flex items-center ${sizeClasses[size]} overflow-x-auto whitespace-nowrap`}>
+      <div className={`flex items-center overflow-x-auto whitespace-nowrap ${sizeClasses[size]}`}>
         {displayChars.map((char, index) => {
           if (char.char === ' ') {
             return <span key={index} className="mx-1" />

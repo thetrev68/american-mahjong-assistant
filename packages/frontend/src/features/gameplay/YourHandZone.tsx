@@ -87,13 +87,13 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
     switch (action) {
       case 'keep':
         // Only show green if tile is actually needed for the primary pattern
-        return isInPrimaryPattern() 
-          ? 'shadow-[0_0_0_2px_rgba(34,197,94,0.6),0_0_8px_rgba(34,197,94,0.3)]' // Green glow for tiles in primary pattern
+        return isInPrimaryPattern()
+          ? 'shadow-[0_0_0_1px_rgba(34,197,94,0.8),0_0_3px_rgba(34,197,94,0.6),0_0_6px_rgba(34,197,94,0.4)] relative z-10' // Green multi-layer glow
           : '' // No highlighting for tiles not in pattern
       case 'pass':
-        return 'shadow-[0_0_0_2px_rgba(239,68,68,0.6),0_0_8px_rgba(239,68,68,0.3)]' // Red glow for pass
+        return 'shadow-[0_0_0_1px_rgba(239,68,68,0.8),0_0_3px_rgba(239,68,68,0.6),0_0_6px_rgba(239,68,68,0.4)] relative z-10' // Red multi-layer glow
       case 'discard':
-        return 'shadow-[0_0_0_2px_rgba(239,68,68,0.6),0_0_8px_rgba(239,68,68,0.3)]' // Red glow for discard
+        return 'shadow-[0_0_0_1px_rgba(239,68,68,0.8),0_0_3px_rgba(239,68,68,0.6),0_0_6px_rgba(239,68,68,0.4)] relative z-10' // Red multi-layer glow
       default:
         return ''
     }
@@ -126,7 +126,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   }
 
   return (
-    <Card className="p-4 mb-4 md:col-span-2 xl:col-span-2">
+    <Card className="p-2 sm:p-4 mb-4 md:col-span-2 xl:col-span-2">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Your Hand</h3>
         <div className="flex gap-2">
@@ -146,7 +146,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         {/* Concealed Hand */}
         <div>
           <div className="text-sm text-gray-600 mb-2">Concealed ({sortedCurrentHand.length} tiles)</div>
-          <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-lg min-h-16">
+          <div className="grid grid-cols-5 sm:grid-cols-7 gap-1 sm:gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg min-h-16">
             {sortedCurrentHand.length > 0 ? sortedCurrentHand.map((tile) => {
               const isSelected = isCharleston 
                 ? selectedForAction.some(t => t.instanceId === tile.instanceId)
@@ -160,14 +160,17 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
               }
               
               return (
-                <AnimatedTile
-                  key={tile.instanceId}
-                  tile={updatedTile}
-                  size="md"
-                  onClick={(clickedTile) => isMyTurn && handleTileClick(clickedTile)}
-                  className={`cursor-pointer hover:scale-105 transition-transform min-w-12 min-h-16 ${highlightClass}`}
-                  context={isCharleston ? "charleston" : "gameplay"}
-                />
+                <div key={tile.instanceId} className="flex justify-center items-center">
+                  <div className={`w-[52px] h-[69px] ${highlightClass}`}>
+                    <AnimatedTile
+                      tile={updatedTile}
+                      size="sm"
+                      onClick={(clickedTile) => isMyTurn && handleTileClick(clickedTile)}
+                      className="cursor-pointer hover:scale-105 transition-transform"
+                      context={isCharleston ? "charleston" : "gameplay"}
+                    />
+                  </div>
+                </div>
               )
             }) : (
               <div className="text-gray-400 text-sm flex items-center justify-center w-full py-4">
@@ -185,9 +188,9 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
             <div className="flex gap-2 p-3 bg-blue-50 rounded-lg border-2 border-blue-200">
               <AnimatedTile
                 tile={{...lastDrawnTile, instanceId: lastDrawnTile.id, isSelected: false}}
-                size="md"
+                size="sm"
                 onClick={() => isMyTurn && handleDiscardTile(lastDrawnTile)}
-                className="cursor-pointer hover:scale-105 transition-transform ring-2 ring-blue-400 min-w-12 min-h-16"
+                className="cursor-pointer hover:scale-105 transition-transform ring-2 ring-blue-400"
                 context="gameplay"
               />
               <div className="text-sm text-blue-600 flex items-center">
@@ -211,8 +214,8 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                     <AnimatedTile
                       key={tileIndex}
                       tile={{...tile, instanceId: tile.id, isSelected: false}}
-                      size="md"
-                      className="pointer-events-none min-w-12 min-h-16"
+                      size="sm"
+                      className="pointer-events-none"
                       context="gameplay"
                     />
                   ))}

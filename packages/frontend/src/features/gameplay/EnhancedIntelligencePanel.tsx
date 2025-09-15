@@ -40,9 +40,9 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const selectedPatterns = getTargetPatterns()
   const hasPatternSelected = selectedPatterns.length > 0
   return (
-    <div className="enhanced-intelligence-panel bg-white/90 backdrop-blur-sm rounded-2xl p-6 shadow-xl border border-purple-200/50 w-full">
+    <div className="enhanced-intelligence-panel bg-white/90 backdrop-blur-sm rounded-2xl p-3 sm:p-6 shadow-xl border border-purple-200/50 w-full">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-3 sm:mb-6">
         <h2 className="text-xl font-bold text-purple-800">
           {gamePhase === 'charleston' 
             ? (hasPatternSelected ? 'Charleston Strategy' : 'Choose Your Target Pattern')
@@ -116,7 +116,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
 
           {/* PRIMARY PATTERN DETAILS */}
           {analysis.recommendedPatterns && analysis.recommendedPatterns.length > 0 && (
-            <div className="p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
+            <div className="p-2 sm:p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
               <div className="space-y-3">
                 <div>
                   <h4 className="text-lg font-bold text-purple-800 mb-1">PRIMARY PATTERN</h4>
@@ -133,6 +133,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                   <div className="text-xl font-bold text-gray-900 mb-2">
                     {analysis.recommendedPatterns[0]?.pattern ? (
                       <PatternVariationDisplay
+                        size="sm"
                         patternTiles={(() => {
                           // Use expanded tiles if available, otherwise fall back to generic pattern
                           const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
@@ -152,7 +153,6 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                         invertMatches={true}
                         showCompletion={false}
                         spacing={true}
-                        size="lg"
                         patternGroups={analysis.recommendedPatterns[0].pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
                       />
                     ) : (

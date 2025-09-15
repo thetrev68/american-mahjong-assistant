@@ -106,7 +106,7 @@ export const HandDisplay = ({
               <span>{suit}</span>
               <span className="text-xs text-gray-500">({tiles.length})</span>
             </h4>
-            <div className="flex flex-wrap gap-4">
+            <div className="grid grid-cols-5 sm:grid-cols-7 gap-2 sm:gap-4">
               {tiles.map(tile => {
                 const recommendation = getTileHighlighting(tile)
                 return (
@@ -141,7 +141,7 @@ export const HandDisplay = ({
   
   const renderTileList = () => {
     return (
-      <div className="flex flex-wrap gap-4">
+      <div className="grid grid-cols-5 sm:grid-cols-7 gap-2 sm:gap-4">
         {playerHand.map(tile => {
           const recommendation = getTileHighlighting(tile)
           return (
