@@ -140,7 +140,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                           if (expandedTiles && expandedTiles.length === 14) {
                             return expandedTiles
                           }
-                          
+
                           // Fallback to generic pattern parsing (should be rare now)
                           const tiles = analysis.recommendedPatterns[0].pattern.pattern.split(' ')
                           if (tiles.length < 14) {
@@ -154,6 +154,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                         showCompletion={false}
                         spacing={true}
                         patternGroups={analysis.recommendedPatterns[0].pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
+                        handPattern={analysis.recommendedPatterns[0].pattern.pattern}
                       />
                     ) : (
                       'Selected Pattern'
@@ -342,6 +343,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                           spacing={true}
                           size="sm"
                           patternGroups={pattern.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
+                          handPattern={pattern.pattern.pattern}
                         />
                       </div>
                     </div>

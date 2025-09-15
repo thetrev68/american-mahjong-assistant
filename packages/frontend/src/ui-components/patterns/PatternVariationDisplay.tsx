@@ -17,6 +17,7 @@ interface PatternVariationDisplayProps {
   size?: 'sm' | 'md' | 'lg'
   className?: string
   patternGroups?: Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>
+  handPattern?: string // Add handPattern for proper grouping
 }
 
 export const PatternVariationDisplay = ({
@@ -28,13 +29,15 @@ export const PatternVariationDisplay = ({
   spacing = true,
   size = 'md',
   className = '',
-  patternGroups
+  patternGroups,
+  handPattern
 }: PatternVariationDisplayProps) => {
   const displayChars = renderPatternVariation(patternTiles, playerTiles, {
     showMatches,
     invertMatches,
     spacing,
-    patternGroups
+    patternGroups,
+    handPattern
   })
   
   const completion = showCompletion 

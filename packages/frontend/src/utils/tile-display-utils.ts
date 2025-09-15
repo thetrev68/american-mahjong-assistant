@@ -197,37 +197,32 @@ export function renderPatternVariation(
     invertMatches?: boolean
     spacing?: boolean
     patternGroups?: Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>
+    handPattern?: string // Add handPattern option to get grouping from pattern data
   } = {}
 ): TileDisplayChar[] {
-  const { showMatches = true, spacing = true, patternGroups } = options
-  
+  const { showMatches = true, spacing = true, patternGroups, handPattern } = options
+
   const chars = getPatternDisplayChars(patternTiles, showMatches ? playerTiles : [])
-  
-  // Add spacing based on actual pattern groups if available
-  if (spacing && patternGroups && patternGroups.length > 0) {
+
+  // Use handPattern for proper grouping if available
+  if (spacing && handPattern) {
     const spacedChars: TileDisplayChar[] = []
     let currentIndex = 0
-    
-    // Calculate group sizes based on pattern groups
-    const groupSizes = patternGroups.map(group => {
-      const groupStr = String(group.Group)
-      if (groupStr.includes('FFFF')) return 4
-      if (groupStr.includes('FFF')) return 3
-      if (groupStr.includes('FF')) return 2
-      if (groupStr.length >= 3) return groupStr.length
-      return 4 // Default fallback
-    })
-    
-    // Add tiles with spacing between groups
+
+    // Parse handPattern to get group sizes (e.g., "NN EW SS 11 22 33 44" -> [2, 2, 2, 2, 2, 2, 2])
+    const groups = handPattern.trim().split(/\s+/)
+    const groupSizes = groups.map(group => group.length)
+
+    // Add tiles with spacing between groups based on handPattern
     groupSizes.forEach((size, groupIndex) => {
       const endIndex = Math.min(currentIndex + size, chars.length)
-      
+
       for (let i = currentIndex; i < endIndex; i++) {
         if (i < chars.length) {
           spacedChars.push(chars[i])
         }
       }
-      
+
       // Add spacer between groups (except after last group)
       if (groupIndex < groupSizes.length - 1 && currentIndex + size < chars.length) {
         spacedChars.push({
@@ -237,13 +232,54 @@ export function renderPatternVariation(
           isMatched: false
         })
       }
-      
+
       currentIndex += size
     })
-    
+
     return spacedChars
   }
-  
+
+  // Fallback to pattern groups if handPattern not available
+  if (spacing && patternGroups && patternGroups.length > 0) {
+    const spacedChars: TileDisplayChar[] = []
+    let currentIndex = 0
+
+    // Calculate group sizes based on pattern groups
+    const groupSizes = patternGroups.map(group => {
+      const groupStr = String(group.Group)
+      if (groupStr.includes('FFFF')) return 4
+      if (groupStr.includes('FFF')) return 3
+      if (groupStr.includes('FF')) return 2
+      if (groupStr.length >= 3) return groupStr.length
+      return 4 // Default fallback
+    })
+
+    // Add tiles with spacing between groups
+    groupSizes.forEach((size, groupIndex) => {
+      const endIndex = Math.min(currentIndex + size, chars.length)
+
+      for (let i = currentIndex; i < endIndex; i++) {
+        if (i < chars.length) {
+          spacedChars.push(chars[i])
+        }
+      }
+
+      // Add spacer between groups (except after last group)
+      if (groupIndex < groupSizes.length - 1 && currentIndex + size < chars.length) {
+        spacedChars.push({
+          char: ' ',
+          color: 'black',
+          tileId: 'spacer',
+          isMatched: false
+        })
+      }
+
+      currentIndex += size
+    })
+
+    return spacedChars
+  }
+
   // Fallback to every 4 characters spacing if no groups available
   if (spacing) {
     const spacedChars: TileDisplayChar[] = []
@@ -260,7 +296,7 @@ export function renderPatternVariation(
     })
     return spacedChars
   }
-  
+
   return chars
 }
 
