@@ -77,131 +77,76 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   }
 
   return (
-    <Card className={`p-4 bg-white/90 backdrop-blur-sm ${className}`}>
-      <div className="space-y-4">
-        {/* Turn Status */}
-        <div className="text-center">
-          <div className="text-sm text-gray-600 mb-2">
-            {isMyTurn ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <span className="font-medium text-green-700">Your Turn</span>
-                {turnDuration > 0 && (
-                  <span className="text-gray-500">({formatDuration(turnDuration)})</span>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full" />
-                <span>{currentPlayer ? `${currentPlayer}'s Turn` : 'Waiting for player'}</span>
-              </div>
-            )}
+    <Card className={`p-2 sm:p-3 bg-white/95 backdrop-blur-sm ${className}`}>
+      <div className="space-y-2">
+        {/* Compact Turn Status */}
+        <div className="flex items-center justify-between text-xs">
+          <div className="flex items-center gap-1">
+            <div className={`w-1.5 h-1.5 rounded-full ${isMyTurn ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`} />
+            <span className={isMyTurn ? 'text-green-700 font-medium' : 'text-gray-600'}>
+              {isMyTurn ? 'Your Turn' : (currentPlayer ? `${currentPlayer}'s Turn` : 'No player\'s Turn')}
+            </span>
           </div>
-          
           {wallCount > 0 && (
-            <div className="text-xs text-gray-500">
-              Wall: {wallCount} tiles remaining
-            </div>
+            <span className="text-gray-500">Wall: {wallCount} tiles remaining</span>
           )}
         </div>
 
-        {/* Primary Actions */}
-        {isMyTurn && (
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              onClick={handleDrawTile}
-              disabled={!canDraw}
-              variant={canDraw ? 'primary' : 'secondary'}
-              className="text-sm py-2"
-            >
-              {canDraw ? '🎲 Draw Tile' : 'Already Drawn'}
-            </Button>
-            
-            <Button
-              onClick={handleMahjong}
-              disabled={!canMahjong}
-              variant={canMahjong ? 'primary' : 'secondary'}
-              className="text-sm py-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-300"
-            >
-              🏆 Mahjong
-            </Button>
-          </div>
-        )}
+        {/* Compact Actions Row */}
+        <div className="flex gap-1 text-xs">
+          {/* Primary Actions */}
+          {isMyTurn && (
+            <>
+              <Button
+                onClick={handleDrawTile}
+                disabled={!canDraw}
+                variant={canDraw ? 'primary' : 'secondary'}
+                className="text-xs py-1 px-2 flex-1"
+              >
+                {canDraw ? '🎲 Draw' : 'Drawn'}
+              </Button>
 
-        {/* Call Actions (for non-current players) */}
-        {!isMyTurn && canCall && (
-          <div className="text-center">
-            <div className="text-xs text-gray-600 mb-2">Call opportunities will appear here</div>
+              <Button
+                onClick={handleMahjong}
+                disabled={!canMahjong}
+                variant={canMahjong ? 'primary' : 'secondary'}
+                className="text-xs py-1 px-2 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-300"
+              >
+                🏆 Mahjong
+              </Button>
+            </>
+          )}
+
+          {/* Advanced Actions - Always show */}
+          <Button
+            disabled={!canJokerSwap}
+            variant="ghost"
+            className="text-xs py-1 px-2"
+            onClick={() => setShowJokerSwapDialog(true)}
+          >
+            🃏 Swap Joker
+          </Button>
+
+          <Button
+            onClick={handlePassOut}
+            disabled={!canPassOut}
+            variant="ghost"
+            className="text-xs py-1 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+          >
+            🚫 Pass Out
+          </Button>
+
+          {/* Solo Mode Game End - Compact */}
+          {isSoloMode && (
             <Button
-              disabled
+              onClick={handleOtherPlayerWon}
               variant="secondary"
-              className="text-sm py-1"
+              className="text-xs py-1 px-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
             >
-              🔔 Wait for Call
+              🏆 Other Player Won
             </Button>
-          </div>
-        )}
-
-        {/* Advanced Actions */}
-        <div className="border-t pt-3">
-          <div className="text-xs font-medium text-gray-700 mb-2">Advanced Actions</div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button
-              disabled={!canJokerSwap}
-              variant="ghost"
-              className="text-xs py-1"
-              onClick={() => {
-                // Open joker swap dialog
-                setShowJokerSwapDialog(true)
-              }}
-            >
-              🃏 Swap Joker
-            </Button>
-            
-            <Button
-              onClick={handlePassOut}
-              disabled={!canPassOut}
-              variant="ghost"
-              className="text-xs py-1 text-red-600 hover:text-red-700 hover:bg-red-50"
-            >
-              🚫 Pass Out
-            </Button>
-          </div>
+          )}
         </div>
-
-        {/* Solo Mode Game End Controls */}
-        {isSoloMode && (
-          <div className="border-t pt-3">
-            <div className="text-xs font-medium text-gray-700 mb-2">Game End (Physical Game)</div>
-            <div className="space-y-2">
-              <Button
-                onClick={handleOtherPlayerWon}
-                variant="secondary"
-                className="w-full text-xs py-1 bg-yellow-100 hover:bg-yellow-200 text-yellow-800"
-              >
-                🏆 Other Player Won
-              </Button>
-              
-              <Button
-                onClick={handleGameDrawn}
-                variant="secondary" 
-                className="w-full text-xs py-1 bg-gray-100 hover:bg-gray-200 text-gray-800"
-              >
-                🤝 Game Drawn
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {/* Debug Info (development only) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="border-t pt-2 text-xs text-gray-500">
-            <div>Available: {availableActions.join(', ') || 'none'}</div>
-            <div>My Turn: {isMyTurn ? 'yes' : 'no'}</div>
-            <div>Can Draw: {canDraw ? 'yes' : 'no'}</div>
-            <div>Can Discard: {canDiscard ? 'yes' : 'no'}</div>
-          </div>
-        )}
       </div>
 
       {/* Joker Swap Dialog */}

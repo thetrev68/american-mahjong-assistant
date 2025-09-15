@@ -99,7 +99,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   currentAnalysis,
 }) => {
   return (
-    <div className="max-w-full mx-auto p-1 sm:p-4 md:p-6 md:max-w-4xl">
+    <div className="max-w-full mx-auto p-1 sm:p-4 md:p-6 md:max-w-4xl pb-20 sm:pb-24">
       {/* TOP ZONE: Game phase, elapsed timer, current player, action buttons */}
       <TopZone 
         gamePhase={gamePhase}

@@ -1096,10 +1096,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         </div>
       )}
 
-      {/* Enhanced Intelligence Panel - Hidden during Charleston */}
+      {/* Enhanced Intelligence Panel - Compact Bottom Sheet */}
       {showEnhancedIntelligence && gameStore.gamePhase !== 'charleston' && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-40">
-          <div className="max-w-4xl w-full max-h-[90vh]">
+        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-purple-200 max-h-[60vh] overflow-y-auto z-40 shadow-xl">
+          <div className="max-w-4xl mx-auto">
             <EnhancedIntelligencePanel
               analysis={enhancedAnalysis || currentAnalysis}
               gameState={gameState}

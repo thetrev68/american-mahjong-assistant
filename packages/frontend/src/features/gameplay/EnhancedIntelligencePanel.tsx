@@ -337,7 +337,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                           patternTiles={patternTiles}
                           playerTiles={playerHand.map(t => t.id)}
                           showMatches={true}
-                          invertMatches={false}
+                          invertMatches={true}
                           showCompletion={false}
                           spacing={true}
                           size="sm"
