@@ -2,6 +2,7 @@
 // Handles draw/discard mechanics, call evaluation, and continuous pattern analysis
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../../stores/game-store'
 import { useRoomStore } from '../../stores/room.store'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
@@ -18,6 +19,7 @@ import GameActionsPanel from '../../ui-components/GameActionsPanel'
 import CallOpportunityModal from '../../ui-components/CallOpportunityModal'
 import { MahjongDeclarationModal } from '../../ui-components/MahjongDeclarationModal'
 import { FinalHandRevealModal, type FinalHandRevealData } from '../../ui-components/FinalHandRevealModal'
+import { TileInputModal } from '../shared/TileInputModal'
 import type { PlayerTile } from 'shared-types'
 import type { Tile } from 'shared-types'
 import type { GameAction, CallType } from '../gameplay/services/game-actions'
@@ -34,6 +36,7 @@ import type { GameContext } from '../intelligence-panel/services/pattern-analysi
 import { GameEndCoordinator, type GameEndContext, getWallExhaustionWarning } from '../gameplay/services/game-end-coordinator'
 import { createMultiplayerGameEndService, isMultiplayerSession } from '../gameplay/services/multiplayer-game-end'
 import { useHistoryStore } from '../../stores/history-store'
+import { tileService } from '../../lib/services/tile-service'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -63,6 +66,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   onNavigateToPostGame
 }) => {
   // Store state
+  const navigate = useNavigate()
   const gameStore = useGameStore()
   const roomStore = useRoomStore()
   const roomSetupStore = useRoomSetupStore()
@@ -188,7 +192,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     
     return playerNames[currentPlayerIndex]
   }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
-  const [gameRound] = useState(1)
+  const gameRound = gameStore.currentTurn || 1
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
   const [discardPile] = useState<Array<{
     tile: Tile
@@ -200,6 +204,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [isPaused, setIsPaused] = useState(false)
   const [showPatternSwitcher, setShowPatternSwitcher] = useState(false)
   const [showMahjongModal, setShowMahjongModal] = useState(false)
+  const [showCharlestonModal, setShowCharlestonModal] = useState(false)
   const [gameEndCoordinator, setGameEndCoordinator] = useState<GameEndCoordinator | null>(null)
   const [passedOutPlayers] = useState<Set<string>>(new Set())
   const [showFinalHandReveal, setShowFinalHandReveal] = useState(false)
@@ -938,18 +943,24 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       
       // Complete the current Charleston phase
       charlestonStore.completePhase()
-      
+
+      // Advance the turn counter for Charleston progression
+      gameStore.incrementTurn()
+
       // Show alert prompting user to input the tiles they received
       const currentPhase = charlestonStore.currentPhase
       const isCharlestonComplete = currentPhase === 'complete'
-      
-      gameStore.addAlert({
-        type: 'info',
-        title: isCharlestonComplete ? 'Charleston Complete!' : 'Charleston Pass Complete',
-        message: isCharlestonComplete 
-          ? 'Charleston is complete! Moving to gameplay phase.'
-          : 'Now enter the 3 tiles you received from other players using the tile input'
-      })
+
+      if (isCharlestonComplete) {
+        gameStore.addAlert({
+          type: 'info',
+          title: 'Charleston Complete!',
+          message: 'Charleston is complete! Moving to gameplay phase.'
+        })
+      } else {
+        // Show tile input modal for receiving tiles
+        setShowCharlestonModal(true)
+      }
       
       // If Charleston is complete, advance to gameplay phase
       if (isCharlestonComplete) {
@@ -965,6 +976,40 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       }
     }
   }, [tileStore, roomSetupStore.coPilotMode, gameStore, onNavigateToCharleston, charlestonStore, handleAdvanceToGameplay])
+
+  // Handle receiving tiles in Charleston
+  const handleCharlestonTilesReceived = useCallback((tileIds: string[]) => {
+    // Add received tiles to hand
+    tileIds.forEach(tileId => {
+      const playerTile = tileService.createPlayerTile(tileId)
+      if (playerTile) {
+        tileStore.addTile(playerTile.id)
+      }
+    })
+
+    // Close modal
+    setShowCharlestonModal(false)
+
+    // Trigger analysis with the new hand
+    const playerHand = tileStore.playerHand
+    if (playerHand.length >= 10) {
+      intelligenceStore.analyzeHand(playerHand, selectedPatterns)
+    }
+
+    // Continue to next Charleston phase or complete Charleston
+    const currentPhase = charlestonStore.currentPhase
+    if (currentPhase === 'complete') {
+      // Charleston is complete, advance to gameplay
+      setTimeout(() => {
+        handleAdvanceToGameplay()
+      }, 1000)
+    } else {
+      // Generate new recommendations for the next Charleston phase
+      setTimeout(() => {
+        charlestonStore.generateRecommendations()
+      }, 500)
+    }
+  }, [tileStore, charlestonStore, handleAdvanceToGameplay, intelligenceStore, selectedPatterns])
 
   const findAlternativePatterns = useCallback(() => {
     if (!currentAnalysis || !currentAnalysis.bestPatterns) return
@@ -1259,6 +1304,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           onContinueToPostGame={handleContinueToPostGame}
         />
       )}
+
+      {/* Charleston Tile Input Modal */}
+      <TileInputModal
+        isOpen={showCharlestonModal}
+        onClose={() => setShowCharlestonModal(false)}
+        onConfirm={handleCharlestonTilesReceived}
+        mode="receive"
+        requiredCount={3}
+        context="charleston"
+      />
 
       {/* Selection Area - Fixed overlay for tile actions */}
       <SelectionArea 

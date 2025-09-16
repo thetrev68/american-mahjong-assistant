@@ -58,35 +58,42 @@ const DramaticTimer: React.FC<{
 }
 
 const getCharlestonPassingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
-  // Exclude "You" from the calculation - find actual player names only
-  const actualPlayers = playerNames.filter(name => name !== 'You')
-  if (actualPlayers.length === 0) return 'Next Player'
-  
-  // For Charleston, we rotate through actual player names based on phase
-  const phaseIndex = ['right', 'across', 'left', 'optional-left', 'optional-across', 'optional-right'].indexOf(charlestonPhase)
-  const targetIndex = phaseIndex >= 0 ? phaseIndex % actualPlayers.length : 0
-  
-  return actualPlayers[targetIndex] || 'Next Player'
+  // In Charleston, "You" is always at position 0, other players at positions 1, 2, 3
+  const allPlayers = playerNames // Should be ['You', 'Player2', 'Player3', 'Player4']
+  if (allPlayers.length < 4) return 'Next Player'
+
+  // Charleston passing directions from "You" (position 0)
+  const passingPositions = {
+    'right': 1,        // Pass to player on right (position 1)
+    'across': 2,       // Pass to player across (position 2)
+    'left': 3,         // Pass to player on left (position 3)
+    'optional-right': 1,
+    'optional-across': 2,
+    'optional-left': 3
+  }
+
+  const targetPosition = passingPositions[charlestonPhase] || 1
+  return allPlayers[targetPosition] || 'Next Player'
 }
 
 const getCharlestonReceivingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
-  // Exclude "You" from the calculation - find actual player names only
-  const actualPlayers = playerNames.filter(name => name !== 'You')
-  if (actualPlayers.length === 0) return 'Previous Player'
-  
-  // Charleston receiving direction is opposite of passing direction
+  // In Charleston, "You" is always at position 0, other players at positions 1, 2, 3
+  const allPlayers = playerNames // Should be ['You', 'Player2', 'Player3', 'Player4']
+  if (allPlayers.length < 4) return 'Previous Player'
+
+  // Charleston receiving directions - receiving is opposite of passing
   // right pass = receive from left, across pass = receive from across, left pass = receive from right
-  const receivingDirection = {
-    'right': 2,        // receive from left (2 positions in 4-player game)
-    'across': 1,       // receive from across  
-    'left': 0,         // receive from right (0 positions in rotation)
-    'optional-left': 0,
-    'optional-across': 1, 
-    'optional-right': 2
+  const receivingPositions = {
+    'right': 3,        // receive from left (position 3)
+    'across': 2,       // receive from across (position 2)
+    'left': 1,         // receive from right (position 1)
+    'optional-right': 3,
+    'optional-across': 2,
+    'optional-left': 1
   }
-  
-  const targetIndex = receivingDirection[charlestonPhase as keyof typeof receivingDirection] ?? 0
-  return actualPlayers[targetIndex % actualPlayers.length] || 'Previous Player'
+
+  const sourcePosition = receivingPositions[charlestonPhase] || 3
+  return allPlayers[sourcePosition] || 'Previous Player'
 }
 
 const getNextPlayer = (currentPlayer: string, playerNames: string[], gamePhase?: 'charleston' | 'gameplay'): string => {

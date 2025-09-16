@@ -37,13 +37,15 @@ export const TileInputModal = ({
 
   // Initialize modal hand with provided tiles
   useEffect(() => {
-    if (isOpen && initialTiles.length > 0) {
-      const tiles = initialTiles.map(tileId => tileService.createPlayerTile(tileId)).filter(tile => tile !== null) as PlayerTile[]
-      setModalHand(tiles)
-    } else if (isOpen) {
-      setModalHand([])
+    if (isOpen) {
+      if (initialTiles.length > 0) {
+        const tiles = initialTiles.map(tileId => tileService.createPlayerTile(tileId)).filter(tile => tile !== null) as PlayerTile[]
+        setModalHand(tiles)
+      } else {
+        setModalHand([])
+      }
     }
-  }, [isOpen, initialTiles])
+  }, [isOpen, initialTiles.length])
 
   // Get current hand as sorted tile abbreviations
   const getCurrentHandDisplay = () => {

@@ -423,21 +423,17 @@ export const useCharlestonStore = create<CharlestonStore>()(
 
 // Helper function to determine next phase
 function getNextPhase(currentPhase: CharlestonPhase, playerCount: number): CharlestonPhase {
-  // TODO: Fix Charleston flow - current implementation is incorrect
-  // Correct flow should be:
-  // 1. Initial Charleston: right → across → left → DECISION POINT
-  // 2. Optional Charleston 1: right → across → left → DECISION POINT  
-  // 3. Optional Charleston 2: right → across → left → complete
-  // Maximum 9 passes total (3 Charleston rounds), not 4 passes
-  // Currently treating 'optional' as single 4th pass instead of decision point
-  
+  // Charleston flow for American Mahjong:
+  // Mandatory: right → across → left → complete (3 passes)
+  // Optional phases can be added later but for solo mode, end after mandatory 3
+
   switch (currentPhase) {
     case 'right':
       return playerCount === 3 ? 'left' : 'across' // Skip across in 3-player games
     case 'across':
       return 'left'
     case 'left':
-      return 'optional'
+      return 'complete' // Complete after 3 mandatory passes in solo mode
     case 'optional':
     default:
       return 'complete'
