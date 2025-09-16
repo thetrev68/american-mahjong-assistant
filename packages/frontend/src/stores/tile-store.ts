@@ -5,7 +5,7 @@ import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { PlayerTile } from 'shared-types'
 import { tileService } from '../lib/services/tile-service'
-import { AnalysisEngine } from '../lib/services/analysis-engine'
+import { lazyAnalysisEngine } from '../lib/services/analysis-engine-lazy'
 
 // Local type definitions for tile store functionality
 type TileInputMode = 'select' | 'input' | 'edit'
@@ -164,8 +164,8 @@ export const useTileStore = create<TileState>()(
             const newHand = [...state.playerHand, playerTile]
             const newTileIds = newHand.map(tile => tile.id)
             
-            // Clear Engine 1 cache when hand changes
-            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            // Clear Engine 1 cache when hand changes (async, don't block)
+            lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
             
             const validation = tileService.validateHand(newHand, state.dealerHand ? 14 : 13)
             
@@ -184,8 +184,8 @@ export const useTileStore = create<TileState>()(
             const newHand = state.playerHand.filter(tile => tile.instanceId !== instanceId)
             const newTileIds = newHand.map(tile => tile.id)
             
-            // Clear Engine 1 cache when hand changes
-            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            // Clear Engine 1 cache when hand changes (async, don't block)
+            lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
             
             const validation = tileService.validateHand(newHand, state.dealerHand ? 14 : 13)
             
@@ -224,8 +224,8 @@ export const useTileStore = create<TileState>()(
             const oldTileIds = state.playerHand.map(tile => tile.id)
             const newTileIds: string[] = []
             
-            // Clear Engine 1 cache when hand cleared
-            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            // Clear Engine 1 cache when hand cleared (async, don't block)
+            lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
             
             return {
               playerHand: [],
@@ -486,8 +486,8 @@ export const useTileStore = create<TileState>()(
             const oldTileIds = state.playerHand.map(tile => tile.id)
             const newTileIds = validTiles.map(tile => tile.id)
             
-            // Clear Engine 1 cache when hand changes
-            AnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
+            // Clear Engine 1 cache when hand changes (async, don't block)
+            lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
             
             const validation = tileService.validateHand(validTiles, state.dealerHand ? 14 : 13)
             
@@ -643,9 +643,14 @@ export const useTileStore = create<TileState>()(
             state.selectedCount = state.playerHand?.filter(tile => tile.isSelected).length || 0
             state.selectedTiles = state.playerHand?.filter(tile => tile.isSelected) || []
             
-            // Revalidate hand after rehydration
+            // Defer expensive validation to avoid blocking UI render
             if (state.playerHand && state.playerHand.length > 0) {
-              state.validation = tileService.validateHand(state.playerHand, state.dealerHand ? 14 : 13)
+              // Use next tick to avoid blocking store hydration
+              Promise.resolve().then(() => {
+                const validation = tileService.validateHand(state.playerHand, state.dealerHand ? 14 : 13)
+                // Update validation asynchronously
+                useTileStore.setState({ validation })
+              })
             }
           }
         }

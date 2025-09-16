@@ -734,7 +734,7 @@ export class GameLogicService {
   /**
    * Execute: Pass Out Action
    */
-  private executePassOutAction(playerId: string, actionData: GameActionData): GameActionResult {
+  private executePassOutAction(playerId: string, _actionData: GameActionData): GameActionResult {
     // const player = this.playerData.get(playerId)!
     
     // Mark player as passed out

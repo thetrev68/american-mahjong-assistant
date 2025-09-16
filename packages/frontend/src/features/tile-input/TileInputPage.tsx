@@ -14,7 +14,7 @@ import { useTileStore, useGameStore } from '../../stores'
 export const TileInputPage = () => {
   const navigate = useNavigate()
   const [selectorMode] = useState<'full' | 'compact'>('full')
-  const [showTileSelector, setShowTileSelector] = useState(true)
+  const [showTileSelector, setShowTileSelector] = useState(false) // Start false for lazy loading
   
   const {
     playerHand,
@@ -42,6 +42,12 @@ export const TileInputPage = () => {
   useEffect(() => {
     setGamePhase('tile-input')
   }, [setGamePhase])
+
+  // Lazy load TileSelector to improve initial render performance
+  useEffect(() => {
+    const timer = setTimeout(() => setShowTileSelector(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
   
   useEffect(() => {
     // Only run once on initial mount to prevent clearing hand on subsequent navigation

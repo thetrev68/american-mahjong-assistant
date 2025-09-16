@@ -1,7 +1,7 @@
 // Animated Tile Component with comprehensive animation system
 // Extends the basic Tile component with contextual animations
 
-import React, { useCallback, useEffect, useRef, useState, useMemo } from 'react'
+import React, { useCallback, useEffect, useRef, useState, useMemo, memo } from 'react'
 import type { PlayerTile } from 'shared-types'
 import { Tile } from '../Tile'
 import { useTileAnimations, useSpecialTileAnimations } from '../../hooks/useAnimations'
@@ -27,7 +27,7 @@ interface AnimatedTileProps {
   recommendationType?: 'keep' | 'pass' | 'discard' | 'joker'
 }
 
-export const AnimatedTile = ({
+export const AnimatedTile = memo(({
   tile,
   size = 'md',
   interactive = true,
@@ -301,4 +301,4 @@ export const AnimatedTile = ({
       {children}
     </div>
   )
-}
+})

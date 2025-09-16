@@ -5,6 +5,22 @@ import type { PlayerTile } from 'shared-types'
 import type { Tile, TileSuit, TileValue } from 'shared-types'
 import tilesData from '../../assets/tiles.json'
 
+// Local interfaces for tile service functionality
+interface HandValidation {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+  tileCount: number
+  expectedCount: number
+  duplicateErrors: string[]
+}
+
+interface TileCount {
+  tileId: string
+  count: number
+  remaining: number
+}
+
 class TileService {
   private allTiles: Tile[] = []
   private initialized = false
@@ -13,16 +29,16 @@ class TileService {
     // Lazy initialization to avoid circular dependency issues
   }
 
-  private initializeTiles() {
+
+  private doInitializeTiles() {
     if (this.initialized) return
-    
+
     const tiles: Tile[] = []
 
     // Use the frames directly from the JSON in their original order
     tilesData.frames.forEach(frame => {
       const tileId = frame.filename.replace('.png', '')
       const description = frame.description // Use the description from the JSON
-      const unicodeSymbol = frame.unicodeSymbol
 
       let suit: TileSuit
       let value: TileValue
@@ -55,8 +71,7 @@ class TileService {
         id: tileId,
         suit: suit,
         value: value,
-        displayName: description,
-        unicodeSymbol: unicodeSymbol
+        displayName: description
       })
     })
 
@@ -66,19 +81,26 @@ class TileService {
 
   // Get all available tiles
   getAllTiles(): Tile[] {
-    this.initializeTiles()
+    // For synchronous calls, do immediate initialization if not already done
+    if (!this.initialized) {
+      this.doInitializeTiles()
+    }
     return [...this.allTiles]
   }
 
   // Get tiles by suit
   getTilesBySuit(suit: TileSuit): Tile[] {
-    this.initializeTiles()
+    if (!this.initialized) {
+      this.doInitializeTiles()
+    }
     return this.allTiles.filter(tile => tile.suit === suit)
   }
 
   // Get tile by ID
   getTileById(id: string): Tile | undefined {
-    this.initializeTiles()
+    if (!this.initialized) {
+      this.doInitializeTiles()
+    }
     return this.allTiles.find(tile => tile.id === id)
   }
 
@@ -217,8 +239,7 @@ class TileService {
       winds: [],
       dragons: [],
       flowers: [],
-      jokers: [],
-      special: []
+      jokers: []
     }
 
     tiles.forEach(tile => {
@@ -235,9 +256,11 @@ class TileService {
 
   // Quick tile search
   searchTiles(query: string): Tile[] {
-    this.initializeTiles()
+    if (!this.initialized) {
+      this.doInitializeTiles()
+    }
     const lowercaseQuery = query.toLowerCase()
-    return this.allTiles.filter(tile => 
+    return this.allTiles.filter(tile =>
       tile.displayName.toLowerCase().includes(lowercaseQuery) ||
       tile.id.toLowerCase().includes(lowercaseQuery) ||
       tile.suit.toLowerCase().includes(lowercaseQuery)

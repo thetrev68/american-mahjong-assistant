@@ -1,7 +1,7 @@
 // Simplified Tile Sprite Component
 // Clean tile rendering with sprites, selection, and basic interaction
 
-import { forwardRef } from 'react'
+import { forwardRef, memo } from 'react'
 import { useTileSprites } from '../hooks/useTileSprites'
 
 interface TileSpriteProps {
@@ -19,7 +19,7 @@ interface TileSpriteProps {
   onDoubleClick?: (tileId: string) => void
 }
 
-export const TileSprite = forwardRef<HTMLDivElement, TileSpriteProps>(({
+export const TileSprite = memo(forwardRef<HTMLDivElement, TileSpriteProps>(({
   tileId,
   size = 'md',
   scale,
@@ -164,6 +164,6 @@ export const TileSprite = forwardRef<HTMLDivElement, TileSpriteProps>(({
       </div>
     </div>
   )
-})
+}))
 
 TileSprite.displayName = 'TileSprite'

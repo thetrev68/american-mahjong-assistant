@@ -268,11 +268,25 @@ export const useMultiplayerStore = create<MultiplayerState>()(
       }),
       {
         name: 'multiplayer-store',
+        storage: {
+          getItem: (name) => {
+            // Use sessionStorage for temporary game state to reduce persistence load
+            const str = sessionStorage.getItem(name)
+            if (!str) return null
+            return JSON.parse(str)
+          },
+          setItem: (name, value) => {
+            sessionStorage.setItem(name, JSON.stringify(value))
+          },
+          removeItem: (name) => sessionStorage.removeItem(name),
+        },
         partialize: (state) => ({
-          // Only persist certain fields
+          // Only persist essential connection info, not heavy game state
           currentPlayerId: state.currentPlayerId,
-          currentRoom: state.currentRoom,
-          gameState: state.gameState
+          currentRoom: state.currentRoom ? {
+            ...state.currentRoom,
+            players: [] // Don't persist player arrays to reduce size
+          } : null
         })
       }
     ),

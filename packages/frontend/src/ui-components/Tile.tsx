@@ -2,6 +2,7 @@
 // Interactive tile wrapper for PlayerTile objects with basic functionality
 
 import type { ReactNode } from 'react'
+import { memo } from 'react'
 import type { PlayerTile } from 'shared-types';
 import type { Tile } from 'shared-types';
 import { TileSprite } from './TileSprite'
@@ -16,7 +17,7 @@ interface TileProps {
   children?: ReactNode
 }
 
-export const Tile = ({
+export const Tile = memo(({
   tile,
   size = 'md',
   interactive = true,
@@ -64,4 +65,4 @@ export const Tile = ({
       )}
     </div>
   )
-}
+})

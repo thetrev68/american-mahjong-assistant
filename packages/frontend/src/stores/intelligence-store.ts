@@ -5,9 +5,9 @@ import { create } from 'zustand'
 import { devtools } from 'zustand/middleware'
 import type { PatternSelectionOption, PatternGroup } from 'shared-types'
 import type { PlayerTile } from 'shared-types';
-import { AnalysisEngine } from '../lib/services/analysis-engine'
+import { lazyAnalysisEngine } from '../lib/services/analysis-engine-lazy'
 import { getTurnIntelligenceEngine } from '../features/intelligence-panel/services/turn-intelligence-engine'
-import { getOpponentAnalysisEngine } from '../features/intelligence-panel/services/opponent-analysis-engine'
+import { getOpponentAnalysisEngine } from '../features/intelligence-panel/services/analysis-engines-lazy'
 import { getCallOpportunityAnalyzer } from '../features/intelligence-panel/services/call-opportunity-analyzer'
 import type { TurnRecommendations, DefensiveAnalysis, PatternSwitchSuggestion, GameState } from '../features/intelligence-panel/services/turn-intelligence-engine'
 import type { OpponentProfile, DangerousTileAnalysis } from '../features/intelligence-panel/services/opponent-analysis-engine'
@@ -237,8 +237,8 @@ export const useIntelligenceStore = create<IntelligenceState>()(
             get().clearCache()
           }
           
-          // Use real analysis engine
-          const analysis = await AnalysisEngine.analyzeHand(tiles, patterns)
+          // Use real analysis engine (lazy loaded)
+          const analysis = await lazyAnalysisEngine.analyzeHand(tiles, patterns)
           
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)
