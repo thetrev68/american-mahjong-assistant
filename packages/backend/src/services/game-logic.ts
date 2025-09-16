@@ -84,7 +84,7 @@ interface PlayerGameData {
   jokersHeld: number
 }
 
-type GameActionData =
+export type GameActionData =
   | { tile: Tile } // discard
   | { targetTile: Tile; setType: 'pung' | 'kong' } // call
   | { jokerTile: Tile; replacementTile: Tile } // joker swap
@@ -387,11 +387,11 @@ export class GameLogicService {
       violations.push('Must draw before discarding')
     }
     
-    if (!actionData?.tile) {
+    if (!actionData || !('tile' in actionData)) {
       violations.push('No tile specified for discard')
       return { isValid: false, violations }
     }
-    
+
     const tileInHand = player.hand.find(tile => tile.id === actionData.tile.id)
     if (!tileInHand) {
       violations.push('Tile not found in hand')
@@ -410,12 +410,13 @@ export class GameLogicService {
   private validateCallAction(player: PlayerGameData, actionData: GameActionData): GameActionValidation {
     const violations: string[] = []
     
-    if (!actionData?.callType || !['pung', 'kong'].includes(actionData.callType)) {
-      violations.push('Invalid call type - must be pung or kong')
+    if (!actionData || !('targetTile' in actionData) || !('setType' in actionData)) {
+      violations.push('Invalid call action data - must include targetTile and setType')
+      return { isValid: false, violations }
     }
-    
-    if (!actionData?.targetTile) {
-      violations.push('No target tile specified for call')
+
+    if (!['pung', 'kong'].includes(actionData.setType)) {
+      violations.push('Invalid call type - must be pung or kong')
     }
     
     if (this.discardPile.tiles.length === 0) {
@@ -423,17 +424,17 @@ export class GameLogicService {
     }
     
     // Check if player has required tiles for the call
-    if (actionData?.callType === 'pung') {
-      const matchingTiles = player.hand.filter(tile => 
+    if (actionData.setType === 'pung') {
+      const matchingTiles = player.hand.filter(tile =>
         tile.id === actionData.targetTile.id || tile.id === 'joker'
       )
       if (matchingTiles.length < 2) {
         violations.push(`Need at least 2 matching tiles for pung (have ${matchingTiles.length})`)
       }
     }
-    
-    if (actionData?.callType === 'kong') {
-      const matchingTiles = player.hand.filter(tile => 
+
+    if (actionData.setType === 'kong') {
+      const matchingTiles = player.hand.filter(tile =>
         tile.id === actionData.targetTile.id || tile.id === 'joker'
       )
       if (matchingTiles.length < 3) {
@@ -454,8 +455,9 @@ export class GameLogicService {
   private validateJokerSwapAction(player: PlayerGameData, actionData: GameActionData): GameActionValidation {
     const violations: string[] = []
     
-    if (!actionData?.jokerTile || !actionData?.replacementTile) {
+    if (!actionData || !('jokerTile' in actionData) || !('replacementTile' in actionData)) {
       violations.push('Must specify both joker tile and replacement tile')
+      return { isValid: false, violations }
     }
     
     if (player.jokersHeld === 0) {
@@ -486,12 +488,12 @@ export class GameLogicService {
       violations.push(`Invalid tile count for mahjong: ${totalTiles} (need exactly 14)`)
     }
     
-    if (!actionData?.selectedPattern) {
+    if (!actionData || !('winningPattern' in actionData)) {
       violations.push('Must specify winning pattern')
     }
-    
-    if (!actionData?.winningHand) {
-      violations.push('Must provide winning hand for validation')
+
+    if (!actionData || !('totalScore' in actionData)) {
+      violations.push('Must provide total score for mahjong')
     }
     
     return {
@@ -553,6 +555,9 @@ export class GameLogicService {
    */
   private executeDiscardAction(playerId: string, actionData: GameActionData): GameActionResult {
     const player = this.playerData.get(playerId)!
+    if (!actionData || !('tile' in actionData)) {
+      throw new Error('Invalid discard action data')
+    }
     const tileToDiscard = actionData.tile
     
     // Remove tile from hand
@@ -599,14 +604,17 @@ export class GameLogicService {
    */
   private executeCallAction(playerId: string, actionData: GameActionData): GameActionResult {
     const player = this.playerData.get(playerId)!
-    const { callType, targetTile } = actionData
-    
+    if (!actionData || !('targetTile' in actionData) || !('setType' in actionData)) {
+      throw new Error('Invalid call action data')
+    }
+    const { setType, targetTile } = actionData
+
     // Get the discarded tile
     const discardedTile = this.discardPile.tiles.pop()!
-    
+
     // Remove matching tiles from hand
     const tilesForSet: Tile[] = [discardedTile]
-    const neededTiles = callType === 'pung' ? 2 : 3
+    const neededTiles = setType === 'pung' ? 2 : 3
     
     for (let i = 0; i < neededTiles && tilesForSet.length <= neededTiles; i++) {
       const matchingIndex = player.hand.findIndex(tile => 
@@ -619,7 +627,7 @@ export class GameLogicService {
     
     // Create exposed set
     const exposedSet: ExposedSet = {
-      type: callType as 'pung' | 'kong',
+      type: setType,
       tiles: tilesForSet,
       calledFrom: this.getLastDiscardingPlayer() as PlayerPosition,
       timestamp: Date.now()
@@ -634,7 +642,7 @@ export class GameLogicService {
       action: 'call',
       playerId,
       data: {
-        callType,
+        setType,
         exposedSet,
         handSize: player.hand.length,
         exposedSets: player.exposedSets.length
@@ -650,6 +658,9 @@ export class GameLogicService {
    */
   private executeJokerSwapAction(playerId: string, actionData: GameActionData): GameActionResult {
     const player = this.playerData.get(playerId)!
+    if (!actionData || !('replacementTile' in actionData)) {
+      throw new Error('Invalid joker swap action data')
+    }
     const { replacementTile } = actionData
     
     // Find the exposed set containing the joker
@@ -700,19 +711,21 @@ export class GameLogicService {
    */
   private executeMahjongAction(playerId: string, actionData: GameActionData): GameActionResult {
     // const player = this.playerData.get(playerId)!
-    
+    if (!actionData || !('winningPattern' in actionData) || !('totalScore' in actionData)) {
+      throw new Error('Invalid mahjong action data')
+    }
+
     // In a full implementation, this would integrate with MahjongValidator
     // For now, we'll assume the frontend has already validated the win
-    
+
     return {
       success: true,
       action: 'mahjong',
       playerId,
       data: {
         winner: playerId,
-        winningHand: actionData.winningHand,
-        selectedPattern: actionData.selectedPattern,
-        finalScore: actionData.selectedPattern?.Hand_Points || 25
+        winningPattern: actionData.winningPattern,
+        totalScore: actionData.totalScore
       },
       gameEnded: true
     }
@@ -732,7 +745,7 @@ export class GameLogicService {
       action: 'pass-out',
       playerId,
       data: {
-        reason: actionData?.reason || 'Player chose to pass out',
+        reason: 'Player chose to pass out',
         remainingPlayers: Array.from(this.playerData.keys()).filter(id => id !== playerId)
       },
       nextPlayer: this.getNextPlayer(playerId)

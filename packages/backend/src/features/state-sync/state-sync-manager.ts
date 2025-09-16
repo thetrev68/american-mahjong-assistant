@@ -197,19 +197,25 @@ export class StateSyncManager {
   private validateUpdate(gameState: GameState, update: StateUpdate): void {
     switch (update.type) {
       case 'phase-change':
-        this.validatePhaseChange(gameState, update.data.phase)
+        if ('phase' in update.data) {
+          this.validatePhaseChange(gameState, update.data.phase)
+        }
         break
       case 'player-state':
-        this.validatePlayerState(update.data)
+        this.validatePlayerState(update.data as Partial<PlayerGameState>)
         break
       case 'shared-state':
-        this.validateSharedState(update.data)
+        this.validateSharedState(update.data as Partial<SharedState>)
         break
       case 'round-change':
-        this.validateRoundChange(gameState, update.data)
+        if ('round' in update.data && 'wind' in update.data) {
+          this.validateRoundChange(gameState, update.data as { round: number; wind: GameState['currentWind'] })
+        }
         break
       case 'turn-change':
-        this.validateTurnChange(gameState, update.data)
+        if ('currentPlayer' in update.data) {
+          this.validateTurnChange(gameState, update.data as { currentPlayer: string })
+        }
         break
       default:
         throw new Error(`Unknown update type: ${update.type}`)
@@ -221,26 +227,32 @@ export class StateSyncManager {
 
     switch (update.type) {
       case 'phase-change':
-        updatedState.phase = update.data.phase
+        if ('phase' in update.data) {
+          updatedState.phase = update.data.phase
+        }
         break
       case 'player-state':
         updatedState.playerStates[update.playerId] = {
           ...updatedState.playerStates[update.playerId],
-          ...update.data
+          ...(update.data as Partial<PlayerGameState>)
         }
         break
       case 'shared-state':
         updatedState.sharedState = {
           ...updatedState.sharedState,
-          ...update.data
+          ...(update.data as Partial<SharedState>)
         }
         break
       case 'round-change':
-        updatedState.currentRound = update.data.round
-        updatedState.currentWind = update.data.wind
+        if ('round' in update.data && 'wind' in update.data) {
+          updatedState.currentRound = update.data.round
+          updatedState.currentWind = update.data.wind
+        }
         break
       case 'turn-change':
-        updatedState.sharedState.currentPlayer = update.data.currentPlayer
+        if ('currentPlayer' in update.data) {
+          updatedState.sharedState.currentPlayer = update.data.currentPlayer || null
+        }
         break
     }
 

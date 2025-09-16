@@ -3,7 +3,7 @@ import { RoomManager } from '../room-lifecycle/room-manager'
 import { StateSyncManager } from '../state-sync/state-sync-manager'
 import { RoomLifecycleManager } from '../room-management/room-lifecycle-manager'
 import { PlayerCoordinationManager } from '../room-management/player-coordination-manager'
-import { GameLogicService } from '../../services/game-logic'
+import { GameLogicService, type GameActionData } from '../../services/game-logic'
 import { MahjongValidationBridge } from '../../services/mahjong-validation-bridge'
 import type { Room, Player, GameState, RoomConfig, Tile, NMJL2025Pattern } from 'shared-types'
 import type { StateUpdate } from '../state-sync/state-sync-manager'
@@ -1313,7 +1313,7 @@ export class SocketHandlers {
     try {
       // Execute action using real game logic
       const gameLogic = this.getOrCreateGameLogic(roomId)
-      const result = await gameLogic.executeAction(playerId, action, actionData)
+      const result = await gameLogic.executeAction(playerId, action, actionData as GameActionData)
       
       // Add timestamp and format for socket response
       return {
