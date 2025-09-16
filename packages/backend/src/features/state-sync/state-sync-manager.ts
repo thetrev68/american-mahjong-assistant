@@ -4,22 +4,29 @@ import type {
   SharedState 
 } from 'shared-types'
 
-type StateUpdateType = 
+type StateUpdateType =
   | 'phase-change'
-  | 'player-state' 
+  | 'player-state'
   | 'shared-state'
   | 'round-change'
   | 'turn-change'
 
+type StateUpdateData =
+  | { phase: GameState['phase'] } // phase-change
+  | Partial<PlayerGameState> // player-state
+  | Partial<SharedState> // shared-state
+  | { round: number; wind: GameState['currentWind'] } // round-change
+  | { currentPlayer: string } // turn-change
+
 export interface StateUpdate {
   type: StateUpdateType
   playerId: string
-  data: any
+  data: StateUpdateData
   timestamp: Date
 }
 
 interface ConflictResolutionStrategy {
-  resolveConflict: (current: any, incoming: StateUpdate, history: StateUpdate[]) => any
+  resolveConflict: (current: GameState, incoming: StateUpdate, history: StateUpdate[]) => GameState
 }
 
 export class StateSyncManager {
@@ -314,6 +321,9 @@ export class StateSyncManager {
   }
 
   private defaultConflictResolution(current: GameState, incoming: StateUpdate, _history: StateUpdate[]): GameState {
-    return incoming.timestamp > current.lastUpdated ? incoming.data : current
+    if (incoming.timestamp > current.lastUpdated) {
+      return this.applyUpdate(current, incoming)
+    }
+    return current
   }
 }

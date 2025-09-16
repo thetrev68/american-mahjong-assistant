@@ -1,6 +1,8 @@
 // Shared Multiplayer Types - Common interfaces for frontend and backend
 
 import type { Tile } from './game-types'
+import type { GameSettings } from './room-types'
+import type { NMJL2025Pattern } from './nmjl-types'
 
 export interface Player {
   id: string
@@ -35,7 +37,7 @@ export interface PlayerGameState {
   handTileCount?: number
   isReady?: boolean
   selectedPatterns?: string[]
-  selectedTiles?: any[]
+  selectedTiles?: Tile[]
   position?: number
   score?: number
   isDealer?: boolean
@@ -63,6 +65,52 @@ export interface GameState {
   lastUpdated: Date
 }
 
+// Additional interface definitions for socket events
+export interface ReadinessSummary {
+  [playerId: string]: {
+    isReady: boolean
+    phase: string
+    timestamp?: number
+  }
+}
+
+export interface StateUpdate {
+  type: 'player_ready' | 'tiles_selected' | 'phase_change' | 'turn_change' | 'game_end'
+  playerId?: string
+  phase?: string
+  data?: Record<string, unknown>
+  timestamp: number
+}
+
+export interface PlayerStateInfo {
+  playerId: string
+  isReady: boolean
+  isConnected: boolean
+  phase: string
+  selectedTiles?: Tile[]
+  selectedPatterns?: string[]
+}
+
+export interface GameStatistics {
+  duration: number
+  totalTurns: number
+  totalDiscards: number
+  charlestonsCompleted: number
+  winner?: string
+  finalHands?: Record<string, Tile[]>
+  selectedPatterns?: Record<string, NMJL2025Pattern[]>
+}
+
+export interface FinalScore {
+  playerId: string
+  playerName: string
+  score: number
+  pattern?: NMJL2025Pattern
+  handPoints?: number
+  bonusPoints?: number
+  penalties?: number
+}
+
 // Socket Event Types
 export interface SocketEvents {
   // Room events
@@ -80,9 +128,9 @@ export interface SocketEvents {
   'room-deleted': (data: { roomId: string }) => void
   
   // Enhanced room management events
-  'room-update-settings': (data: { roomId: string; settings: any }) => void
+  'room-update-settings': (data: { roomId: string; settings: Partial<GameSettings> }) => void
   'room-settings-updated': (data: { success: boolean; error?: string }) => void
-  'room-settings-changed': (data: { room: Room; settings: any }) => void
+  'room-settings-changed': (data: { room: Room; settings: GameSettings }) => void
   
   'room-transfer-host': (data: { roomId: string; newHostId: string }) => void
   'room-host-transferred': (data: { success: boolean; error?: string }) => void
@@ -93,28 +141,28 @@ export interface SocketEvents {
   'room-kicked': (data: { roomId: string; kickedBy: string }) => void
   
   'room-reconnect': (data: { roomId: string; playerId: string; playerName: string }) => void
-  'room-reconnect-response': (data: { success: boolean; room?: Room; playerStates?: any[]; gameState?: GameState; error?: string }) => void
+  'room-reconnect-response': (data: { success: boolean; room?: Room; playerStates?: PlayerStateInfo[]; gameState?: GameState; error?: string }) => void
   'player-reconnected': (data: { playerId: string; playerName: string }) => void
   
   'phase-transition': (data: { roomId: string; fromPhase: string; toPhase: string }) => void
-  'phase-transition-response': (data: { success: boolean; allReady?: boolean; readinessSummary?: any; error?: string }) => void
+  'phase-transition-response': (data: { success: boolean; allReady?: boolean; readinessSummary?: ReadinessSummary; error?: string }) => void
   'phase-changed': (data: { fromPhase: string; toPhase: string; triggeredBy: string }) => void
   
-  'player-state-sync': (data: { roomId: string; phase: string; state: any }) => void
+  'player-state-sync': (data: { roomId: string; phase: string; state: PlayerStateInfo }) => void
   'player-state-sync-response': (data: { success: boolean; error?: string }) => void
   'player-state-updated': (data: { playerId: string; phase: string; isReady?: boolean; isConnected: boolean }) => void
   
   'game-state-recovery': (data: { roomId: string }) => void
-  'game-state-recovery-response': (data: { success: boolean; room?: Room; playerStates?: any[]; gameState?: GameState; readinessSummary?: any; recoveredAt?: Date; error?: string }) => void
+  'game-state-recovery-response': (data: { success: boolean; room?: Room; playerStates?: PlayerStateInfo[]; gameState?: GameState; readinessSummary?: ReadinessSummary; recoveredAt?: Date; error?: string }) => void
   
   'room-spectator-join': (data: { roomId: string; spectatorName: string }) => void
   'room-spectator-joined': (data: { success: boolean; room?: Room; isSpectator?: boolean; error?: string }) => void
   'spectator-joined': (data: { spectatorId: string; spectatorName: string }) => void
   
   // Game state events
-  'state-update': (data: { roomId: string; update: any }) => void
+  'state-update': (data: { roomId: string; update: StateUpdate }) => void
   'state-updated': (data: { success: boolean; gameState?: GameState; error?: string }) => void
-  'game-state-changed': (data: { roomId: string; gameState: GameState; update: any }) => void
+  'game-state-changed': (data: { roomId: string; gameState: GameState; update: StateUpdate }) => void
   
   'request-game-state': (data: { roomId: string }) => void
   'game-state': (data: { success: boolean; gameState?: GameState; error?: string }) => void
@@ -123,17 +171,17 @@ export interface SocketEvents {
   'room-list-updated': (data: { rooms: Room[] }) => void
   
   // Charleston events
-  'charleston-player-ready': (data: { roomId: string; playerId: string; selectedTiles: any[]; phase: string }) => void
+  'charleston-player-ready': (data: { roomId: string; playerId: string; selectedTiles: Tile[]; phase: string }) => void
   'charleston-player-ready-confirmed': (data: { success: boolean; playerId: string; phase: string }) => void
   'charleston-player-ready-update': (data: { playerId: string; isReady: boolean; phase: string }) => void
-  'charleston-tile-exchange': (data: { roomId: string; phase: string; tilesReceived: any[]; nextPhase: string }) => void
+  'charleston-tile-exchange': (data: { roomId: string; phase: string; tilesReceived: Tile[]; nextPhase: string }) => void
   'charleston-request-status': (data: { roomId: string }) => void
   'charleston-status': (data: { success: boolean; playerReadiness?: Record<string, boolean>; roomId?: string; error?: string }) => void
   'charleston-error': (data: { success: boolean; error: string }) => void
   
   // Turn management events
   'turn-start-game': (data: { roomId: string; firstPlayer: string; turnOrder: string[] }) => void
-  'turn-start-game-response': (data: { success: boolean; gameState?: any; error?: string }) => void
+  'turn-start-game-response': (data: { success: boolean; gameState?: GameState; error?: string }) => void
   'turn-advance': (data: { roomId: string; currentPlayerId: string; nextPlayerId: string; turnNumber: number }) => void
   'turn-advance-response': (data: { success: boolean; error?: string }) => void
   'turn-update': (data: { roomId: string; currentPlayer: string; turnNumber: number; roundNumber: number; currentWind: string }) => void
@@ -142,25 +190,25 @@ export interface SocketEvents {
   'turn-error': (data: { success: boolean; error: string }) => void
   
   // Game End events
-  'declare-mahjong': (data: { playerId: string; roomId: string; hand: any[]; pattern: any }) => void
+  'declare-mahjong': (data: { playerId: string; roomId: string; hand: Tile[]; pattern: NMJL2025Pattern }) => void
   'mahjong-declared': (data: { success: boolean; isValid: boolean; winner?: string; score?: number; validationDetails?: string; error?: string }) => void
-  'game-ended': (data: { endReason: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'; winner?: string; scores?: any[]; gameStats?: any; timestamp?: Date }) => void
+  'game-ended': (data: { endReason: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'; winner?: string; scores?: FinalScore[]; gameStats?: GameStatistics; timestamp?: Date }) => void
   
   // Multiplayer Game End Coordination
   'request-final-hand': (data: { requestingPlayerId: string; targetPlayerId: string; gameId: string }) => void
-  'final-hand-response': (data: { playerId: string; hand: any[]; success: boolean; error?: string }) => void
+  'final-hand-response': (data: { playerId: string; hand: Tile[]; success: boolean; error?: string }) => void
   'provide-final-hand': (data: { requestingPlayerId: string; gameId: string; responseId: string }) => void
-  'provide-final-hand-response': (data: { hand: any[]; responseId: string }) => void
-  'final-hand-provided': (data: { playerId: string; hand: any[]; responseId: string }) => void
+  'provide-final-hand-response': (data: { hand: Tile[]; responseId: string }) => void
+  'final-hand-provided': (data: { playerId: string; hand: Tile[]; responseId: string }) => void
   
   'request-selected-patterns': (data: { requestingPlayerId: string; targetPlayerId: string; gameId: string }) => void
-  'selected-patterns-response': (data: { playerId: string; patterns: any[]; success: boolean; error?: string }) => void
+  'selected-patterns-response': (data: { playerId: string; patterns: NMJL2025Pattern[]; success: boolean; error?: string }) => void
   'provide-selected-patterns': (data: { requestingPlayerId: string; gameId: string; responseId: string }) => void
-  'provide-patterns-response': (data: { patterns: any[]; responseId: string }) => void
-  'selected-patterns-provided': (data: { playerId: string; patterns: any[]; responseId: string }) => void
+  'provide-patterns-response': (data: { patterns: NMJL2025Pattern[]; responseId: string }) => void
+  'selected-patterns-provided': (data: { playerId: string; patterns: NMJL2025Pattern[]; responseId: string }) => void
   
-  'multiplayer-game-ended': (data: { roomId: string; endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date }) => void
-  'game-end-coordinated': (data: { endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date }) => void
+  'multiplayer-game-ended': (data: { roomId: string; endType: string; winner?: string; finalScores?: FinalScore[]; gameStats?: GameStatistics; reason?: string; timestamp?: Date }) => void
+  'game-end-coordinated': (data: { endType: string; winner?: string; finalScores?: FinalScore[]; gameStats?: GameStatistics; reason?: string; timestamp?: Date }) => void
   
   // Connection events
   'ping': (data: { timestamp: number }) => void

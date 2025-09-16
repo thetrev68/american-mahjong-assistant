@@ -269,7 +269,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const gameEndCoordination = useGameEndCoordination()
 
   // Action recommendation handler
-  const handleActionRecommendation = useCallback((action: string, data: any) => {
+  const handleActionRecommendation = useCallback((
+    action: string,
+    data: { tile?: PlayerTile; type?: string; [key: string]: unknown }
+  ) => {
     switch (action) {
       case 'discard-suggestion': {
         // Highlight suggested discard tile

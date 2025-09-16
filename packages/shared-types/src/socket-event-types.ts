@@ -19,6 +19,7 @@ import type {
 } from './game-state-types';
 import type { Tile } from './tile-types';
 import type { NMJL2025Pattern } from './nmjl-types';
+import type { FinalScore, GameStatistics } from './multiplayer-types';
 
 // Consolidated socket events interface merging all definitions
 export interface SocketEventMap {
@@ -134,9 +135,9 @@ export interface SocketEventMap {
   // Game End & Scoring Events
   'declare-mahjong': { roomId?: string; playerId: string; winningHand?: Tile[]; pattern?: NMJL2025Pattern; hand?: Tile[] };
   'mahjong-declared': { playerId?: string; winner?: string; winningHand?: Tile[]; pattern?: string; isValid: boolean; validationDetails?: string; score?: number };
-  'game-ended': { winner?: Player; endReason: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'; finalScores?: Array<{ playerId: string; playerName?: string; score: number; pattern?: string }>; gameStats?: { duration?: number; totalTurns?: number; charlestonPasses?: number }; scores?: any[]; timestamp?: Date };
-  'multiplayer-game-ended': { roomId: string; endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date };
-  'game-end-coordinated': { endType: string; winner?: string; finalScores?: any[]; gameStats?: any; reason?: string; timestamp?: Date };
+  'game-ended': { winner?: Player; endReason: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'; finalScores?: Array<{ playerId: string; playerName?: string; score: number; pattern?: string }>; gameStats?: { duration?: number; totalTurns?: number; charlestonPasses?: number }; scores?: FinalScore[]; timestamp?: Date };
+  'multiplayer-game-ended': { roomId: string; endType: string; winner?: string; finalScores?: FinalScore[]; gameStats?: GameStatistics; reason?: string; timestamp?: Date };
+  'game-end-coordinated': { endType: string; winner?: string; finalScores?: FinalScore[]; gameStats?: GameStatistics; reason?: string; timestamp?: Date };
   
   // Multiplayer Game End Coordination
   'request-final-hand': { requestingPlayerId: string; targetPlayerId: string; gameId: string };

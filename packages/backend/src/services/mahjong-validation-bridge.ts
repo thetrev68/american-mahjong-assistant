@@ -1,8 +1,7 @@
 // Mahjong Validation Bridge - Backend integration with frontend validator
 // Provides server-side validation using frontend MahjongValidator logic
 
-import type { NMJL2025Pattern } from 'shared-types'
-import type { Tile } from 'shared-types'
+import type { NMJL2025Pattern, PatternGroup, Tile } from 'shared-types'
 
 interface BackendMahjongValidation {
   isValid: boolean
@@ -237,7 +236,7 @@ export class MahjongValidationBridge {
   ): boolean {
     // Simplified joker validation
     // In a full implementation, this would check each group's joker rules
-    const hasJokerAllowedGroups = groups.some((group: any) => group.Jokers_Allowed)
+    const hasJokerAllowedGroups = groups.some((group: PatternGroup) => group.Jokers_Allowed)
     return hasJokerAllowedGroups
   }
 
@@ -355,12 +354,12 @@ export class MahjongValidationBridge {
     }
 
     // Check for special constraints
-    const hasConsecutive = pattern.Groups.some((g: any) => g.Constraint_Type === 'consecutive')
+    const hasConsecutive = pattern.Groups.some((g: PatternGroup) => g.Constraint_Type === 'consecutive')
     if (hasConsecutive) {
       specialNotes.push('Requires consecutive number sequences')
     }
 
-    const hasSinglesOrPairs = pattern.Groups.some((g: any) => 
+    const hasSinglesOrPairs = pattern.Groups.some((g: PatternGroup) => 
       g.Constraint_Type === 'single' || g.Constraint_Type === 'pair'
     )
     if (hasSinglesOrPairs) {
@@ -368,7 +367,7 @@ export class MahjongValidationBridge {
     }
 
     return {
-      allowsJokers: pattern.Groups.some((group: any) => group.Jokers_Allowed),
+      allowsJokers: pattern.Groups.some((group: PatternGroup) => group.Jokers_Allowed),
       requiresConcealedHand: pattern.Hand_Conceiled,
       difficulty: pattern.Hand_Difficulty,
       points: pattern.Hand_Points,

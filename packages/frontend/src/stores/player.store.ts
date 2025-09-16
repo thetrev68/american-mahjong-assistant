@@ -58,8 +58,9 @@ export const usePlayerStore = create<PlayerStore>()(
         }),
 
         clearPlayerPosition: (playerId) => set((state) => {
-          const { [playerId]: _, ...remaining } = state.playerPositions;
-          return { playerPositions: remaining };
+          const newPositions = { ...state.playerPositions };
+          delete newPositions[playerId];
+          return { playerPositions: newPositions };
         }),
 
         setOtherPlayerNames: (names) => set({ otherPlayerNames: names }),

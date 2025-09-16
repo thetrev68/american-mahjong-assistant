@@ -84,6 +84,14 @@ interface PlayerGameData {
   jokersHeld: number
 }
 
+type GameActionData =
+  | { tile: Tile } // discard
+  | { targetTile: Tile; setType: 'pung' | 'kong' } // call
+  | { jokerTile: Tile; replacementTile: Tile } // joker swap
+  | { winningPattern: string; totalScore: number } // mahjong
+  | Record<string, never> // pass out (empty data)
+  | undefined
+
 export class GameLogicService {
   private wall: GameWall
   private discardPile: DiscardPile
@@ -228,7 +236,7 @@ export class GameLogicService {
   /**
    * Validate a player action
    */
-  validateAction(playerId: string, action: string, actionData?: any): GameActionValidation {
+  validateAction(playerId: string, action: string, actionData?: GameActionData): GameActionValidation {
     const player = this.playerData.get(playerId)
     
     if (!player) {
@@ -265,9 +273,9 @@ export class GameLogicService {
    * Execute a validated player action
    */
   async executeAction(
-    playerId: string, 
-    action: string, 
-    actionData?: any
+    playerId: string,
+    action: string,
+    actionData?: GameActionData
   ): Promise<GameActionResult> {
     const validation = this.validateAction(playerId, action, actionData)
     
@@ -372,7 +380,7 @@ export class GameLogicService {
   /**
    * Validation: Discard Action
    */
-  private validateDiscardAction(player: PlayerGameData, actionData: any): GameActionValidation {
+  private validateDiscardAction(player: PlayerGameData, actionData: GameActionData): GameActionValidation {
     const violations: string[] = []
     
     if (!player.hasDrawn && player.hand.length === 13) {
@@ -399,7 +407,7 @@ export class GameLogicService {
   /**
    * Validation: Call Action (pung/kong)
    */
-  private validateCallAction(player: PlayerGameData, actionData: any): GameActionValidation {
+  private validateCallAction(player: PlayerGameData, actionData: GameActionData): GameActionValidation {
     const violations: string[] = []
     
     if (!actionData?.callType || !['pung', 'kong'].includes(actionData.callType)) {
@@ -443,7 +451,7 @@ export class GameLogicService {
   /**
    * Validation: Joker Swap Action
    */
-  private validateJokerSwapAction(player: PlayerGameData, actionData: any): GameActionValidation {
+  private validateJokerSwapAction(player: PlayerGameData, actionData: GameActionData): GameActionValidation {
     const violations: string[] = []
     
     if (!actionData?.jokerTile || !actionData?.replacementTile) {
@@ -470,7 +478,7 @@ export class GameLogicService {
   /**
    * Validation: Mahjong Declaration
    */
-  private validateMahjongAction(player: PlayerGameData, actionData: any): GameActionValidation {
+  private validateMahjongAction(player: PlayerGameData, actionData: GameActionData): GameActionValidation {
     const violations: string[] = []
     
     const totalTiles = player.hand.length + player.exposedSets.reduce((sum, set) => sum + set.tiles.length, 0)
@@ -543,7 +551,7 @@ export class GameLogicService {
   /**
    * Execute: Discard Action
    */
-  private executeDiscardAction(playerId: string, actionData: any): GameActionResult {
+  private executeDiscardAction(playerId: string, actionData: GameActionData): GameActionResult {
     const player = this.playerData.get(playerId)!
     const tileToDiscard = actionData.tile
     
@@ -589,7 +597,7 @@ export class GameLogicService {
   /**
    * Execute: Call Action (pung/kong)
    */
-  private executeCallAction(playerId: string, actionData: any): GameActionResult {
+  private executeCallAction(playerId: string, actionData: GameActionData): GameActionResult {
     const player = this.playerData.get(playerId)!
     const { callType, targetTile } = actionData
     
@@ -640,7 +648,7 @@ export class GameLogicService {
   /**
    * Execute: Joker Swap Action
    */
-  private executeJokerSwapAction(playerId: string, actionData: any): GameActionResult {
+  private executeJokerSwapAction(playerId: string, actionData: GameActionData): GameActionResult {
     const player = this.playerData.get(playerId)!
     const { replacementTile } = actionData
     
@@ -690,7 +698,7 @@ export class GameLogicService {
   /**
    * Execute: Mahjong Declaration
    */
-  private executeMahjongAction(playerId: string, actionData: any): GameActionResult {
+  private executeMahjongAction(playerId: string, actionData: GameActionData): GameActionResult {
     // const player = this.playerData.get(playerId)!
     
     // In a full implementation, this would integrate with MahjongValidator
@@ -713,7 +721,7 @@ export class GameLogicService {
   /**
    * Execute: Pass Out Action
    */
-  private executePassOutAction(playerId: string, actionData: any): GameActionResult {
+  private executePassOutAction(playerId: string, actionData: GameActionData): GameActionResult {
     // const player = this.playerData.get(playerId)!
     
     // Mark player as passed out

@@ -54,7 +54,6 @@ export const CallOpportunityModal: React.FC<CallOpportunityModalProps> = ({
     const interval = setInterval(updateTimer, 100)
     
     return () => clearInterval(interval)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [opportunity, hasResponded]) // handleResponse is stable and doesn't need to be in deps
 
   const handleResponse = React.useCallback((response: 'call' | 'pass', callType?: CallType) => {

@@ -198,18 +198,15 @@ export class MahjongValidator {
     }
 
     const violations: string[] = []
-    let _validGroupCount = 0
 
     // Validate each group is either a pung (3 identical) or kong (4 identical)
     for (const [tileId, group] of tileGroups) {
       const count = group.length
-      
+
       if (count === 3) {
         // Valid pung
-        _validGroupCount++
       } else if (count === 4) {
         // Valid kong
-        _validGroupCount++
       } else if (count < 3) {
         violations.push(`Incomplete set: ${count} ${tileId} tile${count !== 1 ? 's' : ''} (need 3 for pung or 4 for kong)`)
       } else {
