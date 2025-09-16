@@ -3,21 +3,59 @@
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { PlayerTile, TileInputState, HandValidation, TileInputMode, TileAnimation, TileRecommendation } from 'shared-types'
+import type { PlayerTile } from 'shared-types'
 import { tileService } from '../lib/services/tile-service'
 import { AnalysisEngine } from '../lib/services/analysis-engine'
 
+// Local type definitions for tile store functionality
+type TileInputMode = 'select' | 'input' | 'edit'
+
+interface HandValidation {
+  isValid: boolean
+  errors: string[]
+  warnings: string[]
+  tileCount: number
+  expectedCount: number
+  duplicateErrors: string[]
+}
+
+interface TileAnimation {
+  type: 'select' | 'deselect' | 'move' | 'highlight'
+  duration: number
+  delay?: number
+}
+
+interface TileRecommendation {
+  action: 'keep' | 'pass' | 'discard' | 'neutral'
+  confidence: number
+  reasoning: string
+  priority?: number
+}
+
+// Extended PlayerTile with animation support
+interface AnimatedPlayerTile extends PlayerTile {
+  animation?: TileAnimation
+}
+
+interface TileInputState {
+  inputMode: TileInputMode
+  isValidating: boolean
+  validation: HandValidation
+  showRecommendations: boolean
+  selectedTiles: AnimatedPlayerTile[]
+}
+
 interface TileState extends TileInputState {
   // Hand Management
-  playerHand: PlayerTile[]
+  playerHand: AnimatedPlayerTile[]
   handSize: number
   dealerHand: boolean // True if dealer (14 tiles), false if player (13)
   
   // Exposed tiles from calls (pung, kong, etc.)
-  exposedTiles: PlayerTile[]
-  
+  exposedTiles: AnimatedPlayerTile[]
+
   // Selection Area State
-  selectedForAction: PlayerTile[]
+  selectedForAction: AnimatedPlayerTile[]
   tileStates: Record<string, string>
   
   // UI State
@@ -37,8 +75,8 @@ interface TileState extends TileInputState {
   setDealerHand: (isDealer: boolean) => void
   
   // Actions - Exposed Tiles Management
-  addExposedTiles: (tiles: PlayerTile[], callType: string) => void
-  setExposedTiles: (tiles: PlayerTile[]) => void
+  addExposedTiles: (tiles: AnimatedPlayerTile[], callType: string) => void
+  setExposedTiles: (tiles: AnimatedPlayerTile[]) => void
   clearExposedTiles: () => void
   
   // Actions - Tile Selection
@@ -76,8 +114,8 @@ interface TileState extends TileInputState {
   sortHand: () => void
   
   // Getters
-  getSelectedTiles: () => PlayerTile[]
-  getTileGroups: () => Record<string, PlayerTile[]>
+  getSelectedTiles: () => AnimatedPlayerTile[]
+  getTileGroups: () => Record<string, AnimatedPlayerTile[]>
   getHandSummary: () => { total: number, selected: number, valid: boolean }
 }
 
@@ -493,8 +531,8 @@ export const useTileStore = create<TileState>()(
                   if (!recB) return -1
                   
                   // Sort by priority, then by confidence
-                  if (recA.priority !== recB.priority) {
-                    return recB.priority - recA.priority
+                  if ((recA.priority || 0) !== (recB.priority || 0)) {
+                    return (recB.priority || 0) - (recA.priority || 0)
                   }
                   return recB.confidence - recA.confidence
                 })
@@ -537,19 +575,19 @@ export const useTileStore = create<TileState>()(
           set((state) => {
             const tile = state.playerHand.find(t => t.instanceId === instanceId)
             if (!tile || state.tileStates[instanceId] === 'locked') return state
-            
+
             // Create placeholder in hand
             const newTileStates = {
               ...state.tileStates,
               [instanceId]: 'placeholder'
             }
-            
+
             // Add to selection area if not already there
             const isAlreadyInSelection = state.selectedForAction.some(t => t.instanceId === instanceId)
-            const newSelectedForAction = isAlreadyInSelection 
+            const newSelectedForAction = isAlreadyInSelection
               ? state.selectedForAction
               : [...state.selectedForAction, tile]
-            
+
             return {
               selectedForAction: newSelectedForAction,
               tileStates: newTileStates

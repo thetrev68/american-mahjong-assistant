@@ -23,7 +23,7 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   isMyTurn,
   currentPlayer,
   wallCount = 0,
-  turnDuration = 0,
+  turnDuration = 0, // eslint-disable-line @typescript-eslint/no-unused-vars
   className = '',
   isSoloMode = false
 }) => {
@@ -55,7 +55,7 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
     }
   }
 
-  const handleGameDrawn = async () => {
+  const handleGameDrawn = async () => { // eslint-disable-line @typescript-eslint/no-unused-vars
     const reason = window.prompt('Why did the game end?\n(wall exhausted / all passed out / time limit)')
     if (reason) {
       await onAction('game-drawn', reason)
@@ -63,14 +63,14 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   }
 
   const canDraw = availableActions.includes('draw') && isMyTurn && wallCount > 0
-  const canDiscard = availableActions.includes('discard') && isMyTurn
-  const canCall = availableActions.includes('call') && !isMyTurn
+  const canDiscard = availableActions.includes('discard') && isMyTurn // eslint-disable-line @typescript-eslint/no-unused-vars
+  const canCall = availableActions.includes('call') && !isMyTurn // eslint-disable-line @typescript-eslint/no-unused-vars
   const canJokerSwap = availableActions.includes('joker-swap')
   const canMahjong = availableActions.includes('mahjong') && isMyTurn
   const canPassOut = availableActions.includes('pass-out')
 
   // Format turn duration
-  const formatDuration = (seconds: number): string => {
+  const formatDuration = (seconds: number): string => { // eslint-disable-line @typescript-eslint/no-unused-vars
     const mins = Math.floor(seconds / 60)
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, '0')}`

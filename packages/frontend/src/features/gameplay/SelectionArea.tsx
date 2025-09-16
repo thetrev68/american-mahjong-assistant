@@ -31,6 +31,7 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
   // Show during tile input, charleston, and gameplay phases when tiles are selected
   const shouldShow = (gamePhase === 'playing' || gamePhase === 'charleston' || gamePhase === 'tile-input') && selectedForAction.length > 0
 
+
   const handleAction = (action: 'pass' | 'discard') => {
     setActionType(action)
     

@@ -25,7 +25,7 @@ export function CharlestonView() {
   const navigate = useNavigate()
   const { currentAnalysis, isAnalyzing, analyzeHand } = useIntelligenceStore()
   const { getTargetPatterns } = usePatternStore()
-  const { playerHand = [], clearHand, addTile, moveToSelection, selectedForAction } = useTileStore()
+  const { playerHand = [], clearHand, addTile, moveToSelection, selectedForAction, returnFromSelection } = useTileStore()
   const roomStore = useRoomStore()
   const { coPilotMode } = useRoomSetupStore()
   const { otherPlayerNames } = usePlayerStore()
@@ -351,10 +351,22 @@ export function CharlestonView() {
   }> = []
 
   const handleSelectTile = (tile: TileType) => {
+    // This function is only called during Charleston for tile selection
     // Find the PlayerTile with matching id to get instanceId
     const playerTile = playerTiles.find(pt => pt.id === tile.id)
     if (playerTile) {
-      moveToSelection(playerTile.instanceId)
+      const instanceId = playerTile.instanceId
+
+      // Check if tile is already selected
+      const isSelected = selectedForAction.some(t => t.instanceId === instanceId)
+
+      if (isSelected) {
+        // Remove from selection if already selected
+        returnFromSelection(instanceId)
+      } else if (selectedForAction.length < 3) {
+        // Add to selection if under limit
+        moveToSelection(instanceId)
+      }
     }
   }
 

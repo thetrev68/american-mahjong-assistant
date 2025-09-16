@@ -3,8 +3,7 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
-import type { PlayerTile } from 'shared-types'
-import type { Tile } from 'shared-types'
+import type { PlayerTile, Tile, PatternSelectionOption } from 'shared-types'
 import { useTileStore } from '../../stores/tile-store'
 import { tileService } from '../../lib/services/tile-service'
 
@@ -31,7 +30,7 @@ interface YourHandZoneProps {
       reasoning: string
     }>
     recommendedPatterns?: Array<{
-      pattern: any
+      pattern: PatternSelectionOption
       expandedTiles?: string[]
       isPrimary: boolean
     }>
@@ -52,6 +51,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
 }) => {
   const { selectedForAction, moveToSelection, returnFromSelection } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
+
   
   // Sort hand tiles using same logic as tile input page
   const sortedCurrentHand = tileService.sortTiles([...currentHand])
@@ -102,11 +102,11 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   
   const handleTileClick = (tile: PlayerTile) => {
     const instanceId = tile.instanceId
-    
+
     if (isCharleston) {
       // Charleston mode: toggle selection for passing
       const isSelected = selectedForAction.some(t => t.instanceId === instanceId)
-      
+
       if (isSelected) {
         returnFromSelection(instanceId)
       } else if (selectedForAction.length < 3) {
@@ -118,8 +118,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
         id: tile.id,
         suit: tile.suit,
         value: tile.value,
-                                                        displayName: tile.id,
-        unicodeSymbol: tile.unicodeSymbol
+        displayName: tile.id
       }
       handleDiscardTile(tileForDiscard)
     }
@@ -165,7 +164,13 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                     <AnimatedTile
                       tile={updatedTile}
                       size="sm"
-                      onClick={(clickedTile) => isMyTurn && handleTileClick(clickedTile)}
+                      onClick={(clickedTile) => {
+                        // In Charleston mode, always allow tile selection regardless of turn
+                        // In gameplay mode, only allow if it's my turn
+                        if (isCharleston || isMyTurn) {
+                          handleTileClick(clickedTile)
+                        }
+                      }}
                       className="cursor-pointer hover:scale-105 transition-transform"
                       context={isCharleston ? "charleston" : "gameplay"}
                     />
