@@ -33,11 +33,21 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
 
 
   const handleAction = (action: 'pass' | 'discard') => {
+    console.log('🔧 SelectionArea handleAction called:', { action, onPass: !!onPass, onDiscard: !!onDiscard })
     setActionType(action)
-    
+
     // Call parent callback for game logic
     if (action === 'pass' && onPass) {
-      onPass()
+      console.log('🔧 SelectionArea calling onPass callback')
+      console.log('🔧 SelectionArea onPass function type:', typeof onPass)
+      console.log('🔧 SelectionArea onPass function name:', onPass.name)
+      console.log('🔧 SelectionArea onPass function toString:', onPass.toString().substring(0, 100))
+      try {
+        onPass()
+        console.log('🔧 SelectionArea onPass called successfully')
+      } catch (error) {
+        console.error('🔧 SelectionArea Error calling onPass:', error)
+      }
     } else if (action === 'discard' && onDiscard) {
       onDiscard()
     }
@@ -114,6 +124,7 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
                 variant="primary"
                 size="sm"
                 onClick={() => {
+                  console.log('🔧 Charleston Pass button clicked:', { selectedCount: selectedForAction.length })
                   if (selectedForAction.length === 3) {
                     handleAction('pass')
                     if (onCharlestonPass) {

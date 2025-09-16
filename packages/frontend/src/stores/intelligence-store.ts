@@ -387,7 +387,7 @@ export const useIntelligenceStore = create<IntelligenceState>()(
 
       analyzeOpponents: async (gameState: GameState, excludePlayerId: string) => {
         try {
-          const opponentAnalysisEngine = getOpponentAnalysisEngine()
+          const opponentAnalysisEngine = await getOpponentAnalysisEngine()
           const opponentProfiles = opponentAnalysisEngine.analyzeAllOpponents(gameState, excludePlayerId)
           const dangerousTiles = opponentAnalysisEngine.identifyDangerousTilesForAll(gameState, excludePlayerId)
           

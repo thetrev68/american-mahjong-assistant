@@ -2,7 +2,6 @@
 // Handles draw/discard mechanics, call evaluation, and continuous pattern analysis
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useGameStore } from '../../stores/game-store'
 import { useRoomStore } from '../../stores/room.store'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
@@ -66,7 +65,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   onNavigateToPostGame
 }) => {
   // Store state
-  const navigate = useNavigate()
   const gameStore = useGameStore()
   const roomStore = useRoomStore()
   const roomSetupStore = useRoomSetupStore()
