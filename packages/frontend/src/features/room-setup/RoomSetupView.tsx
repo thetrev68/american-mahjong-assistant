@@ -4,6 +4,7 @@ import { useRoomSetup } from '../../hooks/useRoomSetup'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import { useGameStore } from '../../stores/game-store'
+import { usePlayerStore } from '../../stores/player.store'
 import { CoPilotModeSelector } from './CoPilotModeSelector'
 import { RoomCreation } from './RoomCreation'
 import { RoomJoining } from './RoomJoining'
@@ -12,6 +13,7 @@ import { Button } from '../../ui-components/Button'
 import { ShareButton } from '../../ui-components/ShareButton'
 import { Container } from '../../ui-components/layout/Container'
 import { Card } from '../../ui-components/Card'
+import DevShortcuts from '../../ui-components/DevShortcuts'
 
 type RoomMode = 'create' | 'join'
 
@@ -33,6 +35,7 @@ export const RoomSetupView: React.FC = () => {
   const roomSetupStore = useRoomSetupStore()
   const multiplayerStore = useMultiplayerStore()
   const gameStore = useGameStore()
+  const playerStore = usePlayerStore()
   
   const [roomMode, setRoomMode] = useState<RoomMode>('create')
   const [hostName, setHostName] = useState('')
@@ -60,18 +63,78 @@ export const RoomSetupView: React.FC = () => {
   
   const handleStartGame = async () => {
     setIsStartingGame(true)
-    
+
     try {
       // Starting game - first need to input tiles
       // Mark the game as started in game store for route guards
       gameStore.setGamePhase('tile-input')
-      
+
       // Always go to tile input first, then Charleston, then game
       navigate('/tiles')
-      
+
     } catch (error) {
       console.error('Error starting game:', error)
       setIsStartingGame(false)
+    }
+  }
+
+  // Dev shortcut functions
+  const handleFillTestData = async () => {
+    if (roomMode === 'create') {
+      setHostName('Trevor')
+      // Auto-trigger room creation with test data - only pass other players, host is added automatically
+      const otherPlayers = ['Kim', 'Jordan', 'Emilie']
+      await roomSetup.createRoom('Trevor', otherPlayers)
+    } else {
+      setPlayerName('Trevor')
+      setRoomCodeInput('TEST')
+    }
+  }
+
+  const handleSkipToCharleston = () => {
+    // Set up a complete game state and navigate to Charleston
+    gameStore.setGamePhase('charleston')
+    navigate('/charleston')
+  }
+
+  const handleSkipToGameplay = () => {
+    // Set up a complete game state and navigate to gameplay
+    gameStore.setGamePhase('gameplay')
+    navigate('/game')
+  }
+
+  const handleResetGame = () => {
+    // Reset all stores and navigate back to setup
+    roomSetupStore.resetToStart()
+    gameStore.resetGame()
+    navigate('/')
+  }
+
+  const handleAutoPosition = () => {
+    // Auto-position all players in the current room
+    const players = multiplayerStore.currentRoom?.players || []
+    console.log('Auto-positioning players:', players)
+
+    const trevorPlayer = players.find(p => p.name === 'Trevor')
+    const kimPlayer = players.find(p => p.name === 'Kim')
+    const jordanPlayer = players.find(p => p.name === 'Jordan')
+    const emiliePlayer = players.find(p => p.name === 'Emilie')
+
+    if (trevorPlayer) {
+      console.log('Positioning Trevor at east')
+      playerStore.setPlayerPosition(trevorPlayer.id, 'east')
+    }
+    if (kimPlayer) {
+      console.log('Positioning Kim at north')
+      playerStore.setPlayerPosition(kimPlayer.id, 'north')
+    }
+    if (jordanPlayer) {
+      console.log('Positioning Jordan at west')
+      playerStore.setPlayerPosition(jordanPlayer.id, 'west')
+    }
+    if (emiliePlayer) {
+      console.log('Positioning Emilie at south')
+      playerStore.setPlayerPosition(emiliePlayer.id, 'south')
     }
   }
 
@@ -312,6 +375,14 @@ export const RoomSetupView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <DevShortcuts
+        variant="setup"
+        onFillTestData={handleFillTestData}
+        onAutoPosition={handleAutoPosition}
+        onSkipToCharleston={handleSkipToCharleston}
+        onSkipToGameplay={handleSkipToGameplay}
+        onResetGame={handleResetGame}
+      />
       <Container size="full" padding="sm" center={true}>
         {/* Header */}
         <div className="text-center mb-8">

@@ -73,13 +73,13 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
       (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'pass' ? 'pass' : null) :
       (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'discard' ? 'discard' : null)
     
-    // For Charleston, only highlight green if tile is actually in the primary pattern
+    // For both Charleston and gameplay, only highlight green if tile is actually in the primary pattern
     const isInPrimaryPattern = () => {
-      if (!isCharleston || !currentAnalysis?.recommendedPatterns) return true
-      
+      if (!currentAnalysis?.recommendedPatterns) return false // No pattern analysis available
+
       const primaryPattern = currentAnalysis.recommendedPatterns.find(p => p.isPrimary)
-      if (!primaryPattern?.expandedTiles) return true // Fallback to old behavior if no expanded tiles
-      
+      if (!primaryPattern?.expandedTiles) return false // No expanded tiles available
+
       // Check if the tile ID exists in the primary pattern's expanded tiles
       return primaryPattern.expandedTiles.includes(tileId)
     }

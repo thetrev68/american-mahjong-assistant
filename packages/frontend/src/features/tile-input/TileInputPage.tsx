@@ -10,6 +10,7 @@ import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { SelectionArea } from '../gameplay/SelectionArea'
 import { useTileStore, useGameStore } from '../../stores'
+import DevShortcuts from '../../ui-components/DevShortcuts'
 
 export const TileInputPage = () => {
   const navigate = useNavigate()
@@ -68,17 +69,17 @@ export const TileInputPage = () => {
   }, [playerHand, validateHand])
   
   
-  const handleQuickStart = () => {
+  const handleAddSampleHand = () => {
     // Create a realistic mahjong tile pool (4 of each suit tile, 4 of each honor tile, etc.)
     const tilePool: string[] = []
-    
+
     // Add suit tiles (4 of each: 1-9 in bams, cracks, dots)
     for (let value = 1; value <= 9; value++) {
       for (let count = 0; count < 4; count++) {
         tilePool.push(`${value}B`, `${value}C`, `${value}D`)
       }
     }
-    
+
     // Add honor tiles (4 of each)
     const honors = ['east', 'south', 'west', 'north', 'red', 'green', 'white']
     honors.forEach(honor => {
@@ -86,7 +87,7 @@ export const TileInputPage = () => {
         tilePool.push(honor)
       }
     })
-    
+
     // Add some flowers and jokers
     tilePool.push('f1', 'f2', 'f3', 'f4')
     tilePool.push('joker', 'joker', 'joker', 'joker', 'joker', 'joker', 'joker', 'joker')
@@ -97,15 +98,37 @@ export const TileInputPage = () => {
     // Select the first 13 or 14 tiles
     const handSize = dealerHand ? 14 : 13
     const randomHand = shuffledPool.slice(0, handSize)
-    
+
     // Import the new hand
     importTilesFromString(randomHand.join(' '))
+  }
+
+  const handleSkipToCharleston = () => {
+    setGamePhase('charleston')
+    navigate('/game')
+  }
+
+  const handleSkipToGameplay = () => {
+    setGamePhase('gameplay')
+    navigate('/game')
+  }
+
+  const handleResetGame = () => {
+    clearHand()
+    navigate('/')
   }
   
   
   
   return (
     <>
+    <DevShortcuts
+      variant="tile-input"
+      onAddSampleHand={handleAddSampleHand}
+      onSkipToCharleston={handleSkipToCharleston}
+      onSkipToGameplay={handleSkipToGameplay}
+      onResetGame={handleResetGame}
+    />
     <Container size="full" padding="sm" center={true}>
       <div className="space-y-6">
         {/* Header */}
@@ -145,15 +168,7 @@ export const TileInputPage = () => {
               
             </div>
             
-            <div className="flex gap-2">              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleQuickStart}
-              >
-                🎲 Add Sample Hand
-              </Button>
-              
+            <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"

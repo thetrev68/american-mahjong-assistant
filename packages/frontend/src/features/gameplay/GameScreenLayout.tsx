@@ -4,6 +4,7 @@ import YourHandZone from './YourHandZone'
 import DiscardPileZone from './DiscardPileZone'
 import OpponentExposedZone from './OpponentExposedZone'
 import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
+import { GameplayRecommendations } from './GameplayRecommendations'
 import type { PlayerTile } from 'shared-types'
 import type { PatternSelectionOption } from 'shared-types'
 
@@ -130,6 +131,16 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         onAdvanceToGameplay={onAdvanceToGameplay}
         currentAnalysis={currentAnalysis}
       />
+
+      {/* GAMEPLAY RECOMMENDATIONS - Only show during gameplay */}
+      {gamePhase !== 'charleston' && (
+        <div className="mb-6">
+          <GameplayRecommendations
+            analysis={currentAnalysis}
+            isLoading={isAnalyzing}
+          />
+        </div>
+      )}
 
       {/* ZONE 2: DISCARD PILE - Hidden during Charleston */}
       {gamePhase !== 'charleston' && (

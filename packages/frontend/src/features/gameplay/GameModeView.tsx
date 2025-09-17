@@ -36,6 +36,8 @@ import { GameEndCoordinator, type GameEndContext, getWallExhaustionWarning } fro
 import { createMultiplayerGameEndService, isMultiplayerSession } from '../gameplay/services/multiplayer-game-end'
 import { useHistoryStore } from '../../stores/history-store'
 import { tileService } from '../../lib/services/tile-service'
+import DevShortcuts from '../../ui-components/DevShortcuts'
+import { useNavigate } from 'react-router-dom'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -65,6 +67,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   onNavigateToPostGame
 }) => {
   // Store state
+  const navigate = useNavigate()
   const gameStore = useGameStore()
   const roomStore = useRoomStore()
   const roomSetupStore = useRoomSetupStore()
@@ -84,17 +87,38 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [gameStore.gamePhase, gameStore.setGamePhase])
 
+  // Get current player ID - use host or first player as fallback (moved up to avoid hoisting issues)
+  const currentPlayerId = useMemo(() => {
+    if (roomStore.players.length > 0) {
+      return roomStore.players[0]?.id || 'player1'
+    }
+    return roomStore.hostPlayerId || 'player1'
+  }, [roomStore.players, roomStore.hostPlayerId])
+
+  // Initialize current player to the user when starting gameplay
+  useEffect(() => {
+    if (gameStore.gamePhase === 'playing' && !gameStore.currentPlayerId) {
+      // Set the current player to the user (first player)
+      const userPlayerId = currentPlayerId
+      gameStore.setCurrentPlayer(userPlayerId)
+      setCurrentPlayerIndex(0) // Ensure user starts
+
+      // Initialize turn system to start with the user
+      gameStore.startTurn()
+    }
+  }, [gameStore.gamePhase, gameStore.currentPlayerId, currentPlayerId, gameStore.setCurrentPlayer, gameStore.startTurn])
+
   // Auto-analyze hand when entering the game for pattern recommendations
   useEffect(() => {
     const playerHand = tileStore.playerHand
     const hasEnoughTiles = playerHand.length >= 10
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
-    
+
     if (hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
       intelligenceStore.analyzeHand(playerHand, [])
     }
   }, [tileStore.playerHand, intelligenceStore])
-  
+
   // Get selected patterns properly
   const selectedPatterns = useMemo(() => {
     return patternStore.getTargetPatterns()
@@ -104,14 +128,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Helper function to extract tiles from hand for call (pung/kong)
   const extractCallTiles = useCallback((hand: Tile[], callType: CallType, targetTile?: Tile): Tile[] => {
     if (!targetTile) return []
-    
+
     const targetId = targetTile.id
     const tilesNeeded = callType === 'pung' ? 2 : 3 // pung needs 2 from hand, kong needs 3
-    
+
     // Find matching tiles in hand (including jokers)
     const matchingTiles: Tile[] = []
     const jokerTiles: Tile[] = []
-    
+
     for (const tile of hand) {
       if (tile.id === targetId && matchingTiles.length < tilesNeeded) {
         matchingTiles.push(tile)
@@ -119,20 +143,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         jokerTiles.push(tile)
       }
     }
-    
+
     // Combine matching tiles and jokers as needed
     const callTiles = [...matchingTiles, ...jokerTiles.slice(0, tilesNeeded - matchingTiles.length)]
-    
+
     return callTiles.slice(0, tilesNeeded)
   }, [])
-
-  // Get current player ID - use host or first player as fallback
-  const currentPlayerId = useMemo(() => {
-    if (roomStore.players.length > 0) {
-      return roomStore.players[0]?.id || 'player1'
-    }
-    return roomStore.hostPlayerId || 'player1'
-  }, [roomStore.players, roomStore.hostPlayerId])
 
   // Local state - integrated with turn management
   const isMyTurn = turnSelectors.isMyTurn(currentPlayerId)
@@ -916,6 +932,22 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setIsPaused(!isPaused)
   }, [isPaused])
 
+  // Dev shortcut functions
+  const handleSkipToGameplay = useCallback(() => {
+    gameStore.setGamePhase('playing')
+  }, [gameStore])
+
+  const handleResetGame = useCallback(() => {
+    // Reset all stores and navigate back to setup
+    roomSetupStore.resetToStart()
+    gameStore.resetGame()
+    tileStore.resetTiles()
+    patternStore.clearSelectedPatterns()
+    intelligenceStore.resetAnalysis()
+    charlestonStore.reset()
+    navigate('/room-setup')
+  }, [roomSetupStore, gameStore, tileStore, patternStore, intelligenceStore, charlestonStore, navigate])
+
   // Advance from Charleston to Gameplay phase
   const handleAdvanceToGameplay = useCallback(() => {
     gameStore.setGamePhase('playing')
@@ -1064,6 +1096,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   return (
     <>
+      <DevShortcuts
+        variant={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
+        onSkipToGameplay={gameStore.gamePhase === 'charleston' ? handleSkipToGameplay : undefined}
+        onResetGame={handleResetGame}
+      />
       <GameScreenLayout
         gamePhase={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         currentPlayer={currentPlayer}

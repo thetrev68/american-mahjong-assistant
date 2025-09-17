@@ -15,6 +15,7 @@ interface TopZoneProps {
   onPauseGame?: () => void
   isPaused?: boolean
   nextPlayer?: string
+  wallCount?: number
 }
 
 
@@ -57,13 +58,13 @@ const DramaticTimer: React.FC<{
   )
 }
 
-const getCharlestonPassingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
+const getCharlestonPassingDirection = (charlestonPhase: string, playerNames: string[]): string => {
   // In Charleston, "You" is always at position 0, other players at positions 1, 2, 3
   const allPlayers = playerNames // Should be ['You', 'Player2', 'Player3', 'Player4']
   if (allPlayers.length < 4) return 'Next Player'
 
   // Charleston passing directions from "You" (position 0)
-  const passingPositions = {
+  const passingPositions: Record<string, number> = {
     'right': 1,        // Pass to player on right (position 1)
     'across': 2,       // Pass to player across (position 2)
     'left': 3,         // Pass to player on left (position 3)
@@ -76,14 +77,14 @@ const getCharlestonPassingDirection = (charlestonPhase: string, currentPlayer: s
   return allPlayers[targetPosition] || 'Next Player'
 }
 
-const getCharlestonReceivingDirection = (charlestonPhase: string, currentPlayer: string, playerNames: string[]): string => {
+const getCharlestonReceivingDirection = (charlestonPhase: string, playerNames: string[]): string => {
   // In Charleston, "You" is always at position 0, other players at positions 1, 2, 3
   const allPlayers = playerNames // Should be ['You', 'Player2', 'Player3', 'Player4']
   if (allPlayers.length < 4) return 'Previous Player'
 
   // Charleston receiving directions - receiving is opposite of passing
   // right pass = receive from left, across pass = receive from across, left pass = receive from right
-  const receivingPositions = {
+  const receivingPositions: Record<string, number> = {
     'right': 3,        // receive from left (position 3)
     'across': 2,       // receive from across (position 2)
     'left': 1,         // receive from right (position 1)
@@ -137,6 +138,7 @@ const TopZone: React.FC<TopZoneProps> = ({
   onPauseGame,
   isPaused,
   nextPlayer: providedNextPlayer,
+  wallCount = 0,
 }) => {
 
   const { currentPhase } = useCharlestonStore()
@@ -146,12 +148,12 @@ const TopZone: React.FC<TopZoneProps> = ({
   const phaseDisplayName = gamePhase === 'charleston' ? 'Charleston' : 'Game Mode'
   
   // Charleston-specific passing directions
-  const passingToPlayer = gamePhase === 'charleston' 
-    ? getCharlestonPassingDirection(currentPhase, currentPlayer, playerNames)
+  const passingToPlayer = gamePhase === 'charleston'
+    ? getCharlestonPassingDirection(currentPhase, playerNames)
     : nextPlayer
-  
-  const receivingFromPlayer = gamePhase === 'charleston' 
-    ? getCharlestonReceivingDirection(currentPhase, currentPlayer, playerNames)
+
+  const receivingFromPlayer = gamePhase === 'charleston'
+    ? getCharlestonReceivingDirection(currentPhase, playerNames)
     : getReceivingFromPlayer(currentPlayer, playerNames)
 
   return (
@@ -175,11 +177,12 @@ const TopZone: React.FC<TopZoneProps> = ({
             ) : (
               <>
                 <p className="text-sm md:text-base text-gray-600">
-                  🟢 {currentPlayer}{currentPlayer.endsWith('s') ? "'" : "'s"} turn 
+                  🟢 {currentPlayer}{currentPlayer.endsWith('s') ? "'" : "'s"} turn
                   • Playing {selectedPatternsCount} pattern{selectedPatternsCount !== 1 ? 's' : ''}
                 </p>
                 <div className="text-xs md:text-sm text-gray-500">
                   {windRound.charAt(0).toUpperCase() + windRound.slice(1)} Round #{gameRound} • Next: {nextPlayer}
+                  {wallCount > 0 && <span> • Wall: {wallCount} tiles remaining</span>}
                 </div>
               </>
             )}
