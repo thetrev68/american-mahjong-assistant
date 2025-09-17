@@ -69,6 +69,9 @@ interface GameScreenLayoutProps {
       reasoning: string
     }>
   } | null
+  wallCount?: number
+  onSwapJoker?: () => void
+  onDeadHand?: () => void
 }
 
 const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
@@ -98,11 +101,14 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   playerExposedCount,
   gameHistory,
   currentAnalysis,
+  wallCount,
+  onSwapJoker,
+  onDeadHand,
 }) => {
   return (
     <div className="max-w-full mx-auto p-1 sm:p-4 md:p-6 md:max-w-4xl pb-20 sm:pb-24">
       {/* TOP ZONE: Game phase, elapsed timer, current player, action buttons */}
-      <TopZone 
+      <TopZone
         gamePhase={gamePhase}
         currentPlayer={currentPlayer}
         timeElapsed={timeElapsed}
@@ -115,6 +121,9 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         onPauseGame={onPauseGame}
         isPaused={isPaused}
         nextPlayer={nextPlayer}
+        wallCount={wallCount}
+        onSwapJoker={onSwapJoker}
+        onDeadHand={onDeadHand}
       />
 
       {/* ZONE 1: YOUR HAND */}

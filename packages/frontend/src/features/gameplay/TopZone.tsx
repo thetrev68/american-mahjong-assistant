@@ -16,6 +16,8 @@ interface TopZoneProps {
   isPaused?: boolean
   nextPlayer?: string
   wallCount?: number
+  onSwapJoker?: () => void
+  onDeadHand?: () => void
 }
 
 
@@ -139,6 +141,8 @@ const TopZone: React.FC<TopZoneProps> = ({
   isPaused,
   nextPlayer: providedNextPlayer,
   wallCount = 0,
+  onSwapJoker,
+  onDeadHand,
 }) => {
 
   const { currentPhase } = useCharlestonStore()
@@ -205,14 +209,34 @@ const TopZone: React.FC<TopZoneProps> = ({
               </Button>
             </>
           )}
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onPauseGame}
             className={isPaused ? "bg-yellow-100 text-yellow-700" : ""}
           >
             {isPaused ? 'Resume Game' : 'Pause Game'}
           </Button>
+          {gamePhase === 'gameplay' && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onSwapJoker}
+                className="text-purple-600 border-purple-300 hover:bg-purple-50"
+              >
+                🃏 Swap Joker
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onDeadHand}
+                className="text-red-600 border-red-300 hover:bg-red-50"
+              >
+                🚫 Dead Hand
+              </Button>
+            </>
+          )}
         </div>
       </div>
       </div>

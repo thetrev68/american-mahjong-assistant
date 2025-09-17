@@ -14,7 +14,6 @@ import { useCharlestonStore } from '../../stores/charleston-store'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
-import GameActionsPanel from '../../ui-components/GameActionsPanel'
 import CallOpportunityModal from '../../ui-components/CallOpportunityModal'
 import { MahjongDeclarationModal } from '../../ui-components/MahjongDeclarationModal'
 import { FinalHandRevealModal, type FinalHandRevealData } from '../../ui-components/FinalHandRevealModal'
@@ -652,6 +651,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     turnStore.closeCallOpportunity()
   }, [handlePlayerAction, turnStore, turnSelectors, currentHand, extractCallTiles])
 
+  // Handle joker swap action
+  const handleSwapJoker = useCallback(() => {
+    handlePlayerAction('joker-swap')
+  }, [handlePlayerAction])
+
+  // Handle dead hand action
+  const handleDeadHand = useCallback(() => {
+    handlePlayerAction('pass-out')
+  }, [handlePlayerAction])
+
   // Handle mahjong confirmation
   const handleMahjongConfirmation = useCallback(async (validationResult: MahjongValidationResult) => {
     if (validationResult.isValid && gameEndCoordinator && validationResult.validPattern) {
@@ -773,28 +782,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     currentPhase: 'gameplay'
   }), [fullHand, discardPile, currentPlayerId, exposedTiles])
 
-  // Get available actions for current player
-  const currentPlayerActions = useMemo(() => {
-    const playerActions = turnSelectors.getPlayerActions(currentPlayerId)
-    if (!playerActions) return []
-
-    const actions: GameAction[] = []
-    
-    if (isMyTurn && !playerActions.hasDrawn) {
-      actions.push('draw')
-    }
-    if (isMyTurn && playerActions.hasDrawn) {
-      actions.push('discard', 'mahjong')  
-    }
-    if (!isMyTurn && turnSelectors.hasCallOpportunity()) {
-      actions.push('call')
-    }
-    
-    // Always available actions
-    actions.push('joker-swap', 'pass-out')
-    
-    return actions
-  }, [currentPlayerId, isMyTurn, turnSelectors])
 
   // Prepare call opportunity data for modal
   const callOpportunityData = useMemo(() => {
@@ -1131,6 +1118,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         playerExposedCount={playerExposedCount}
         gameHistory={gameHistory}
         currentAnalysis={currentAnalysis}
+        wallCount={turnSelectors.wallCount}
+        onSwapJoker={handleSwapJoker}
+        onDeadHand={handleDeadHand}
       />
 
       {/* Call Dialog */}
@@ -1262,20 +1252,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         </div>
       )}
       
-      {/* Game Actions Panel - Hide during Charleston */}
-      {gameStore.gamePhase !== 'charleston' && (
-        <div className="fixed bottom-4 left-4 right-4 z-30">
-          <GameActionsPanel
-            availableActions={currentPlayerActions}
-            onAction={handlePlayerAction}
-            isMyTurn={isMyTurn}
-            currentPlayer={turnSelectors.currentPlayerName}
-            wallCount={turnSelectors.wallCount}
-            turnDuration={turnSelectors.turnDuration}
-            isSoloMode={roomSetupStore.coPilotMode === 'solo'}
-          />
-        </div>
-      )}
 
       {/* Wall Exhaustion Warning */}
       {wallExhaustionWarning && (
