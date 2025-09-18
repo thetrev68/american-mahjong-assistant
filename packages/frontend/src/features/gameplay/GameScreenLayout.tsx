@@ -5,6 +5,7 @@ import DiscardPileZone from './DiscardPileZone'
 import OpponentExposedZone from './OpponentExposedZone'
 import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
 import { GameplayRecommendations } from './GameplayRecommendations'
+import { GameControlPanel } from './GameControlPanel'
 import type { PlayerTile } from 'shared-types'
 import type { PatternSelectionOption } from 'shared-types'
 
@@ -125,6 +126,9 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         onSwapJoker={onSwapJoker}
         onDeadHand={onDeadHand}
       />
+
+      {/* GAME CONTROL PANEL: Solo mode controls */}
+      <GameControlPanel className="mb-6" />
 
       {/* ZONE 1: YOUR HAND */}
       <YourHandZone

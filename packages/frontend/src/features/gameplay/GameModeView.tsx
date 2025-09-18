@@ -107,6 +107,17 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [gameStore.gamePhase, gameStore.currentPlayerId, currentPlayerId, gameStore.setCurrentPlayer, gameStore.startTurn])
 
+  // Set dealer hand based on East player position
+  useEffect(() => {
+    const currentPlayer = gameStore.players.find(p => p.id === currentPlayerId)
+    const isDealer = currentPlayer?.position === 'east'
+
+    // Update tile store if dealer status has changed
+    if (tileStore.dealerHand !== isDealer) {
+      tileStore.setDealerHand(isDealer)
+    }
+  }, [currentPlayerId, gameStore.players, tileStore])
+
   // Auto-analyze hand when entering the game for pattern recommendations
   useEffect(() => {
     const playerHand = tileStore.playerHand
@@ -151,6 +162,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Local state - integrated with turn management
   const isMyTurn = turnSelectors.isMyTurn(currentPlayerId)
+
   const [lastDrawnTile, setLastDrawnTile] = useState<Tile | null>(null)
   const [callOpportunities, setCallOpportunities] = useState<CallOpportunity[]>([])
   const [showCallDialog, setShowCallDialog] = useState(false)
@@ -921,8 +933,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Dev shortcut functions
   const handleSkipToGameplay = useCallback(() => {
+    // Set game phase to playing
     gameStore.setGamePhase('playing')
-  }, [gameStore])
+
+    // Initialize turn system when skipping Charleston
+    if (!gameStore.currentPlayerId) {
+      gameStore.setCurrentPlayer(currentPlayerId)
+      gameStore.startTurn()
+    }
+  }, [gameStore, currentPlayerId])
 
   const handleResetGame = useCallback(() => {
     // Reset all stores and navigate back to setup

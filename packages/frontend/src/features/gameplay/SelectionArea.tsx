@@ -17,16 +17,22 @@ interface SelectionAreaProps {
 }
 
 export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady, onCharlestonPass }: SelectionAreaProps = {}) => {
-  const { 
-    selectedForAction, 
-    returnFromSelection, 
-    lockTile, 
+  const {
+    selectedForAction,
+    returnFromSelection,
+    lockTile,
+    unlockTile,
     clearSelection,
-    removeTile
+    tileStates
   } = useTileStore()
   const { gamePhase } = useGameStore()
-  
+
   const [actionType, setActionType] = useState<'pass' | 'discard' | null>(null)
+
+  // Check if the selected tile is locked (only one tile can be selected in gameplay)
+  const selectedTile = selectedForAction[0]
+  const tileState = selectedTile ? tileStates[selectedTile.instanceId] : undefined
+  const isSelectedTileLocked = tileState === 'locked' || tileState === 'locked-placeholder'
 
   // Show during tile input, charleston, and gameplay phases when tiles are selected
   const shouldShow = (gamePhase === 'playing' || gamePhase === 'charleston' || gamePhase === 'tile-input') && selectedForAction.length > 0
@@ -61,7 +67,18 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
 
   const handleLock = () => {
     selectedForAction.forEach(tile => {
+      // First return the tile from selection area, then lock it
+      returnFromSelection(tile.instanceId)
       lockTile(tile.instanceId)
+    })
+    clearSelection()
+  }
+
+  const handleUnlock = () => {
+    selectedForAction.forEach(tile => {
+      // First return the tile from selection area, then unlock it
+      returnFromSelection(tile.instanceId)
+      unlockTile(tile.instanceId)
     })
     clearSelection()
   }
@@ -73,13 +90,6 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
     clearSelection()
   }
 
-  const handleDelete = () => {
-    // Remove tiles from both selection area and hand entirely
-    selectedForAction.forEach(tile => {
-      removeTile(tile.instanceId)
-    })
-    clearSelection()
-  }
 
   return (
     <div className={`fixed bottom-16 left-4 right-4 z-50 transition-opacity duration-200 ${shouldShow ? 'opacity-100 visible' : 'opacity-0 invisible'}`}>
@@ -147,22 +157,35 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
                 variant="primary"
                 size="sm"
                 onClick={() => handleAction('discard')}
-                disabled={actionType !== null}
-                className="bg-green-600 hover:bg-green-700"
+                disabled={actionType !== null || isSelectedTileLocked}
+                className={`${isSelectedTileLocked ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+                title={isSelectedTileLocked ? 'Cannot discard locked tile' : 'Discard selected tile'}
               >
                 {actionType === 'discard' ? 'Discarding...' : 'Discard'}
               </Button>
             )}
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLock}
-              disabled={actionType !== null}
-              className="border-orange-300 text-orange-700 hover:bg-orange-50"
-            >
-              Lock
-            </Button>
+            {isSelectedTileLocked ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleUnlock}
+                disabled={actionType !== null}
+                className="border-green-300 text-green-700 hover:bg-green-50"
+              >
+                🔓 Unlock
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLock}
+                disabled={actionType !== null}
+                className="border-orange-300 text-orange-700 hover:bg-orange-50"
+              >
+                🔒 Lock
+              </Button>
+            )}
 
             <Button
               variant="outline"
@@ -170,17 +193,7 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
               onClick={handleClear}
               disabled={actionType !== null}
             >
-              Clear
-            </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleDelete}
-              disabled={actionType !== null}
-              className="border-red-300 text-red-700 hover:bg-red-50"
-            >
-              Delete
+              Cancel
             </Button>
           </div>
 

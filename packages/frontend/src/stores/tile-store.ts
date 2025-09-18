@@ -90,6 +90,8 @@ interface TileState extends TileInputState {
   moveToSelection: (instanceId: string) => void
   returnFromSelection: (instanceId: string) => void
   lockTile: (instanceId: string) => void
+  unlockTile: (instanceId: string) => void
+  toggleTileLock: (instanceId: string) => void
   clearSelection: () => void
   
   // Actions - UI Controls
@@ -574,12 +576,13 @@ export const useTileStore = create<TileState>()(
         moveToSelection: (instanceId: string) => {
           set((state) => {
             const tile = state.playerHand.find(t => t.instanceId === instanceId)
-            if (!tile || state.tileStates[instanceId] === 'locked') return state
+            if (!tile) return state
 
-            // Create placeholder in hand
+            // Preserve locked state when moving to selection
+            const currentState = state.tileStates[instanceId]
             const newTileStates = {
               ...state.tileStates,
-              [instanceId]: 'placeholder'
+              [instanceId]: currentState === 'locked' ? 'locked-placeholder' : 'placeholder'
             }
 
             // Add to selection area if not already there
@@ -599,8 +602,15 @@ export const useTileStore = create<TileState>()(
           set((state) => {
             const newSelectedForAction = state.selectedForAction.filter(t => t.instanceId !== instanceId)
             const newTileStates = { ...state.tileStates }
-            delete newTileStates[instanceId]
-            
+
+            // Handle different placeholder states
+            const currentState = newTileStates[instanceId]
+            if (currentState === 'placeholder') {
+              delete newTileStates[instanceId]
+            } else if (currentState === 'locked-placeholder') {
+              newTileStates[instanceId] = 'locked'
+            }
+
             return {
               selectedForAction: newSelectedForAction,
               tileStates: newTileStates
@@ -616,11 +626,41 @@ export const useTileStore = create<TileState>()(
             }
           }))
         },
+
+        unlockTile: (instanceId: string) => {
+          set((state) => {
+            const newTileStates = { ...state.tileStates }
+            delete newTileStates[instanceId]
+            return {
+              tileStates: newTileStates
+            }
+          })
+        },
+
+        toggleTileLock: (instanceId: string) => {
+          const state = get()
+          const isLocked = state.tileStates[instanceId] === 'locked'
+          if (isLocked) {
+            state.unlockTile(instanceId)
+          } else {
+            state.lockTile(instanceId)
+          }
+        },
         
         clearSelection: () => {
-          set({
-            selectedForAction: [],
-            tileStates: {}
+          set((state) => {
+            // Preserve locked states and placeholder states, clear only selection-related states
+            const preservedStates: Record<string, TileState> = {}
+            for (const [instanceId, tileState] of Object.entries(state.tileStates)) {
+              if (tileState === 'locked') {
+                preservedStates[instanceId] = tileState
+              }
+            }
+
+            return {
+              selectedForAction: [],
+              tileStates: preservedStates
+            }
           })
         }
       }),

@@ -4,8 +4,11 @@
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
+import { TilePlaceholder } from '../../ui-components/TilePlaceholder'
+import { TileLockBadge } from '../../ui-components/TileLockBadge'
 import { useTileStore, useIntelligenceStore } from '../../stores'
 import { getTileStateClass } from '../gameplay/TileStates'
+import { useTileInteraction } from '../../hooks/useTileInteraction'
 import type { PlayerTile, TileRecommendation } from 'shared-types'
 
 interface HandDisplayProps {
@@ -26,8 +29,6 @@ export const HandDisplay = ({
     dealerHand,
     setSortBy,
     getTileGroups,
-    moveToSelection,
-    returnFromSelection,
     clearSelection,
     selectedForAction,
     tileStates
@@ -69,20 +70,7 @@ export const HandDisplay = ({
     }
   }
   
-  const handleTileClick = (tile: PlayerTile) => {
-    // If tile is locked, don't allow interaction
-    if (tileStates[tile.instanceId] === 'locked') return
-    
-    const currentState = tileStates[tile.instanceId]
-    
-    if (currentState === 'placeholder') {
-      // Placeholder clicked - return tile from selection area
-      returnFromSelection(tile.instanceId)
-    } else {
-      // Normal tile clicked - move to selection area (creates placeholder)
-      moveToSelection(tile.instanceId)
-    }
-  }
+  const { handleTileClick, handleTileRightClick } = useTileInteraction('selection')
   
   
   
@@ -109,25 +97,25 @@ export const HandDisplay = ({
             <div className="grid grid-cols-5 sm:grid-cols-7 gap-2 sm:gap-4">
               {tiles.map(tile => {
                 const recommendation = getTileHighlighting(tile)
+                const isLocked = tileStates[tile.instanceId] === 'locked'
                 return (
                   <div key={tile.instanceId} className="relative group">
                     {tileStates[tile.instanceId] === 'placeholder' ? (
-                      // Show placeholder with tile ID
-                      <div className={`${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`} style={{ width: '52px', height: '69px' }}>
-                        <div className="text-[10px] opacity-75">Tile</div>
-                        <div className="font-bold">{tile.id}</div>
-                        <div className="text-[8px] opacity-50">Selected</div>
-                      </div>
+                      <TilePlaceholder tile={tile} />
                     ) : (
-                      <AnimatedTile
-                        tile={{ ...tile, recommendation }}
-                        size={compactMode ? 'sm' : 'md'}
-                        onClick={handleTileClick}
-                        animateOnSelect={true}
-                        context="selection"
-                        recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
-                        className={`${tileStates[tile.instanceId] ? getTileStateClass(tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') : 'hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer'} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : ''}`}
-                      />
+                      <>
+                        <AnimatedTile
+                          tile={{ ...tile, recommendation }}
+                          size={compactMode ? 'sm' : 'md'}
+                          onClick={handleTileClick}
+                          onContextMenu={(e) => handleTileRightClick(e, tile)}
+                          animateOnSelect={true}
+                          context="selection"
+                          recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
+                          className={`${tileStates[tile.instanceId] ? getTileStateClass(tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') : 'hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer'} ${isLocked ? 'cursor-not-allowed' : ''}`}
+                        />
+                        <TileLockBadge isLocked={isLocked} />
+                      </>
                     )}
                   </div>
                 )
@@ -144,25 +132,25 @@ export const HandDisplay = ({
       <div className="grid grid-cols-5 sm:grid-cols-7 gap-2 sm:gap-4">
         {playerHand.map(tile => {
           const recommendation = getTileHighlighting(tile)
+          const isLocked = tileStates[tile.instanceId] === 'locked'
           return (
             <div key={tile.instanceId} className="relative group">
               {tileStates[tile.instanceId] === 'placeholder' ? (
-                // Show placeholder with tile ID
-                <div className={`${getTileStateClass('placeholder')} rounded-lg flex flex-col items-center justify-center text-xs font-medium text-gray-600 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-dashed border-gray-300`} style={{ width: '52px', height: '69px' }}>
-                  <div className="text-[10px] opacity-75">Tile</div>
-                  <div className="font-bold">{tile.id}</div>
-                  <div className="text-[8px] opacity-50">Selected</div>
-                </div>
+                <TilePlaceholder tile={tile} />
               ) : (
-                <AnimatedTile
-                  tile={{ ...tile, recommendation }}
-                  size={compactMode ? 'sm' : 'md'}
-                  onClick={handleTileClick}
-                  animateOnSelect={true}
-                  context="selection"
-                  recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
-                  className={`${tileStates[tile.instanceId] ? getTileStateClass(tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') : 'hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer'} ${tileStates[tile.instanceId] === 'locked' ? 'cursor-not-allowed' : ''}`}
-                />
+                <>
+                  <AnimatedTile
+                    tile={{ ...tile, recommendation }}
+                    size={compactMode ? 'sm' : 'md'}
+                    onClick={handleTileClick}
+                    onContextMenu={(e) => handleTileRightClick(e, tile)}
+                    animateOnSelect={true}
+                    context="selection"
+                    recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
+                    className={`${tileStates[tile.instanceId] ? getTileStateClass(tileStates[tile.instanceId] as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') : 'hover:ring-2 hover:ring-blue-300 transition-all cursor-pointer'} ${isLocked ? 'cursor-not-allowed' : ''}`}
+                  />
+                  <TileLockBadge isLocked={isLocked} />
+                </>
               )}
             </div>
           )

@@ -3,9 +3,13 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
+import { TilePlaceholder } from '../../ui-components/TilePlaceholder'
+import { TileLockBadge } from '../../ui-components/TileLockBadge'
 import type { PlayerTile, Tile, PatternSelectionOption } from 'shared-types'
 import { useTileStore } from '../../stores/tile-store'
 import { tileService } from '../../lib/services/tile-service'
+import { getTileStateClass } from './TileStates'
+import { useTileInteraction } from '../../hooks/useTileInteraction'
 
 interface YourHandZoneProps {
   currentHand: PlayerTile[]
@@ -49,8 +53,9 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   gamePhase,
   currentAnalysis
 }) => {
-  const { selectedForAction, moveToSelection, returnFromSelection } = useTileStore()
+  const { selectedForAction, tileStates } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
+  const { handleTileClick, handleTileRightClick } = useTileInteraction(isCharleston ? 'charleston' : 'gameplay')
 
   
   // Sort hand tiles using same logic as tile input page
@@ -100,29 +105,6 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   }
   
   
-  const handleTileClick = (tile: PlayerTile) => {
-    const instanceId = tile.instanceId
-
-    if (isCharleston) {
-      // Charleston mode: toggle selection for passing
-      const isSelected = selectedForAction.some(t => t.instanceId === instanceId)
-
-      if (isSelected) {
-        returnFromSelection(instanceId)
-      } else if (selectedForAction.length < 3) {
-        moveToSelection(instanceId)
-      }
-    } else {
-      // Gameplay mode: discard tile - convert PlayerTile to Tile
-      const tileForDiscard: Tile = {
-        id: tile.id,
-        suit: tile.suit,
-        value: tile.value,
-        displayName: tile.id
-      }
-      handleDiscardTile(tileForDiscard)
-    }
-  }
 
   return (
     <Card className="p-2 sm:p-4 mb-4 md:col-span-2 xl:col-span-2">
@@ -147,34 +129,45 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
           <div className="text-sm text-gray-600 mb-2">Concealed ({sortedCurrentHand.length} tiles)</div>
           <div className="grid grid-cols-5 sm:grid-cols-7 gap-1 sm:gap-2 p-2 sm:p-3 bg-gray-50 rounded-lg min-h-16">
             {sortedCurrentHand.length > 0 ? sortedCurrentHand.map((tile) => {
-              const isSelected = isCharleston 
+              const isSelected = isCharleston
                 ? selectedForAction.some(t => t.instanceId === tile.instanceId)
                 : selectedDiscardTile?.id === tile.id
-              
+
               const highlightClass = getTileHighlightClass(tile.id, isSelected)
-              
+              const tileState = tileStates[tile.instanceId]
+              const isLocked = tileState === 'locked'
+              const isPlaceholder = tileState === 'placeholder'
+
               const updatedTile: PlayerTile = {
                 ...tile,
                 isSelected
               }
-              
+
               return (
-                <div key={tile.instanceId} className="flex justify-center items-center">
-                  <div className={`w-[52px] h-[69px] ${highlightClass}`}>
-                    <AnimatedTile
-                      tile={updatedTile}
-                      size="sm"
-                      onClick={(clickedTile) => {
-                        // In Charleston mode, always allow tile selection regardless of turn
-                        // In gameplay mode, only allow if it's my turn
-                        if (isCharleston || isMyTurn) {
-                          handleTileClick(clickedTile)
-                        }
-                      }}
-                      className="cursor-pointer hover:scale-105 transition-transform"
-                      context={isCharleston ? "charleston" : "gameplay"}
-                    />
-                  </div>
+                <div key={tile.instanceId} className="relative group flex justify-center items-center">
+                  {isPlaceholder ? (
+                    <TilePlaceholder tile={tile} />
+                  ) : (
+                    <>
+                      <div className={`w-[52px] h-[69px] ${highlightClass} ${tileState ? getTileStateClass(tileState as 'primary' | 'selected' | 'exposed' | 'locked' | 'placeholder') : ''}`}>
+                        <AnimatedTile
+                          tile={updatedTile}
+                          size="sm"
+                          onClick={(clickedTile) => {
+                            // In Charleston mode, always allow tile selection regardless of turn
+                            // In gameplay mode, allow if it's my turn OR in single-player mode (for dev/testing)
+                            if (isCharleston || isMyTurn || gamePhase === 'gameplay') {
+                              handleTileClick(clickedTile)
+                            }
+                          }}
+                          onContextMenu={(e) => handleTileRightClick(e, tile)}
+                          className="cursor-pointer hover:scale-105 transition-transform"
+                          context={isCharleston ? "charleston" : "gameplay"}
+                        />
+                      </div>
+                      <TileLockBadge isLocked={isLocked} />
+                    </>
+                  )}
                 </div>
               )
             }) : (
