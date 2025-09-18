@@ -20,30 +20,10 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
   onResetGame,
   variant = 'setup'
 }) => {
-  // Only show in development
-  if (import.meta.env.PROD) return null
-
   const [position, setPosition] = useState({ x: 8, y: 8 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
   const panelRef = useRef<HTMLDivElement>(null)
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // Don't drag when clicking buttons
-    if ((e.target as HTMLElement).tagName === 'BUTTON' ||
-        (e.target as HTMLElement).closest('button')) {
-      return
-    }
-
-    e.preventDefault()
-    setIsDragging(true)
-    setDragStart({
-      x: e.clientX - position.x,
-      y: e.clientY - position.y
-    })
-    console.log('Starting drag from position:', position, 'mouse:', e.clientX, e.clientY)
-  }
-
 
   React.useEffect(() => {
     const handleGlobalMouseMove = (e: MouseEvent) => {
@@ -74,6 +54,25 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
       document.body.style.userSelect = ''
     }
   }, [isDragging, dragStart.x, dragStart.y])
+
+  // Only show in development
+  if (import.meta.env.PROD) return null
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Don't drag when clicking buttons
+    if ((e.target as HTMLElement).tagName === 'BUTTON' ||
+        (e.target as HTMLElement).closest('button')) {
+      return
+    }
+
+    e.preventDefault()
+    setIsDragging(true)
+    setDragStart({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    })
+    console.log('Starting drag from position:', position, 'mouse:', e.clientX, e.clientY)
+  }
 
   const getShortcuts = () => {
     switch (variant) {
