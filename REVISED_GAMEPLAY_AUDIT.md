@@ -133,3 +133,124 @@ Based on revised audit, here are the REAL issues:
 ---
 
 **Question for approval**: Should I proceed with Phase 1 (moving wall counter and eliminating bottom panel) as the immediate priority?
+
+```
+
+ PHASE 3 IMPLEMENTATION PLAN: Complete Missing Actions
+
+  Analysis Summary
+
+  ✅ EXISTING IMPLEMENTATIONS
+
+  1. Swap Joker
+    - Backend Logic: game-actions.ts:270-346 - Complete swapJoker() method
+    - Dialog UI: GameActionsPanel.tsx:152-188 - Basic dialog exists but placeholder implementation
+    - Integration: turn-store.ts:402-407 - Full integration in executeAction
+    - Status: Backend complete, UI needs full implementation
+  2. Dead Hand
+    - Backend Logic: game-actions.ts:407-462 - Complete declarePassOut() method
+    - Button UI: TopZone.tsx:123-127 - Button exists and wired up
+    - Integration: GameModeView.tsx:1284-1286 - Maps to 'pass-out' action
+    - Status: FULLY IMPLEMENTED ✅
+  3. Call Tile
+    - Backend Logic: game-actions.ts:197-266 - Complete makeCall() method
+    - UI Component: CallOpportunitySection.tsx - Complete call interface
+    - Integration: turn-store.ts:396-401 - Full integration in executeAction
+    - Status: FULLY IMPLEMENTED ✅
+
+  ---
+  PHASE 3 IMPLEMENTATION REQUIREMENTS
+
+  1. Complete Swap Joker Functionality ⭐ PRIMARY FOCUS
+
+  Issue: Dialog exists but only shows placeholder message on line 178.
+
+  Required Implementation:
+
+  A. Create JokerSwapDialog Component
+
+  File: packages/frontend/src/features/gameplay/components/JokerSwapDialog.tsx
+  - Replace placeholder in GameActionsPanel.tsx:152-188
+  - Use existing tile selection patterns from TileSelector.tsx
+  - Integration points:
+    - Import in GameActionsPanel.tsx:4
+    - Replace lines 152-188 with <JokerSwapDialog />
+    - Props: isOpen, onClose, onSwap: (data) => onAction('joker-swap', data)
+
+  B. Implement JokerSwapDialog Logic
+
+  Key Requirements:
+  - State Management: Use useTileStore() for hand/exposed tiles access
+  - Validation: Check user has actual tile that joker represents
+  - Data Structure: Return { jokerLocation: 'own' | 'opponent', targetTile: Tile }
+  - Integration: Calls existing gameActions.swapJoker() backend method
+
+  C. Backend Integration ✅ ALREADY COMPLETE
+
+  - game-actions.ts:270-346 - Complete implementation
+  - turn-store.ts:402-407 - Full executeAction integration
+  - No changes needed to backend logic
+
+  ---
+  INTEGRATION STRATEGY
+
+  Function/Class Integration Points
+
+  1. New Component: JokerSwapDialog
+    - Location: packages/frontend/src/features/gameplay/components/JokerSwapDialog.tsx
+    - Integration: Replace placeholder in GameActionsPanel.tsx:152-188
+    - Props Interface:
+    interface JokerSwapDialogProps {
+    isOpen: boolean
+    onClose: () => void
+    onSwap: (data: { jokerLocation: 'own' | 'opponent', targetTile: Tile }) => Promise<void>
+  }
+  2. Existing Backend Method: GameActionsService.swapJoker()
+    - Location: game-actions.ts:270-346
+    - Status: ✅ Complete implementation
+    - Integration: Already wired through turn-store.executeAction()
+  3. UI Integration Points:
+    - Button: GameActionsPanel.tsx:121-128 ✅ Already exists
+    - Dialog State: GameActionsPanel.tsx:30 ✅ Already exists
+    - Action Handler: GameActionsPanel.tsx:176-182 - REPLACE with real implementation
+
+  ---
+  IMPLEMENTATION PLAN
+
+  Step 1: Create JokerSwapDialog Component
+
+  - New file: JokerSwapDialog.tsx
+  - Functionality: Full tile selection for joker swapping
+  - Integration: Uses existing stores and backend methods
+
+  Step 2: Replace Placeholder in GameActionsPanel
+
+  - Edit: GameActionsPanel.tsx:152-188
+  - Change: Replace entire dialog div with <JokerSwapDialog /> component
+  - Import: Add import for new component
+
+  Step 3: Test Integration
+
+  - Verify: Backend swapJoker() method receives correct data
+  - Validate: UI properly handles success/error states
+  - Confirm: No duplicate code or workarounds
+
+  ---
+  CLEAN CODE APPROACH
+
+  ✅ Leverages existing backend logic - No duplication✅ Uses established patterns - Follows TileSelector patterns✅ Minimal changes - Only replaces placeholder UI✅ Proper integration - Works with        
+  existing action system✅ No workarounds - Direct implementation using proven methods
+
+  This plan eliminates the placeholder implementation and provides full joker swap functionality using the existing, complete backend infrastructure.
+
+● Perfect! The analysis reveals that Phase 3 is essentially complete with only one small piece missing:
+
+  Phase 3 Status: 95% Complete
+
+  ✅ Dead Hand: Fully implemented (declarePassOut() + UI button)✅ Call Tile: Fully implemented (makeCall() + CallOpportunitySection UI)🔧 Swap Joker: Backend complete, just needs UI dialog replacement    
+
+  The only remaining work is replacing the placeholder joker swap dialog with a proper tile selection interface. The backend swapJoker() method at game-actions.ts:270-346 is complete and robust.
+
+  Implementation needed: Create JokerSwapDialog.tsx component and replace lines 152-188 in GameActionsPanel.tsx.
+
+  This is a clean, surgical change that leverages all existing infrastructure. No workarounds, no duplication - just completing the final UI piece that integrates with the proven backend system.

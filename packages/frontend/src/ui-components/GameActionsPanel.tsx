@@ -4,6 +4,7 @@
 import React, { useState } from 'react'
 import { Button } from './Button'
 import { Card } from './Card'
+import { JokerSwapDialog } from '../features/gameplay/components/JokerSwapDialog'
 import type { GameAction } from '../features/gameplay/services/game-actions'
 
 export interface GameActionsPanelProps {
@@ -12,7 +13,6 @@ export interface GameActionsPanelProps {
   isMyTurn: boolean
   currentPlayer?: string
   wallCount?: number
-  turnDuration?: number
   className?: string
   isSoloMode?: boolean
 }
@@ -23,7 +23,6 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   isMyTurn,
   currentPlayer,
   wallCount = 0,
-  turnDuration = 0, // eslint-disable-line @typescript-eslint/no-unused-vars
   className = '',
   isSoloMode = false
 }) => {
@@ -55,26 +54,12 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
     }
   }
 
-  const handleGameDrawn = async () => { // eslint-disable-line @typescript-eslint/no-unused-vars
-    const reason = window.prompt('Why did the game end?\n(wall exhausted / all passed out / time limit)')
-    if (reason) {
-      await onAction('game-drawn', reason)
-    }
-  }
 
   const canDraw = availableActions.includes('draw') && isMyTurn && wallCount > 0
-  const canDiscard = availableActions.includes('discard') && isMyTurn // eslint-disable-line @typescript-eslint/no-unused-vars
-  const canCall = availableActions.includes('call') && !isMyTurn // eslint-disable-line @typescript-eslint/no-unused-vars
   const canJokerSwap = availableActions.includes('joker-swap')
   const canMahjong = availableActions.includes('mahjong') && isMyTurn
   const canPassOut = availableActions.includes('pass-out')
 
-  // Format turn duration
-  const formatDuration = (seconds: number): string => { // eslint-disable-line @typescript-eslint/no-unused-vars
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, '0')}`
-  }
 
   return (
     <Card className={`p-2 sm:p-3 bg-white/95 backdrop-blur-sm ${className}`}>
@@ -150,42 +135,14 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
       </div>
 
       {/* Joker Swap Dialog */}
-      {showJokerSwapDialog && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="p-6 max-w-md w-full mx-4">
-            <h3 className="text-lg font-semibold mb-4">🃏 Joker Swap</h3>
-            <p className="text-gray-600 mb-4">
-              Select a joker from your hand and choose which tile to swap it with from exposed sets.
-            </p>
-            <div className="space-y-3">
-              <div className="text-sm text-gray-500">
-                • Jokers can be swapped for actual tiles in exposed pungs/kongs
-                <br />
-                • You must have the actual tile that the joker represents
-                <br />
-                • This gives you the joker back for other uses
-              </div>
-              <div className="flex gap-2 justify-end">
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setShowJokerSwapDialog(false)}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  onClick={() => {
-                    // For now, just close the dialog - full implementation would handle the swap
-                    onAction('joker-swap', { message: 'Joker swap functionality will be fully implemented in a future update' })
-                    setShowJokerSwapDialog(false)
-                  }}
-                >
-                  Continue
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+      <JokerSwapDialog
+        isOpen={showJokerSwapDialog}
+        onClose={() => setShowJokerSwapDialog(false)}
+        onSwap={async (data) => {
+          await onAction('joker-swap', data)
+          setShowJokerSwapDialog(false)
+        }}
+      />
     </Card>
   )
 }
