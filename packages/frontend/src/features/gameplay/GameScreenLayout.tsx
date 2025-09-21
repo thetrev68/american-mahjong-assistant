@@ -6,8 +6,9 @@ import OpponentExposedZone from './OpponentExposedZone'
 import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
 import { GameplayRecommendations } from './GameplayRecommendations'
 import { GameControlPanel } from './GameControlPanel'
-import type { PlayerTile } from 'shared-types'
-import type { PatternSelectionOption } from 'shared-types'
+import type { PlayerTile, Tile } from 'shared-types'
+import type { HandAnalysis } from '../../stores/intelligence-store'
+import type { GameAction } from '../intelligence-panel/services/turn-intelligence-engine'
 
 interface GameScreenLayoutProps {
   gamePhase: 'charleston' | 'gameplay'
@@ -23,53 +24,27 @@ interface GameScreenLayoutProps {
   isPaused?: boolean
   nextPlayer?: string
   currentHand: PlayerTile[]
-  lastDrawnTile: TileType | null
+  lastDrawnTile: Tile | null
   exposedTiles: Array<{
     type: 'pung' | 'kong' | 'quint' | 'sextet'
-    tiles: TileType[]
+    tiles: Tile[]
     timestamp: Date
   }>
-  selectedDiscardTile: TileType | null
+  selectedDiscardTile: Tile | null
   isMyTurn: boolean
   isAnalyzing: boolean
   handleDrawTile: () => void
-  handleDiscardTile: (tile: TileType) => void
+  handleDiscardTile: (tile: Tile) => void
   onAdvanceToGameplay?: () => void
   discardPile: Array<{
-    tile: TileType
+    tile: Tile
     playerId: string
     timestamp: Date
   }>
   currentPlayerIndex: number
   playerExposedCount: Record<string, number>
-  gameHistory: Array<{
-    playerId: string
-    action: string
-    tile?: TileType
-    timestamp: Date
-  }>
-  currentAnalysis: {
-    recommendations?: {
-      discard?: {
-        reasoning: string
-      }
-    }
-    recommendedPatterns?: Array<{
-      pattern: PatternSelectionOption
-      completionPercentage: number
-      isPrimary: boolean
-      confidence: number
-      reasoning: string
-      difficulty: 'easy' | 'medium' | 'hard'
-    }>
-    overallScore?: number
-    tileRecommendations?: Array<{
-      tileId: string
-      action: 'keep' | 'pass' | 'discard' | 'neutral'
-      confidence: number
-      reasoning: string
-    }>
-  } | null
+  gameHistory: GameAction[]
+  currentAnalysis: HandAnalysis | null
   wallCount?: number
   onSwapJoker?: () => void
   onDeadHand?: () => void
@@ -172,10 +147,15 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
       <EnhancedIntelligencePanel
         analysis={currentAnalysis}
         gameState={{
-          currentPhase: gamePhase,
-          players: playerNames.map(name => ({ name, isActive: name === currentPlayer })),
-          wallTilesRemaining: 144 - (gameRound * 4 * 4), // Estimate
-          jokersInPlay: 0 // Would need to be tracked
+          currentPlayer: currentPlayer,
+          turnNumber: gameRound,
+          roundNumber: gameRound,
+          playerHands: {},
+          playerActions: {},
+          discardPile: discardPile.map(d => d.tile),
+          exposedTiles: {},
+          wallCount: wallCount || 144,
+          actionHistory: gameHistory
         }}
         playerId="You" 
         isCurrentTurn={isMyTurn}

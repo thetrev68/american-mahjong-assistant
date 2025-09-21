@@ -2,10 +2,10 @@
 // Shows AI recommendations for tile discarding during gameplay
 
 import { useMemo } from 'react'
-import type { AnalysisResult } from '../intelligence-panel/services/turn-intelligence-engine'
+import type { HandAnalysis, TileRecommendation } from '../../stores/intelligence-store'
 
 interface GameplayRecommendationsProps {
-  analysis: AnalysisResult | null
+  analysis: HandAnalysis | null
   isLoading?: boolean
   className?: string
 }
@@ -17,19 +17,19 @@ export function GameplayRecommendations({
 }: GameplayRecommendationsProps) {
 
   const confidenceLevel = useMemo(() => {
-    if (!analysis?.confidence) return null
-    const confidence = analysis.confidence
+    if (!analysis?.turnIntelligence?.confidence) return null
+    const confidence = analysis.turnIntelligence.confidence / 100 // Convert 0-100 to 0-1
 
     if (confidence >= 0.8) return { level: 'high', color: 'green', label: 'High Confidence' }
     if (confidence >= 0.6) return { level: 'medium', color: 'yellow', label: 'Medium Confidence' }
     return { level: 'low', color: 'orange', label: 'Low Confidence' }
-  }, [analysis?.confidence])
+  }, [analysis?.turnIntelligence?.confidence])
 
   const recommendations = useMemo(() => {
     if (!analysis?.tileRecommendations) return { keep: [], discard: [] }
 
-    const keep = analysis.tileRecommendations.filter(rec => rec.action === 'keep')
-    const discard = analysis.tileRecommendations.filter(rec => rec.action === 'discard')
+    const keep = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'keep')
+    const discard = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'discard')
 
     return { keep, discard }
   }, [analysis?.tileRecommendations])
@@ -97,7 +97,7 @@ export function GameplayRecommendations({
             <div className="mb-2">
               <p className="text-sm text-red-800 mb-1">Consider discarding:</p>
               <div className="flex flex-wrap gap-1">
-                {recommendations.discard.slice(0, 3).map(rec => (
+                {recommendations.discard.slice(0, 3).map((rec: TileRecommendation) => (
                   <span
                     key={rec.tileId}
                     className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800"
@@ -122,7 +122,7 @@ export function GameplayRecommendations({
             <div>
               <p className="text-sm text-green-800 mb-1">Keep for patterns:</p>
               <div className="flex flex-wrap gap-1">
-                {recommendations.keep.slice(0, 5).map(rec => (
+                {recommendations.keep.slice(0, 5).map((rec: TileRecommendation) => (
                   <span
                     key={rec.tileId}
                     className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800"
@@ -140,7 +140,7 @@ export function GameplayRecommendations({
           <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
             <h4 className="font-medium text-blue-900 mb-2">🎯 Target Pattern</h4>
             <p className="text-sm text-blue-800">
-              {analysis.recommendedPatterns[0]?.name || 'Pattern analysis in progress...'}
+              {analysis.recommendedPatterns[0]?.pattern?.displayName || analysis.recommendedPatterns[0]?.pattern?.pattern || 'Pattern analysis in progress...'}
             </p>
           </div>
         )}

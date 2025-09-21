@@ -947,9 +947,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     // Reset all stores and navigate back to setup
     roomSetupStore.resetToStart()
     gameStore.resetGame()
-    tileStore.resetTiles()
-    patternStore.clearSelectedPatterns()
-    intelligenceStore.resetAnalysis()
+    tileStore.clearHand()
+    patternStore.clearSelection()
+    intelligenceStore.clearAnalysis()
     charlestonStore.reset()
     navigate('/room-setup')
   }, [roomSetupStore, gameStore, tileStore, patternStore, intelligenceStore, charlestonStore, navigate])

@@ -58,15 +58,15 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
       </div>
 
       {/* Turn-Aware Recommendations Section */}
-      {isCurrentTurn && analysis?.turnIntelligence && (
-        <TurnRecommendationsSection 
+      {isCurrentTurn && analysis?.turnIntelligence && onActionRecommendation && (
+        <TurnRecommendationsSection
           recommendations={analysis.turnIntelligence}
           onAction={onActionRecommendation}
         />
       )}
       
       {/* Call Opportunity Section */}
-      {callOpportunity && analysis?.currentCallRecommendation && (
+      {callOpportunity && analysis?.currentCallRecommendation && onActionRecommendation && (
         <CallOpportunitySection
           opportunity={callOpportunity}
           recommendation={analysis.currentCallRecommendation}
@@ -105,11 +105,11 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
             </div>
           )}
           
-          {gamePhase === 'gameplay' && analysis.recommendations?.discard && (
+          {gamePhase === 'gameplay' && analysis.turnIntelligence?.discardRecommendations?.[0] && (
             <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
               <div className="text-sm font-medium text-blue-800 mb-2">💡 Gameplay Recommendation</div>
               <div className="text-sm text-gray-700">
-                {analysis.recommendations.discard.reasoning}
+                {analysis.turnIntelligence.discardRecommendations[0].reasoning}
               </div>
             </div>
           )}
