@@ -2,13 +2,13 @@ import { useEffect, useRef, useState, useCallback } from 'react'
 import { io, Socket } from 'socket.io-client'
 import { appConfig } from '../utils/feature-flags'
 
-interface QueuedEvent {
+export interface QueuedEvent {
   event: string
   data: unknown
   timestamp: Date
 }
 
-interface ConnectionHealth {
+export interface ConnectionHealth {
   isHealthy: boolean
   latency: number | null
   lastPing: Date | null

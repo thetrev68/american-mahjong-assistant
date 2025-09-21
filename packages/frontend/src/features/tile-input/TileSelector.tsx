@@ -7,7 +7,7 @@ import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { useTileStore } from '../../stores'
 import { tileService } from '../../lib/services/tile-service'
-import type { TileSuit } from 'shared-types'
+import type { TileSuit, Tile, PlayerTile } from 'shared-types'
 
 interface TileSelectorProps {
   onTileSelect?: (tileId: string) => void
@@ -38,7 +38,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
     tileCounts.set(tile.id, (tileCounts.get(tile.id) || 0) + 1)
   })
   
-  const handleTileClick = (tile: BaseTile) => {
+  const handleTileClick = (tile: Tile) => {
     const currentCount = tileCounts.get(tile.id) || 0
     
     if (!modalMode) {
@@ -62,7 +62,7 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
     }
   }
   
-  const createDummyPlayerTile = (baseTile: BaseTile): PlayerTile => ({
+  const createDummyPlayerTile = (baseTile: Tile): PlayerTile => ({
     ...baseTile,
     instanceId: `selector_${baseTile.id}`,
     isSelected: false

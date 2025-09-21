@@ -41,9 +41,9 @@ interface ComponentMetrics {
 
 export const usePerformanceMonitor = () => {
   const [metrics, setMetrics] = useState<Partial<PerformanceMetrics>>({})
-  const [componentMetrics, setComponentMetrics] = useState<Map<string, ComponentMetrics>>(new Map())
-  const [isMonitoring, setIsMonitoring] = useState(false)
-  const frameRef = useRef<number>()
+  const [componentMetrics, setComponentMetrics] = useState<Map<string, ComponentMetrics>>(new Map<string, ComponentMetrics>())
+  const [isMonitoring, setIsMonitoring] = useState<boolean>(false)
+  const frameRef = useRef<number | undefined>(undefined)
   const fpsCounter = useRef({ frames: 0, lastTime: 0 })
 
   // Measure Web Vitals
@@ -62,9 +62,10 @@ export const usePerformanceMonitor = () => {
       // First Input Delay
       const fidObserver = new PerformanceObserver((list) => {
         const entries = list.getEntries()
-        entries.forEach((entry: PerformanceEventTiming) => {
-          if (entry.processingStart && entry.startTime) {
-            const fid = entry.processingStart - entry.startTime
+        entries.forEach((entry) => {
+          const eventEntry = entry as PerformanceEventTiming
+          if (eventEntry.processingStart && eventEntry.startTime) {
+            const fid = eventEntry.processingStart - eventEntry.startTime
             setMetrics(prev => ({ ...prev, firstInputDelay: fid }))
           }
         })
@@ -74,9 +75,10 @@ export const usePerformanceMonitor = () => {
       // Cumulative Layout Shift
       const clsObserver = new PerformanceObserver((list) => {
         let clsValue = 0
-        list.getEntries().forEach((entry: LayoutShift) => {
-          if (!entry.hadRecentInput) {
-            clsValue += entry.value
+        list.getEntries().forEach((entry) => {
+          const layoutEntry = entry as LayoutShift
+          if (!layoutEntry.hadRecentInput) {
+            clsValue += layoutEntry.value
           }
         })
         setMetrics(prev => ({ ...prev, cumulativeLayoutShift: clsValue }))
@@ -248,8 +250,8 @@ export const usePerformanceMonitor = () => {
       timestamp: new Date().toISOString(),
       metrics,
       componentMetrics: Array.from(componentMetrics.entries()).map(([name, data]) => ({
-        name,
-        ...data
+        ...data,
+        name
       })),
       recommendations: getRecommendations(),
       userAgent: navigator.userAgent,

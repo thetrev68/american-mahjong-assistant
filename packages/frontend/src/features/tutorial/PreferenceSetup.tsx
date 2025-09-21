@@ -349,7 +349,7 @@ export const PreferenceSetup: React.FC<PreferenceSetupProps> = ({
       </div>
 
       {/* Preview */}
-      <Card variant="default" className="max-w-md mx-auto mx-4 sm:mx-auto p-3 sm:p-4 bg-blue-50 border-blue-200">
+      <Card variant="default" className="max-w-md mx-4 sm:mx-auto p-3 sm:p-4 bg-blue-50 border-blue-200">
         <div className="text-center space-y-2">
           <h4 className="font-medium text-blue-900">✨ Your Settings Preview</h4>
           <div className="text-sm text-blue-800 space-y-1">

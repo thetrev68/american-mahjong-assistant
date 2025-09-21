@@ -45,7 +45,7 @@ export const TileInputModal = ({
         setModalHand([])
       }
     }
-  }, [isOpen, initialTiles.length])
+  }, [isOpen, initialTiles])
 
   // Get current hand as sorted tile abbreviations
   const getCurrentHandDisplay = () => {

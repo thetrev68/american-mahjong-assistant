@@ -99,7 +99,7 @@ export const RoomSetupView: React.FC = () => {
 
   const handleSkipToGameplay = () => {
     // Set up a complete game state and navigate to gameplay
-    gameStore.setGamePhase('gameplay')
+    gameStore.setGamePhase('playing')
     navigate('/game')
   }
 

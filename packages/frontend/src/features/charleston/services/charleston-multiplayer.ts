@@ -5,7 +5,7 @@ import type { Socket } from 'socket.io-client'
 import { useCharlestonStore } from '../../../stores/charleston-store'
 import { useMultiplayerStore } from '../../../stores/multiplayer-store'
 // import { useSocket } from '../hooks/useSocket' // Unused until service refactor
-import type { Tile } from 'shared-types';
+import type { Tile, TileSuit, TileValue } from 'shared-types';
 
 type CharlestonStore = ReturnType<typeof useCharlestonStore.getState>
 type MultiplayerStore = ReturnType<typeof useMultiplayerStore.getState>
@@ -57,9 +57,9 @@ export class CharlestonMultiplayerService {
       // Convert received tiles to proper Tile objects
       const tiles: Tile[] = (tilesReceived as Record<string, unknown>[]).map((tile: Record<string, unknown>) => ({
         id: String(tile.id),
-        suit: String(tile.suit || 'unknown'),
-        value: String(tile.value || tile.id),
-        display: String(tile.display || tile.id),
+        suit: (String(tile.suit || 'jokers')) as TileSuit,
+        value: (String(tile.value || 'joker')) as TileValue,
+        displayName: String(tile.displayName || tile.display || tile.id),
         isJoker: Boolean(tile.isJoker || false)
       }))
 
@@ -135,7 +135,7 @@ export class CharlestonMultiplayerService {
           id: tile.id,
           suit: tile.suit,
           value: tile.value || tile.id,
-          display: tile.display || tile.id,
+          displayName: tile.displayName || tile.id,
           isJoker: tile.isJoker || false
         })),
         phase

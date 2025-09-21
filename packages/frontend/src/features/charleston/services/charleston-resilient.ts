@@ -5,7 +5,7 @@ import { useCharlestonStore } from '../../../stores/charleston-store'
 import { useRoomStore } from '../../../stores/room.store'
 import { getConnectionResilienceService } from '../../../lib/services/connection-resilience'
 import { getNetworkErrorHandler } from '../../../lib/services/network-error-handler'
-import type { Tile } from 'shared-types';
+import type { Tile, TileSuit, TileValue } from 'shared-types';
 
 export interface QueuedCharlestonOperation {
   type: 'player-ready' | 'tile-exchange' | 'phase-advance'
@@ -126,9 +126,9 @@ export class CharlestonResilientService {
       // Convert received tiles to proper Tile objects
       const tiles: Tile[] = data.tilesReceived.map((tile: Record<string, unknown>) => ({
         id: String(tile.id),
-        suit: String(tile.suit || 'unknown'),
-        value: String(tile.value || tile.id),
-        display: String(tile.display || tile.id),
+        suit: (String(tile.suit || 'jokers')) as TileSuit,
+        value: (String(tile.value || 'joker')) as TileValue,
+        displayName: String(tile.displayName || tile.display || tile.id),
         isJoker: Boolean(tile.isJoker || false)
       }))
 
@@ -230,7 +230,7 @@ export class CharlestonResilientService {
           id: tile.id,
           suit: tile.suit,
           value: tile.value,
-          display: tile.display,
+          displayName: tile.displayName,
           isJoker: tile.isJoker
         })),
         isReady: true

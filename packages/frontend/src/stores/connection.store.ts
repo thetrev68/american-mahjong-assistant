@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 import { useRoomStore } from './room.store';
 
-interface ConnectionStatus {
+export interface ConnectionStatus {
   isConnected: boolean;
   connectionId?: string;
   lastPing?: Date;

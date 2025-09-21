@@ -9,7 +9,7 @@ import { TileLockBadge } from '../../ui-components/TileLockBadge'
 import { useTileStore, useIntelligenceStore } from '../../stores'
 import { getTileStateClass } from '../gameplay/TileStates'
 import { useTileInteraction } from '../../hooks/useTileInteraction'
-import type { PlayerTile, TileRecommendation } from 'shared-types'
+import type { PlayerTile } from 'shared-types'
 
 interface HandDisplayProps {
   showRecommendations?: boolean
@@ -37,40 +37,44 @@ export const HandDisplay = ({
   // Get AI recommendations for highlighting
   const { currentAnalysis } = useIntelligenceStore()
   
-  // Create lookup maps for highlighting
-  const getTileHighlighting = (tile: PlayerTile): TileRecommendation | undefined => {
+  // Create lookup maps for highlighting using HandAnalysis
+  const getTileHighlighting = (tile: PlayerTile): { action: 'keep' | 'discard' | 'pass'; confidence: number; reasoning: string } | undefined => {
     if (!currentAnalysis || !showRecommendations) return undefined
-    
-    const matchingRec = currentAnalysis.tileRecommendations.find(rec => rec.tileId === tile.id)
-    
-    if (!matchingRec) return undefined
-    
-    // Assign a priority based on the action for the TileRecommendation type
-    let priority = 0
-    switch (matchingRec.action) {
-      case 'keep':
-        priority = 100
-        break
-      case 'discard':
-        priority = 50
-        break
-      case 'pass':
-        priority = 25
-        break
-      default:
-        priority = 0
-        break
+
+    const recommendations = currentAnalysis.tileRecommendations
+    if (!recommendations) return undefined
+
+    // Check if tile is in keep recommendations
+    if (recommendations?.some((rec: { tileId: string; action: string }) => rec.tileId === tile.id && rec.action === 'keep')) {
+      return {
+        action: 'keep',
+        confidence: 85,
+        reasoning: 'Recommended to keep'
+      }
     }
-    
-    return {
-      ...matchingRec,
-      priority,
-      confidence: matchingRec.confidence || 85,
-      reasoning: matchingRec.reasoning || ''
+
+    // Check if tile is in discard recommendations
+    if (recommendations?.some((rec: { tileId: string; action: string }) => rec.tileId === tile.id && rec.action === 'discard')) {
+      return {
+        action: 'discard',
+        confidence: 75,
+        reasoning: 'Safe to discard'
+      }
     }
+
+    // Check if tile is in charleston recommendations
+    if (recommendations?.some((rec: { tileId: string; action: string }) => rec.tileId === tile.id && rec.action === 'pass')) {
+      return {
+        action: 'pass',
+        confidence: 70,
+        reasoning: 'Consider passing in Charleston'
+      }
+    }
+
+    return undefined
   }
   
-  const { handleTileClick, handleTileRightClick } = useTileInteraction('selection')
+  const { handleTileClick } = useTileInteraction('selection')
   
   
   
@@ -105,10 +109,9 @@ export const HandDisplay = ({
                     ) : (
                       <>
                         <AnimatedTile
-                          tile={{ ...tile, recommendation }}
+                          tile={tile}
                           size={compactMode ? 'sm' : 'md'}
                           onClick={handleTileClick}
-                          onContextMenu={(e) => handleTileRightClick(e, tile)}
                           animateOnSelect={true}
                           context="selection"
                           recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}
@@ -140,10 +143,9 @@ export const HandDisplay = ({
               ) : (
                 <>
                   <AnimatedTile
-                    tile={{ ...tile, recommendation }}
+                    tile={tile}
                     size={compactMode ? 'sm' : 'md'}
                     onClick={handleTileClick}
-                    onContextMenu={(e) => handleTileRightClick(e, tile)}
                     animateOnSelect={true}
                     context="selection"
                     recommendationType={recommendation?.action as 'keep' | 'pass' | 'discard'}

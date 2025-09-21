@@ -8,8 +8,7 @@ export const useTileInteraction = (context: TileInteractionContext) => {
     moveToSelection,
     returnFromSelection,
     selectedForAction,
-    tileStates,
-    toggleTileLock
+    tileStates
   } = useTileStore()
 
   const handleTileClick = (tile: PlayerTile) => {
@@ -36,13 +35,7 @@ export const useTileInteraction = (context: TileInteractionContext) => {
     }
   }
 
-  const handleTileRightClick = (e: React.MouseEvent, tile: PlayerTile) => {
-    e.preventDefault()
-    toggleTileLock(tile.instanceId)
-  }
-
   return {
-    handleTileClick,
-    handleTileRightClick
+    handleTileClick
   }
 }

@@ -16,6 +16,7 @@ const createMockTile = (id: string): PlayerTile => {
     id: tileData?.id || id,
     suit: tileData?.suit || 'dots',
     value: tileData?.value || '1',
+    displayName: tileData?.displayName || id,
     instanceId: `mock_${id}`,
     isSelected: false,
   }
@@ -39,6 +40,7 @@ const generateSampleHand = (): PlayerTile[] => {
       id: tileId,
       suit: tileData?.suit || 'dots',
       value: tileData?.value || '1',
+      displayName: tileData?.displayName || tileId,
       instanceId: `demo_${tileId}`,
       isSelected: false,
     }

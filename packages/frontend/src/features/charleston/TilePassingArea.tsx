@@ -2,14 +2,14 @@
 // Interactive tile selection interface for Charleston passing
 
 import { useState, useMemo } from 'react'
-import type { Tile } from 'shared-types';
+import type { PlayerTile } from 'shared-types';
 
 interface TilePassingAreaProps {
-  availableTiles: Tile[]
-  selectedTiles: Tile[]
-  recommendedTiles: Tile[]
-  onTileSelect: (tile: Tile) => void
-  onTileDeselect: (tile: Tile) => void
+  availableTiles: PlayerTile[]
+  selectedTiles: PlayerTile[]
+  recommendedTiles: PlayerTile[]
+  onTileSelect: (tile: PlayerTile) => void
+  onTileDeselect: (tile: PlayerTile) => void
   maxSelection?: number
   disabled?: boolean
   className?: string
@@ -60,7 +60,7 @@ export function TilePassingArea({
   const canSelectMore = selectedTiles.length < maxSelection
   const isComplete = selectedTiles.length === maxSelection
   
-  const handleTileClick = (tile: Tile) => {
+  const handleTileClick = (tile: PlayerTile) => {
     if (disabled) return
     
     const isSelected = selectedTiles.some(t => (t.instanceId || t.id) === (tile.instanceId || tile.id))
@@ -197,7 +197,7 @@ export function TilePassingArea({
 }
 
 interface TileButtonProps {
-  tile: Tile
+  tile: PlayerTile
   onClick: () => void
   variant: 'selected' | 'recommended' | 'available'
   disabled?: boolean

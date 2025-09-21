@@ -109,7 +109,7 @@ export const TileInputPage = () => {
   }
 
   const handleSkipToGameplay = () => {
-    setGamePhase('gameplay')
+    setGamePhase('playing')
     navigate('/game')
   }
 

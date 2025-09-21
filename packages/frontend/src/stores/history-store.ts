@@ -99,7 +99,7 @@ export interface CompletedGame {
   coPilotMode?: 'everyone' | 'solo'
 }
 
-interface GameComment {
+export interface GameComment {
   id: string
   authorId: string
   authorName: string
@@ -108,13 +108,13 @@ interface GameComment {
   votes: number
 }
 
-interface PerformanceStats {
+export interface PerformanceStats {
   totalGames: number
   gamesWon: number
   winRate: number
   averageScore: number
   averageGameDuration: number
-  
+
   // Decision quality over time
   decisionQualityTrend: Array<{
     date: Date
@@ -136,7 +136,7 @@ interface PerformanceStats {
   progressToNext: number // 0-100%
 }
 
-interface LearningRecommendation {
+export interface LearningRecommendation {
   id: string
   type: 'pattern' | 'strategy' | 'charleston' | 'general'
   priority: 'high' | 'medium' | 'low'
