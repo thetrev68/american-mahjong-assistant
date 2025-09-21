@@ -1,7 +1,7 @@
 // Turn Intelligence Engine
 // Context-sensitive AI analysis for turn-aware strategic recommendations
 
-import type { Tile } from 'shared-types'
+import type { Tile, PlayerTile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
 import { AnalysisEngine } from '../../../lib/services/analysis-engine'
 
@@ -394,9 +394,8 @@ export class TurnIntelligenceEngine {
     try {
       const { AnalysisEngine } = await import('../../../lib/services/analysis-engine')
       const analysis = await AnalysisEngine.analyzeHand(hand, [], {
-        currentPhase: gameState.phase || 'playing',
-        wallTilesRemaining: gameState.wallTilesRemaining || 70,
-        roundNumber: gameState.roundNumber || 1
+        currentPhase: 'gameplay',
+        wallTilesRemaining: gameState.wallCount || 70
       })
       
       const suggestions: PatternSwitchSuggestion[] = []
@@ -409,7 +408,7 @@ export class TurnIntelligenceEngine {
         // Look for better alternatives to current patterns
         for (const current of currentlyTargeted) {
           const betterAlternatives = bestPatterns.filter(alt => 
-            alt.patternId !== current.patternId &&
+            alt.patternId !== current.pattern.id &&
             alt.completionPercentage > current.completionPercentage + 15 && // Significant improvement
             alt.completionPercentage > 30 // Must be reasonably viable
           )
@@ -418,8 +417,8 @@ export class TurnIntelligenceEngine {
             const improvement = (alternative.completionPercentage - current.completionPercentage) / 100
             
             suggestions.push({
-              fromPattern: current.pattern,
-              toPattern: alternative.pattern,
+              fromPattern: current.pattern as unknown as NMJL2025Pattern,
+              toPattern: alternative.pattern as unknown as NMJL2025Pattern,
               improvement,
               reasoning: `Switch from ${current.completionPercentage.toFixed(0)}% to ${alternative.completionPercentage.toFixed(0)}% completion`,
               confidence: Math.min(0.9, Math.abs(improvement) * 2 + 0.3), // Scale confidence based on improvement

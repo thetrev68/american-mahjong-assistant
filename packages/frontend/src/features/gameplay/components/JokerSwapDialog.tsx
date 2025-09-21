@@ -3,12 +3,12 @@ import { Card } from '../../../ui-components/Card'
 import { Button } from '../../../ui-components/Button'
 import { AnimatedTile } from '../../../ui-components/tiles/AnimatedTile'
 import { useTileStore } from '../../../stores/tile-store'
-import type { Tile } from 'shared-types'
+import type { PlayerTile } from 'shared-types'
 
 interface JokerSwapDialogProps {
   isOpen: boolean
   onClose: () => void
-  onSwap: (data: { jokerLocation: 'own' | 'opponent', targetTile: Tile }) => Promise<void>
+  onSwap: (data: { jokerLocation: 'own' | 'opponent', targetTile: PlayerTile }) => Promise<void>
 }
 
 type SwapStep = 'select-joker' | 'select-tile' | 'confirm'
@@ -20,8 +20,8 @@ export const JokerSwapDialog: React.FC<JokerSwapDialogProps> = ({
 }) => {
   const { playerHand, exposedTiles } = useTileStore()
   const [currentStep, setCurrentStep] = useState<SwapStep>('select-joker')
-  const [selectedJoker, setSelectedJoker] = useState<{ location: 'own' | 'opponent', tile: Tile } | null>(null)
-  const [selectedTargetTile, setSelectedTargetTile] = useState<Tile | null>(null)
+  const [selectedJoker, setSelectedJoker] = useState<{ location: 'own' | 'opponent', tile: PlayerTile } | null>(null)
+  const [selectedTargetTile, setSelectedTargetTile] = useState<PlayerTile | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
 
   if (!isOpen) return null
@@ -37,12 +37,12 @@ export const JokerSwapDialog: React.FC<JokerSwapDialogProps> = ({
     return playerHand.filter(tile => !tile.isJoker)
   }
 
-  const handleJokerSelect = (location: 'own' | 'opponent', tile: Tile) => {
+  const handleJokerSelect = (location: 'own' | 'opponent', tile: PlayerTile) => {
     setSelectedJoker({ location, tile })
     setCurrentStep('select-tile')
   }
 
-  const handleTargetTileSelect = (tile: Tile) => {
+  const handleTargetTileSelect = (tile: PlayerTile) => {
     setSelectedTargetTile(tile)
     setCurrentStep('confirm')
   }
@@ -117,12 +117,7 @@ export const JokerSwapDialog: React.FC<JokerSwapDialogProps> = ({
                         <AnimatedTile
                           tile={tile}
                           size="md"
-                          onClick={() => handleJokerSelect('own', {
-                            id: tile.id,
-                            suit: tile.suit,
-                            value: tile.value,
-                            isJoker: tile.isJoker
-                          })}
+                          onClick={() => handleJokerSelect('own', tile)}
                           className="hover:scale-110 transition-transform"
                           context="selection"
                         />
@@ -186,12 +181,7 @@ export const JokerSwapDialog: React.FC<JokerSwapDialogProps> = ({
                     <AnimatedTile
                       tile={tile}
                       size="md"
-                      onClick={() => handleTargetTileSelect({
-                        id: tile.id,
-                        suit: tile.suit,
-                        value: tile.value,
-                        isJoker: tile.isJoker
-                      })}
+                      onClick={() => handleTargetTileSelect(tile)}
                       className="hover:scale-110 transition-transform"
                       context="selection"
                     />

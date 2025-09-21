@@ -167,7 +167,7 @@ export class TurnRealtimeService {
         const discardData = actionData.result as { tile: Tile }
         if (discardData?.tile) {
           // Add to visible discard pile
-          console.log(`${actionData.playerId} discarded: ${discardData.tile.display}`)
+          console.log(`${actionData.playerId} discarded: ${discardData.tile.displayName}`)
         }
         break
       }
@@ -176,7 +176,7 @@ export class TurnRealtimeService {
         // Update exposed tiles for the calling player
         const callData = actionData.result as { callType: CallType, tiles: Tile[] }
         if (callData?.tiles) {
-          console.log(`${actionData.playerId} called ${callData.callType}:`, callData.tiles.map(t => t.display))
+          console.log(`${actionData.playerId} called ${callData.callType}:`, callData.tiles.map(t => t.displayName))
         }
         break
       }
@@ -229,7 +229,7 @@ export class TurnRealtimeService {
           id: discardedTile.id,
           suit: discardedTile.suit,
           value: discardedTile.value,
-          display: discardedTile.display,
+          display: discardedTile.displayName,
           isJoker: discardedTile.isJoker
         },
         discardingPlayer: roomStore.hostPlayerId,
@@ -273,7 +273,7 @@ export class TurnRealtimeService {
     gameStore.addAlert({
       type: 'info',
       title: 'Call Opportunity',
-      message: `${opportunityData.discardedTile.display} discarded. You have ${Math.floor(opportunityData.duration / 1000)} seconds to call.`
+      message: `${opportunityData.discardedTile.displayName} discarded. You have ${Math.floor(opportunityData.duration / 1000)} seconds to call.`
     })
 
     // Auto-pass if no response
@@ -300,7 +300,7 @@ export class TurnRealtimeService {
           id: tile.id,
           suit: tile.suit,
           value: tile.value,
-          display: tile.display,
+          display: tile.displayName,
           isJoker: tile.isJoker
         })),
         priority: this.getCallPriority(roomStore.hostPlayerId || '', turnStore.turnOrder)

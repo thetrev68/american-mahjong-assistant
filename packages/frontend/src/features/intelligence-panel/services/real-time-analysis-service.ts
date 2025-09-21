@@ -128,7 +128,7 @@ export class RealTimeAnalysisService {
           tilesMatched: bestVariation.tilesMatched,
           tilesNeeded: bestVariation.tilesNeeded,
           aiScore: ranking.totalScore,
-          reasoning: this.generateReasoning(pattern, analysis, ranking),
+          reasoning: this.generateReasoning(pattern, analysis),
           canUseJokers: this.patternAllowsJokers(pattern),
           jokersNeeded: analysis.jokerAnalysis.jokersToComplete,
           estimatedTurnsToComplete: this.estimateTurnsToComplete(bestVariation.tilesNeeded, context),

@@ -171,10 +171,6 @@ export class GameActionsService {
       // Update available actions
       this.updateAvailableActions(playerId)
 
-      // Check for call opportunities (solo mode simulation)
-      if (useRoomSetupStore.getState().coPilotMode !== 'everyone') {
-        this.simulateCallOpportunities(tile, playerId)
-      }
 
       // Analyze hand after discard for AI recommendations
       const intelligenceStore = useIntelligenceStore.getState()
@@ -297,6 +293,7 @@ export class GameActionsService {
             id: 'joker',
             suit: 'jokers',
             value: 'joker',
+            displayName: 'Joker',
             isJoker: true
           }
           
@@ -641,7 +638,7 @@ export class GameActionsService {
       playerHands: {
         [roomStore.hostPlayerId || 'current']: tileStore.playerHand
       },
-      discardPile: useTurnStore.getState().discardPile.map((d: { tile: Tile }) => d.tile),
+      discardPile: useTurnStore.getState().discardPile,
       exposedTiles: {
         [roomStore.hostPlayerId || 'current']: tileStore.exposedTiles
       },
@@ -669,6 +666,7 @@ export class GameActionsService {
       id: `${randomValue}${randomSuit[0]}`,
       suit: randomSuit,
       value: randomValue,
+      displayName: `${randomValue} ${randomSuit}`,
       isJoker: false
     }
   }
@@ -690,11 +688,6 @@ export class GameActionsService {
     console.log(`Available actions updated for player ${playerId}`)
   }
 
-  private simulateCallOpportunities(tile: Tile): void {
-    // In solo mode, simulate call opportunities for co-pilot experience
-    // This would normally create UI notifications in multiplayer scenarios
-    console.log(`Simulating call opportunity for tile: ${tile.id}`)
-  }
 
   private validateMahjongClaim(hand: Tile[]): ActionValidationResult {
     // Use mahjong validator service for proper pattern matching

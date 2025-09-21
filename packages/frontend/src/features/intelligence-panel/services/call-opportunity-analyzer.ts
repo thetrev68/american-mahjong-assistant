@@ -1,7 +1,7 @@
 // Call Opportunity Analyzer  
 // Strategic evaluation of call opportunities (pung/kong) with risk/reward analysis
 
-import type { Tile } from 'shared-types'
+import type { Tile, PlayerTile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { GameState, PatternProgressScore } from './turn-intelligence-engine'
 import type { OpponentProfile } from './opponent-analysis-engine'

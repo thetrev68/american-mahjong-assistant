@@ -1135,7 +1135,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         discardPile={discardPile}
         currentPlayerIndex={currentPlayerIndex}
         playerExposedCount={playerExposedCount}
-        gameHistory={gameHistory}
+        gameHistory={gameHistory.map(h => ({ ...h, isVisible: true, turnNumber: gameRound }))}
         currentAnalysis={currentAnalysis}
         wallCount={turnSelectors.wallCount}
         onSwapJoker={handleSwapJoker}

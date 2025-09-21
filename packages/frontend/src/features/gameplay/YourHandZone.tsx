@@ -55,7 +55,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
 }) => {
   const { selectedForAction, tileStates } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
-  const { handleTileClick, handleTileRightClick } = useTileInteraction(isCharleston ? 'charleston' : 'gameplay')
+  const { handleTileClick } = useTileInteraction(isCharleston ? 'charleston' : 'gameplay')
 
   
   // Sort hand tiles using same logic as tile input page
@@ -155,12 +155,11 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
                           size="sm"
                           onClick={(clickedTile) => {
                             // In Charleston mode, always allow tile selection regardless of turn
-                            // In gameplay mode, allow if it's my turn OR in single-player mode (for dev/testing)
-                            if (isCharleston || isMyTurn || gamePhase === 'gameplay') {
+                            // In gameplay mode, only allow if it's my turn (consistent with button logic)
+                            if (isCharleston || (gamePhase === 'gameplay' && isMyTurn)) {
                               handleTileClick(clickedTile)
                             }
                           }}
-                          onContextMenu={(e) => handleTileRightClick(e, tile)}
                           className="cursor-pointer hover:scale-105 transition-transform"
                           context={isCharleston ? "charleston" : "gameplay"}
                         />

@@ -40,6 +40,7 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
       // Add alert for tracking
       gameStore.addAlert({
         type: 'info',
+        title: 'Opponent Action',
         message: `Logged opponent discard: ${tiles[0]}`,
         duration: 3000
       })
@@ -56,6 +57,7 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
       // Add alert for tracking
       gameStore.addAlert({
         type: 'info',
+        title: 'Opponent Action',
         message: `Logged opponent call: ${tiles.join(', ')}`,
         duration: 3000
       })
@@ -68,6 +70,7 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
     if (gameStore.currentTurn > 0) {
       gameStore.addAlert({
         type: 'warning',
+        title: 'Undo Action',
         message: 'Previous turn undone',
         duration: 3000
       })
@@ -77,7 +80,8 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
       gameStore.recordAction(gameStore.currentPlayerId || 'player', 'undo')
     } else {
       gameStore.addAlert({
-        type: 'error',
+        type: 'warning',
+        title: 'Undo Failed',
         message: 'No previous turn to undo',
         duration: 3000
       })

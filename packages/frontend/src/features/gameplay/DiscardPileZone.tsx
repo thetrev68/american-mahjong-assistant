@@ -1,10 +1,11 @@
 import React from 'react'
 import { Card } from '../../ui-components/Card'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
+import type { Tile } from 'shared-types'
 
 interface DiscardPileZoneProps {
   discardPile: Array<{
-    tile: TileType
+    tile: Tile
     playerId: string
     timestamp: Date
   }>
