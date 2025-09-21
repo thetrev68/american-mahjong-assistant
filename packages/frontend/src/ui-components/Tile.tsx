@@ -4,7 +4,6 @@
 import type { ReactNode } from 'react'
 import { memo } from 'react'
 import type { PlayerTile } from 'shared-types';
-import type { Tile } from 'shared-types';
 import { TileSprite } from './TileSprite'
 
 interface TileProps {

@@ -248,9 +248,9 @@ export class ConnectionResilienceTestSuite {
 
     // Test queueing Charleston operations
     const tiles = [
-      { id: 'test-tile-1', suit: 'bamboo', value: '1', display: '1B', isJoker: false },
-      { id: 'test-tile-2', suit: 'character', value: '5', display: '5C', isJoker: false },
-      { id: 'test-tile-3', suit: 'dots', value: '9', display: '9D', isJoker: false }
+      { id: 'test-tile-1', suit: 'bams' as const, value: '1' as const, displayName: '1 Bam', isJoker: false },
+      { id: 'test-tile-2', suit: 'cracks' as const, value: '5' as const, displayName: '5 Crack', isJoker: false },
+      { id: 'test-tile-3', suit: 'dots' as const, value: '9' as const, displayName: '9 Dot', isJoker: false }
     ]
 
     // This should queue the operation since we're in test mode

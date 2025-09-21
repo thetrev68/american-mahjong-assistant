@@ -550,7 +550,7 @@ export const useTurnStore = create<TurnStore>()(
             discardPile: [...state.discardPile, tile]
           }, false, 'turn/updateDiscardPile')
           
-          console.log(`Added to discard pile: ${tile.display} from ${playerId}`)
+          console.log(`Added to discard pile: ${tile.displayName} from ${playerId}`)
         },
 
         updateWallCount: (count: number) => {

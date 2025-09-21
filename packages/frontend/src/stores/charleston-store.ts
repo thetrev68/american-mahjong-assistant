@@ -1,29 +1,37 @@
-// Charleston Store
+// Charleston Store - Simplified
 // Zustand store for Charleston phase state management
+// Charleston is just "pass 3 tiles instead of discard 1" with different turn rotation
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { CharlestonAdapter, type CharlestonPhase, type CharlestonRecommendation } from '../utils/charleston-adapter'
 import type { Tile } from 'shared-types'
 import type { PatternSelectionOption } from 'shared-types'
+
+export type CharlestonPhase = 'right' | 'across' | 'left' | 'optional' | 'complete'
+
+export interface SimpleCharlestonRecommendation {
+  tilesToPass: Tile[]
+  reasoning: string[]
+  confidence: number
+}
 
 interface CharlestonState {
   // Current phase and settings
   currentPhase: CharlestonPhase
   playerCount: number
   isActive: boolean
-  
+
   // Player tiles and selection
   playerTiles: Tile[]
   selectedTiles: Tile[]
-  
-  // AI recommendations
-  recommendations: CharlestonRecommendation | null
+
+  // Simple AI recommendations
+  recommendations: SimpleCharlestonRecommendation | null
   isAnalyzing: boolean
-  
+
   // Target patterns (from pattern store)
   targetPatterns: PatternSelectionOption[]
-  
+
   // Charleston history
   phaseHistory: Array<{
     phase: CharlestonPhase
@@ -31,14 +39,14 @@ interface CharlestonState {
     tilesReceived: Tile[]
     timestamp: number
   }>
-  
+
   // Multiplayer coordination
   isMultiplayerMode: boolean
   playerReadiness: Record<string, boolean> // playerId -> ready status
   waitingForPlayers: string[] // playerIds we're waiting for
   currentPlayerId: string | null
   roomId: string | null
-  
+
   // UI state
   showStrategy: boolean
   analysisError: string | null
@@ -50,42 +58,30 @@ interface CharlestonActions {
   setPlayerCount: (count: number) => void
   startCharleston: () => void
   endCharleston: () => void
-  
+  completePhase: () => void
+  reset: () => void
+
   // Tile management
   setPlayerTiles: (tiles: Tile[]) => void
-  addTile: (tile: Tile) => void
-  removeTile: (tileId: string) => void
-  
-  // Selection management
+  setSelectedTiles: (tiles: Tile[]) => void
   selectTile: (tile: Tile) => void
   deselectTile: (tile: Tile) => void
   clearSelection: () => void
-  autoSelectRecommended: () => void
-  
-  // Target patterns
+
+  // Pattern management
   setTargetPatterns: (patterns: PatternSelectionOption[]) => void
-  
+
   // Analysis
   generateRecommendations: () => Promise<void>
   clearRecommendations: () => void
-  
-  // Phase completion
-  completePhase: (tilesReceived?: Tile[]) => void
-  
-  // Multiplayer coordination
-  setMultiplayerMode: (isMultiplayer: boolean, roomId?: string, playerId?: string) => void
-  setPlayerReady: (playerId: string, isReady: boolean) => void
-  resetPlayerReadiness: () => void
-  updateWaitingForPlayers: (playerIds: string[]) => void
-  markPlayerReady: () => void // Mark current player as ready
-  handleTileExchange: (tilesReceived: Tile[]) => void // Handle receiving tiles from other players
-  
-  // UI actions
-  toggleStrategy: () => void
-  clearError: () => void
-  
-  // Reset
-  reset: () => void
+
+  // Multiplayer
+  setMultiplayerMode: (enabled: boolean, roomId?: string) => void
+  setPlayerReady: (playerId: string, ready: boolean) => void
+  setCurrentPlayer: (playerId: string) => void
+
+  // UI
+  setShowStrategy: (show: boolean) => void
 }
 
 type CharlestonStore = CharlestonState & CharlestonActions
@@ -106,7 +102,7 @@ const initialState: CharlestonState = {
   currentPlayerId: null,
   roomId: null,
   showStrategy: false,
-  analysisError: null
+  analysisError: null,
 }
 
 export const useCharlestonStore = create<CharlestonStore>()(
@@ -114,298 +110,144 @@ export const useCharlestonStore = create<CharlestonStore>()(
     persist(
       (set, get) => ({
         ...initialState,
-        
+
         // Phase management
-        setPhase: (phase) => {
-          set({ currentPhase: phase }, false, 'charleston/setPhase')
-          // Auto-generate recommendations when phase changes
-          if (get().isActive && get().playerTiles.length > 0) {
-            get().generateRecommendations()
-          }
-        },
-        
-        setPlayerCount: (count) => {
-          set({ playerCount: count }, false, 'charleston/setPlayerCount')
-        },
-        
-        startCharleston: () => {
-          set({ 
-            isActive: true, 
+        setPhase: (phase) =>
+          set({ currentPhase: phase }, false, 'charleston/setPhase'),
+
+        setPlayerCount: (count) =>
+          set({ playerCount: count }, false, 'charleston/setPlayerCount'),
+
+        startCharleston: () =>
+          set({
+            isActive: true,
             currentPhase: 'right',
             phaseHistory: [],
-            selectedTiles: []
-          }, false, 'charleston/start')
-          
-          // Generate initial recommendations if we have tiles
-          if (get().playerTiles.length > 0) {
-            get().generateRecommendations()
-          }
-        },
-        
-        endCharleston: () => {
-          set({ 
+            selectedTiles: [],
+            recommendations: null
+          }, false, 'charleston/start'),
+
+        endCharleston: () =>
+          set({
             isActive: false,
             currentPhase: 'complete',
             selectedTiles: [],
             recommendations: null
-          }, false, 'charleston/end')
+          }, false, 'charleston/end'),
+
+        completePhase: () => {
+          const state = get()
+          const nextPhase = getNextPhase(state.currentPhase, state.playerCount)
+          if (nextPhase === 'complete') {
+            get().endCharleston()
+          } else {
+            set({ currentPhase: nextPhase }, false, 'charleston/completePhase')
+          }
         },
-        
+
+        reset: () =>
+          set(initialState, false, 'charleston/reset'),
+
         // Tile management
         setPlayerTiles: (tiles) => {
           set({ playerTiles: tiles }, false, 'charleston/setPlayerTiles')
-          
-          // Clear selection if selected tiles are no longer available
-          const state = get()
-          const availableIds = new Set(tiles.map(t => t.id))
-          const validSelection = state.selectedTiles.filter(t => availableIds.has(t.id))
-          
-          if (validSelection.length !== state.selectedTiles.length) {
-            set({ selectedTiles: validSelection }, false, 'charleston/cleanupSelection')
-          }
-          
-          // Regenerate recommendations if Charleston is active
-          if (state.isActive && tiles.length > 0) {
+          // Auto-generate recommendations when tiles change
+          if (get().isActive && tiles.length > 0) {
             get().generateRecommendations()
           }
         },
-        
-        addTile: (tile) => {
-          const tiles = get().playerTiles
-          if (!tiles.some(t => t.id === tile.id)) {
-            get().setPlayerTiles([...tiles, tile])
-          }
-        },
-        
-        removeTile: (tileId) => {
-          const tiles = get().playerTiles.filter(t => t.id !== tileId)
-          get().setPlayerTiles(tiles)
-        },
-        
-        // Selection management
+
+        setSelectedTiles: (tiles) =>
+          set({ selectedTiles: tiles }, false, 'charleston/setSelectedTiles'),
+
         selectTile: (tile) => {
           const state = get()
-          const isAlreadySelected = state.selectedTiles.some(t => t.id === tile.id)
-          const canSelect = state.selectedTiles.length < 3
-          
-          if (!isAlreadySelected && canSelect) {
-            set({ 
-              selectedTiles: [...state.selectedTiles, tile] 
+          if (state.selectedTiles.length < 3 && !state.selectedTiles.some(t => t.id === tile.id)) {
+            set({
+              selectedTiles: [...state.selectedTiles, tile]
             }, false, 'charleston/selectTile')
           }
         },
-        
-        deselectTile: (tile) => {
-          const selectedTiles = get().selectedTiles.filter(t => t.id !== tile.id)
-          set({ selectedTiles }, false, 'charleston/deselectTile')
-        },
-        
-        clearSelection: () => {
-          set({ selectedTiles: [] }, false, 'charleston/clearSelection')
-        },
-        
-        autoSelectRecommended: () => {
-          const { recommendations } = get()
-          if (recommendations?.tilesToPass) {
-            const tilesToSelect = recommendations.tilesToPass.slice(0, 3)
-            set({ selectedTiles: tilesToSelect }, false, 'charleston/autoSelect')
-          }
-        },
-        
-        // Target patterns
+
+        deselectTile: (tile) =>
+          set((state) => ({
+            selectedTiles: state.selectedTiles.filter(t => t.id !== tile.id)
+          }), false, 'charleston/deselectTile'),
+
+        clearSelection: () =>
+          set({ selectedTiles: [] }, false, 'charleston/clearSelection'),
+
+        // Pattern management
         setTargetPatterns: (patterns) => {
           set({ targetPatterns: patterns }, false, 'charleston/setTargetPatterns')
-          
-          // Regenerate recommendations with new target patterns
+          // Regenerate recommendations when patterns change
           if (get().isActive && get().playerTiles.length > 0) {
             get().generateRecommendations()
           }
         },
-        
-        // Analysis
+
+        // Simplified Analysis - just find 3 least valuable tiles
         generateRecommendations: async () => {
           const state = get()
-          
+
           if (state.playerTiles.length === 0 || !state.isActive) {
             return
           }
-          
+
           set({ isAnalyzing: true, analysisError: null }, false, 'charleston/startAnalysis')
-          
+
           try {
-            const recommendations = CharlestonAdapter.generateRecommendations(
-              state.playerTiles,
-              state.targetPatterns,
-              state.currentPhase,
-              state.playerCount
-            )
-            
-            set({ 
+            // Simple logic: Pass tiles that are least useful
+            const tilesToPass = findLeastUsefulTiles(state.playerTiles, state.targetPatterns)
+
+            const recommendations: SimpleCharlestonRecommendation = {
+              tilesToPass,
+              confidence: 0.8, // Good confidence for simple logic
+              reasoning: [
+                `Passing ${tilesToPass.length} tiles that are least useful for your target patterns`,
+                'Charleston strategy: Keep tiles that help your patterns, pass others',
+                state.targetPatterns.length > 0
+                  ? `Focusing on ${state.targetPatterns.length} selected pattern(s)`
+                  : 'No specific patterns selected - passing generally less useful tiles'
+              ]
+            }
+
+            set({
               recommendations,
-              isAnalyzing: false 
+              isAnalyzing: false
             }, false, 'charleston/analysisComplete')
-            
+
           } catch (error) {
             console.error('Charleston analysis error:', error)
-            set({ 
+            set({
               isAnalyzing: false,
               analysisError: error instanceof Error ? error.message : 'Analysis failed'
             }, false, 'charleston/analysisError')
           }
         },
-        
+
         clearRecommendations: () => {
           set({ recommendations: null }, false, 'charleston/clearRecommendations')
         },
-        
-        // Phase completion
-        completePhase: (tilesReceived = []) => {
-          const state = get()
-          
-          // Record phase in history
-          const phaseRecord = {
-            phase: state.currentPhase,
-            tilesPassed: [...state.selectedTiles],
-            tilesReceived: [...tilesReceived],
-            timestamp: Date.now()
-          }
-          
-          // Update tiles: remove passed, add received
-          const remainingTiles = state.playerTiles.filter(tile =>
-            !state.selectedTiles.some(selected => selected.id === tile.id)
-          )
-          const newTiles = [...remainingTiles, ...tilesReceived]
-          
-          // Determine next phase
-          const nextPhase = getNextPhase(state.currentPhase, state.playerCount)
-          
+
+        // Multiplayer
+        setMultiplayerMode: (enabled, roomId) =>
           set({
-            phaseHistory: [...state.phaseHistory, phaseRecord],
-            playerTiles: newTiles,
-            selectedTiles: [],
-            currentPhase: nextPhase,
-            recommendations: null
-          }, false, 'charleston/completePhase')
-          
-          // Generate recommendations for next phase
-          if (nextPhase !== 'complete') {
-            setTimeout(() => get().generateRecommendations(), 100)
-          } else {
-            get().endCharleston()
-          }
-        },
-        
-        // UI actions
-        toggleStrategy: () => {
-          set(state => ({ showStrategy: !state.showStrategy }), false, 'charleston/toggleStrategy')
-        },
-        
-        clearError: () => {
-          set({ analysisError: null }, false, 'charleston/clearError')
-        },
-        
-        // Multiplayer coordination
-        setMultiplayerMode: (isMultiplayer, roomId, playerId) => {
-          set({ 
-            isMultiplayerMode: isMultiplayer,
-            roomId: roomId || null,
-            currentPlayerId: playerId || null,
-            playerReadiness: isMultiplayer ? {} : initialState.playerReadiness,
-            waitingForPlayers: isMultiplayer ? [] : initialState.waitingForPlayers
-          }, false, 'charleston/setMultiplayerMode')
-        },
-        
-        setPlayerReady: (playerId, isReady) => {
-          set(state => ({
-            playerReadiness: {
-              ...state.playerReadiness,
-              [playerId]: isReady
-            }
-          }), false, 'charleston/setPlayerReady')
-        },
-        
-        resetPlayerReadiness: () => {
-          set({ playerReadiness: {} }, false, 'charleston/resetPlayerReadiness')
-        },
-        
-        updateWaitingForPlayers: (playerIds) => {
-          set({ waitingForPlayers: playerIds }, false, 'charleston/updateWaitingForPlayers')
-        },
-        
-        markPlayerReady: () => {
-          const state = get()
-          const { currentPlayerId, selectedTiles, isMultiplayerMode } = state
-          
-          // Validate selection
-          if (selectedTiles.length !== 3) {
-            set({ analysisError: 'You must select exactly 3 tiles to pass' }, false, 'charleston/validationError')
-            return
-          }
-          
-          if (!isMultiplayerMode || !currentPlayerId) {
-            // Single-player mode - complete phase immediately
-            get().completePhase()
-            return
-          }
-          
-          // Mark this player as ready
-          set(state => ({
-            playerReadiness: {
-              ...state.playerReadiness,
-              [currentPlayerId]: true
-            }
-          }), false, 'charleston/markReady')
-          
-          // TODO: Emit socket event for multiplayer coordination
-          // Note: This needs to be handled through a proper service or hook
-          // since useMultiplayer is a React hook and can't be called from Zustand
-          if (get().isMultiplayerMode && get().roomId) {
-            console.log('Charleston multiplayer readiness would be emitted here')
-          }
-        },
-        
-        handleTileExchange: (tilesReceived) => {
-          const state = get()
-          
-          // Update tiles: remove passed, add received
-          const remainingTiles = state.playerTiles.filter(tile =>
-            !state.selectedTiles.some(selected => selected.id === tile.id)
-          )
-          const newTiles = [...remainingTiles, ...tilesReceived]
-          
-          // Record phase in history
-          const phaseRecord = {
-            phase: state.currentPhase,
-            tilesPassed: [...state.selectedTiles],
-            tilesReceived: [...tilesReceived],
-            timestamp: Date.now()
-          }
-          
-          // Determine next phase
-          const nextPhase = getNextPhase(state.currentPhase, state.playerCount)
-          
-          set({
-            phaseHistory: [...state.phaseHistory, phaseRecord],
-            playerTiles: newTiles,
-            selectedTiles: [],
-            currentPhase: nextPhase,
-            recommendations: null,
-            playerReadiness: {}, // Reset readiness for next phase
-            waitingForPlayers: []
-          }, false, 'charleston/tileExchange')
-          
-          // Generate recommendations for next phase
-          if (nextPhase !== 'complete') {
-            setTimeout(() => get().generateRecommendations(), 100)
-          } else {
-            get().endCharleston()
-          }
-        },
-        
-        // Reset
-        reset: () => {
-          set(initialState, false, 'charleston/reset')
-        }
+            isMultiplayerMode: enabled,
+            roomId: roomId || null
+          }, false, 'charleston/setMultiplayerMode'),
+
+        setPlayerReady: (playerId, ready) =>
+          set((state) => ({
+            playerReadiness: { ...state.playerReadiness, [playerId]: ready }
+          }), false, 'charleston/setPlayerReady'),
+
+        setCurrentPlayer: (playerId) =>
+          set({ currentPlayerId: playerId }, false, 'charleston/setCurrentPlayer'),
+
+        // UI
+        setShowStrategy: (show) =>
+          set({ showStrategy: show }, false, 'charleston/setShowStrategy'),
       }),
       {
         name: 'charleston-store',
@@ -423,105 +265,115 @@ export const useCharlestonStore = create<CharlestonStore>()(
   )
 )
 
-// Helper function to determine next phase
+// Helper function to determine next Charleston phase
 function getNextPhase(currentPhase: CharlestonPhase, playerCount: number): CharlestonPhase {
-  // Charleston flow for American Mahjong:
-  // Mandatory: right → across → left → complete (3 passes)
-  // Optional phases can be added later but for solo mode, end after mandatory 3
-
   switch (currentPhase) {
     case 'right':
-      return playerCount === 3 ? 'left' : 'across' // Skip across in 3-player games
+      return playerCount === 3 ? 'left' : 'across' // Skip 'across' for 3-player games
     case 'across':
       return 'left'
     case 'left':
-      return 'complete' // Complete after 3 mandatory passes in solo mode
+      return 'optional'
     case 'optional':
+      return 'complete'
     default:
       return 'complete'
   }
 }
 
-// Selectors for common derived state
-type CharlestonSelectorState = {
-  isActive: boolean;
-  isComplete: boolean;
-  canAdvancePhase: boolean;
-  currentPhase: CharlestonPhase;
-  phaseDisplayName: string;
-  nextPhase: CharlestonPhase;
-  tileCount: number;
-  jokerCount: number;
-  selectedCount: number;
-  canSelectMore: boolean;
-  hasRecommendations: boolean;
-  isAnalyzing: boolean;
-  hasError: boolean;
-  hasTargets: boolean;
-  targetCount: number;
-  
-  // Multiplayer state
-  isMultiplayerMode: boolean;
-  isCurrentPlayerReady: boolean;
-  readyPlayerCount: number;
-  totalPlayers: number;
-  waitingForPlayerCount: number;
-  allPlayersReady: boolean;
-  canMarkReady: boolean;
-};
+// Simplified tile evaluation - find 3 least useful tiles to pass
+function findLeastUsefulTiles(playerTiles: Tile[], targetPatterns: PatternSelectionOption[]): Tile[] {
+  // Never pass jokers
+  const nonJokers = playerTiles.filter(tile => !tile.isJoker && tile.suit !== 'jokers')
 
-export const useCharlestonSelectors = (): CharlestonSelectorState => {
-  const store = useCharlestonStore()
-  
-  const readyPlayers = Object.values(store.playerReadiness).filter(Boolean)
-  const readyPlayerCount = readyPlayers.length
-  const totalPlayers = store.playerCount
-  const currentPlayerReady = store.currentPlayerId ? (store.playerReadiness[store.currentPlayerId] || false) : false
-  
-  return {
-    // Status checks
-    isActive: store.isActive,
-    isComplete: store.currentPhase === 'complete',
-    canAdvancePhase: store.selectedTiles.length === 3,
-    
-    // Phase info
-    currentPhase: store.currentPhase,
-    phaseDisplayName: getPhaseDisplayName(store.currentPhase),
-    nextPhase: getNextPhase(store.currentPhase, store.playerCount),
-    
-    // Tile info
-    tileCount: store.playerTiles.length,
-    jokerCount: store.playerTiles.filter(t => t.isJoker || t.suit === 'jokers').length,
-    selectedCount: store.selectedTiles.length,
-    canSelectMore: store.selectedTiles.length < 3,
-    
-    // Analysis status
-    hasRecommendations: !!store.recommendations,
-    isAnalyzing: store.isAnalyzing,
-    hasError: !!store.analysisError,
-    
-    // Pattern info
-    hasTargets: store.targetPatterns.length > 0,
-    targetCount: store.targetPatterns.length,
-    
-    // Multiplayer state
-    isMultiplayerMode: store.isMultiplayerMode,
-    isCurrentPlayerReady: currentPlayerReady,
-    readyPlayerCount,
-    totalPlayers,
-    waitingForPlayerCount: store.waitingForPlayers.length,
-    allPlayersReady: store.isMultiplayerMode ? readyPlayerCount === totalPlayers : true,
-    canMarkReady: store.selectedTiles.length === 3 && !currentPlayerReady
+  if (nonJokers.length <= 3) {
+    return nonJokers.slice(0, 3)
   }
+
+  // Score tiles by usefulness (higher = keep, lower = pass)
+  const scoredTiles = nonJokers.map(tile => ({
+    tile,
+    score: calculateTileValue(tile, playerTiles, targetPatterns)
+  }))
+
+  // Sort by score (ascending) and take the 3 lowest-scoring tiles
+  scoredTiles.sort((a, b) => a.score - b.score)
+
+  return scoredTiles.slice(0, 3).map(item => item.tile)
 }
 
-function getPhaseDisplayName(phase: CharlestonPhase): string {
-  switch (phase) {
-    case 'right': return 'Phase 1: Right Pass'
-    case 'across': return 'Phase 2: Across Pass'
-    case 'left': return 'Phase 3: Left Pass'
-    case 'optional': return 'Optional Phase'
-    case 'complete': return 'Charleston Complete'
-    default: return 'Charleston'
+// Simple tile value calculation
+function calculateTileValue(tile: Tile, playerTiles: Tile[], targetPatterns: PatternSelectionOption[]): number {
+  let score = 0
+
+  // Base scores by tile type
+  if (tile.suit === 'flowers') {
+    score += 1 // Flowers are often less useful
+  } else if (tile.suit === 'winds' || tile.suit === 'dragons') {
+    // Count how many of this honor tile we have
+    const count = playerTiles.filter(t => t.suit === tile.suit && t.value === tile.value).length
+    score += count * 2 // More copies = more valuable
+  } else if (['dots', 'bams', 'cracks'].includes(tile.suit)) {
+    // Check for sequence potential
+    const hasAdjacent = playerTiles.some(t => {
+      if (t.suit !== tile.suit) return false
+      const tileNum = parseInt(tile.value)
+      const otherNum = parseInt(t.value)
+      return !isNaN(tileNum) && !isNaN(otherNum) && Math.abs(tileNum - otherNum) === 1
+    })
+    if (hasAdjacent) score += 3
+
+    // Check for same-number potential (like numbers)
+    const sameNumberCount = playerTiles.filter(t =>
+      t.value === tile.value && ['dots', 'bams', 'cracks'].includes(t.suit)
+    ).length
+    score += sameNumberCount * 2
+  }
+
+  // Pattern-specific bonuses
+  if (targetPatterns.length > 0) {
+    const isNeededByPattern = targetPatterns.some(pattern =>
+      isNeededForPattern(tile, pattern)
+    )
+    if (isNeededByPattern) score += 5
+  }
+
+  return score
+}
+
+// Simple pattern matching heuristic
+function isNeededForPattern(tile: Tile, pattern: PatternSelectionOption): boolean {
+  const patternText = pattern.pattern.toLowerCase()
+
+  // Basic pattern matching
+  if (tile.suit === 'dots' && patternText.includes('dot')) return true
+  if (tile.suit === 'bams' && patternText.includes('bam')) return true
+  if (tile.suit === 'cracks' && patternText.includes('crak')) return true
+  if (tile.suit === 'winds' && patternText.includes('wind')) return true
+  if (tile.suit === 'dragons' && patternText.includes('dragon')) return true
+  if (tile.suit === 'flowers' && patternText.includes('flower')) return true
+
+  // Number patterns
+  if (['dots', 'bams', 'cracks'].includes(tile.suit)) {
+    if (patternText.includes(tile.value)) return true
+    if (patternText.includes('2025') && ['2', '0', '5'].includes(tile.value)) return true
+    if (patternText.includes('like') && patternText.includes('number')) return true
+  }
+
+  return false
+}
+
+// Selectors for easier consumption
+export const useCharlestonSelectors = () => {
+  const store = useCharlestonStore()
+
+  return {
+    isCharlestonActive: store.isActive,
+    currentPhase: store.currentPhase,
+    selectedTiles: store.selectedTiles,
+    recommendations: store.recommendations,
+    isAnalyzing: store.isAnalyzing,
+    canSelectMore: store.selectedTiles.length < 3,
+    isReadyToPass: store.selectedTiles.length === 3,
   }
 }
