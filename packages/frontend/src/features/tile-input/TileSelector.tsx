@@ -1,7 +1,7 @@
 // Tile Selector Component
 // Touch-optimized interface for selecting tiles to add to hand
 
-import { useState } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
@@ -30,43 +30,46 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
     { suit: 'winds', label: 'Winds', emoji: '💨' }
   ]
   
-  const availableTiles = tileService.getTilesBySuit(selectedSuit)
+  const availableTiles = useMemo(() => tileService.getTilesBySuit(selectedSuit), [selectedSuit])
+
+  // Count how many of each tile we already have - memoized to prevent re-renders
+  const tileCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    playerHand.forEach(tile => {
+      counts.set(tile.id, (counts.get(tile.id) || 0) + 1)
+    })
+    return counts
+  }, [playerHand])
   
-  // Count how many of each tile we already have
-  const tileCounts = new Map<string, number>()
-  playerHand.forEach(tile => {
-    tileCounts.set(tile.id, (tileCounts.get(tile.id) || 0) + 1)
-  })
-  
-  const handleTileClick = (tile: Tile) => {
+  const handleTileClick = useCallback((tile: Tile) => {
     const currentCount = tileCounts.get(tile.id) || 0
-    
+
     if (!modalMode) {
       // Normal mode: check hand size and add to store
       const maxHandSize = dealerHand ? 14 : 13
       if (playerHand.length >= maxHandSize) {
         return
       }
-      
+
       // Check if we've reached the limit of 4 for this tile
       if (currentCount >= 4) {
         return
       }
-      
+
       addTile(tile.id)
     }
-    
+
     // Always call the callback (in modal mode, this is the only action)
     if (onTileSelect) {
       onTileSelect(tile.id)
     }
-  }
+  }, [tileCounts, modalMode, dealerHand, playerHand.length, addTile, onTileSelect])
   
-  const createDummyPlayerTile = (baseTile: Tile): PlayerTile => ({
+  const createDummyPlayerTile = useCallback((baseTile: Tile): PlayerTile => ({
     ...baseTile,
     instanceId: `selector_${baseTile.id}`,
     isSelected: false
-  })
+  }), [])
   
   if (compact) {
     return (
@@ -90,19 +93,19 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
           <div className="grid grid-cols-6 gap-2 max-h-32 overflow-y-auto">
             {availableTiles.map(tile => {
               const currentCount = tileCounts.get(tile.id) || 0
-              const isMaxed = currentCount >= 4
-              
+              const isMaxed = !modalMode && currentCount >= 4
+
               return (
-                <div style={{ position: 'relative', display: 'inline-block' }}>
+                <div key={tile.id} style={{ position: 'relative', display: 'inline-block' }}>
                       <AnimatedTile
                         tile={createDummyPlayerTile(tile)}
                         size="sm"
                         onClick={() => !isMaxed && handleTileClick(tile)}
-                        className={isMaxed ? 'opacity-50 cursor-not-allowed' : ''}
+                        className={isMaxed ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 transition-transform'}
                         animateOnSelect={true}
                         context="selection"
                       />
-                      {currentCount > 0 && (
+                      {!modalMode && currentCount > 0 && (
                         <div className="tile-count-badge">
                           {currentCount}
                         </div>
@@ -159,8 +162,8 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
         <div className="grid grid-cols-5 sm:grid-cols-6 lg:grid-cols-9 gap-4">
           {availableTiles.map(tile => {
             const currentCount = tileCounts.get(tile.id) || 0
-            const isMaxed = currentCount >= 4
-            
+            const isMaxed = !modalMode && currentCount >= 4
+
             return (
               <div key={tile.id} style={{ width: '52px', height: '69px', position: 'relative' }}>
                 <AnimatedTile
@@ -174,16 +177,16 @@ export const TileSelector = ({ onTileSelect, compact = false, onCollapse, modalM
                   animateOnSelect={true}
                   context="selection"
                 />
-                
-                {/* Count Badge */}
-                {currentCount > 0 && (
+
+                {/* Count Badge - only show in normal mode, not in modal mode */}
+                {!modalMode && currentCount > 0 && (
                   <div className="tile-count-badge">
                     {currentCount}
                   </div>
                 )}
-                
-                {/* Max Badge */}
-                {isMaxed && (
+
+                {/* Max Badge - only show in normal mode */}
+                {!modalMode && isMaxed && (
                   <div className="absolute inset-0 flex items-center justify-center bg-gray-900/50">
                     <span className="text-white text-xs font-bold">MAX</span>
                   </div>

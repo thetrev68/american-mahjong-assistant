@@ -1,10 +1,11 @@
 // Universal Tile Input Modal
 // Reusable modal for tile selection in Charleston and gameplay contexts
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { TileSelector } from '../tile-input/TileSelector'
+import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { tileService } from '../../lib/services/tile-service'
 import { useTileStore } from '../../stores/tile-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
@@ -45,7 +46,7 @@ export const TileInputModal = ({
         setModalHand([])
       }
     }
-  }, [isOpen, initialTiles])
+  }, [isOpen]) // Remove initialTiles dependency to prevent infinite loops
 
   // Get current hand as sorted tile abbreviations
   const getCurrentHandDisplay = () => {
@@ -57,29 +58,29 @@ export const TileInputModal = ({
   const progress = requiredCount > 0 ? (modalHand.length / requiredCount) * 100 : 0
   const progressColor = progress === 100 ? 'bg-green-500' : progress > 66 ? 'bg-blue-500' : progress > 33 ? 'bg-yellow-500' : 'bg-gray-300'
 
-  const handleTileAdd = (tileId: string) => {
+  const handleTileAdd = useCallback((tileId: string) => {
     if (modalHand.length >= requiredCount) return
     const newTile = tileService.createPlayerTile(tileId)
     if (newTile) {
       setModalHand(prev => [...prev, newTile])
     }
-  }
+  }, [modalHand.length, requiredCount])
 
-  const handleTileRemove = (instanceId: string) => {
+  const handleTileRemove = useCallback((instanceId: string) => {
     setModalHand(prev => prev.filter(tile => tile.instanceId !== instanceId))
-  }
+  }, [])
 
-  const handleConfirm = () => {
+  const handleConfirm = useCallback(() => {
     if (modalHand.length !== requiredCount) return
     const tileIds = modalHand.map(tile => tile.id)
     onConfirm(tileIds)
     setModalHand([])
-  }
+  }, [modalHand.length, requiredCount, modalHand, onConfirm])
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     setModalHand([])
     onClose()
-  }
+  }, [onClose])
 
   if (!isOpen) return null
 
@@ -226,23 +227,24 @@ export const TileInputModal = ({
               </h3>
               <div className="flex flex-wrap gap-3">
                 {modalHand.map((tile, index) => (
-                  <button
+                  <div
                     key={tile.instanceId}
+                    className="relative group cursor-pointer"
                     onClick={() => handleTileRemove(tile.instanceId)}
-                    className="relative group"
                   >
                     <div className="relative">
-                      <span className="inline-block px-3 py-2 bg-blue-50 text-blue-800 rounded-lg font-mono text-base border-2 border-blue-300 hover:bg-red-50 hover:text-red-800 hover:border-red-300 transition-all duration-200 shadow-sm">
-                        {tile.id}
-                      </span>
-                      <span className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-bold shadow-md">
-                        {index + 1}
-                      </span>
+                      <AnimatedTile
+                        tile={tile}
+                        size="md"
+                        className="hover:scale-105 transition-transform duration-200"
+                        context="selection"
+                        animateOnSelect={false}
+                      />
                       <span className="absolute -bottom-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                         ×
                       </span>
                     </div>
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
