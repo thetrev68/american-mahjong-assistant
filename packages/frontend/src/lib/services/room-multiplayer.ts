@@ -3,6 +3,7 @@
 
 import { Socket } from 'socket.io-client'
 import { useRoomStore } from '../../stores/room.store'
+import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/game-store'
 import type { Room, Player, RoomConfig } from 'shared-types'
 
@@ -132,7 +133,18 @@ export class RoomMultiplayerService {
 
     this.socket.on('room-kicked', () => {
       const roomStore = useRoomStore.getState()
-      roomStore.clearAll()
+      // Clear room state
+      roomStore.updateRoom({
+        id: '',
+        hostId: '',
+        players: [],
+        phase: 'waiting',
+        maxPlayers: 4,
+        isPrivate: false,
+        createdAt: new Date()
+      })
+      roomStore.updatePlayers([])
+      roomStore.setCurrentPhase('waiting')
       
       useGameStore.getState().addAlert({
         type: 'warning',
@@ -165,8 +177,7 @@ export class RoomMultiplayerService {
     })
 
     this.socket.on('player-reconnected', (data) => {
-      const roomStore = useRoomStore.getState()
-      roomStore.setPlayerConnection(data.playerId, true)
+      useConnectionStore.getState().setPlayerConnection(data.playerId, true)
       
       useGameStore.getState().addAlert({
         type: 'info',
@@ -178,7 +189,7 @@ export class RoomMultiplayerService {
     // Enhanced disconnection handling
     this.socket.on('player-disconnected', (data) => {
       const roomStore = useRoomStore.getState()
-      roomStore.setPlayerConnection(data.playerId, false)
+      useConnectionStore.getState().setPlayerConnection(data.playerId, false)
       roomStore.updatePlayerState(data.playerId, { lastSeen: new Date() })
       
       useGameStore.getState().addAlert({
@@ -199,12 +210,10 @@ export class RoomMultiplayerService {
 
     // Room connection health
     this.socket.on('room-health-update', (data) => {
-      const roomStore = useRoomStore.getState()
-      
       // Update connection status for all players
       if (data.playerConnections) {
         Object.entries(data.playerConnections).forEach(([playerId, isConnected]) => {
-          roomStore.setPlayerConnection(playerId, isConnected as boolean)
+          useConnectionStore.getState().setPlayerConnection(playerId, isConnected as boolean)
         })
       }
       
@@ -212,7 +221,7 @@ export class RoomMultiplayerService {
       if (data.healthMetrics) {
         setTimeout(() => {
           try {
-            roomStore.updateConnectionStatus({
+            useConnectionStore.getState().updateConnectionStatus({
               lastPing: new Date(),
               isConnected: true
             })
@@ -441,7 +450,7 @@ export class RoomMultiplayerService {
     // Update connection status - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        roomStore.updateConnectionStatus({
+        useConnectionStore.getState().updateConnectionStatus({
           isConnected: true,
           connectionId: this.playerId || undefined,
           lastPing: new Date(),
@@ -469,7 +478,7 @@ export class RoomMultiplayerService {
     const roomStore = useRoomStore.getState()
     return {
       roomId: this.roomId,
-      isConnected: roomStore.connectionStatus.isConnected,
+      isConnected: useConnectionStore.getState().connectionStatus.isConnected,
       isHost: roomStore.hostPlayerId === this.playerId
     }
   }

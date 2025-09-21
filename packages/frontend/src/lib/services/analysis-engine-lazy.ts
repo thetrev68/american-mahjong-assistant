@@ -1,7 +1,7 @@
 // Lazy Loading Analysis Engine Wrapper
 // Code-splits the heavy analysis engines to reduce initial bundle size
 
-import type { PlayerTile, NMJL2025Pattern } from 'shared-types'
+import type { PlayerTile, PatternSelectionOption } from 'shared-types'
 
 let analysisEngineClass: typeof import('./analysis-engine').AnalysisEngine | null = null
 let analysisEnginePromise: Promise<typeof import('./analysis-engine').AnalysisEngine> | null = null
@@ -40,7 +40,7 @@ export class LazyAnalysisEngine {
     return this.enginePromise
   }
 
-  async analyzeHand(hand: PlayerTile[], availablePatterns?: NMJL2025Pattern[]) {
+  async analyzeHand(hand: PlayerTile[], availablePatterns?: PatternSelectionOption[]) {
     const EngineClass = await this.getEngineClass()
     return EngineClass.analyzeHand(hand, availablePatterns)
   }

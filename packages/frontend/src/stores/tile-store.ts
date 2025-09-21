@@ -650,7 +650,7 @@ export const useTileStore = create<TileState>()(
         clearSelection: () => {
           set((state) => {
             // Preserve locked states and placeholder states, clear only selection-related states
-            const preservedStates: Record<string, TileState> = {}
+            const preservedStates: Record<string, string> = {}
             for (const [instanceId, tileState] of Object.entries(state.tileStates)) {
               if (tileState === 'locked') {
                 preservedStates[instanceId] = tileState
@@ -658,6 +658,7 @@ export const useTileStore = create<TileState>()(
             }
 
             return {
+              ...state,
               selectedForAction: [],
               tileStates: preservedStates
             }

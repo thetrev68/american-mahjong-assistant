@@ -280,14 +280,28 @@ export const useMultiplayerStore = create<MultiplayerState>()(
           },
           removeItem: (name) => sessionStorage.removeItem(name),
         },
-        partialize: (state) => ({
-          // Only persist essential connection info, not heavy game state
-          currentPlayerId: state.currentPlayerId,
-          currentRoom: state.currentRoom ? {
-            ...state.currentRoom,
-            players: [] // Don't persist player arrays to reduce size
-          } : null
-        })
+        partialize: (state) => {
+          // Return only the state properties to persist, not the action methods
+          const {
+            setConnectionState, setConnectionError, setCurrentPlayerId,
+            setCurrentRoom, clearCurrentRoom, updateAvailableRooms,
+            addPlayerToRoom, removePlayerFromRoom, updatePlayer,
+            setGameState, updateGamePhase, updatePlayerGameState,
+            updateSharedGameState, clearAll,
+            ...stateToPersist
+          } = state;
+
+          return {
+            ...stateToPersist,
+            // Reset some volatile state on reload
+            isConnected: false,
+            socketId: null,
+            connectionError: null,
+            availableRooms: [],
+            gameState: null,
+            isHost: false
+          };
+        }
       }
     ),
     { name: 'multiplayer-store' }

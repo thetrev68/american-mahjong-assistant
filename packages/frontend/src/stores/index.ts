@@ -14,7 +14,8 @@ export {
 } from './tutorial-store'
 
 // New decomposed room-related stores
-export { useRoomStore, type PlayerPosition } from './room.store'
+export { useRoomStore } from './room.store'
+export type { PlayerPosition } from 'shared-types'
 export { usePlayerStore } from './player.store'
 export { useConnectionStore } from './connection.store'
 export { useRoomSetupStore, type CoPilotMode, type RoomStatus } from './room-setup.store'

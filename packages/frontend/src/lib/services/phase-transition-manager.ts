@@ -42,14 +42,14 @@ export class PhaseTransitionManager {
         toPhase: 'setup',
         requiredReadiness: 'room',
         validationRules: [
-          () => useRoomStore.getState().getConnectedPlayers().length >= 2,
-          () => useRoomStore.getState().getConnectedPlayers().every(p => p.roomReadiness)
+          () => useRoomStore.getState().players.filter(p => p.isConnected).length >= 2,
+          () => useRoomStore.getState().players.filter(p => p.isConnected).every(p => p.roomReadiness)
         ],
         setupActions: [
           async () => {
             // Initialize player positions if not set
             const roomStore = useRoomStore.getState()
-            const players = roomStore.getConnectedPlayers()
+            const players = roomStore.players.filter(p => p.isConnected)
             const positions = ['east', 'north', 'west', 'south']
             
             players.forEach((player, index) => {
@@ -68,15 +68,15 @@ export class PhaseTransitionManager {
         toPhase: 'charleston',
         requiredReadiness: 'charleston',
         validationRules: [
-          () => useRoomStore.getState().getConnectedPlayers().length >= 2,
-          () => useRoomStore.getState().getConnectedPlayers().every(p => p.position)
+          () => useRoomStore.getState().players.filter(p => p.isConnected).length >= 2,
+          () => useRoomStore.getState().players.filter(p => p.isConnected).every(p => p.position)
         ],
         setupActions: [
           async () => {
             // Initialize Charleston phase
             const charlestonStore = useCharlestonStore.getState()
             const roomStore = useRoomStore.getState()
-            const players = roomStore.getConnectedPlayers()
+            const players = roomStore.players.filter(p => p.isConnected)
             
             // Set up Charleston multiplayer mode
             charlestonStore.setMultiplayerMode(true, roomStore.room?.id || undefined)
@@ -105,14 +105,14 @@ export class PhaseTransitionManager {
             return charlestonStore.currentPhase === 'complete' || 
                    (charlestonStore.phaseHistory.length >= 3 && !charlestonStore.isActive)
           },
-          () => useRoomStore.getState().getConnectedPlayers().every(p => p.charlestonReadiness)
+          () => useRoomStore.getState().players.filter(p => p.isConnected).every(p => p.charlestonReadiness)
         ],
         setupActions: [
           async () => {
             // Initialize turn management
             const turnStore = useTurnStore.getState()
             const roomStore = useRoomStore.getState()
-            const players = roomStore.getConnectedPlayers()
+            const players = roomStore.players.filter(p => p.isConnected)
             
             // Convert players to TurnPlayer format
             const turnPlayers = players.map(p => ({
@@ -158,26 +158,14 @@ export class PhaseTransitionManager {
             // Check for actual game end conditions using GameEndCoordinator
             try {
               const gameStore = useGameStore.getState()
-              const turnStore = useTurnStore.getState()
-              
-              // Create context for game end coordinator
-              const context = {
-                gameId: gameStore.gameId || 'current',
-                players: gameStore.players,
-                wallTilesRemaining: turnStore.wallCount,
-                passedOutPlayers: new Set(gameStore.players.filter(p => p.passedOut).map(p => p.id)),
-                currentTurn: turnStore.currentRound,
-                gameStartTime: gameStore.gameStartTime,
-                selectedPatterns: [], // Could be enhanced to get actual selected patterns
-                playerHands: {}, // Could be enhanced to get actual hands
-                coPilotMode: 'solo' as const // Default for phase transition
-              }
-              
-              const { GameEndCoordinator } = await import('../../features/gameplay/services/game-end-coordinator')
-              const coordinator = new GameEndCoordinator(context)
-              const endResult = coordinator.checkForGameEnd()
-              
-              return endResult !== null // Game should end if coordinator found an end condition
+
+              // Simple game end check logic
+              const wallTilesRemaining = gameStore.wallTilesRemaining || 0
+              const totalPlayers = gameStore.players.length
+              const passedOutCount = gameStore.passedOutPlayers.size
+
+              // Game ends if wall is empty OR only one player remains (all others passed out)
+              return wallTilesRemaining <= 0 || (totalPlayers > 1 && passedOutCount >= totalPlayers - 1)
             } catch (error) {
               console.warn('Game end check failed, allowing transition:', error)
               return true // Allow transition if check fails
@@ -384,7 +372,19 @@ export class PhaseTransitionManager {
   // Reset to initial phase
   resetPhases(): void {
     // Clean up all stores
-    useRoomStore.getState().clearAll()
+    // Clear room state
+    const roomStore = useRoomStore.getState()
+    roomStore.updateRoom({
+      id: '',
+      hostId: '',
+      players: [],
+      phase: 'waiting',
+      maxPlayers: 4,
+      isPrivate: false,
+      createdAt: new Date()
+    })
+    roomStore.updatePlayers([])
+    roomStore.setCurrentPhase('waiting')
     useGameStore.getState().resetGame()
     useTurnStore.getState().resetTurns()
     useCharlestonStore.getState().endCharleston()

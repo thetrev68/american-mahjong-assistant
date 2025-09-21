@@ -45,8 +45,8 @@ export function useConnectionResilienceTest() {
       if (results.failed > 0) {
         console.warn(`⚠️ ${results.failed} tests failed`)
         results.tests
-          .filter(t => !t.passed)
-          .forEach(test => console.error(`❌ ${test.testName}: ${test.error}`))
+          .filter((t: TestResult) => !t.passed)
+          .forEach((test: TestResult) => console.error(`❌ ${test.testName}: ${test.error}`))
       }
 
       return results
@@ -88,14 +88,14 @@ export function useConnectionResilienceTest() {
         error: null
       }))
 
-      const passed = results.filter(t => t.passed).length
+      const passed = results.filter((t: TestResult) => t.passed).length
       const total = results.length
       console.log(`✅ ${category} tests completed: ${passed}/${total} passed`)
 
       if (passed < total) {
         results
-          .filter(t => !t.passed)
-          .forEach(test => console.error(`❌ ${test.testName}: ${test.error}`))
+          .filter((t: TestResult) => !t.passed)
+          .forEach((test: TestResult) => console.error(`❌ ${test.testName}: ${test.error}`))
       }
 
       return results
@@ -148,8 +148,8 @@ export function useConnectionResilienceTest() {
 
     // Check category results
     const allCategoryResults = Object.values(testStatus.categoryResults).flat()
-    const totalFailed = allCategoryResults.filter(t => !t.passed).length
-    const totalPassed = allCategoryResults.filter(t => t.passed).length
+    const totalFailed = allCategoryResults.filter((t: TestResult) => !t.passed).length
+    const totalPassed = allCategoryResults.filter((t: TestResult) => t.passed).length
 
     if (totalFailed === 0) {
       return 'healthy'

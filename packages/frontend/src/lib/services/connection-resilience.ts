@@ -3,6 +3,7 @@
 
 import { useSocket } from '../../hooks/useSocket'
 import { useRoomStore } from '../../stores/room.store'
+import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/game-store'
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
@@ -102,7 +103,7 @@ export class ConnectionResilienceService {
     // Update connection status in stores - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useRoomStore.getState().updateConnectionStatus({
+        useConnectionStore.getState().updateConnectionStatus({
           isConnected: true,
           reconnectionAttempts: 0
         })
@@ -152,7 +153,7 @@ export class ConnectionResilienceService {
     // Update connection status - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useRoomStore.getState().updateConnectionStatus({
+        useConnectionStore.getState().updateConnectionStatus({
           isConnected: false
         })
 
@@ -205,7 +206,7 @@ export class ConnectionResilienceService {
     // Update reconnection attempts in store - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useRoomStore.getState().updateConnectionStatus({
+        useConnectionStore.getState().updateConnectionStatus({
           reconnectionAttempts: this.currentAttempt
         })
       } catch (error) {
@@ -267,7 +268,7 @@ export class ConnectionResilienceService {
     // Offer manual retry - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useRoomStore.getState().updateConnectionStatus({
+        useConnectionStore.getState().updateConnectionStatus({
           isConnected: false,
           reconnectionAttempts: this.config.reconnectionStrategy.maxAttempts
         })
@@ -368,7 +369,7 @@ export class ConnectionResilienceService {
         // Update last ping time - defer to avoid React render cycle issues
         setTimeout(() => {
           try {
-            useRoomStore.getState().updateConnectionStatus({
+            useConnectionStore.getState().updateConnectionStatus({
               lastPing: new Date()
             })
           } catch (error) {
@@ -387,10 +388,10 @@ export class ConnectionResilienceService {
     maxAttempts: number
     lastPing: Date | null
   } {
-    const roomStore = useRoomStore.getState()
+    const connectionStore = useConnectionStore.getState()
 
     let status: 'connected' | 'disconnected' | 'reconnecting' | 'failed'
-    
+
     if (socketInstance?.isConnected) {
       status = 'connected'
     } else if (this.isReconnecting) {
@@ -406,7 +407,7 @@ export class ConnectionResilienceService {
       status,
       attempt: this.currentAttempt,
       maxAttempts: this.config.reconnectionStrategy.maxAttempts,
-      lastPing: roomStore.connectionStatus.lastPing || null
+      lastPing: connectionStore.connectionStatus.lastPing || null
     }
   }
 

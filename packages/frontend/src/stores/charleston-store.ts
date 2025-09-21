@@ -3,7 +3,8 @@
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { CharlestonAdapter, type Tile, type CharlestonPhase, type CharlestonRecommendation } from '../utils/charleston-adapter'
+import { CharlestonAdapter, type CharlestonPhase, type CharlestonRecommendation } from '../utils/charleston-adapter'
+import type { Tile } from 'shared-types'
 import type { PatternSelectionOption } from 'shared-types'
 
 interface CharlestonState {

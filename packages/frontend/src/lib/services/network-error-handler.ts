@@ -2,7 +2,7 @@
 // Intelligent error classification, retry strategies, and network resilience
 
 import { useGameStore } from '../../stores/game-store'
-import { useRoomStore } from '../../stores/room.store'
+import { useConnectionStore } from '../../stores/connection.store'
 import { handleNetworkError } from './disconnection-manager'
 
 export interface NetworkError {
@@ -376,7 +376,7 @@ export class NetworkErrorHandler {
     // Update room store with health status - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useRoomStore.getState().updateConnectionStatus({
+        useConnectionStore.getState().updateConnectionStatus({
           isConnected: this.networkHealth.status === 'healthy',
           reconnectionAttempts: this.networkHealth.consecutiveFailures
         })

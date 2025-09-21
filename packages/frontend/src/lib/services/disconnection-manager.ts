@@ -2,6 +2,7 @@
 // Handles clean disconnection, state preservation, and graceful degradation
 
 import { useRoomStore } from '../../stores/room.store'
+import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/game-store'
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
@@ -110,9 +111,9 @@ export class DisconnectionManager {
   ): Promise<void> {
     const roomStore = useRoomStore.getState()
     
-    // Skip disconnection handling in solo mode
-    if (roomStore.coPilotMode === 'solo') {
-      console.log('Skipping disconnection handling in solo mode')
+    // Skip disconnection handling if not in a multiplayer room
+    if (!roomStore.room?.id) {
+      console.log('Skipping disconnection handling - no active room')
       return
     }
 
@@ -162,7 +163,7 @@ export class DisconnectionManager {
     this.disconnectionMetadata = {
       playerId: gameStore.currentPlayerId || 'unknown',
       playerName: 'Unknown Player', // Will be updated from room store
-      roomId: roomStore.room?.id,
+      roomId: roomStore.room?.id || null,
       currentPhase: roomStore.currentPhase,
       disconnectionTime: new Date(),
       reason
@@ -203,7 +204,7 @@ export class DisconnectionManager {
       const progressData = {
         room: {
           roomCode: roomStore.room?.id,
-          playerPosition: roomStore.playerPositions,
+          players: roomStore.players,
           currentPhase: roomStore.currentPhase
         },
         game: {
@@ -260,7 +261,7 @@ export class DisconnectionManager {
 
     // Mark player as disconnected
     if (this.disconnectionMetadata?.playerId) {
-      roomStore.setPlayerConnection(this.disconnectionMetadata.playerId, false)
+      useConnectionStore.getState().setPlayerConnection(this.disconnectionMetadata.playerId, false)
     }
   }
 
@@ -308,14 +309,24 @@ export class DisconnectionManager {
     const turnStore = useTurnStore.getState()
     const charlestonStore = useCharlestonStore.getState()
 
-    // Don't clear room store in solo mode - it's not a real disconnection
-    if (roomStore.coPilotMode === 'solo') {
-      console.log('Skipping room state clearing in solo mode')
+    // Don't clear room store if not in a multiplayer room
+    if (!roomStore.room?.id) {
+      console.log('Skipping room state clearing - no active room')
       return
     }
 
-    // Clear all stores
-    roomStore.clearAll()
+    // Clear all stores - reset to empty state
+    roomStore.updateRoom({
+      id: '',
+      hostId: '',
+      players: [],
+      phase: 'waiting',
+      maxPlayers: 4,
+      isPrivate: false,
+      createdAt: new Date()
+    })
+    roomStore.updatePlayers([])
+    roomStore.setCurrentPhase('waiting')
     gameStore.resetGame()
     turnStore.resetTurns()
     charlestonStore.endCharleston()
@@ -339,9 +350,7 @@ export class DisconnectionManager {
   // Perform delayed cleanup after grace period
   private async performDelayedCleanup(): Promise<void> {
     // Check if reconnection happened during grace period
-    const roomStore = useRoomStore.getState()
-    
-    if (roomStore.connectionStatus.isConnected) {
+    if (useConnectionStore.getState().connectionStatus.isConnected) {
       console.log('Reconnection successful during grace period')
       return
     }
