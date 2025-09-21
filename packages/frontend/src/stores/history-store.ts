@@ -534,7 +534,8 @@ export const useHistoryStore = create<HistoryState & HistoryActions>()(
       {
         name: 'mahjong-history-storage',
         partialize: (state) => ({
-          // Only persist recent games to reduce storage size and hydration time
+          // Persist game history to localStorage with size optimization
+          // Truncate collections to prevent localStorage bloat and improve performance
           completedGames: state.completedGames.slice(-50), // Keep last 50 games max
           performanceStats: state.performanceStats,
           learningRecommendations: state.learningRecommendations.slice(-10) // Keep last 10 recommendations

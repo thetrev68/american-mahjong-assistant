@@ -411,7 +411,8 @@ export const useCharlestonStore = create<CharlestonStore>()(
         name: 'charleston-store',
         version: 1,
         partialize: (state) => ({
-          // Persist settings but not active game state
+          // Persist Charleston preferences to localStorage - survives browser restart
+          // Active Charleston game state (tiles, phase) intentionally NOT persisted
           playerCount: state.playerCount,
           showStrategy: state.showStrategy,
           targetPatterns: state.targetPatterns

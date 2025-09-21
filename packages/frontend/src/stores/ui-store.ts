@@ -76,13 +76,15 @@ export const useUIStore = create<UIState>()(
       {
         name: 'ui-store', // localStorage key
         partialize: (state) => ({
+          // Persist user preferences to localStorage - permanent across sessions
+          // These settings should survive browser restart and app updates
           theme: state.theme,
           skillLevel: state.skillLevel,
           animationsEnabled: state.animationsEnabled,
           hapticFeedbackEnabled: state.hapticFeedbackEnabled,
           soundEnabled: state.soundEnabled,
           tutorialCompleted: state.tutorialCompleted,
-        }), // Only persist user preferences
+        }),
       }
     ),
     {

@@ -155,17 +155,10 @@ export class PhaseTransitionManager {
         requiredReadiness: null,
         validationRules: [
           () => {
-            // Check for actual game end conditions using GameEndCoordinator
+            // Use the centralized GameEndCoordinator for consistent game end detection
             try {
               const gameStore = useGameStore.getState()
-
-              // Simple game end check logic
-              const wallTilesRemaining = gameStore.wallTilesRemaining || 0
-              const totalPlayers = gameStore.players.length
-              const passedOutCount = gameStore.passedOutPlayers.size
-
-              // Game ends if wall is empty OR only one player remains (all others passed out)
-              return wallTilesRemaining <= 0 || (totalPlayers > 1 && passedOutCount >= totalPlayers - 1)
+              return gameStore.checkForGameEnd()
             } catch (error) {
               console.warn('Game end check failed, allowing transition:', error)
               return true // Allow transition if check fails

@@ -668,7 +668,8 @@ export const useTileStore = create<TileState>()(
       {
         name: 'tile-store',
         partialize: (state) => ({
-          // Persist all essential data but ensure proper syncing
+          // Persist game progress to localStorage - survives browser restart
+          // Essential for maintaining player hand state during gameplay sessions
           playerHand: state.playerHand,
           dealerHand: state.dealerHand,
           showRecommendations: state.showRecommendations,
