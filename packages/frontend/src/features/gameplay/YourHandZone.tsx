@@ -96,9 +96,9 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
           ? 'shadow-[0_0_0_1px_rgba(34,197,94,0.8),0_0_3px_rgba(34,197,94,0.6),0_0_6px_rgba(34,197,94,0.4)] relative z-10' // Green multi-layer glow
           : '' // No highlighting for tiles not in pattern
       case 'pass':
-        return 'shadow-[0_0_0_1px_rgba(239,68,68,0.8),0_0_3px_rgba(239,68,68,0.6),0_0_6px_rgba(239,68,68,0.4)] relative z-10' // Red multi-layer glow
+        return 'shadow-[0_0_0_3px_rgba(239,68,68,0.9),0_0_6px_rgba(239,68,68,0.7),0_0_12px_rgba(239,68,68,0.5)] relative z-10' // Thicker red multi-layer glow
       case 'discard':
-        return 'shadow-[0_0_0_1px_rgba(239,68,68,0.8),0_0_3px_rgba(239,68,68,0.6),0_0_6px_rgba(239,68,68,0.4)] relative z-10' // Red multi-layer glow
+        return 'shadow-[0_0_0_3px_rgba(239,68,68,0.9),0_0_6px_rgba(239,68,68,0.7),0_0_12px_rgba(239,68,68,0.5)] relative z-10' // Thicker red multi-layer glow
       default:
         return ''
     }
@@ -107,7 +107,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   
 
   return (
-    <Card className="p-2 sm:p-4 mb-4 md:col-span-2 xl:col-span-2">
+    <Card className="p-2 sm:p-4 mb-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Your Hand</h3>
         <div className="flex gap-2">
