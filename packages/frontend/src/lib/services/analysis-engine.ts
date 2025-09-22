@@ -146,7 +146,8 @@ export class AnalysisEngine {
   static async analyzeHand(
     playerTiles: PlayerTile[],
     selectedPatterns: PatternSelectionOption[] = [],
-    gameContext?: Partial<GameContext>
+    gameContext?: Partial<GameContext>,
+    isPatternSwitching: boolean = false
   ): Promise<HandAnalysis> {
     // const startTime = performance.now()
     
@@ -234,7 +235,8 @@ export class AnalysisEngine {
         patternRankings,
         tileRecommendations,
         patternsToAnalyze,
-        analysisFacts
+        analysisFacts,
+        isPatternSwitching
       )
       
       // const totalTime = performance.now() - startTime
@@ -268,15 +270,37 @@ export class AnalysisEngine {
       strategicAdvice: string[]
     },
     patterns: PatternSelectionOption[],
-    analysisFacts: PatternAnalysisFacts[]
+    analysisFacts: PatternAnalysisFacts[],
+    preservePatternOrder: boolean = false
   ): HandAnalysis {
-    
-    // Sort recommendations by actual completion percentage instead of AI scores
-    const sortedRecommendations = patternRankings.topRecommendations.sort((a, b) => {
-      const aCompletion = (a.components.currentTileScore / 40) * 100
-      const bCompletion = (b.components.currentTileScore / 40) * 100
-      return bCompletion - aCompletion // Highest completion first
-    })
+
+    let sortedRecommendations: typeof patternRankings.topRecommendations
+
+    if (preservePatternOrder && patterns.length > 0) {
+      // When patterns are explicitly provided in order (e.g., pattern switching), preserve that order
+      console.log('Preserving explicit pattern order for pattern switching')
+      sortedRecommendations = patternRankings.topRecommendations.sort((a, b) => {
+        const aIndex = patterns.findIndex(p => p.id === a.patternId)
+        const bIndex = patterns.findIndex(p => p.id === b.patternId)
+
+        // If both patterns are in the provided list, sort by their order in the list
+        if (aIndex !== -1 && bIndex !== -1) {
+          return aIndex - bIndex
+        }
+        // If only one is in the list, prioritize it
+        if (aIndex !== -1) return -1
+        if (bIndex !== -1) return 1
+        // If neither is in the list, sort by totalScore
+        return b.totalScore - a.totalScore
+      })
+    } else {
+      // Default behavior: sort by AI scores (totalScore) - highest first
+      sortedRecommendations = patternRankings.topRecommendations.sort((a, b) => {
+        return b.totalScore - a.totalScore // Highest AI totalScore first
+      })
+    }
+
+    // Patterns sorted and ready for conversion
     
     // Convert pattern rankings to PatternRecommendation format
     const recommendedPatterns: PatternRecommendation[] = sortedRecommendations.map((ranking, index: number) => {
@@ -292,6 +316,7 @@ export class AnalysisEngine {
       return {
         pattern: pattern || { id: ranking.patternId, displayName: ranking.patternId } as PatternSelectionOption,
         confidence: ranking.confidence,
+        totalScore: ranking.totalScore, // The actual AI score calculation
         completionPercentage: actualCompletion, // Use actual tile completion, not AI score
         reasoning: this.generatePatternReasoning(ranking, index),
         difficulty: pattern?.difficulty || 'medium',

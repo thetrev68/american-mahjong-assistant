@@ -45,6 +45,7 @@ export interface PatternAnalysis {
 export interface PatternRecommendation {
   pattern: PatternSelectionOption
   confidence: number
+  totalScore: number  // The actual AI score (0-100) from current tiles + availability + priority
   completionPercentage: number
   reasoning: string
   difficulty: 'easy' | 'medium' | 'hard'
@@ -162,7 +163,7 @@ interface IntelligenceState {
   cacheTimeout: number
   
   // Actions - Analysis
-  analyzeHand: (tiles: PlayerTile[], patterns: PatternSelectionOption[]) => Promise<void>
+  analyzeHand: (tiles: PlayerTile[], patterns: PatternSelectionOption[], isPatternSwitching?: boolean) => Promise<void>
   clearAnalysis: () => void
   refreshAnalysis: () => Promise<void>
   
@@ -217,41 +218,43 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       analysisCache: {},
       cacheTimeout: 5 * 60 * 1000, // 5 minutes
       
-      // Analysis Actions  
-      analyzeHand: async (tiles, patterns = []) => {
+      // Analysis Actions
+      analyzeHand: async (tiles, patterns = [], isPatternSwitching = false) => {
         set({ isAnalyzing: true, analysisError: null })
-        
+
         try {
           // Create a hash of the current hand state
           const handHash = createHandHash(tiles, patterns)
-          
-          // Check if this is a pattern switch (same tiles, different patterns)
+
+          // Auto-detect pattern switching if not explicitly provided
           const { currentAnalysis } = get()
-          const isPatternSwitch = currentAnalysis && 
-            tiles.length > 0 && 
-            patterns.length === 1 && 
+          const autoDetectedPatternSwitch = !isPatternSwitching && currentAnalysis &&
+            tiles.length > 0 &&
+            patterns.length === 1 &&
             currentAnalysis.recommendedPatterns.some(p => p.pattern.id !== patterns[0].id)
-          
-          if (!isPatternSwitch) {
+
+          const finalIsPatternSwitching = isPatternSwitching || autoDetectedPatternSwitch
+
+          if (!finalIsPatternSwitching) {
             // Clear cache only for full re-analysis (not pattern switches)
             get().clearCache()
           }
-          
+
           // Use real analysis engine (lazy loaded)
-          const analysis = await lazyAnalysisEngine.analyzeHand(tiles, patterns)
-          
+          const analysis = await lazyAnalysisEngine.analyzeHand(tiles, patterns, undefined, finalIsPatternSwitching)
+
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)
-          
-          set({ 
+
+          set({
             currentAnalysis: analysis,
-            isAnalyzing: false 
+            isAnalyzing: false
           })
-          
+
         } catch (error) {
-          set({ 
+          set({
             analysisError: error instanceof Error ? error.message : 'Analysis failed',
-            isAnalyzing: false 
+            isAnalyzing: false
           })
         }
       },

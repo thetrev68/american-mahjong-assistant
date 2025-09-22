@@ -48,7 +48,9 @@ interface GameScreenLayoutProps {
   wallCount?: number
   onSwapJoker?: () => void
   onDeadHand?: () => void
-  playingPatternId?: string | null
+  playingPatternIds?: string[]
+  onPlayingPatternChange?: (patternId: string, isSelected: boolean) => void
+  onPatternSwitch?: (patternId: string) => void
 }
 
 const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
@@ -81,7 +83,9 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   wallCount,
   onSwapJoker,
   onDeadHand,
-  playingPatternId,
+  playingPatternIds,
+  onPlayingPatternChange,
+  onPatternSwitch,
 }) => {
   return (
     <div className="max-w-full mx-auto p-1 sm:p-4 md:p-6 md:max-w-4xl pb-20 sm:pb-24">
@@ -120,18 +124,17 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         gamePhase={gamePhase}
         onAdvanceToGameplay={onAdvanceToGameplay}
         currentAnalysis={currentAnalysis}
-        playingPatternId={playingPatternId}
+        playingPatternIds={playingPatternIds}
       />
 
-      {/* GAMEPLAY RECOMMENDATIONS - Only show during gameplay */}
-      {gamePhase !== 'charleston' && (
-        <div className="mb-6">
-          <GameplayRecommendations
-            analysis={currentAnalysis}
-            isLoading={isAnalyzing}
-          />
-        </div>
-      )}
+      {/* AI RECOMMENDATIONS - Show for both Charleston and gameplay */}
+      <div className="mb-6">
+        <GameplayRecommendations
+          analysis={currentAnalysis}
+          isLoading={isAnalyzing}
+          gamePhase={gamePhase}
+        />
+      </div>
 
       {/* ZONE 2: DISCARD PILE - Hidden during Charleston */}
       {gamePhase !== 'charleston' && (
@@ -160,11 +163,14 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
           wallCount: wallCount || 144,
           actionHistory: gameHistory
         }}
-        playerId="You" 
+        playerId="You"
         isCurrentTurn={isMyTurn}
         callOpportunity={null}
         gamePhase={gamePhase}
         isAnalyzing={isAnalyzing}
+        playingPatternIds={playingPatternIds}
+        onPlayingPatternChange={onPlayingPatternChange}
+        onPatternSwitch={onPatternSwitch}
       />
     </div>
   )

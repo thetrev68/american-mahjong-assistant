@@ -40,13 +40,13 @@ export function getTileDisplayChar(tileId: string): TileDisplayChar {
   }
   
   // Dragons (handle multiple formats)
-  if (tileStr === 'f2' || tileStr.includes('green') || tileStr === 'gd') {
+  if (tileStr.includes('green') || tileStr === 'gd') {
     return { char: 'G', color: 'green', tileId }
   }
-  if (tileStr === 'f3' || tileStr.includes('red') || tileStr === 'rd') {
+  if (tileStr.includes('red') || tileStr === 'rd') {
     return { char: 'R', color: 'red', tileId }
   }
-  if (tileStr === 'f4' || tileStr.includes('white') || tileStr === 'wd') {
+  if (tileStr.includes('white') || tileStr === 'wd') {
     return { char: 'D', color: 'blue', tileId }
   }
   
@@ -65,7 +65,7 @@ export function getTileDisplayChar(tileId: string): TileDisplayChar {
   }
   
   // Flowers (handle multiple formats)
-  if (tileStr === 'f1' || tileStr.includes('flower') || tileStr === 'f') {
+  if (tileStr === 'f1' || tileStr === 'f2' || tileStr === 'f3' || tileStr === 'f4' || tileStr.includes('flower') || tileStr === 'f') {
     return { char: 'F', color: 'black', tileId }
   }
   

@@ -40,9 +40,9 @@ export class LazyAnalysisEngine {
     return this.enginePromise
   }
 
-  async analyzeHand(hand: PlayerTile[], availablePatterns?: PatternSelectionOption[]) {
+  async analyzeHand(hand: PlayerTile[], availablePatterns?: PatternSelectionOption[], gameContext?: Partial<import('../../features/intelligence-panel/services/pattern-analysis-engine').GameContext>, isPatternSwitching?: boolean) {
     const EngineClass = await this.getEngineClass()
-    return EngineClass.analyzeHand(hand, availablePatterns)
+    return EngineClass.analyzeHand(hand, availablePatterns, gameContext, isPatternSwitching)
   }
 
   async clearCacheForHandChange(oldTileIds: string[], newTileIds: string[]) {

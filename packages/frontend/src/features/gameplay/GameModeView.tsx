@@ -23,7 +23,6 @@ import type { Tile } from 'shared-types'
 import type { GameAction, CallType } from '../gameplay/services/game-actions'
 import GameScreenLayout from './GameScreenLayout'
 import { SelectionArea } from './SelectionArea'
-import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
 import { CallOpportunityOverlay } from './components/CallOpportunityOverlay'
 import { useGameIntelligence } from '../../hooks/useGameIntelligence'
 import { useGameEndCoordination } from '../../hooks/useGameEndCoordination'
@@ -183,8 +182,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     'player-4': 0
   })
 
-  // Track which pattern is currently being "played" (for green highlighting)
-  const [playingPatternId, setPlayingPatternId] = useState<string | null>(null)
+  // Track which patterns are currently being "played" (for green highlighting)
+  const [playingPatternIds, setPlayingPatternIds] = useState<string[]>([])
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
   // Get player names from game store, fallback to positions if not available
   const playerNames = useMemo(() => {
@@ -247,7 +246,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }>>([])
 
   // Enhanced Intelligence Panel state
-  const [showEnhancedIntelligence, setShowEnhancedIntelligence] = useState(false)
   const [callOpportunityEnhanced, setCallOpportunityEnhanced] = useState<CallOpportunityType | null>(null)
 
   // Current hand with drawn tile - get real player hand from tile store
@@ -260,15 +258,19 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Real-time analysis - get actual analysis from intelligence store
   const currentAnalysis = intelligenceStore.currentAnalysis
 
-  // Set default playing pattern when analysis changes
+  // Auto-include primary pattern in playing patterns
   useEffect(() => {
     if (currentAnalysis?.recommendedPatterns?.[0]?.pattern?.id) {
-      // Set primary pattern as playing by default, unless user has explicitly selected an alternate
-      if (!playingPatternId || playingPatternId === currentAnalysis.recommendedPatterns[0].pattern.id) {
-        setPlayingPatternId(currentAnalysis.recommendedPatterns[0].pattern.id)
-      }
+      const primaryPatternId = currentAnalysis.recommendedPatterns[0].pattern.id
+      setPlayingPatternIds(prev => {
+        // Always ensure primary pattern is included, avoid duplicates
+        if (!prev.includes(primaryPatternId)) {
+          return [primaryPatternId, ...prev]
+        }
+        return prev
+      })
     }
-  }, [currentAnalysis?.recommendedPatterns, playingPatternId])
+  }, [currentAnalysis?.recommendedPatterns])
 
   // Enhanced Intelligence Integration - Use real game state
   const gameState: GameState = useMemo(() => ({
@@ -804,8 +806,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     exposedTiles: {
       [currentPlayerId]: exposedTiles.flatMap(group => group.tiles.map(tile => tile.id))
     },
-    currentPhase: 'gameplay'
-  }), [fullHand, discardPile, currentPlayerId, exposedTiles])
+    currentPhase: gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'
+  }), [fullHand, discardPile, currentPlayerId, exposedTiles, gameStore.gamePhase])
 
 
   // Prepare call opportunity data for modal
@@ -1011,11 +1013,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         setShowCharlestonModal(true)
       }
       
-      // If Charleston is complete, advance to gameplay phase
+      // Charleston completion - DO NOT auto-advance (app follows physical world)
       if (isCharlestonComplete) {
-        setTimeout(() => {
-          handleAdvanceToGameplay()
-        }, 1500) // Give user time to read the completion message
+        console.log('Charleston is complete - user must manually advance to gameplay')
+        // Manual advancement only - app follows the physical world, not the other way around
       }
       
     } else {
@@ -1048,10 +1049,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     // Continue to next Charleston phase or complete Charleston
     const currentPhase = charlestonStore.currentPhase
     if (currentPhase === 'complete') {
-      // Charleston is complete, advance to gameplay
-      setTimeout(() => {
-        handleAdvanceToGameplay()
-      }, 1000)
+      // Charleston is complete - DO NOT auto-advance (app follows physical world)
+      console.log('Charleston phase complete - waiting for user to advance to gameplay')
+      // Manual advancement only - app follows the physical world, not the other way around
     } else {
       // Generate new recommendations for the next Charleston phase
       setTimeout(() => {
@@ -1073,25 +1073,66 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [currentAnalysis, selectedPatterns])
 
   const handlePatternSwitch = useCallback((newPatternId: string) => {
+    console.log('handlePatternSwitch called with:', newPatternId)
+
+    // Get fresh pattern store state
     const patternStore = usePatternStore.getState()
-    
-    if (selectedPatterns.length > 0 && currentAnalysis && currentAnalysis.bestPatterns) {
-      const leastViable = selectedPatterns.reduce((min, pattern) => {
-        const currentProgress = currentAnalysis.bestPatterns?.find(p => p.patternId === pattern.id)?.completionPercentage || 0
-        const minProgress = currentAnalysis.bestPatterns?.find(p => p.patternId === min.id)?.completionPercentage || 0
-        return currentProgress < minProgress ? pattern : min
-      })
-      
-      patternStore.removeTargetPattern(leastViable.id)
-    }
-    
+    const currentTargetPatterns = patternStore.getTargetPatterns()
+    console.log('Current target patterns:', currentTargetPatterns.map(p => p.id))
+
+    // Clear all current patterns
+    currentTargetPatterns.forEach(pattern => {
+      console.log('Removing pattern:', pattern.id)
+      patternStore.removeTargetPattern(pattern.id)
+    })
+
+    // Add the new pattern as the primary pattern
+    console.log('Adding new primary pattern:', newPatternId)
+
+    // Debug: Check if pattern exists in selectionOptions
+    const allPatterns = patternStore.selectionOptions
+    const patternExists = allPatterns.find(p => p.id === newPatternId)
+    console.log('Pattern exists in store:', !!patternExists, 'Total patterns in store:', allPatterns.length)
+
     patternStore.addTargetPattern(newPatternId)
+
+    // Verify the pattern was added to targetPatterns array
+    const targetPatternIds = patternStore.targetPatterns
+    console.log('Target pattern IDs after adding:', targetPatternIds)
+
+    // Try to get the full pattern objects
+    const patternsAfterAdd = patternStore.getTargetPatterns()
+    console.log('Target patterns after adding:', patternsAfterAdd.map(p => p.id))
+
+    // Force re-analysis with the new primary pattern
+    setTimeout(() => {
+      const currentHand = tileStore.playerHand
+      if (currentHand.length >= 10) {
+        // Find the selected pattern and reorder all patterns to make it primary
+        const selectedPattern = currentAnalysis?.recommendedPatterns?.find(p => p.pattern.id === newPatternId)?.pattern
+        if (selectedPattern && currentAnalysis?.recommendedPatterns) {
+          console.log('Found pattern for re-analysis:', selectedPattern.id)
+
+          // Create a reordered list with selected pattern first, followed by others
+          const allPatterns = currentAnalysis.recommendedPatterns.map(p => p.pattern)
+          const otherPatterns = allPatterns.filter(p => p.id !== newPatternId)
+          const reorderedPatterns = [selectedPattern, ...otherPatterns.slice(0, 4)] // Keep top 5 total
+
+          console.log('Reordered patterns:', reorderedPatterns.map(p => p.id))
+          intelligenceStore.analyzeHand(currentHand, reorderedPatterns, true)
+        } else {
+          console.log('Pattern not found in current analysis, using store method')
+          // Fallback to store method
+          const updatedPatterns = patternStore.getTargetPatterns()
+          console.log('Re-analyzing hand with store patterns:', updatedPatterns.map(p => p.id))
+          intelligenceStore.analyzeHand(currentHand, updatedPatterns, true)
+        }
+      }
+    }, 200) // Slightly longer delay to ensure state updates
+
     setShowPatternSwitcher(false)
-    
-    setTimeout(() => analyzeCurrentHand(), 100)
-    
-    // Switched to alternative pattern
-  }, [selectedPatterns, currentAnalysis, analyzeCurrentHand])
+
+  }, [tileStore, intelligenceStore, currentAnalysis])
 
   if (gameEnded) {
     return (
@@ -1153,7 +1194,22 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         wallCount={turnSelectors.wallCount}
         onSwapJoker={handleSwapJoker}
         onDeadHand={handleDeadHand}
-        playingPatternId={playingPatternId}
+        playingPatternIds={playingPatternIds}
+        onPlayingPatternChange={(patternId: string, isSelected: boolean) => {
+          setPlayingPatternIds(prev => {
+            if (isSelected) {
+              return prev.includes(patternId) ? prev : [...prev, patternId]
+            } else {
+              // Don't allow deselecting the primary pattern
+              const primaryPatternId = currentAnalysis?.recommendedPatterns?.[0]?.pattern?.id
+              if (patternId === primaryPatternId) {
+                return prev
+              }
+              return prev.filter(id => id !== patternId)
+            }
+          })
+        }}
+        onPatternSwitch={handlePatternSwitch}
       />
 
       {/* Call Dialog */}
@@ -1202,25 +1258,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         </div>
       )}
 
-      {/* Enhanced Intelligence Panel - Compact Bottom Sheet */}
-      {showEnhancedIntelligence && gameStore.gamePhase !== 'charleston' && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-sm border-t border-purple-200 max-h-[60vh] overflow-y-auto z-40 shadow-xl">
-          <div className="max-w-4xl mx-auto">
-            <EnhancedIntelligencePanel
-              analysis={enhancedAnalysis || currentAnalysis}
-              gameState={gameState}
-              playerId={currentPlayerId}
-              isCurrentTurn={isMyTurn}
-              callOpportunity={callOpportunityEnhanced}
-              onClose={() => setShowEnhancedIntelligence(false)}
-              onActionRecommendation={handleActionRecommendation}
-              onPatternSwitch={handlePatternSwitch}
-              playingPatternId={playingPatternId}
-              onPlayingPatternChange={setPlayingPatternId}
-            />
-          </div>
-        </div>
-      )}
 
       {/* Call Opportunity Overlay */}
       {callOpportunityEnhanced && enhancedAnalysis?.currentCallRecommendation && (
@@ -1231,16 +1268,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         />
       )}
 
-      {/* Intelligence Toggle Button - Hidden during Charleston */}
-      {gameStore.gamePhase !== 'charleston' && (
-        <button 
-          className="fixed bottom-4 right-4 bg-purple-600 hover:bg-purple-700 text-white p-3 rounded-full shadow-lg z-30 transition-all"
-          onClick={() => setShowEnhancedIntelligence(!showEnhancedIntelligence)}
-          title="AI Assistant"
-        >
-          <span className="text-xl">🧠</span>
-        </button>
-      )}
 
       {/* Pattern Switcher Modal */}
       {showPatternSwitcher && (

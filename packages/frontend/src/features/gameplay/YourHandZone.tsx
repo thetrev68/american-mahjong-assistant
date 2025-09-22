@@ -39,7 +39,7 @@ interface YourHandZoneProps {
       isPrimary: boolean
     }>
   } | null
-  playingPatternId?: string | null
+  playingPatternIds?: string[]
 }
 
 const YourHandZone: React.FC<YourHandZoneProps> = ({
@@ -53,18 +53,18 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   handleDiscardTile,
   gamePhase,
   currentAnalysis,
-  playingPatternId
+  playingPatternIds = []
 }) => {
   const { selectedForAction, tileStates } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
   const { handleTileClick } = useTileInteraction(isCharleston ? 'charleston' : 'gameplay')
 
-  // Find the currently playing pattern for green highlighting
-  const playingPattern = playingPatternId
-    ? currentAnalysis?.recommendedPatterns?.find(p => p.pattern.id === playingPatternId)
-    : null
+  // Find all currently playing patterns for green highlighting
+  const playingPatterns = playingPatternIds
+    .map(id => currentAnalysis?.recommendedPatterns?.find(p => p.pattern.id === id))
+    .filter(Boolean) as Array<{ expandedTiles?: string[]; pattern: PatternSelectionOption }>
 
-  // Get tiles that match the playing pattern for green highlighting
+  // Get tiles that match any of the playing patterns for green highlighting
   const getMatchingTiles = (pattern: { expandedTiles?: string[] }): string[] => {
     if (!pattern?.expandedTiles || pattern.expandedTiles.length !== 14) {
       return []
@@ -72,7 +72,10 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
     return pattern.expandedTiles
   }
 
-  const playingPatternTiles = playingPattern ? getMatchingTiles(playingPattern) : []
+  // Combine all tiles from all playing patterns
+  const playingPatternTiles = playingPatterns
+    .flatMap(pattern => getMatchingTiles(pattern))
+    .filter((tile, index, array) => array.indexOf(tile) === index) // Remove duplicates
 
   
   // Sort hand tiles using same logic as tile input page
@@ -87,30 +90,29 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   // Get tile highlighting class based on recommendation and pattern matching
   const getTileHighlightClass = (tileId: string, isSelected: boolean) => {
     if (isSelected) return '' // Let selection styling take precedence
-    
-    const recommendation = getTileRecommendation(tileId)
-    if (!recommendation) return ''
-    
-    const action = isCharleston ? 
-      (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'pass' ? 'pass' : null) :
-      (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'discard' ? 'discard' : null)
-    
-    // For both Charleston and gameplay, only highlight green if tile is actually in the currently playing pattern
+
+    // Check if this tile matches any position in the currently playing patterns (GREEN PRIORITY)
     const isInPlayingPattern = () => {
       if (!playingPatternTiles || playingPatternTiles.length === 0) return false
-
-      // Check if this tile matches any position in the playing pattern
+      // Check if this tile matches any position in any playing pattern
       return playingPatternTiles.some(patternTile => patternTile === tileId)
     }
-    
+
+    // GREEN HIGHLIGHTING TAKES PRIORITY - if tile is needed for any playing pattern, always show green
+    if (isInPlayingPattern()) {
+      return 'shadow-[0_0_0_1px_rgba(34,197,94,0.8),0_0_3px_rgba(34,197,94,0.6),0_0_6px_rgba(34,197,94,0.4)] relative z-10' // Green multi-layer glow
+    }
+
+    // Only apply red highlighting if tile is NOT needed for any playing pattern
+    const recommendation = getTileRecommendation(tileId)
+    if (!recommendation) return ''
+
+    const action = isCharleston ?
+      (recommendation.action === 'pass' ? 'pass' : null) :
+      (recommendation.action === 'discard' ? 'discard' : null)
+
     switch (action) {
-      case 'keep':
-        // Only show green if tile is actually needed for the currently playing pattern
-        return isInPlayingPattern()
-          ? 'shadow-[0_0_0_1px_rgba(34,197,94,0.8),0_0_3px_rgba(34,197,94,0.6),0_0_6px_rgba(34,197,94,0.4)] relative z-10' // Green multi-layer glow
-          : '' // No highlighting for tiles not in pattern
       case 'pass':
-        return 'shadow-[0_0_0_3px_rgba(239,68,68,0.9),0_0_6px_rgba(239,68,68,0.7),0_0_12px_rgba(239,68,68,0.5)] relative z-10' // Thicker red multi-layer glow
       case 'discard':
         return 'shadow-[0_0_0_3px_rgba(239,68,68,0.9),0_0_6px_rgba(239,68,68,0.7),0_0_12px_rgba(239,68,68,0.5)] relative z-10' // Thicker red multi-layer glow
       default:

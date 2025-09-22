@@ -23,8 +23,8 @@ interface EnhancedIntelligencePanelProps {
   onClose?: () => void
   onActionRecommendation?: (action: string, data: Record<string, unknown>) => void
   onPatternSwitch?: (patternId: string) => void
-  playingPatternId?: string | null
-  onPlayingPatternChange?: (patternId: string | null) => void
+  playingPatternIds?: string[]
+  onPlayingPatternChange?: (patternId: string, isSelected: boolean) => void
   gamePhase?: 'charleston' | 'gameplay'
   isAnalyzing?: boolean
 }
@@ -36,7 +36,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   onClose,
   onActionRecommendation,
   onPatternSwitch,
-  playingPatternId,
+  playingPatternIds = [],
   onPlayingPatternChange,
   gamePhase = 'gameplay',
   isAnalyzing = false
@@ -292,33 +292,9 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                 <div className="text-sm text-gray-700 bg-white/80 p-3 rounded">
                   <div className="font-medium mb-2">AI Score Breakdown:</div>
                   <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div>Pattern Completion: {Math.round((() => {
-                      const pattern = analysis.recommendedPatterns[0]?.pattern
-                      if (pattern) {
-                        // Use expanded tiles if available, otherwise fall back to generic pattern
-                        const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
-                        let normalizedTiles: string[]
-                        
-                        if (expandedTiles && expandedTiles.length === 14) {
-                          normalizedTiles = expandedTiles
-                        } else {
-                          // Fallback to generic pattern parsing
-                          const patternTiles = pattern.pattern.split(' ')
-                          normalizedTiles = patternTiles.length < 14 
-                            ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                            : patternTiles.slice(0, 14)
-                        }
-                        
-                        const completion = getPatternCompletionSummary(
-                          normalizedTiles, 
-                          playerHand.map(t => t.id)
-                        )
-                        return (completion.matchedTiles / 14) * 60 // 60 pts max for completion
-                      }
-                      return 0
-                    })())}/60</div>
-                    <div>Pattern Difficulty: {Math.round((analysis.recommendedPatterns[0]?.difficulty === 'easy' ? 20 : analysis.recommendedPatterns[0]?.difficulty === 'medium' ? 15 : 10))}/20</div>
-                    <div>Strategic Value: {Math.round((analysis.overallScore || 0) * 0.2)}/20</div>
+                    <div>Current Tiles: {Math.round(analysis.recommendedPatterns[0]?.scoreBreakdown?.currentTileScore || 0)}/40</div>
+                    <div>Tile Availability: {Math.round(analysis.recommendedPatterns[0]?.scoreBreakdown?.availabilityScore || 0)}/50</div>
+                    <div>Strategic Priority: {Math.round(analysis.recommendedPatterns[0]?.scoreBreakdown?.priorityScore || 0)}/10</div>
                     <div className="col-span-2 font-medium">Total Score: {Math.round(analysis.overallScore || 0)}/100</div>
                   </div>
                 </div>
@@ -349,13 +325,19 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                   )
 
                   return (
-                    <div key={index + 1} className="p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => {
-                      if (onPatternSwitch) {
-                        onPatternSwitch(pattern.pattern.id)
-                      }
-                    }}>
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="font-semibold text-gray-900 flex-1">
+                    <div key={index + 1} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                      {/* Clickable area for pattern swapping */}
+                      <div className="cursor-pointer hover:bg-gray-100 transition-colors -m-3 p-3 mb-3" onClick={() => {
+                        console.log('Pattern swap clicked:', pattern.pattern.id, 'onPatternSwitch available:', !!onPatternSwitch)
+                        if (onPatternSwitch) {
+                          onPatternSwitch(pattern.pattern.id)
+                        }
+                      }}>
+                        <div className="text-sm text-blue-600 font-medium mb-1">
+                          Click to make this the Primary Pattern ↑
+                        </div>
+                        {/* Pattern name - full width on its own line */}
+                        <div className="font-semibold text-gray-900 mb-2">
                           {pattern.pattern.id === originalEngineRecommendationId.current ? '👑 ' : ''}
                           #{index + 2}. {pattern.pattern.section} #{pattern.pattern.line}:
                           {pattern.pattern.displayName && (
@@ -369,24 +351,38 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                             })()})</span>
                           )}
                         </div>
-                        <div className="flex items-center gap-4">
-                          <div className="text-sm text-gray-600">
-                            <div>{completion.matchedTiles}/14 tiles ({Math.round((completion.matchedTiles / 14) * 100)}%)</div>
-                            <div className="text-blue-600 font-medium">AI Score: {Math.round(pattern.confidence || 0)}</div>
-                          </div>
+                      </div>
+
+                      {/* Completion info, AI score, and radio button - spread out horizontally */}
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="text-sm text-gray-600">
+                          {completion.matchedTiles}/14 tiles ({Math.round((completion.matchedTiles / 14) * 100)}%)
+                        </div>
+                        <div className="text-sm text-blue-600 font-medium">
+                          AI Score: {Math.round(pattern.totalScore || 0)}
+                        </div>
+                        {/* Only show checkbox for non-primary patterns */}
+                        {pattern.pattern.id !== analysis.recommendedPatterns[0]?.pattern?.id && (
                           <label className="flex items-center gap-2 text-sm">
                             <input
-                              type="radio"
-                              name="playingPattern"
-                              checked={playingPatternId === pattern.pattern.id}
-                              onChange={() => onPlayingPatternChange?.(pattern.pattern.id)}
+                              type="checkbox"
+                              checked={playingPatternIds.includes(pattern.pattern.id)}
+                              onChange={(e) => onPlayingPatternChange?.(pattern.pattern.id, e.target.checked)}
                               className="w-4 h-4"
                             />
                             <span className="text-green-600 font-medium">Playing</span>
                           </label>
-                        </div>
+                        )}
+                        {/* Show "Primary" label for the first pattern */}
+                        {pattern.pattern.id === analysis.recommendedPatterns[0]?.pattern?.id && (
+                          <div className="text-sm text-purple-600 font-medium">
+                            Primary (Auto-Playing)
+                          </div>
+                        )}
                       </div>
-                      <div className="text-sm">
+
+                      {/* Pattern visualizer - larger size */}
+                      <div className="text-base">
                         <PatternVariationDisplay
                           patternTiles={patternTiles}
                           playerTiles={playerHand.map(t => t.id)}
@@ -394,7 +390,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                           invertMatches={true}
                           showCompletion={false}
                           spacing={true}
-                          size="sm"
+                          size="md"
                           patternGroups={pattern.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
                           handPattern={pattern.pattern.pattern}
                         />

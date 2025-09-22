@@ -273,19 +273,19 @@ export class TileRecommendationEngine {
         primaryAction = 'keep'
         confidence = 90
         priority = 9
-        reasoning = `Required for primary pattern (${tileContributions.topPattern})`
+        reasoning = 'Required for primary pattern'
       } else if (tileContributions.priorityTier === 2) {
         // Tier 2: Top variation tile  
         primaryAction = 'keep'
         confidence = 80
         priority = 7
-        reasoning = `Required for top variation (${tileContributions.topPattern})`
+        reasoning = 'Required for top variation'
       } else if (tileContributions.priorityTier === 3) {
         // Tier 3: Alternate pattern tile
         primaryAction = 'keep'
         confidence = 65
         priority = 6
-        reasoning = `Required for alternate pattern (${tileContributions.topPattern})`
+        reasoning = 'Required for alternate pattern'
       } else {
         // Fallback keep (shouldn't happen with current logic)
         primaryAction = 'keep'

@@ -3,17 +3,20 @@
 
 import { useMemo } from 'react'
 import type { HandAnalysis, TileRecommendation } from '../../stores/intelligence-store'
+import { getTileDisplayChar, getTileCharClasses } from '../../utils/tile-display-utils'
 
 interface GameplayRecommendationsProps {
   analysis: HandAnalysis | null
   isLoading?: boolean
   className?: string
+  gamePhase?: 'charleston' | 'gameplay'
 }
 
 export function GameplayRecommendations({
   analysis,
   isLoading = false,
-  className = ''
+  className = '',
+  gamePhase = 'gameplay'
 }: GameplayRecommendationsProps) {
 
   const confidenceLevel = useMemo(() => {
@@ -26,12 +29,13 @@ export function GameplayRecommendations({
   }, [analysis?.turnIntelligence?.confidence])
 
   const recommendations = useMemo(() => {
-    if (!analysis?.tileRecommendations) return { keep: [], discard: [] }
+    if (!analysis?.tileRecommendations) return { keep: [], discard: [], pass: [] }
 
     const keep = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'keep')
     const discard = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'discard')
+    const pass = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'pass')
 
-    return { keep, discard }
+    return { keep, discard, pass }
   }, [analysis?.tileRecommendations])
 
   if (isLoading) {
@@ -51,7 +55,7 @@ export function GameplayRecommendations({
     )
   }
 
-  if (!analysis || (!recommendations.keep.length && !recommendations.discard.length)) {
+  if (!analysis || (!recommendations.keep.length && !recommendations.discard.length && !recommendations.pass.length)) {
     return (
       <div className={`bg-gray-50 border border-gray-200 rounded-lg ${className}`}>
         <div className="p-4 text-center">
@@ -90,26 +94,47 @@ export function GameplayRecommendations({
       </div>
 
       <div className="p-4 space-y-4">
-        {/* Discard Recommendations */}
-        {recommendations.discard.length > 0 && (
+        {/* Charleston Pass Recommendations */}
+        {gamePhase === 'charleston' && recommendations.pass.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-md p-3">
-            <h4 className="font-medium text-red-900 mb-2">🗑️ Recommended Discard</h4>
+            <h4 className="font-medium text-red-900 mb-2">Recommended Charleston Pass</h4>
+            <div className="mb-2">
+              <p className="text-sm text-red-800 mb-1">Consider passing:</p>
+              <div className="flex flex-wrap gap-1">
+                {recommendations.pass.slice(0, 3).map((rec: TileRecommendation) => {
+                  const tileChar = getTileDisplayChar(rec.tileId)
+                  return (
+                    <span
+                      key={rec.tileId}
+                      className={getTileCharClasses(tileChar, false)}
+                    >
+                      {tileChar.char}
+                    </span>
+                  )
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Gameplay Discard Recommendations */}
+        {gamePhase === 'gameplay' && recommendations.discard.length > 0 && (
+          <div className="bg-red-50 border border-red-200 rounded-md p-3">
+            <h4 className="font-medium text-red-900 mb-2">Recommended Discard</h4>
             <div className="mb-2">
               <p className="text-sm text-red-800 mb-1">Consider discarding:</p>
               <div className="flex flex-wrap gap-1">
-                {recommendations.discard.slice(0, 3).map((rec: TileRecommendation) => (
-                  <span
-                    key={rec.tileId}
-                    className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800"
-                  >
-                    {rec.tileId}
-                    {rec.reasoning && (
-                      <span className="ml-1 text-red-600">
-                        ({rec.reasoning.split(' ').slice(0, 2).join(' ')})
-                      </span>
-                    )}
-                  </span>
-                ))}
+                {recommendations.discard.slice(0, 3).map((rec: TileRecommendation) => {
+                  const tileChar = getTileDisplayChar(rec.tileId)
+                  return (
+                    <span
+                      key={rec.tileId}
+                      className={getTileCharClasses(tileChar, false)}
+                    >
+                      {tileChar.char}
+                    </span>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -118,32 +143,26 @@ export function GameplayRecommendations({
         {/* Keep Recommendations */}
         {recommendations.keep.length > 0 && (
           <div className="bg-green-50 border border-green-200 rounded-md p-3">
-            <h4 className="font-medium text-green-900 mb-2">💎 Priority Keeps</h4>
+            <h4 className="font-medium text-green-900 mb-2">Priority Keeps</h4>
             <div>
               <p className="text-sm text-green-800 mb-1">Keep for patterns:</p>
               <div className="flex flex-wrap gap-1">
-                {recommendations.keep.slice(0, 5).map((rec: TileRecommendation) => (
-                  <span
-                    key={rec.tileId}
-                    className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800"
-                  >
-                    {rec.tileId}
-                  </span>
-                ))}
+                {recommendations.keep.slice(0, 5).map((rec: TileRecommendation) => {
+                  const tileChar = getTileDisplayChar(rec.tileId)
+                  return (
+                    <span
+                      key={rec.tileId}
+                      className={getTileCharClasses(tileChar, false)}
+                    >
+                      {tileChar.char}
+                    </span>
+                  )
+                })}
               </div>
             </div>
           </div>
         )}
 
-        {/* Primary Pattern Info */}
-        {analysis.recommendedPatterns && analysis.recommendedPatterns.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-            <h4 className="font-medium text-blue-900 mb-2">🎯 Target Pattern</h4>
-            <p className="text-sm text-blue-800">
-              {analysis.recommendedPatterns[0]?.pattern?.displayName || analysis.recommendedPatterns[0]?.pattern?.pattern || 'Pattern analysis in progress...'}
-            </p>
-          </div>
-        )}
       </div>
     </div>
   )
