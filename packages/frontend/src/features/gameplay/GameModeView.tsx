@@ -107,16 +107,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [gameStore.gamePhase, gameStore.currentPlayerId, currentPlayerId, gameStore.setCurrentPlayer, gameStore.startTurn])
 
-  // Set default playing pattern when analysis changes
-  useEffect(() => {
-    if (currentAnalysis?.recommendedPatterns?.[0]?.pattern?.id) {
-      // Set primary pattern as playing by default, unless user has explicitly selected an alternate
-      if (!playingPatternId || playingPatternId === currentAnalysis.recommendedPatterns[0].pattern.id) {
-        setPlayingPatternId(currentAnalysis.recommendedPatterns[0].pattern.id)
-      }
-    }
-  }, [currentAnalysis?.recommendedPatterns, playingPatternId])
-
   // Set dealer hand based on East player position
   useEffect(() => {
     const currentPlayer = gameStore.players.find(p => p.id === currentPlayerId)
@@ -269,6 +259,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Real-time analysis - get actual analysis from intelligence store
   const currentAnalysis = intelligenceStore.currentAnalysis
+
+  // Set default playing pattern when analysis changes
+  useEffect(() => {
+    if (currentAnalysis?.recommendedPatterns?.[0]?.pattern?.id) {
+      // Set primary pattern as playing by default, unless user has explicitly selected an alternate
+      if (!playingPatternId || playingPatternId === currentAnalysis.recommendedPatterns[0].pattern.id) {
+        setPlayingPatternId(currentAnalysis.recommendedPatterns[0].pattern.id)
+      }
+    }
+  }, [currentAnalysis?.recommendedPatterns, playingPatternId])
 
   // Enhanced Intelligence Integration - Use real game state
   const gameState: GameState = useMemo(() => ({

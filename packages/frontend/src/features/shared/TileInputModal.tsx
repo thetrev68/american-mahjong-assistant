@@ -226,7 +226,7 @@ export const TileInputModal = ({
                 </span>
               </h3>
               <div className="flex flex-wrap gap-3">
-                {modalHand.map((tile, index) => (
+                {modalHand.map((tile) => (
                   <div
                     key={tile.instanceId}
                     className="relative group cursor-pointer"
