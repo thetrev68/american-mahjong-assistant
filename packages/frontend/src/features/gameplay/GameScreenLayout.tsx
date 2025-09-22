@@ -48,6 +48,7 @@ interface GameScreenLayoutProps {
   wallCount?: number
   onSwapJoker?: () => void
   onDeadHand?: () => void
+  playingPatternId?: string | null
 }
 
 const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
@@ -80,6 +81,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   wallCount,
   onSwapJoker,
   onDeadHand,
+  playingPatternId,
 }) => {
   return (
     <div className="max-w-full mx-auto p-1 sm:p-4 md:p-6 md:max-w-4xl pb-20 sm:pb-24">
@@ -118,6 +120,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         gamePhase={gamePhase}
         onAdvanceToGameplay={onAdvanceToGameplay}
         currentAnalysis={currentAnalysis}
+        playingPatternId={playingPatternId}
       />
 
       {/* GAMEPLAY RECOMMENDATIONS - Only show during gameplay */}

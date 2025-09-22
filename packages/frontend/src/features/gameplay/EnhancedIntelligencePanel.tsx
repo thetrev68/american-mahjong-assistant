@@ -1,4 +1,5 @@
-import React from 'react'
+import React, { useRef, useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { PatternVariationDisplay } from '../../ui-components/patterns/PatternVariationDisplay'
@@ -21,6 +22,9 @@ interface EnhancedIntelligencePanelProps {
   callOpportunity: CallOpportunity | null
   onClose?: () => void
   onActionRecommendation?: (action: string, data: Record<string, unknown>) => void
+  onPatternSwitch?: (patternId: string) => void
+  playingPatternId?: string | null
+  onPlayingPatternChange?: (patternId: string | null) => void
   gamePhase?: 'charleston' | 'gameplay'
   isAnalyzing?: boolean
 }
@@ -31,12 +35,26 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   callOpportunity,
   onClose,
   onActionRecommendation,
+  onPatternSwitch,
+  playingPatternId,
+  onPlayingPatternChange,
   gamePhase = 'gameplay',
   isAnalyzing = false
 }) => {
   const { getTargetPatterns } = usePatternStore()
   const { playerHand } = useTileStore()
-  
+  const navigate = useNavigate()
+
+  // Track the original engine recommendation ID
+  const originalEngineRecommendationId = useRef<string | null>(null)
+
+  // Set the original engine recommendation when analysis first loads
+  useEffect(() => {
+    if (analysis?.recommendedPatterns?.[0]?.pattern?.id && !originalEngineRecommendationId.current) {
+      originalEngineRecommendationId.current = analysis.recommendedPatterns[0].pattern.id
+    }
+  }, [analysis?.recommendedPatterns])
+
   const selectedPatterns = getTargetPatterns()
   const hasPatternSelected = selectedPatterns.length > 0
   return (
@@ -96,11 +114,11 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
           {/* Charleston/Gameplay Recommendations */}
           {gamePhase === 'charleston' && (
             <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-2">🎯 Charleston Strategy</div>
+              <div className="text-sm font-medium text-blue-800 mb-2">Charleston Strategy</div>
               <div className="text-sm text-gray-700">
-                {hasPatternSelected
-                  ? `Focus on collecting tiles for ${selectedPatterns[0]?.displayName}. Keep tiles that advance this pattern and pass tiles that don't contribute.`
-                  : 'Select a target pattern to get specific Charleston passing recommendations.'}
+                {analysis?.recommendedPatterns?.[0]?.pattern
+                  ? `Focus on collecting tiles for ${analysis.recommendedPatterns[0].pattern.displayName || `${analysis.recommendedPatterns[0].pattern.section} #${analysis.recommendedPatterns[0].pattern.line}`}. Keep tiles that advance this pattern and pass tiles that don't contribute.`
+                  : 'Analyzing your hand to determine the best Charleston passing strategy...'}
               </div>
             </div>
           )}
@@ -119,13 +137,23 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
             <div className="p-2 sm:p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border-2 border-purple-200">
               <div className="space-y-3">
                 <div>
-                  <h4 className="text-lg font-bold text-purple-800 mb-1">PRIMARY PATTERN</h4>
+                  <h4 className="text-lg font-bold text-purple-800 mb-1">
+                    {analysis.recommendedPatterns[0].pattern.id === originalEngineRecommendationId.current ? '👑 ' : ''}
+                    PRIMARY PATTERN
+                  </h4>
                   {/* Pattern name above visual representation - full width */}
                   {analysis.recommendedPatterns[0]?.pattern && (
                     <div className="text-base font-semibold text-gray-900 mb-2 w-full">
-                      <span className="font-bold">{analysis.recommendedPatterns[0].pattern.section} #{analysis.recommendedPatterns[0].pattern.line}</span>
+                      <span className="font-bold">{analysis.recommendedPatterns[0].pattern.section} #{analysis.recommendedPatterns[0].pattern.line}:</span>
                       {analysis.recommendedPatterns[0].pattern.displayName && (
-                        <span className="font-normal"> ({analysis.recommendedPatterns[0].pattern.displayName})</span>
+                        <span className="font-normal"> ({(() => {
+                          // Extract description part from displayName, removing redundant section/line prefix
+                          const displayName = analysis.recommendedPatterns[0].pattern.displayName
+                          const sectionLine = `${analysis.recommendedPatterns[0].pattern.section} #${analysis.recommendedPatterns[0].pattern.line}:`
+                          return displayName.startsWith(sectionLine)
+                            ? displayName.substring(sectionLine.length).trim()
+                            : displayName
+                        })()})</span>
                       )}
                     </div>
                   )}
@@ -321,16 +349,41 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                   )
 
                   return (
-                    <div key={index + 1} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div key={index + 1} className="p-3 bg-gray-50 rounded-lg border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors" onClick={() => {
+                      if (onPatternSwitch) {
+                        onPatternSwitch(pattern.pattern.id)
+                      }
+                    }}>
                       <div className="flex items-center justify-between mb-2">
-                        <div className="font-semibold text-gray-900">
-                          #{index + 2}. {pattern.pattern.section} #{pattern.pattern.line}
+                        <div className="font-semibold text-gray-900 flex-1">
+                          {pattern.pattern.id === originalEngineRecommendationId.current ? '👑 ' : ''}
+                          #{index + 2}. {pattern.pattern.section} #{pattern.pattern.line}:
                           {pattern.pattern.displayName && (
-                            <span className="font-normal text-gray-600"> ({pattern.pattern.displayName})</span>
+                            <span className="font-normal text-gray-600"> ({(() => {
+                              // Extract description part from displayName, removing redundant section/line prefix
+                              const displayName = pattern.pattern.displayName
+                              const sectionLine = `${pattern.pattern.section} #${pattern.pattern.line}:`
+                              return displayName.startsWith(sectionLine)
+                                ? displayName.substring(sectionLine.length).trim()
+                                : displayName
+                            })()})</span>
                           )}
                         </div>
-                        <div className="text-sm text-gray-600">
-                          {completion.matchedTiles}/14 tiles ({Math.round((completion.matchedTiles / 14) * 100)}%)
+                        <div className="flex items-center gap-4">
+                          <div className="text-sm text-gray-600">
+                            <div>{completion.matchedTiles}/14 tiles ({Math.round((completion.matchedTiles / 14) * 100)}%)</div>
+                            <div className="text-blue-600 font-medium">AI Score: {Math.round(pattern.confidence || 0)}</div>
+                          </div>
+                          <label className="flex items-center gap-2 text-sm">
+                            <input
+                              type="radio"
+                              name="playingPattern"
+                              checked={playingPatternId === pattern.pattern.id}
+                              onChange={() => onPlayingPatternChange?.(pattern.pattern.id)}
+                              className="w-4 h-4"
+                            />
+                            <span className="text-green-600 font-medium">Playing</span>
+                          </label>
                         </div>
                       </div>
                       <div className="text-sm">
@@ -356,12 +409,11 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
           {/* PATTERN EXPLORATION BUTTON */}
           {analysis?.recommendedPatterns && analysis.recommendedPatterns.length > 0 && (
             <div className="pattern-exploration mt-6 text-center">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 size="md"
                 onClick={() => {
-                  // TODO: Open modal with all patterns matching 3+ tiles
-                  console.log('Pattern exploration modal - coming soon')
+                  navigate('/pattern-selection')
                 }}
                 className="text-purple-600 border-purple-300 hover:bg-purple-50"
               >

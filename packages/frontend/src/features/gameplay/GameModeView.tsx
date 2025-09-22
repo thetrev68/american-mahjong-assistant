@@ -107,6 +107,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [gameStore.gamePhase, gameStore.currentPlayerId, currentPlayerId, gameStore.setCurrentPlayer, gameStore.startTurn])
 
+  // Set default playing pattern when analysis changes
+  useEffect(() => {
+    if (currentAnalysis?.recommendedPatterns?.[0]?.pattern?.id) {
+      // Set primary pattern as playing by default, unless user has explicitly selected an alternate
+      if (!playingPatternId || playingPatternId === currentAnalysis.recommendedPatterns[0].pattern.id) {
+        setPlayingPatternId(currentAnalysis.recommendedPatterns[0].pattern.id)
+      }
+    }
+  }, [currentAnalysis?.recommendedPatterns, playingPatternId])
+
   // Set dealer hand based on East player position
   useEffect(() => {
     const currentPlayer = gameStore.players.find(p => p.id === currentPlayerId)
@@ -182,6 +192,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     'player-3': 0,
     'player-4': 0
   })
+
+  // Track which pattern is currently being "played" (for green highlighting)
+  const [playingPatternId, setPlayingPatternId] = useState<string | null>(null)
   const [currentPlayerIndex, setCurrentPlayerIndex] = useState(0)
   // Get player names from game store, fallback to positions if not available
   const playerNames = useMemo(() => {
@@ -1140,6 +1153,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         wallCount={turnSelectors.wallCount}
         onSwapJoker={handleSwapJoker}
         onDeadHand={handleDeadHand}
+        playingPatternId={playingPatternId}
       />
 
       {/* Call Dialog */}
@@ -1200,6 +1214,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
               callOpportunity={callOpportunityEnhanced}
               onClose={() => setShowEnhancedIntelligence(false)}
               onActionRecommendation={handleActionRecommendation}
+              onPatternSwitch={handlePatternSwitch}
+              playingPatternId={playingPatternId}
+              onPlayingPatternChange={setPlayingPatternId}
             />
           </div>
         </div>

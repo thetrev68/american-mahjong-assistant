@@ -39,6 +39,7 @@ interface YourHandZoneProps {
       isPrimary: boolean
     }>
   } | null
+  playingPatternId?: string | null
 }
 
 const YourHandZone: React.FC<YourHandZoneProps> = ({
@@ -51,11 +52,27 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   handleDrawTile,
   handleDiscardTile,
   gamePhase,
-  currentAnalysis
+  currentAnalysis,
+  playingPatternId
 }) => {
   const { selectedForAction, tileStates } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
   const { handleTileClick } = useTileInteraction(isCharleston ? 'charleston' : 'gameplay')
+
+  // Find the currently playing pattern for green highlighting
+  const playingPattern = playingPatternId
+    ? currentAnalysis?.recommendedPatterns?.find(p => p.pattern.id === playingPatternId)
+    : null
+
+  // Get tiles that match the playing pattern for green highlighting
+  const getMatchingTiles = (pattern: any): string[] => {
+    if (!pattern?.expandedTiles || pattern.expandedTiles.length !== 14) {
+      return []
+    }
+    return pattern.expandedTiles
+  }
+
+  const playingPatternTiles = playingPattern ? getMatchingTiles(playingPattern) : []
 
   
   // Sort hand tiles using same logic as tile input page
@@ -78,21 +95,18 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
       (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'pass' ? 'pass' : null) :
       (recommendation.action === 'keep' ? 'keep' : recommendation.action === 'discard' ? 'discard' : null)
     
-    // For both Charleston and gameplay, only highlight green if tile is actually in the primary pattern
-    const isInPrimaryPattern = () => {
-      if (!currentAnalysis?.recommendedPatterns) return false // No pattern analysis available
+    // For both Charleston and gameplay, only highlight green if tile is actually in the currently playing pattern
+    const isInPlayingPattern = () => {
+      if (!playingPatternTiles || playingPatternTiles.length === 0) return false
 
-      const primaryPattern = currentAnalysis.recommendedPatterns.find(p => p.isPrimary)
-      if (!primaryPattern?.expandedTiles) return false // No expanded tiles available
-
-      // Check if the tile ID exists in the primary pattern's expanded tiles
-      return primaryPattern.expandedTiles.includes(tileId)
+      // Check if this tile matches any position in the playing pattern
+      return playingPatternTiles.some(patternTile => patternTile === tileId)
     }
     
     switch (action) {
       case 'keep':
-        // Only show green if tile is actually needed for the primary pattern
-        return isInPrimaryPattern()
+        // Only show green if tile is actually needed for the currently playing pattern
+        return isInPlayingPattern()
           ? 'shadow-[0_0_0_1px_rgba(34,197,94,0.8),0_0_3px_rgba(34,197,94,0.6),0_0_6px_rgba(34,197,94,0.4)] relative z-10' // Green multi-layer glow
           : '' // No highlighting for tiles not in pattern
       case 'pass':
