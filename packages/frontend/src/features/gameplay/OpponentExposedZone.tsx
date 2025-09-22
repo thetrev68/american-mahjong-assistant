@@ -16,14 +16,15 @@ const OpponentExposedZone: React.FC<OpponentExposedZoneProps> = ({
   playerNames,
   currentPlayerIndex,
   playerExposedCount,
-  gameHistory,
+  gameHistory: _gameHistory,
+  gameRound,
 }) => {
 
   return (
     <Card className="p-3 sm:p-4 mb-4 bg-gradient-to-r from-purple-50 to-blue-50">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-gray-700">Player Order</h3>
-        <div className="text-xs text-gray-500">Turn {gameHistory.length + 1}</div>
+        <div className="text-xs text-gray-500">Turn {gameRound}</div>
       </div>
       <div className="flex items-center justify-center gap-2 sm:gap-4 mt-2 sm:mt-3">
         {playerNames.map((name, index) => (

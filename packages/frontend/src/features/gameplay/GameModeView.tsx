@@ -219,7 +219,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     
     return playerNames[currentPlayerIndex]
   }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
-  const gameRound = gameStore.currentTurn || 1
+  const gameRound = useGameStore(state => state.currentTurn) || 1
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
   const [discardPile] = useState<Array<{
     tile: Tile
@@ -996,7 +996,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       charlestonStore.completePhase()
 
       // Advance the turn counter for Charleston progression
+      console.log('Charleston phase completed, incrementing turn from:', useGameStore.getState().currentTurn)
       gameStore.incrementTurn()
+      console.log('Turn incremented to:', useGameStore.getState().currentTurn)
 
       // Show alert prompting user to input the tiles they received
       const currentPhase = charlestonStore.currentPhase
@@ -1039,6 +1041,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
     // Close modal
     setShowCharlestonModal(false)
+
+    // Complete the turn after receiving tiles
+    console.log('Charleston tiles received, incrementing turn from:', useGameStore.getState().currentTurn)
+    gameStore.incrementTurn()
+    console.log('Turn incremented to:', useGameStore.getState().currentTurn)
 
     // Trigger analysis with the new hand
     const playerHand = tileStore.playerHand

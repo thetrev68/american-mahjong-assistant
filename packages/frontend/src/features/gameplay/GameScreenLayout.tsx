@@ -147,6 +147,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         currentPlayerIndex={currentPlayerIndex}
         playerExposedCount={playerExposedCount}
         gameHistory={gameHistory}
+        gameRound={gameRound}
       />
 
       {/* ZONES 4-5: AI INTELLIGENCE PANEL */}

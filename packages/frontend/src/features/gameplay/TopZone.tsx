@@ -146,11 +146,13 @@ const TopZone: React.FC<TopZoneProps> = ({
 }) => {
 
   const { currentPhase } = useCharlestonStore()
-  
+
+  // Props are being received correctly
+
   // Get appropriate next player based on game phase
   const nextPlayer = providedNextPlayer || getNextPlayer(currentPlayer, playerNames, gamePhase)
   const phaseDisplayName = gamePhase === 'charleston' ? 'Charleston' : 'Game Mode'
-  
+
   // Charleston-specific passing directions
   const passingToPlayer = gamePhase === 'charleston'
     ? getCharlestonPassingDirection(currentPhase, playerNames)

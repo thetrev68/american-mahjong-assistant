@@ -252,8 +252,13 @@ export const useGameStore = create<GameState>()(
       },
 
       // Game Statistics Management
-      incrementTurn: () =>
-        set((state) => ({ currentTurn: state.currentTurn + 1 }), false, 'incrementTurn'),
+      incrementTurn: () => {
+        set((state) => {
+          const newTurn = state.currentTurn + 1
+          console.log('Game store incrementTurn: from', state.currentTurn, 'to', newTurn)
+          return { currentTurn: newTurn }
+        }, false, 'incrementTurn')
+      },
 
       recordAction: (playerId: string) =>
         set((state) => {

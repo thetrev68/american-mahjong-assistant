@@ -9,6 +9,7 @@ import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { tileService } from '../../lib/services/tile-service'
 import { useTileStore } from '../../stores/tile-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
+import { getTileDisplayChar, getTileCharClasses } from '../../utils/tile-display-utils'
 import type { PlayerTile } from 'shared-types'
 
 interface TileInputModalProps {
@@ -48,10 +49,20 @@ export const TileInputModal = ({
     }
   }, [isOpen]) // Remove initialTiles dependency to prevent infinite loops
 
-  // Get current hand as sorted tile abbreviations
+  // Get current hand as colored single characters
   const getCurrentHandDisplay = () => {
     const sortedTiles = tileService.sortTiles([...playerHand])
-    return sortedTiles.map(tile => tile.id).join(' ')
+    return sortedTiles.map(tile => {
+      const tileChar = getTileDisplayChar(tile.id)
+      return (
+        <span
+          key={tile.instanceId}
+          className={getTileCharClasses(tileChar, false)}
+        >
+          {tileChar.char}
+        </span>
+      )
+    })
   }
 
   // Progress calculation
@@ -141,7 +152,7 @@ export const TileInputModal = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-      <Card className="max-w-4xl w-full max-h-[80vh] overflow-hidden flex flex-col animate-pop-in">
+      <Card className="max-w-4xl w-full max-h-[95vh] overflow-hidden flex flex-col animate-pop-in">
         {/* Header with Hand Preview */}
         <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-purple-50 to-blue-50">
           <div className="flex items-center justify-between">
@@ -169,15 +180,17 @@ export const TileInputModal = ({
               <div className="text-xs font-medium text-gray-600 mb-1">
                 Current Hand ({playerHand.length} tiles):
               </div>
-              <div className="font-mono text-xs text-gray-800 truncate">
-                {getCurrentHandDisplay() || 'No tiles in hand'}
+              <div className="flex flex-wrap gap-1">
+                {playerHand.length > 0 ? getCurrentHandDisplay() : (
+                  <span className="text-gray-500 text-xs">No tiles in hand</span>
+                )}
               </div>
             </div>
           )}
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="flex-1 p-4 space-y-4">
 
           {/* Progress Indicator */}
           <div className="bg-gray-50 p-4 rounded-lg border">
