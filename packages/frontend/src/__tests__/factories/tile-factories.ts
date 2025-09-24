@@ -100,13 +100,13 @@ export const TilePresets = {
   dots: (values: TileValue[]) => values.map(value => createTile({ suit: 'dots', value, id: `${value}D` })),
   
   // Honor tiles
-  winds: () => ['east', 'south', 'west', 'north'].map(value => 
+  winds: (p0: string[]) => ['east', 'south', 'west', 'north'].map(value => 
     createTile({ suit: 'winds', value: value as TileValue, id: value })
   ),
-  dragons: () => ['red', 'green', 'white'].map(value => 
+  dragons: (p0: string[]) => ['red', 'green', 'white'].map(value => 
     createTile({ suit: 'dragons', value: value as TileValue, id: value })
   ),
-  flowers: () => ['f1', 'f2', 'f3', 'f4'].map(value => 
+  flowers: (p0: string[]) => ['f1', 'f2', 'f3', 'f4'].map(value => 
     createTile({ suit: 'flowers', value: value as TileValue, id: value })
   ),
   
