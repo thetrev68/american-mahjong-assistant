@@ -4,8 +4,9 @@
  * Creates consistent game state objects for testing stores and game logic
  */
 
-import type { PlayerTile } from 'shared-types'
+import type { PlayerTile, Tile } from 'shared-types'
 import { createTile, createTestHand } from './tile-factories'
+import type { GameState, PlayerActionState, GameAction, ExposedTileSet } from '../../features/intelligence-panel/services/turn-intelligence-engine'
 
 /**
  * Game phase types
@@ -115,6 +116,52 @@ export function createTestGameState(options: {
     discardPile: options.discardPile || [],
     isGameActive: options.isGameActive || true,
     turn: options.turn || 1
+  }
+}
+
+/**
+ * Create GameState for TurnIntelligenceEngine testing
+ */
+export function createTurnIntelligenceGameState(options: {
+  currentPlayer?: string | null
+  turnNumber?: number
+  roundNumber?: number
+  players?: string[]
+  gamePhase?: 'setup' | 'charleston' | 'gameplay' | 'ended'
+  playerHands?: Record<string, PlayerTile[]>
+  playerActions?: Record<string, PlayerActionState>
+  discardPile?: Tile[]
+  exposedTiles?: Record<string, ExposedTileSet[]>
+  wallCount?: number
+  actionHistory?: GameAction[]
+} = {}): GameState {
+  const players = options.players || ['player1', 'player2', 'player3', 'player4']
+  const defaultPlayerActions: PlayerActionState = {
+    hasDrawn: false,
+    hasDiscarded: false,
+    lastAction: null,
+    actionCount: 0
+  }
+
+  return {
+    currentPlayer: options.currentPlayer || players[0],
+    turnNumber: options.turnNumber || 1,
+    roundNumber: options.roundNumber || 1,
+    playerHands: options.playerHands || players.reduce((hands, playerId) => {
+      hands[playerId] = createTestHand() // Default test hands
+      return hands
+    }, {} as Record<string, PlayerTile[]>),
+    playerActions: options.playerActions || players.reduce((actions, playerId) => {
+      actions[playerId] = { ...defaultPlayerActions }
+      return actions
+    }, {} as Record<string, PlayerActionState>),
+    discardPile: options.discardPile || [],
+    exposedTiles: options.exposedTiles || players.reduce((exposed, playerId) => {
+      exposed[playerId] = []
+      return exposed
+    }, {} as Record<string, ExposedTileSet[]>),
+    wallCount: options.wallCount || 84,
+    actionHistory: options.actionHistory || []
   }
 }
 

@@ -325,9 +325,9 @@ describe('Game Store', () => {
     it('should record player actions', () => {
       const store = useGameStore.getState()
       
-      store.recordAction('player1')
-      store.recordAction('player1')
-      store.recordAction('player2')
+      store.recordAction('player1', 'draw')
+      store.recordAction('player1', 'discard')
+      store.recordAction('player2', 'draw')
       
       const stats = useGameStore.getState().gameStatistics
       expect(stats.totalActions).toBe(3)
@@ -371,7 +371,7 @@ describe('Game Store', () => {
       
       // Set up some statistics
       store.incrementTurn()
-      store.recordAction('player1')
+      store.recordAction('player1', 'test-action')
       store.recordTurnTiming(5000)
       store.recordCallAttempt('player2')
       store.recordDiscard()

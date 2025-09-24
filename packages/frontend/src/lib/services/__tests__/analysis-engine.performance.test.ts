@@ -27,8 +27,8 @@ describe('Analysis Engine - Performance & Caching', () => {
 
     // Setup fast, consistent mocks for performance testing
     vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue([
-      createPatternSelection({ id: 'pattern1' }),
-      createPatternSelection({ id: 'pattern2' })
+      createPatternSelection({ id: 1 }),
+      createPatternSelection({ id: 2 })
     ])
 
     vi.mocked(PatternAnalysisEngine.analyzePatterns).mockImplementation(async (tiles, patterns) => {
@@ -43,7 +43,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
     vi.mocked(PatternRankingEngine.rankPatterns).mockImplementation(async (facts) => {
       await new Promise(resolve => setTimeout(resolve, 10))
-      return createRankedPatternResults({ patterns: facts.map(f => createPatternSelection({ id: f.patternId })) })
+      return createRankedPatternResults({ patterns: facts.map((_, i) => createPatternSelection({ id: i + 1 })) })
     })
 
     vi.mocked(TileRecommendationEngine.generateRecommendations).mockImplementation(async (tiles) => {
@@ -54,9 +54,28 @@ describe('Analysis Engine - Performance & Caching', () => {
           primaryAction: 'keep' as const,
           confidence: 0.8,
           reasoning: 'Test reason',
-          priority: 7
+          priority: 7,
+          contextualActions: {
+            charleston: 'keep',
+            gameplay: 'keep',
+            exposition: 'keep'
+          },
+          patternsHelped: ['pattern1'],
+          multiPatternValue: 5,
+          dangers: []
         })),
-        strategicAdvice: ['Test advice']
+        keepTiles: [],
+        passTiles: [],
+        discardTiles: [],
+        optimalStrategy: {
+          primaryPattern: 'pattern1',
+          backupPattern: null,
+          pivotCondition: null,
+          expectedCompletion: 0.8
+        },
+        opponentAnalysis: [],
+        strategicAdvice: ['Test advice'],
+        emergencyActions: []
       }
     })
   })
@@ -64,7 +83,7 @@ describe('Analysis Engine - Performance & Caching', () => {
   describe('Cache Performance', () => {
     it('should demonstrate significant performance improvement from caching', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: 'cache-test-pattern' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // First call - cache miss
       const start1 = performance.now()
@@ -83,7 +102,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
     it('should handle cache key generation correctly', async () => {
       const baseTiles = [createTile({ id: '1B' }), createTile({ id: '2B' })]
-      const patterns = [createPatternSelection({ id: 'key-test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // Same tiles, different order - should use cache
       const tiles1 = [...baseTiles]
@@ -98,7 +117,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
     it('should invalidate cache appropriately for different contexts', async () => {
       const tiles = [createTile({ id: '1B' })]
-      const patterns = [createPatternSelection({ id: 'context-test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // Different wall tile counts should create different cache entries
       await AnalysisEngine.analyzeHand(tiles, patterns, { wallTilesRemaining: 84 })
@@ -113,7 +132,7 @@ describe('Analysis Engine - Performance & Caching', () => {
     })
 
     it('should manage cache size limits effectively', async () => {
-      const basePattern = createPatternSelection({ id: 'size-limit-test' })
+      const basePattern = createPatternSelection({ id: 1 })
 
       // Create many unique cache entries (different tiles each time)
       for (let i = 0; i < 60; i++) {
@@ -129,7 +148,7 @@ describe('Analysis Engine - Performance & Caching', () => {
     it('should handle cache TTL expiration', async () => {
       // Note: This is a conceptual test since we can't easily manipulate time in tests
       const tiles = [createTile({ id: '1B' })]
-      const patterns = [createPatternSelection({ id: 'ttl-test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // Make analysis
       await AnalysisEngine.analyzeHand(tiles, patterns)
@@ -146,7 +165,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
   describe('Scalability Performance', () => {
     it('should handle increasing tile counts efficiently', async () => {
-      const pattern = createPatternSelection({ id: 'scale-test' })
+      const pattern = createPatternSelection({ id: 1 })
       const tileCounts = [1, 5, 10, 14]
       const results: Array<{ count: number, duration: number }> = []
 
@@ -177,7 +196,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
       for (const count of patternCounts) {
         const patterns = Array.from({ length: count }, (_, i) =>
-          createPatternSelection({ id: `pattern-${i}` })
+          createPatternSelection({ id: i + 1 })
         )
 
         const start = performance.now()
@@ -204,7 +223,7 @@ describe('Analysis Engine - Performance & Caching', () => {
         const promises = Array.from({ length: level }, (_, i) =>
           AnalysisEngine.analyzeHand(
             [createTile({ id: `${i}B` })],
-            [createPatternSelection({ id: `concurrent-${i}` })]
+            [createPatternSelection({ id: i + 1 })]
           )
         )
 
@@ -219,7 +238,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
     it('should maintain consistent performance under repeated load', async () => {
       const tiles = TilePresets.mixedHand()
-      const pattern = createPatternSelection({ id: 'consistency-test' })
+      const pattern = createPatternSelection({ id: 1 })
       const durations: number[] = []
 
       // Run many analyses and measure consistency
@@ -246,7 +265,7 @@ describe('Analysis Engine - Performance & Caching', () => {
       // Simulate extended usage
       for (let i = 0; i < 100; i++) {
         const tiles = [createTile({ id: `${i % 9 + 1}B` })]
-        const patterns = [createPatternSelection({ id: `memory-test-${i}` })]
+        const patterns = [createPatternSelection({ id: i + 1 })]
         await AnalysisEngine.analyzeHand(tiles, patterns)
 
         // Occasionally force garbage collection if available
@@ -269,7 +288,7 @@ describe('Analysis Engine - Performance & Caching', () => {
       )
 
       const largePatternSet = Array.from({ length: 50 }, (_, i) =>
-        createPatternSelection({ id: `large-pattern-${i}` })
+        createPatternSelection({ id: i + 1 })
       )
 
       const start = performance.now()
@@ -285,7 +304,6 @@ describe('Analysis Engine - Performance & Caching', () => {
   describe('Cache Behavior Edge Cases', () => {
     it('should handle rapid cache invalidation correctly', async () => {
       const baseTiles = ['1B', '2B', '3B']
-      const patterns = [createPatternSelection({ id: 'invalidation-test' })]
 
       // Rapid hand changes should clear cache appropriately
       for (let i = 0; i < 10; i++) {
@@ -304,7 +322,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
     it('should handle concurrent cache access safely', async () => {
       const tiles = [createTile({ id: '1B' })]
-      const patterns = [createPatternSelection({ id: 'concurrent-cache-test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // Launch many concurrent requests with same cache key
       const promises = Array.from({ length: 15 }, () =>
@@ -315,7 +333,7 @@ describe('Analysis Engine - Performance & Caching', () => {
 
       // All results should be identical
       expect(results).toHaveLength(15)
-      results.forEach((result, index) => {
+      results.forEach((result) => {
         expect(result).toEqual(results[0])
       })
 
@@ -331,8 +349,8 @@ describe('Analysis Engine - Performance & Caching', () => {
       ]
 
       const edgeCasePatterns = [
-        createPatternSelection({ id: '' }), // Empty pattern ID
-        createPatternSelection({ id: 'pattern-with-special-chars-!@#$%' })
+        createPatternSelection({ id: 1 }), // Valid pattern ID
+        createPatternSelection({ id: 2 })
       ]
 
       // Should handle edge cases without crashing
@@ -348,9 +366,9 @@ describe('Analysis Engine - Performance & Caching', () => {
     it('should complete typical analysis within performance budget', async () => {
       const tiles = TilePresets.mixedHand() // Typical 13-tile hand
       const patterns = [
-        createPatternSelection({ id: '2025-SINGLES_AND_PAIRS-3-1' }),
-        createPatternSelection({ id: '2025-CONSECUTIVE_RUN-7-1' }),
-        createPatternSelection({ id: '2025-ANY_LIKE_NUMBERS-2-1' })
+        createPatternSelection({ id: 1 }),
+        createPatternSelection({ id: 2 }),
+        createPatternSelection({ id: 3 })
       ]
 
       const start = performance.now()
@@ -367,7 +385,7 @@ describe('Analysis Engine - Performance & Caching', () => {
       )
 
       const manyPatterns = Array.from({ length: 30 }, (_, i) =>
-        createPatternSelection({ id: `worst-case-pattern-${i}` })
+        createPatternSelection({ id: i + 1 })
       )
 
       const start = performance.now()
@@ -388,11 +406,11 @@ describe('Analysis Engine - Performance & Caching', () => {
       ]
 
       const standardPatterns = [
-        createPatternSelection({ id: 'baseline-pattern-1' }),
-        createPatternSelection({ id: 'baseline-pattern-2' }),
-        createPatternSelection({ id: 'baseline-pattern-3' }),
-        createPatternSelection({ id: 'baseline-pattern-4' }),
-        createPatternSelection({ id: 'baseline-pattern-5' })
+        createPatternSelection({ id: 1 }),
+        createPatternSelection({ id: 2 }),
+        createPatternSelection({ id: 3 }),
+        createPatternSelection({ id: 4 }),
+        createPatternSelection({ id: 5 })
       ]
 
       // Run baseline test multiple times for consistency

@@ -1,9 +1,9 @@
 // Charleston Store Edge Cases and Error Handling Tests
 // Comprehensive tests for Charleston store edge cases, error scenarios, and boundary conditions
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useCharlestonStore, type CharlestonPhase } from '../charleston-store'
-import { createTile, createPatternSelection, TilePresets } from '../../__tests__/factories'
+import { createTile, createPatternSelection } from '../../__tests__/factories'
 import type { Tile } from 'shared-types'
 
 // Test data
@@ -11,7 +11,7 @@ const createLargeHand = (count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `tile-${i}`,
     suit: ['dots', 'bams', 'cracks', 'winds', 'dragons', 'flowers'][i % 6] as any,
-    value: String((i % 9) + 1),
+    value: (['1', '2', '3', '4', '5', '6', '7', '8', '9', 'east', 'south', 'west', 'north', 'red', 'green', 'white', 'f1', 'f2', 'f3', 'f4'] as const)[i % 20],
     displayName: `Test Tile ${i}`
   }))
 
@@ -28,7 +28,7 @@ const createFlowerTiles = (count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `flower-${i}`,
     suit: 'flowers',
-    value: `f${i + 1}`,
+    value: (['f1', 'f2', 'f3', 'f4'] as const)[i % 4],
     displayName: `Flower ${i + 1}`
   }))
 

@@ -1,9 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useIntelligenceStore } from '../intelligence-store'
-import { 
+import {
   createTileRecommendation,
   createPatternAnalysis,
-  AnalysisPresets
+  AnalysisPresets,
+  createTurnIntelligenceGameState,
+  createTile
 } from '../../__tests__/factories'
 
 // Mock the analysis engine
@@ -67,8 +69,8 @@ describe('Intelligence Store', () => {
       
       // Mock a delayed analysis to test loading state
       const { lazyAnalysisEngine } = await import('../../lib/services/analysis-engine-lazy')
-      let resolveAnalysis: (value: unknown) => void
-      const delayedPromise = new Promise(resolve => { resolveAnalysis = resolve })
+      let resolveAnalysis: (value: any) => void
+      const delayedPromise = new Promise<any>(resolve => { resolveAnalysis = resolve })
       vi.mocked(lazyAnalysisEngine.analyzeHand).mockReturnValue(delayedPromise)
       
       const analysisPromise = store.analyzeHand([], [])
@@ -314,12 +316,11 @@ describe('Intelligence Store', () => {
   })
 
   describe('Enhanced Intelligence Features (Phase 4C)', () => {
-    const mockGameState = {
+    const mockGameState = createTurnIntelligenceGameState({
       currentPlayer: 'player1',
       players: ['player1', 'player2', 'player3', 'player4'],
-      gamePhase: 'playing',
-      turnStartTime: new Date()
-    }
+      gamePhase: 'gameplay'
+    })
 
     it('should analyze turn situation', async () => {
       const store = useIntelligenceStore.getState()
@@ -353,8 +354,21 @@ describe('Intelligence Store', () => {
 
     it('should analyze call opportunities', async () => {
       const store = useIntelligenceStore.getState()
-      const opportunity = { tileId: 'test-tile', action: 'pung' as const }
-      const context = { playerId: 'player1', gameState: mockGameState }
+      const opportunity = {
+        tile: createTile({ id: 'test-tile', suit: 'bams', value: '5' }),
+        discardingPlayer: 'player2',
+        availableCallTypes: ['pung' as const],
+        timeRemaining: 5000,
+        deadline: Date.now() + 5000
+      }
+      const context = {
+        playerHand: mockGameState.playerHands['player1'] || [],
+        selectedPatterns: [],
+        gameState: mockGameState,
+        opponentProfiles: [],
+        turnPosition: 1,
+        roundPhase: 'middle' as const
+      }
       
       // Set up existing analysis
       useIntelligenceStore.setState({
@@ -389,8 +403,19 @@ describe('Intelligence Store', () => {
       // Mock service failure
       const { getTurnIntelligenceEngine } = await import('../../features/intelligence-panel/services/turn-intelligence-engine')
       vi.mocked(getTurnIntelligenceEngine).mockImplementation(() => ({
-        analyzeCurrentTurn: vi.fn(() => Promise.reject(new Error('Service failed')))
-      }))
+        analyzeCurrentTurn: vi.fn(() => Promise.reject(new Error('Service failed'))),
+        getAvailableActions: vi.fn(),
+        analyzeDrawOptions: vi.fn(),
+        analyzeDiscardOptions: vi.fn(),
+        calculateDiscardRisk: vi.fn(),
+        calculatePatternProgress: vi.fn(),
+        calculateDiscardConfidence: vi.fn(),
+        hasCallOpportunity: vi.fn(),
+        analyzeCallValue: vi.fn(),
+        analyzeDefensivePlays: vi.fn(),
+        analyzePatternSwitches: vi.fn(),
+        calculateOverallConfidence: vi.fn()
+      } as any))
       
       await store.analyzeTurnSituation('player1', mockGameState)
       

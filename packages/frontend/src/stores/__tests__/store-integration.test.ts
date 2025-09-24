@@ -210,10 +210,10 @@ describe('Store Integration Tests', () => {
 
       // Simulate tile actions
       tileStore.addTile('1B')
-      gameStore.recordAction('player-1')
+      gameStore.recordAction('player-1', 'draw')
 
       tileStore.addTile('2B')
-      gameStore.recordAction('player-1')
+      gameStore.recordAction('player-1', 'draw')
 
       const gameStats = useGameStore.getState().gameStatistics
       expect(gameStats.totalActions).toBe(2)
@@ -447,7 +447,7 @@ describe('Store Integration Tests', () => {
 
       // Rapid state changes
       for (let i = 0; i < 100; i++) {
-        gameStore.recordAction('player-1')
+        gameStore.recordAction('player-1', 'draw')
         tileStore.addTile(`${i % 9 + 1}B`)
         if (i % 10 === 0) {
           tileStore.clearHand()

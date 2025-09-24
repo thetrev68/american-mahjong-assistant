@@ -24,8 +24,8 @@ describe('Analysis Engine', () => {
     
     // Mock default responses from each engine
     vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue([
-      createPatternSelection({ id: 'pattern1' }),
-      createPatternSelection({ id: 'pattern2' })
+      createPatternSelection({ id: 1 }),
+      createPatternSelection({ id: 2 })
     ])
     
     vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue([
@@ -36,8 +36,8 @@ describe('Analysis Engine', () => {
     vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(
       createRankedPatternResults({
         patterns: [
-          createPatternSelection({ id: 'pattern1' }),
-          createPatternSelection({ id: 'pattern2' })
+          createPatternSelection({ id: 1 }),
+          createPatternSelection({ id: 2 })
         ]
       })
     )
@@ -51,17 +51,44 @@ describe('Analysis Engine', () => {
             primaryAction: 'keep',
             confidence: 0.85,
             reasoning: 'Critical for primary pattern',
-            priority: 9
+            priority: 9,
+            contextualActions: {
+              charleston: 'keep',
+              gameplay: 'keep',
+              exposition: 'keep'
+            },
+            patternsHelped: ['pattern1'],
+            multiPatternValue: 8,
+            dangers: []
           },
           {
             tileId: '7C',
             primaryAction: 'discard',
             confidence: 0.7,
             reasoning: 'Low strategic value',
-            priority: 3
+            priority: 3,
+            contextualActions: {
+              charleston: 'neutral',
+              gameplay: 'neutral',
+              exposition: 'never'
+            },
+            patternsHelped: [],
+            multiPatternValue: 1,
+            dangers: []
           }
         ],
-        strategicAdvice: ['Focus on completing primary pattern', 'Consider joker substitution']
+        keepTiles: [],
+        passTiles: [],
+        discardTiles: [],
+        optimalStrategy: {
+          primaryPattern: 'pattern1',
+          backupPattern: null,
+          pivotCondition: null,
+          expectedCompletion: 0.85
+        },
+        opponentAnalysis: [],
+        strategicAdvice: ['Focus on completing primary pattern', 'Consider joker substitution'],
+        emergencyActions: []
       })
     })
   })
@@ -69,7 +96,7 @@ describe('Analysis Engine', () => {
   describe('Core Analysis Flow', () => {
     it('should orchestrate 3-engine analysis successfully', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: 'test-pattern' })]
+      const patterns = [createPatternSelection({ id: 1 })]
       
       const result = await AnalysisEngine.analyzeHand(tiles, patterns)
       
@@ -104,8 +131,8 @@ describe('Analysis Engine', () => {
     it('should use provided patterns when given', async () => {
       const tiles = TilePresets.mixedHand()
       const patterns = [
-        createPatternSelection({ id: 'custom1' }),
-        createPatternSelection({ id: 'custom2' })
+        createPatternSelection({ id: 1 }),
+        createPatternSelection({ id: 2 })
       ]
       
       await AnalysisEngine.analyzeHand(tiles, patterns)
@@ -216,7 +243,7 @@ describe('Analysis Engine', () => {
   describe('Result Conversion', () => {
     it('should convert pattern rankings to recommended patterns format', async () => {
       const mockPatternRankings = createRankedPatternResults({
-        patterns: [createPatternSelection({ id: 'test1', difficulty: 'easy', points: 25 })]
+        patterns: [createPatternSelection({ id: 1, difficulty: 'easy', points: 25 })]
       })
       
       vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockPatternRankings)
@@ -263,25 +290,66 @@ describe('Analysis Engine', () => {
     it('should normalize tile actions correctly', async () => {
       vi.mocked(TileRecommendationEngine.generateRecommendations).mockResolvedValue({
         tileActions: [
-          { tileId: '1B', primaryAction: 'hold', confidence: 0.8, reasoning: 'test', priority: 5 },
-          { tileId: '2C', primaryAction: 'charleston', confidence: 0.6, reasoning: 'test', priority: 3 },
-          { tileId: '3D', primaryAction: 'drop', confidence: 0.4, reasoning: 'test', priority: 1 }
+          {
+            tileId: '1B',
+            primaryAction: 'keep',
+            confidence: 0.8,
+            reasoning: 'test',
+            priority: 5,
+            contextualActions: { charleston: 'keep', gameplay: 'keep', exposition: 'keep' },
+            patternsHelped: ['pattern1'],
+            multiPatternValue: 5,
+            dangers: []
+          },
+          {
+            tileId: '2C',
+            primaryAction: 'pass',
+            confidence: 0.6,
+            reasoning: 'test',
+            priority: 3,
+            contextualActions: { charleston: 'neutral', gameplay: 'keep', exposition: 'expose' },
+            patternsHelped: [],
+            multiPatternValue: 2,
+            dangers: []
+          },
+          {
+            tileId: '3D',
+            primaryAction: 'discard',
+            confidence: 0.4,
+            reasoning: 'test',
+            priority: 1,
+            contextualActions: { charleston: 'neutral', gameplay: 'neutral', exposition: 'never' },
+            patternsHelped: [],
+            multiPatternValue: 1,
+            dangers: []
+          }
         ],
-        strategicAdvice: []
+        keepTiles: [],
+        passTiles: [],
+        discardTiles: [],
+        optimalStrategy: {
+          primaryPattern: 'pattern1',
+          backupPattern: null,
+          pivotCondition: null,
+          expectedCompletion: 0.7
+        },
+        opponentAnalysis: [],
+        strategicAdvice: [],
+        emergencyActions: []
       })
       
       const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])
       
-      expect(result.tileRecommendations[0].action).toBe('keep') // hold -> keep
-      expect(result.tileRecommendations[1].action).toBe('pass') // charleston -> pass
-      expect(result.tileRecommendations[2].action).toBe('discard') // drop -> discard
+      expect(result.tileRecommendations[0].action).toBe('keep')
+      expect(result.tileRecommendations[1].action).toBe('pass')
+      expect(result.tileRecommendations[2].action).toBe('discard')
     })
   })
 
   describe('Caching System', () => {
     it('should cache Engine 1 results for identical requests', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: 'test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
       
       // First analysis
       await AnalysisEngine.analyzeHand(tiles, patterns)
@@ -305,8 +373,8 @@ describe('Analysis Engine', () => {
 
     it('should bypass cache for different patterns', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns1 = [createPatternSelection({ id: 'pattern1' })]
-      const patterns2 = [createPatternSelection({ id: 'pattern2' })]
+      const patterns1 = [createPatternSelection({ id: 1 })]
+      const patterns2 = [createPatternSelection({ id: 2 })]
       
       await AnalysisEngine.analyzeHand(tiles, patterns1)
       await AnalysisEngine.analyzeHand(tiles, patterns2)
@@ -351,7 +419,7 @@ describe('Analysis Engine', () => {
   describe('Pattern Analysis Details', () => {
     it('should calculate completion percentage from current tile score', async () => {
       const mockRankings = createRankedPatternResults({
-        patterns: [createPatternSelection({ id: 'test' })]
+        patterns: [createPatternSelection({ id: 1 })]
       })
       
       // Mock a ranking with specific current tile score
@@ -376,7 +444,7 @@ describe('Analysis Engine', () => {
       
       vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue(mockFacts)
       
-      const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 'test' })])
+      const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 1 })])
       
       // Should extract matching groups from tile contributions
       expect(result.recommendedPatterns[0].analysis?.currentTiles.matchingGroups).toBeDefined()
@@ -451,8 +519,8 @@ describe('Analysis Engine', () => {
     })
 
     it('should handle large numbers of patterns efficiently', async () => {
-      const manyPatterns = Array.from({ length: 50 }, (_, i) => 
-        createPatternSelection({ id: `pattern-${i}` })
+      const manyPatterns = Array.from({ length: 50 }, (_, i) =>
+        createPatternSelection({ id: i + 1 })
       )
       
       const startTime = performance.now()
@@ -465,7 +533,7 @@ describe('Analysis Engine', () => {
 
     it('should handle patterns with missing data gracefully', async () => {
       const mockRankings = createRankedPatternResults({
-        patterns: [createPatternSelection({ id: 'missing-pattern' })]
+        patterns: [createPatternSelection({ id: 1 })]
       })
       
       mockRankings.topRecommendations[0].patternId = 'nonexistent-pattern'
@@ -505,8 +573,8 @@ describe('Analysis Engine', () => {
     it('should sort recommendations by completion percentage', async () => {
       const mockRankings = createRankedPatternResults({
         patterns: [
-          createPatternSelection({ id: 'low-completion' }),
-          createPatternSelection({ id: 'high-completion' })
+          createPatternSelection({ id: 1 }),
+          createPatternSelection({ id: 2 })
         ]
       })
       

@@ -1,6 +1,7 @@
 // Mahjong Validator Tests
 // Tests for the MahjongValidator service with real pattern validation
 
+import { describe, it, expect } from 'vitest'
 import { MahjongValidator, type MahjongDeclaration } from '../mahjong-validator'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { PlayerTile } from 'shared-types'

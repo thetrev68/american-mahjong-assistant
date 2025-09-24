@@ -31,8 +31,8 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
 
     // Setup default mocks
     vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue([
-      createPatternSelection({ id: 'test-pattern-1' }),
-      createPatternSelection({ id: 'test-pattern-2' })
+      createPatternSelection({ id: 1 }),
+      createPatternSelection({ id: 2 })
     ])
 
     vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue([
@@ -43,8 +43,8 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
     vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(
       createRankedPatternResults({
         patterns: [
-          createPatternSelection({ id: 'test-pattern-1' }),
-          createPatternSelection({ id: 'test-pattern-2' })
+          createPatternSelection({ id: 1 }),
+          createPatternSelection({ id: 2 })
         ]
       })
     )
@@ -56,10 +56,29 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
           primaryAction: 'keep',
           confidence: 0.9,
           reasoning: 'Critical for completion',
-          priority: 9
+          priority: 9,
+          contextualActions: {
+            charleston: 'keep',
+            gameplay: 'keep',
+            exposition: 'keep'
+          },
+          patternsHelped: ['pattern1'],
+          multiPatternValue: 5,
+          dangers: []
         }
       ],
-      strategicAdvice: ['Focus on primary pattern']
+      keepTiles: [],
+      passTiles: [],
+      discardTiles: [],
+      optimalStrategy: {
+        primaryPattern: 'pattern1',
+        backupPattern: null,
+        pivotCondition: null,
+        expectedCompletion: 0.9
+      },
+      opponentAnalysis: [],
+      strategicAdvice: ['Focus on primary pattern'],
+      emergencyActions: []
     })
   })
 
@@ -109,7 +128,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
         createTile({ id: 'f2' })
       ]
 
-      const patterns = [createPatternSelection({ id: 'joker-pattern' })]
+      const patterns = [createPatternSelection({ id: 1 })]
       const charlestonContext = {
         currentPhase: 'charleston' as const,
         jokersInHand: 4,
@@ -121,7 +140,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
       expect(result).toBeDefined()
       expect(PatternAnalysisEngine.analyzePatterns).toHaveBeenCalledWith(
         jokerHeavyHand.map(t => t.id),
-        patterns.map(p => p.id),
+        patterns.map(p => p.id.toString()),
         expect.objectContaining({
           jokersInHand: 4,
           currentPhase: 'charleston'
@@ -131,7 +150,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
 
     it('should handle scenarios with many viable patterns', async () => {
       const manyPatterns = Array.from({ length: 15 }, (_, i) =>
-        createPatternSelection({ id: `pattern-${i + 1}`, points: 20 + i })
+        createPatternSelection({ id: i + 1, points: 20 + i })
       )
 
       vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue(manyPatterns)
@@ -180,7 +199,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
         TilePresets.mixedHand()
       ]
 
-      const patterns = [createPatternSelection({ id: 'concurrent-test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       const promises = hands.map(hand =>
         AnalysisEngine.analyzeHand(hand, patterns)
@@ -197,7 +216,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
 
     it('should maintain cache efficiency under load', async () => {
       const testHand = TilePresets.mixedHand()
-      const testPatterns = [createPatternSelection({ id: 'cache-test' })]
+      const testPatterns = [createPatternSelection({ id: 1 })]
 
       // First call - should hit analysis engines
       await AnalysisEngine.analyzeHand(testHand, testPatterns)
@@ -247,7 +266,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
       // Mock corrupted pattern data
       vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue([
         { id: 'corrupted', name: null } as any, // Corrupted pattern
-        createPatternSelection({ id: 'valid-pattern' }) // Valid pattern
+        createPatternSelection({ id: 1 }) // Valid pattern
       ])
 
       const result = await AnalysisEngine.analyzeHand(tiles, [])
@@ -259,7 +278,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
 
     it('should maintain consistency across engine updates', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: 'consistency-test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // First analysis
       const result1 = await AnalysisEngine.analyzeHand(tiles, patterns)
@@ -290,9 +309,9 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
       ]
 
       const multiplePatterns = [
-        createPatternSelection({ id: 'pairs-pattern', points: 25 }),
-        createPatternSelection({ id: 'runs-pattern', points: 30 }),
-        createPatternSelection({ id: 'mixed-pattern', points: 35 })
+        createPatternSelection({ id: 1, points: 25 }),
+        createPatternSelection({ id: 2, points: 30 }),
+        createPatternSelection({ id: 3, points: 35 })
       ]
 
       // Mock Engine 2 to return detailed rankings
@@ -323,14 +342,33 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
           primaryAction: i < 7 ? 'keep' as const : i < 10 ? 'pass' as const : 'discard' as const,
           confidence: 0.8 + (i * 0.01),
           reasoning: `Tile ${i + 1} strategic analysis`,
-          priority: 10 - Math.floor(i / 2)
+          priority: 10 - Math.floor(i / 2),
+          contextualActions: {
+            charleston: 'keep',
+            gameplay: 'keep',
+            exposition: 'keep'
+          },
+          patternsHelped: ['pattern1'],
+          multiPatternValue: 3 + i,
+          dangers: []
         })),
+        keepTiles: [],
+        passTiles: [],
+        discardTiles: [],
+        optimalStrategy: {
+          primaryPattern: 'pattern1',
+          backupPattern: 'pattern2',
+          pivotCondition: null,
+          expectedCompletion: 0.85
+        },
+        opponentAnalysis: [],
         strategicAdvice: [
           'Focus on pairs-pattern (85 points)',
           'Consider runs-pattern as backup (75 points)',
           'Keep joker for flexibility',
           'Pass low-value isolated tiles'
-        ]
+        ],
+        emergencyActions: []
       })
 
       const result = await AnalysisEngine.analyzeHand(complexHand, multiplePatterns)
@@ -371,8 +409,8 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
 
     it('should handle pattern switching scenarios', async () => {
       const tiles = TilePresets.mixedHand()
-      const currentPattern = createPatternSelection({ id: 'current-focus' })
-      const alternativePattern = createPatternSelection({ id: 'better-alternative' })
+      const currentPattern = createPatternSelection({ id: 1 })
+      const alternativePattern = createPatternSelection({ id: 2 })
 
       const switchingContext = {
         currentPhase: 'gameplay' as const,
@@ -382,15 +420,7 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
       // Mock ranking engine to suggest switching
       vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(
         createRankedPatternResults({
-          patterns: [currentPattern, alternativePattern],
-          switchAnalysis: {
-            shouldSuggestSwitch: true,
-            currentFocus: currentPattern.id,
-            recommendedPattern: alternativePattern.id,
-            improvementPercent: 25, // 25% improvement
-            improvementThreshold: 15,
-            reasoning: ['Better completion prospects', 'Higher point value']
-          }
+          patterns: [currentPattern, alternativePattern]
         })
       )
 
@@ -452,18 +482,10 @@ describe('Analysis Engine - Comprehensive Scenarios', () => {
         createRankedPatternResults({
           patterns: [createPatternSelection()],
           topRecommendations: [{
-            patternId: 'extreme-test',
+            patternId: '1',
             totalScore: 0, // Minimum score
             confidence: 0, // Minimum confidence
-            recommendation: 'impossible',
-            components: {
-              currentTileScore: 0,
-              availabilityScore: 0,
-              jokerScore: 0,
-              priorityScore: 0
-            },
-            riskFactors: ['extreme-risk'],
-            strategicValue: 0
+            recommendation: 'impossible'
           }]
         })
       )
