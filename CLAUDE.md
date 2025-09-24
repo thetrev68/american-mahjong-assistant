@@ -53,7 +53,6 @@ packages/
 - `packages/frontend/src/lib/services/analysis-engine.ts` - AI coordination
 - `packages/frontend/public/intelligence/nmjl-patterns/` - NMJL 2025 data
 - `packages/frontend/src/utils/RouteGuard.tsx` - Flow protection
-- `legacy/` - Preserved working systems (DO NOT MODIFY)
 
 ## Development Rules
 

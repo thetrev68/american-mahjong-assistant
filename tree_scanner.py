@@ -261,8 +261,8 @@ def main():
     
     # Setup excludes
     default_excludes = {
-        "node_modules", ".git", ".ruff_cache", "docs", ".github", "public", "__pycache__",
-            ".vscode", ".vite", ".idea", "dist", "build", "legacy", "logs", ".pytest_cache", "venv"
+        "coverage", "node_modules", ".git", ".ruff_cache", "docs", ".github", "public", "__pycache__",
+            ".claude", ".vscode", ".vite", ".idea", "dist", "build", "legacy", "logs", ".pytest_cache", "venv"
     }
     custom_excludes = set(args.exclude) if args.exclude else set()
     all_excludes = default_excludes | custom_excludes

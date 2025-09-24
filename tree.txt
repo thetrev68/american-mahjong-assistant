@@ -1,8 +1,4 @@
 american-mahjong-assistant/
-├── .claude/
-│   ├── agents/
-│   │   └── code-reviewer.md
-│   └── settings.local.json (45 lines)
 ├── intelligence/
 │   └── nmjl-patterns/
 │       └── nmjl-card-2025.json (4367 lines)
@@ -44,12 +40,13 @@ american-mahjong-assistant/
 │   │   │   ├── __tests__/
 │   │   │   │   ├── factories/
 │   │   │   │   │   ├── analysis-factories.ts (456 lines)
-│   │   │   │   │   ├── game-state-factories.ts (278 lines)
+│   │   │   │   │   ├── game-state-factories.ts (327 lines)
 │   │   │   │   │   ├── index.ts (16 lines)
 │   │   │   │   │   ├── mock-service-factories.ts (304 lines)
 │   │   │   │   │   ├── pattern-factories.ts (236 lines)
 │   │   │   │   │   └── tile-factories.ts (187 lines)
 │   │   │   │   └── integration/
+│   │   │   │       ├── ai-system-integration.test.ts (430 lines)
 │   │   │   │       ├── error-handling.test.ts (406 lines)
 │   │   │   │       ├── infrastructure-validation.test.ts (155 lines)
 │   │   │   │       ├── README.md
@@ -63,47 +60,56 @@ american-mahjong-assistant/
 │   │   │   │   └── tiles.json (912 lines)
 │   │   │   ├── features/
 │   │   │   │   ├── charleston/
-│   │   │   │   │   ├── services/
-│   │   │   │   │   │   ├── charleston-multiplayer.ts (173 lines)
-│   │   │   │   │   │   └── charleston-resilient.ts (390 lines)
-│   │   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   │   ├── PassingRecommendations.tsx (175 lines)
-│   │   │   │   │   ├── StrategyExplanation.tsx (303 lines)
-│   │   │   │   │   ├── TargetPatternDisplay.tsx (154 lines)
-│   │   │   │   │   └── TilePassingArea.tsx (209 lines)
+│   │   │   │   │   ├── __tests__/
+│   │   │   │   │   │   ├── charleston-ai-recommendations.test.ts (474 lines)
+│   │   │   │   │   │   ├── charleston-integration.test.tsx (534 lines)
+│   │   │   │   │   │   ├── charleston-multiplayer.test.ts (420 lines)
+│   │   │   │   │   │   ├── charleston-phase-transitions.test.ts (443 lines)
+│   │   │   │   │   │   └── README.md
+│   │   │   │   │   └── services/
+│   │   │   │   │       ├── __tests__/
+│   │   │   │   │       │   └── charleston-resilient.test.ts (393 lines)
+│   │   │   │   │       └── charleston-resilient.ts (390 lines)
 │   │   │   │   ├── gameplay/
+│   │   │   │   │   ├── __tests__/
+│   │   │   │   │   │   ├── GameModeView.simple.test.tsx (475 lines)
+│   │   │   │   │   │   └── GameModeView.test.tsx (1049 lines)
 │   │   │   │   │   ├── components/
 │   │   │   │   │   │   ├── CallOpportunityOverlay.tsx (33 lines)
 │   │   │   │   │   │   ├── CallOpportunitySection.tsx (109 lines)
 │   │   │   │   │   │   ├── DefensivePlaySection.tsx (70 lines)
+│   │   │   │   │   │   ├── JokerSwapDialog.tsx (234 lines)
 │   │   │   │   │   │   ├── OpponentInsightsSection.tsx (87 lines)
 │   │   │   │   │   │   └── TurnRecommendationsSection.tsx (87 lines)
 │   │   │   │   │   ├── services/
 │   │   │   │   │   │   ├── __tests__/
 │   │   │   │   │   │   │   └── game-end-coordinator.test.ts (176 lines)
-│   │   │   │   │   │   ├── game-actions.ts (623 lines)
+│   │   │   │   │   │   ├── game-actions.ts (616 lines)
 │   │   │   │   │   │   ├── game-end-coordinator.ts (283 lines)
 │   │   │   │   │   │   ├── multiplayer-game-end.ts (501 lines)
 │   │   │   │   │   │   ├── turn-multiplayer.ts (185 lines)
 │   │   │   │   │   │   ├── turn-realtime.ts (486 lines)
 │   │   │   │   │   │   └── turn-solo-mode.ts (125 lines)
 │   │   │   │   │   ├── AlertSystem.tsx (194 lines)
-│   │   │   │   │   ├── DiscardPile.tsx (93 lines)
-│   │   │   │   │   ├── DiscardPileZone.tsx (52 lines)
-│   │   │   │   │   ├── EnhancedIntelligencePanel.tsx (357 lines)
-│   │   │   │   │   ├── GameModeView.tsx (1166 lines)
-│   │   │   │   │   ├── GameScreenLayout.tsx (159 lines)
+│   │   │   │   │   ├── DiscardPile.tsx (94 lines)
+│   │   │   │   │   ├── DiscardPileZone.tsx (53 lines)
+│   │   │   │   │   ├── EnhancedIntelligencePanel.tsx (402 lines)
+│   │   │   │   │   ├── GameControlPanel.tsx (147 lines)
+│   │   │   │   │   ├── GameModeView.tsx (1233 lines)
+│   │   │   │   │   ├── GameplayRecommendations.tsx (154 lines)
+│   │   │   │   │   ├── GameScreenLayout.tsx (171 lines)
 │   │   │   │   │   ├── GameTimer.tsx (33 lines)
 │   │   │   │   │   ├── index.ts (3 lines)
-│   │   │   │   │   ├── OpponentExposedZone.tsx (49 lines)
-│   │   │   │   │   ├── SelectionArea.tsx (181 lines)
+│   │   │   │   │   ├── OpponentExposedZone.tsx (50 lines)
+│   │   │   │   │   ├── SelectionArea.tsx (248 lines)
 │   │   │   │   │   ├── TileStates.tsx (26 lines)
-│   │   │   │   │   ├── TopZone.tsx (199 lines)
-│   │   │   │   │   └── YourHandZone.tsx (212 lines)
+│   │   │   │   │   ├── TopZone.tsx (227 lines)
+│   │   │   │   │   └── YourHandZone.tsx (220 lines)
 │   │   │   │   ├── intelligence-panel/
 │   │   │   │   │   ├── services/
 │   │   │   │   │   │   ├── __tests__/
 │   │   │   │   │   │   │   ├── improved-scoring-verification.test.ts (167 lines)
+│   │   │   │   │   │   │   ├── intelligence-error-handling.test.ts (667 lines)
 │   │   │   │   │   │   │   ├── intelligence-integration.test.ts (364 lines)
 │   │   │   │   │   │   │   ├── pattern-analysis-engine.test.ts (357 lines)
 │   │   │   │   │   │   │   ├── pattern-ranking-engine.test.ts (422 lines)
@@ -117,11 +123,11 @@ american-mahjong-assistant/
 │   │   │   │   │   │   ├── pattern-variation-loader.ts (165 lines)
 │   │   │   │   │   │   ├── real-time-analysis-service.ts (289 lines)
 │   │   │   │   │   │   ├── tile-recommendation-engine.ts (962 lines)
-│   │   │   │   │   │   └── turn-intelligence-engine.ts (393 lines)
+│   │   │   │   │   │   └── turn-intelligence-engine.ts (392 lines)
 │   │   │   │   │   ├── index.ts (4 lines)
 │   │   │   │   │   ├── PatternRecommendations.tsx (233 lines)
 │   │   │   │   │   ├── PatternSwitchModal.tsx (210 lines)
-│   │   │   │   │   └── PrimaryAnalysisCard.tsx (266 lines)
+│   │   │   │   │   └── PrimaryAnalysisCard.tsx (269 lines)
 │   │   │   │   ├── landing/
 │   │   │   │   │   └── LandingPage.tsx (210 lines)
 │   │   │   │   ├── pattern-selection/
@@ -147,17 +153,17 @@ american-mahjong-assistant/
 │   │   │   │   │   ├── RoomCreation.tsx (212 lines)
 │   │   │   │   │   ├── RoomJoining.tsx (204 lines)
 │   │   │   │   │   ├── RoomLobbyView.tsx (266 lines)
-│   │   │   │   │   └── RoomSetupView.tsx (357 lines)
+│   │   │   │   │   └── RoomSetupView.tsx (421 lines)
 │   │   │   │   ├── shared/
-│   │   │   │   │   └── TileInputModal.tsx (275 lines)
+│   │   │   │   │   └── TileInputModal.tsx (290 lines)
 │   │   │   │   ├── tile-input/
-│   │   │   │   │   ├── HandDisplay.tsx (251 lines)
+│   │   │   │   │   ├── HandDisplay.tsx (242 lines)
 │   │   │   │   │   ├── HandValidation.tsx (208 lines)
 │   │   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   │   ├── TileInputPage.tsx (224 lines)
-│   │   │   │   │   └── TileSelector.tsx (176 lines)
+│   │   │   │   │   ├── TileInputPage.tsx (237 lines)
+│   │   │   │   │   └── TileSelector.tsx (179 lines)
 │   │   │   │   ├── tutorial/
-│   │   │   │   │   ├── CoPilotDemo.tsx (273 lines)
+│   │   │   │   │   ├── CoPilotDemo.tsx (275 lines)
 │   │   │   │   │   ├── index.ts (14 lines)
 │   │   │   │   │   ├── PatternLearning.tsx (134 lines)
 │   │   │   │   │   ├── PreferenceSetup.tsx (341 lines)
@@ -187,58 +193,66 @@ american-mahjong-assistant/
 │   │   │   │   ├── useHapticFeedback.ts (274 lines)
 │   │   │   │   ├── useMultiplayer.ts (358 lines)
 │   │   │   │   ├── usePerformance.ts (306 lines)
-│   │   │   │   ├── usePerformanceMonitor.ts (264 lines)
+│   │   │   │   ├── usePerformanceMonitor.ts (266 lines)
 │   │   │   │   ├── useRoomSetup.ts (203 lines)
 │   │   │   │   ├── useShare.ts (84 lines)
 │   │   │   │   ├── useSocket.ts (188 lines)
 │   │   │   │   ├── useTileEffects.ts (42 lines)
+│   │   │   │   ├── useTileInteraction.ts (35 lines)
 │   │   │   │   ├── useTileSprites.ts (151 lines)
 │   │   │   │   └── useTutorial.ts (406 lines)
 │   │   │   ├── lib/
 │   │   │   │   └── services/
 │   │   │   │       ├── __tests__/
 │   │   │   │       │   ├── analysis-engine-cache-simple.test.ts (41 lines)
-│   │   │   │       │   ├── analysis-engine.test.ts (429 lines)
-│   │   │   │       │   ├── mahjong-validator.test.ts (135 lines)
+│   │   │   │       │   ├── analysis-engine.comprehensive.test.ts (465 lines)
+│   │   │   │       │   ├── analysis-engine.edge-cases.test.ts (417 lines)
+│   │   │   │       │   ├── analysis-engine.performance.test.ts (355 lines)
+│   │   │   │       │   ├── analysis-engine.test.ts (497 lines)
+│   │   │   │       │   ├── mahjong-validator.test.ts (136 lines)
 │   │   │   │       │   └── nmjl-service.test.ts (295 lines)
 │   │   │   │       ├── analysis-engine-lazy.ts (44 lines)
-│   │   │   │       ├── analysis-engine.ts (441 lines)
+│   │   │   │       ├── analysis-engine.ts (463 lines)
+│   │   │   │       ├── connection-resilience-test-suite.ts (396 lines)
 │   │   │   │       ├── connection-resilience-test-suite.ts.bak
-│   │   │   │       ├── connection-resilience.ts (417 lines)
-│   │   │   │       ├── disconnection-manager.ts (433 lines)
+│   │   │   │       ├── connection-resilience.ts (418 lines)
+│   │   │   │       ├── disconnection-manager.ts (443 lines)
 │   │   │   │       ├── event-queue-manager.ts (372 lines)
 │   │   │   │       ├── mahjong-validator.ts (367 lines)
 │   │   │   │       ├── network-error-handler.ts (410 lines)
 │   │   │   │       ├── nmjl-service.ts (165 lines)
-│   │   │   │       ├── phase-transition-manager.ts (364 lines)
-│   │   │   │       ├── room-multiplayer.ts (449 lines)
+│   │   │   │       ├── phase-transition-manager.ts (360 lines)
+│   │   │   │       ├── room-multiplayer.ts (459 lines)
 │   │   │   │       ├── tile-service.ts (227 lines)
 │   │   │   │       └── unified-multiplayer-manager.ts (525 lines)
 │   │   │   ├── services/
 │   │   │   │   └── __tests__/
 │   │   │   ├── stores/
 │   │   │   │   ├── __tests__/
-│   │   │   │   │   ├── charleston-store.test.ts (529 lines)
+│   │   │   │   │   ├── charleston-store.edge-cases.test.ts (452 lines)
+│   │   │   │   │   ├── charleston-store.test.ts (258 lines)
 │   │   │   │   │   ├── game-store.test.ts (360 lines)
-│   │   │   │   │   ├── intelligence-store.test.ts (436 lines)
+│   │   │   │   │   ├── intelligence-store.test.ts (462 lines)
 │   │   │   │   │   ├── multiplayer-store.test.ts (314 lines)
-│   │   │   │   │   ├── pattern-store.test.ts (243 lines)
-│   │   │   │   │   └── tile-store.test.ts (637 lines)
-│   │   │   │   ├── charleston-store.ts (443 lines)
+│   │   │   │   │   ├── pattern-store.test.ts (366 lines)
+│   │   │   │   │   ├── store-integration.test.ts (401 lines)
+│   │   │   │   │   └── tile-store.test.ts (638 lines)
+│   │   │   │   ├── charleston-store.ts (319 lines)
+│   │   │   │   ├── charleston-store.ts.backup
 │   │   │   │   ├── connection.store.ts (98 lines)
-│   │   │   │   ├── game-store.ts (293 lines)
-│   │   │   │   ├── history-store.ts (485 lines)
-│   │   │   │   ├── index.ts (36 lines)
-│   │   │   │   ├── intelligence-store.ts (415 lines)
-│   │   │   │   ├── multiplayer-store.ts (253 lines)
+│   │   │   │   ├── game-store.ts (298 lines)
+│   │   │   │   ├── history-store.ts (486 lines)
+│   │   │   │   ├── index.ts (37 lines)
+│   │   │   │   ├── intelligence-store.ts (417 lines)
+│   │   │   │   ├── multiplayer-store.ts (251 lines)
 │   │   │   │   ├── pattern-store.ts (201 lines)
 │   │   │   │   ├── player.store.ts (94 lines)
 │   │   │   │   ├── room-setup.store.ts (190 lines)
 │   │   │   │   ├── room.store.ts (204 lines)
-│   │   │   │   ├── tile-store.ts (559 lines)
+│   │   │   │   ├── tile-store.ts (597 lines)
 │   │   │   │   ├── turn-store.ts (532 lines)
 │   │   │   │   ├── tutorial-store.ts (260 lines)
-│   │   │   │   └── ui-store.ts (76 lines)
+│   │   │   │   └── ui-store.ts (78 lines)
 │   │   │   ├── styles/
 │   │   │   │   └── accessibility.css (308 lines)
 │   │   │   ├── test/
@@ -289,17 +303,21 @@ american-mahjong-assistant/
 │   │   │   │   ├── CallOpportunityModal.tsx (136 lines)
 │   │   │   │   ├── Card.tsx (45 lines)
 │   │   │   │   ├── ConfidenceBadge.tsx (30 lines)
+│   │   │   │   ├── ConfirmationDialog.tsx (55 lines)
 │   │   │   │   ├── ConnectionStatusIndicator.tsx (302 lines)
 │   │   │   │   ├── CountdownTimer.tsx (42 lines)
+│   │   │   │   ├── DevShortcuts.tsx (212 lines)
 │   │   │   │   ├── FinalHandRevealModal.tsx (131 lines)
-│   │   │   │   ├── GameActionsPanel.tsx (175 lines)
+│   │   │   │   ├── GameActionsPanel.tsx (132 lines)
 │   │   │   │   ├── HostControls.tsx (265 lines)
 │   │   │   │   ├── index.ts (12 lines)
 │   │   │   │   ├── LoadingSpinner.tsx (43 lines)
 │   │   │   │   ├── MahjongDeclarationModal.tsx (307 lines)
 │   │   │   │   ├── ShareButton.tsx (77 lines)
 │   │   │   │   ├── ThreatBadge.tsx (29 lines)
-│   │   │   │   ├── Tile.tsx (61 lines)
+│   │   │   │   ├── Tile.tsx (60 lines)
+│   │   │   │   ├── TileLockBadge.tsx (18 lines)
+│   │   │   │   ├── TilePlaceholder.tsx (23 lines)
 │   │   │   │   ├── TileSprite.tsx (152 lines)
 │   │   │   │   ├── TurnManagementPanel.tsx (177 lines)
 │   │   │   │   └── TurnStatus.tsx (69 lines)
@@ -314,7 +332,6 @@ american-mahjong-assistant/
 │   │   │   │   │   └── ProductionErrorBoundary.tsx (204 lines)
 │   │   │   │   ├── animation-config.ts (265 lines)
 │   │   │   │   ├── bundle-analyzer.ts (257 lines)
-│   │   │   │   ├── charleston-adapter.ts (432 lines)
 │   │   │   │   ├── feature-flags.ts (110 lines)
 │   │   │   │   ├── pattern-color-utils.ts (58 lines)
 │   │   │   │   ├── reduced-motion.ts (272 lines)
@@ -428,11 +445,11 @@ american-mahjong-assistant/
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 72
-Total files: 353
-Files with line counts: 308
-Total lines of code: 77,929
+Total directories: 73
+Total files: 369
+Files with line counts: 323
+Total lines of code: 84,912
 
 Configuration:
-  Excluded directories: .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, dist, docs, legacy, logs, node_modules, public, venv
+  Excluded directories: .claude, .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, coverage, dist, docs, legacy, logs, node_modules, public, venv
   Line counting for: .c, .cpp, .css, .dart, .h, .html, .java, .js, .json, .py, .ts, .tsx, .yaml, .yml
