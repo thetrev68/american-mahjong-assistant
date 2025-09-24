@@ -328,7 +328,6 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                     <div key={index + 1} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
                       {/* Clickable area for pattern swapping */}
                       <div className="cursor-pointer hover:bg-gray-100 transition-colors -m-3 p-3 mb-3" onClick={() => {
-                        console.log('Pattern swap clicked:', pattern.pattern.id, 'onPatternSwitch available:', !!onPatternSwitch)
                         if (onPatternSwitch) {
                           onPatternSwitch(pattern.pattern.id)
                         }

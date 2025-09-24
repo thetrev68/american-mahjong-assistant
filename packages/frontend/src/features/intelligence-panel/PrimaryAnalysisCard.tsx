@@ -97,20 +97,23 @@ export const PrimaryAnalysisCard = ({
         const t = tile.toLowerCase()
         // Jokers first
         if (t.includes('joker') || t === 'j') return 0
-        // Flowers second  
-        if (t === 'f1' || t.includes('flower') || t === 'f') return 1
+        // Flowers second
+        if (t === 'f1' || t.includes('flower') || t === 'f') return 1001
+        if (t === 'f2') return 1002
+        if (t === 'f3') return 1003
+        if (t === 'f4') return 1004
         // Numbers 1-9 for each suit (B, C, D)
         if (t.match(/^[1-9][bcd]$/)) {
           const num = parseInt(t[0])
           const suit = t[1]
           if (suit === 'b') return 2000 + num      // Bams: 2001-2009
-          if (suit === 'c') return 3000 + num      // Cracks: 3001-3009  
+          if (suit === 'c') return 3000 + num      // Cracks: 3001-3009
           if (suit === 'd') return 4000 + num      // Dots: 4001-4009
         }
         // Dragons
-        if (t === 'f2' || t.includes('green') || t === 'gd') return 5001
-        if (t === 'f3' || t.includes('red') || t === 'rd') return 5002
-        if (t === 'f4' || t.includes('white') || t === 'wd') return 5003
+        if (t.includes('green') || t === 'gd') return 5001
+        if (t.includes('red') || t === 'rd') return 5002
+        if (t.includes('white') || t === 'wd') return 5003
         // Winds  
         if (t === 'east' || t === 'e' || t === 'ew') return 6001
         if (t === 'south' || t === 's' || t === 'sw') return 6002
