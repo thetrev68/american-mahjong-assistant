@@ -156,6 +156,13 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
     })
 
     it('should handle negative or invalid context values', async () => {
+      // This test ensures that AnalysisEngine can handle out-of-range or invalid context values gracefully.
+      // Specifically, it tests:
+      // - Negative `wallTilesRemaining` and `jokersInHand` to simulate invalid game states.
+      // - An unknown `currentPhase` to verify robustness against unexpected inputs.
+      // The goal is to confirm that the engine does not crash and defaults are applied where necessary,
+      // maintaining stability and predictable behavior.
+
       const invalidContext = {
         wallTilesRemaining: -50, // Invalid negative
         jokersInHand: -2, // Invalid negative

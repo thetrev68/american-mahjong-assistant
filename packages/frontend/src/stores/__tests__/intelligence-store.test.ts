@@ -6,14 +6,15 @@ import {
   AnalysisPresets
 } from '../../__tests__/factories'
 
-// Mock the external services
-vi.mock('../../services/analysis-engine', () => ({
-  AnalysisEngine: {
+// Mock the analysis engine
+vi.mock('../../lib/services/analysis-engine-lazy', () => ({
+  lazyAnalysisEngine: {
     analyzeHand: vi.fn(() => Promise.resolve(AnalysisPresets.basic()))
   }
 }))
 
-vi.mock('../../services/turn-intelligence-engine', () => ({
+// Mock the turn intelligence services
+vi.mock('../../features/intelligence-panel/services/turn-intelligence-engine', () => ({
   getTurnIntelligenceEngine: vi.fn(() => ({
     analyzeCurrentTurn: vi.fn(() => Promise.resolve({
       defensiveAnalysis: { threatLevel: 'medium', recommendations: [] },
@@ -22,14 +23,14 @@ vi.mock('../../services/turn-intelligence-engine', () => ({
   }))
 }))
 
-vi.mock('../../services/opponent-analysis-engine', () => ({
-  getOpponentAnalysisEngine: vi.fn(() => ({
+vi.mock('../../features/intelligence-panel/services/analysis-engines-lazy', () => ({
+  getOpponentAnalysisEngine: vi.fn(() => Promise.resolve({
     analyzeAllOpponents: vi.fn(() => []),
     identifyDangerousTilesForAll: vi.fn(() => [])
   }))
 }))
 
-vi.mock('../../services/call-opportunity-analyzer', () => ({
+vi.mock('../../features/intelligence-panel/services/call-opportunity-analyzer', () => ({
   getCallOpportunityAnalyzer: vi.fn(() => ({
     analyzeCallOpportunity: vi.fn(() => Promise.resolve({
       shouldCall: true,
@@ -65,10 +66,10 @@ describe('Intelligence Store', () => {
       const store = useIntelligenceStore.getState()
       
       // Mock a delayed analysis to test loading state
-      const { AnalysisEngine } = await import('../../services/analysis-engine')
+      const { lazyAnalysisEngine } = await import('../../lib/services/analysis-engine-lazy')
       let resolveAnalysis: (value: unknown) => void
       const delayedPromise = new Promise(resolve => { resolveAnalysis = resolve })
-      vi.mocked(AnalysisEngine.analyzeHand).mockReturnValue(delayedPromise)
+      vi.mocked(lazyAnalysisEngine.analyzeHand).mockReturnValue(delayedPromise)
       
       const analysisPromise = store.analyzeHand([], [])
       
@@ -90,8 +91,8 @@ describe('Intelligence Store', () => {
       const mockAnalysis = AnalysisPresets.comprehensive()
       
       // Mock successful analysis
-      const { AnalysisEngine } = await import('../../services/analysis-engine')
-      vi.mocked(AnalysisEngine.analyzeHand).mockResolvedValue(mockAnalysis)
+      const { lazyAnalysisEngine } = await import('../../lib/services/analysis-engine-lazy')
+      vi.mocked(lazyAnalysisEngine.analyzeHand).mockResolvedValue(mockAnalysis)
       
       await store.analyzeHand([], [])
       
@@ -106,8 +107,8 @@ describe('Intelligence Store', () => {
       const error = new Error('Analysis failed')
       
       // Mock analysis failure
-      const { AnalysisEngine } = await import('../../services/analysis-engine')
-      vi.mocked(AnalysisEngine.analyzeHand).mockRejectedValue(error)
+      const { lazyAnalysisEngine } = await import('../../lib/services/analysis-engine-lazy')
+      vi.mocked(lazyAnalysisEngine.analyzeHand).mockRejectedValue(error)
       
       await store.analyzeHand([], [])
       
@@ -386,7 +387,7 @@ describe('Intelligence Store', () => {
       const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
       
       // Mock service failure
-      const { getTurnIntelligenceEngine } = await import('../../services/turn-intelligence-engine')
+      const { getTurnIntelligenceEngine } = await import('../../features/intelligence-panel/services/turn-intelligence-engine')
       vi.mocked(getTurnIntelligenceEngine).mockImplementation(() => ({
         analyzeCurrentTurn: vi.fn(() => Promise.reject(new Error('Service failed')))
       }))

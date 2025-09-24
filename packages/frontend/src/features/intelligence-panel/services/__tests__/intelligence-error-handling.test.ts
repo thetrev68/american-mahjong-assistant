@@ -716,13 +716,16 @@ describe('Intelligence Panel Services - Error Handling', () => {
           ['valid-pattern'],
           null as any // Invalid context
         )
+        // Should not reach here
+        expect.fail('Expected an error to be thrown')
       } catch (error) {
         // If it throws, error should be meaningful
         expect(error).toBeDefined()
+        expect(error).toBeInstanceOf(Error)
+        if (error instanceof Error) {
+          expect(error.message).toBeTruthy()
+          expect(error.message.length).toBeGreaterThan(0)
+        }
       }
-
-      // Should not crash the process
-      expect(true).toBe(true)
-    })
-  })
+    })  })
 })

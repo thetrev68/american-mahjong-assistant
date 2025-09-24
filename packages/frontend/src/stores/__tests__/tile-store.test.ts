@@ -14,22 +14,22 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest'
 import { useTileStore } from '../tile-store'
 import { tileService } from '../../lib/services/tile-service'
-import { AnalysisEngine } from '../../lib/services/analysis-engine'
-import { 
-  createTile, 
-  createTiles, 
+import { lazyAnalysisEngine } from '../../lib/services/analysis-engine-lazy'
+import {
+  createTile,
+  createTiles,
   createTestHand,
   cleanupMocks
 } from '../../__tests__/factories'
 
 // Mock external dependencies
-vi.mock('../../services/tile-service')
-vi.mock('../../services/analysis-engine')
-vi.mock('../../services/real-time-analysis-service')
-vi.mock('../../services/nmjl-service')
+vi.mock('../../lib/services/tile-service')
+vi.mock('../../lib/services/analysis-engine-lazy')
+vi.mock('../../features/intelligence-panel/services/real-time-analysis-service')
+vi.mock('../../lib/services/nmjl-service')
 
 const mockTileService = vi.mocked(tileService)
-const mockAnalysisEngine = vi.mocked(AnalysisEngine)
+const mockAnalysisEngine = vi.mocked(lazyAnalysisEngine)
 
 describe('Tile Store', () => {
   // Reset store and mocks before each test
@@ -729,15 +729,16 @@ describe('Tile Store', () => {
         expect(newState.tileStates[tileToMove.instanceId]).toBe('placeholder')
       })
 
-      it('should not move locked tiles', () => {
+      it('should preserve locked state when moving locked tiles', () => {
         const state = useTileStore.getState()
         const tileToMove = state.playerHand[0]
         useTileStore.setState({ tileStates: { [tileToMove.instanceId]: 'locked' } })
-        
+
         state.moveToSelection(tileToMove.instanceId)
-        
+
         const newState = useTileStore.getState()
-        expect(newState.selectedForAction).toHaveLength(0)
+        expect(newState.selectedForAction).toHaveLength(1)
+        expect(newState.tileStates[tileToMove.instanceId]).toBe('locked-placeholder')
       })
     })
 

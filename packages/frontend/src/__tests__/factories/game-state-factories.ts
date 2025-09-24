@@ -13,17 +13,18 @@ import { createTile, createTestHand } from './tile-factories'
 export type GamePhase = 'setup' | 'charleston' | 'gameplay' | 'ended'
 
 /**
- * Player state for testing
+ * Player state for testing - matches Game Store Player interface
  */
 export interface TestPlayer {
   id: string
   name: string
-  isHost: boolean
+  position: 'east' | 'south' | 'west' | 'north' | null
   isReady: boolean
-  hand: PlayerTile[]
-  exposedTiles: PlayerTile[]
-  discardedTiles: string[]
-  score: number
+  isConnected: boolean
+  hand?: PlayerTile[]
+  exposedTiles?: PlayerTile[]
+  discardedTiles?: string[]
+  score?: number
 }
 
 /**
@@ -52,20 +53,22 @@ export interface TestGameState {
 export function createTestPlayer(options: {
   id?: string
   name?: string
-  isHost?: boolean
+  position?: 'east' | 'south' | 'west' | 'north' | null
   isReady?: boolean
+  isConnected?: boolean
   hand?: PlayerTile[]
   exposedTiles?: PlayerTile[]
   discardedTiles?: string[]
   score?: number
 } = {}): TestPlayer {
   const id = options.id || 'player-1'
-  
+
   return {
     id,
     name: options.name || `Player ${id.split('-')[1]}`,
-    isHost: options.isHost || false,
+    position: options.position || null,
     isReady: options.isReady || true,
+    isConnected: options.isConnected ?? true,
     hand: options.hand || createTestHand(),
     exposedTiles: options.exposedTiles || [],
     discardedTiles: options.discardedTiles || [],
@@ -77,10 +80,12 @@ export function createTestPlayer(options: {
  * Create multiple test players
  */
 export function createTestPlayers(count: number = 4): TestPlayer[] {
-  return Array.from({ length: count }, (_, index) => 
+  const positions = ['east', 'south', 'west', 'north'] as const
+
+  return Array.from({ length: count }, (_, index) =>
     createTestPlayer({
       id: `player-${index + 1}`,
-      isHost: index === 0, // First player is host
+      position: index < positions.length ? positions[index] : null,
       hand: createTestHand() // Each player gets a different hand
     })
   )

@@ -5,12 +5,12 @@ import {
 } from '../../__tests__/factories'
 
 // Mock the multiplayer services
-vi.mock('../../services/turn-multiplayer', () => ({
+vi.mock('../../features/gameplay/services/turn-multiplayer', () => ({
   getTurnMultiplayerService: vi.fn(() => null),
   destroyTurnMultiplayerService: vi.fn()
 }))
 
-vi.mock('../../services/game-end-coordinator', () => ({
+vi.mock('../../features/gameplay/services/game-end-coordinator', () => ({
   shouldGameEnd: vi.fn(() => false),
   getWallExhaustionWarning: vi.fn((remaining) => {
     if (remaining <= 10) return 'Only 10 tiles left in wall!'
