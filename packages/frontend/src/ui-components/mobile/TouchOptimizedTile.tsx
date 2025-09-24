@@ -316,5 +316,3 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
     </div>
   )
 }
-
-export default TouchOptimizedTile

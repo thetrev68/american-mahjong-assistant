@@ -213,5 +213,3 @@ export const RovingTabIndex: React.FC<RovingTabIndexProps> = ({
     </div>
   )
 }
-
-export default FocusManager

@@ -284,5 +284,3 @@ export const AccessibilitySettings: React.FC<AccessibilitySettingsProps> = ({
     </FocusManager>
   )
 }
-
-export default AccessibilitySettings

@@ -28,6 +28,11 @@ const Notification: React.FC<NotificationProps> = ({ notification, onDismiss, in
     return () => clearTimeout(timer)
   }, [])
 
+  const handleDismiss = useCallback(() => {
+    setIsExiting(true)
+    setTimeout(() => onDismiss(notification.id), 300)
+  }, [notification.id, onDismiss])
+
   // Auto-dismiss timer with progress bar
   useEffect(() => {
     if (notification.duration && notification.duration > 0) {
@@ -49,11 +54,6 @@ const Notification: React.FC<NotificationProps> = ({ notification, onDismiss, in
       return () => clearInterval(progressTimer)
     }
   }, [notification.duration, handleDismiss])
-
-  const handleDismiss = useCallback(() => {
-    setIsExiting(true)
-    setTimeout(() => onDismiss(notification.id), 300)
-  }, [notification.id, onDismiss])
 
   // Pause auto-dismiss on hover
   const [isPaused, setIsPaused] = useState(false)
@@ -288,4 +288,3 @@ export const NotificationSystem: React.FC<{ maxVisible?: number }> = ({ maxVisib
 
 // Re-export from separate file to avoid Fast Refresh warnings
 // export { useNotifications } from './notification-utils'
-export default NotificationSystem

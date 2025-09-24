@@ -12,7 +12,7 @@ import type { PatternRecommendation } from '../../stores/intelligence-store'
 import { useHistoryStore } from '../../stores/history-store'
 import { useIntelligenceStore } from '../../stores/intelligence-store'
 import type { NMJL2025Pattern } from 'shared-types'
-import type { TileSuit } from '@shared/tile-utils'
+import type { TileSuit } from 'shared-types'
 import type { TileValue } from 'shared-types'
 
 // Mock NMJL patterns for testing

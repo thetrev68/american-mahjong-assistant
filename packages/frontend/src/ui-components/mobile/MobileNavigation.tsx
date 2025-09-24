@@ -398,5 +398,3 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     </button>
   )
 }
-
-export default MobileNavigation

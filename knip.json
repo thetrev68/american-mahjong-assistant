@@ -1,25 +1,49 @@
 {
-    "workspaces": {
-      ".": {
-        "entry": ["scripts/*.js", "setup-test.js"]  
-      },
-      "packages/backend": {
-        "entry": ["src/server.ts", "src/**/*.ts"],  
-        "project": ["src/**/*.ts"]
-      },
-      "packages/frontend": {
-        "entry": ["src/main.tsx", "src/**/*.tsx", "src/**/*.ts"],  
-        "project": ["src/**/*.ts", "src/**/*.tsx"]
-      },
-      "packages/shared-types": {
-        "entry": ["src/index.ts"],
-        "project": ["src/**/*.ts"]
-      },
-      "packages/shared-utils": {
-        "entry": ["src/index.ts"],
-        "project": ["src/**/*.ts"]
-      }
+  "workspaces": {
+    ".": {
+      "entry": [
+        "scripts/*.js", 
+        "setup-test.js" 
+      ]
     },
-    "ignore": ["**/tests/**", "**/__tests__/**"],  
-    "ignoreExportsUsedInFile": true  
-  }
+    "packages/backend": {
+      "entry": [
+        "src/features/**/*.ts",
+        "src/services/**/*.ts"
+      ],
+      "project": [
+        "src/**/*.ts"
+      ]
+    },
+    "packages/frontend": {
+      "entry": [
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/features/**/*.ts", 
+        "src/features/**/*.tsx",
+        "src/hooks/**/*.ts",
+        "src/lib/services/**/*.ts",
+        "src/stores/**/*.ts",
+        "src/ui-components/**/*.ts",
+        "src/ui-components/**/*.tsx",
+        "src/utils/**/*.ts",
+        "src/utils/**/*.tsx"
+      ],
+      "project": [
+        "src/**/*.ts",
+        "src/**/*.tsx"
+      ]
+    },
+    "packages/shared-types": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"],
+      "ignore": ["**/*-types.ts"]
+    },
+    "packages/shared-utils": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  },
+  "ignore": ["**/tests/**", "**/__tests__/**"],  
+  "ignoreExportsUsedInFile": true  
+}

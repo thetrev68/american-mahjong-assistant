@@ -342,5 +342,3 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
     </Card>
   )
 }
-
-export default GamePhaseStatusIndicator

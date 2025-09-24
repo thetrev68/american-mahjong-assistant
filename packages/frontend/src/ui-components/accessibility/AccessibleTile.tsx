@@ -230,5 +230,3 @@ export const AccessibleTile = forwardRef<AccessibleTileRef, AccessibleTileProps>
 })
 
 AccessibleTile.displayName = 'AccessibleTile'
-
-export default AccessibleTile

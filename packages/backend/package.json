@@ -30,7 +30,6 @@
     "express": "^5.1.0",
     "nodemon": "^3.1.10",
     "shared-types": "*",
-    "shared-utils": "*",
     "socket.io": "^4.8.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",

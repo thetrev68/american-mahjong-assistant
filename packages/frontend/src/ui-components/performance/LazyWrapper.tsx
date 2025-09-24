@@ -3,10 +3,11 @@
  * Intelligent component lazy loading with performance monitoring
  */
 
-import React, { 
-  useEffect, 
+import React, {
+  useEffect,
   useState,
-  useRef
+  useRef,
+  Suspense
 } from 'react'
 import { LoadingSpinner } from '../LoadingSpinner'
 import { usePerformanceMonitor } from '../../hooks/usePerformanceMonitor'
@@ -198,4 +199,3 @@ export const LazyWrapper: React.FC<LazyWrapperProps> = ({
 
 // Re-export utilities from separate file to avoid Fast Refresh warnings
 // export { createLazyComponent, usePreloadComponent } from './lazy-utils'
-export default LazyWrapper

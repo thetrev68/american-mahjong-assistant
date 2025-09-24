@@ -260,7 +260,7 @@ export const useGameStore = create<GameState>()(
         }, false, 'incrementTurn')
       },
 
-      recordAction: (playerId: string, actionType: string) =>
+      recordAction: (playerId: string, _actionType: string) =>
         set((state) => {
           const newStats = { ...state.gameStatistics }
           newStats.totalActions += 1

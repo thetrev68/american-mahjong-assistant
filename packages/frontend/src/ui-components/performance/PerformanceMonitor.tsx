@@ -282,5 +282,3 @@ export const PerformanceMonitor: React.FC<PerformanceMonitorProps> = ({
     </div>
   )
 }
-
-export default PerformanceMonitor

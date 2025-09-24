@@ -147,4 +147,3 @@ export const GameActionsPanel: React.FC<GameActionsPanelProps> = ({
   )
 }
 
-export default GameActionsPanel

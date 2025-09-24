@@ -157,4 +157,3 @@ export const CallOpportunityModal: React.FC<CallOpportunityModalProps> = ({
   )
 }
 
-export default CallOpportunityModal
