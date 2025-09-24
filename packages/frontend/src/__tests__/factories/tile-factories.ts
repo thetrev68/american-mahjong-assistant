@@ -28,7 +28,7 @@ export function createTile(options: TileFactoryOptions = {}): PlayerTile {
     suit,
     value,
     id,
-    instanceId: options.instanceId || `${id}-inst-${Math.random().toString(36).substr(2, 9)}`,
+    instanceId: options.instanceId || `${id}-inst-${Math.random().toString(36).substring(2, 11)}`,
     displayName: options.displayName || `${value} ${suit}`, // Simplified for test data
     isSelected: options.isSelected || false,
     isJoker: options.isJoker || false
@@ -168,7 +168,7 @@ export const TilePresets = {
 }
 
 // Helper functions
-function generateDisplayName(suit: TileSuit, value: TileValue): string {
+export function generateDisplayName(suit: TileSuit, value: TileValue): string {
   const suitNames = {
     bams: 'Bam',
     cracks: 'Crack', 

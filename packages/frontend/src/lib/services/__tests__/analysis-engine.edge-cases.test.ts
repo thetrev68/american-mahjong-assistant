@@ -4,7 +4,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { AnalysisEngine } from '../analysis-engine'
 import { nmjlService } from '../nmjl-service'
-import { PatternAnalysisEngine, type GameContext } from '../../../features/intelligence-panel/services/pattern-analysis-engine'
+import { PatternAnalysisEngine } from '../../../features/intelligence-panel/services/pattern-analysis-engine'
 import { PatternRankingEngine } from '../../../features/intelligence-panel/services/pattern-ranking-engine'
 import { TileRecommendationEngine } from '../../../features/intelligence-panel/services/tile-recommendation-engine'
 import {
@@ -141,9 +141,9 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
 
     it('should handle special tiles combinations', async () => {
       const specialTiles = [
-        ...TilePresets.flowers(['f1', 'f2', 'f3', 'f4']),
-        ...TilePresets.dragons(['red', 'green', 'white']),
-        ...TilePresets.winds(['east', 'south', 'west', 'north']),
+        ...TilePresets.flowers(),
+        ...TilePresets.dragons(),
+        ...TilePresets.winds(),
         ...TilePresets.jokers(2)
       ]
 
@@ -267,31 +267,6 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
       expect(result.recommendedPatterns).toHaveLength(3)
     })
 
-    it('should handle patterns with string IDs corrected', async () => {
-      const patterns = [createPatternSelection({ id: 4 })];
-
-      const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), patterns);
-
-      expect(result).toBeDefined();
-      expect(result.recommendedPatterns).toHaveLength(1);
-    });
-
-    it('should handle base patterns with string IDs corrected', async () => {
-      const basePatterns = [createPatternSelection({ id: 5 })];
-
-      const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), basePatterns);
-
-      expect(result).toBeDefined();
-      expect(result.recommendedPatterns).toHaveLength(1);
-    });
-
-    it('should handle single pattern with corrected ID', async () => {
-      const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 6 })]);
-
-      expect(result).toBeDefined();
-      expect(result.recommendedPatterns).toHaveLength(1);
-    });
-
     it('should preserve pattern order when requested', async () => {
       const orderedPatterns = [
         createPatternSelection({ id: 3, points: 50 }),
@@ -325,31 +300,6 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
       expect(result.recommendedPatterns[2].pattern.id).toBe(2)
     })
 
-    it('should handle patterns with corrected IDs', async () => {
-      const patterns = [
-        createPatternSelection({ id: 1 }),
-        createPatternSelection({ id: 2 }),
-        createPatternSelection({ id: 3 })
-      ];
-
-      const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), patterns);
-
-      expect(result).toBeDefined();
-      expect(result.recommendedPatterns).toHaveLength(3);
-    });
-
-    it('should handle base patterns with corrected IDs', async () => {
-      const basePatterns = [
-        createPatternSelection({ id: 1 }),
-        createPatternSelection({ id: 2 })
-      ];
-
-      const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), basePatterns);
-
-      expect(result).toBeDefined();
-      expect(result.recommendedPatterns).toHaveLength(2);
-    });
-
     it('should handle patterns with dynamic IDs', async () => {
       const patterns = Array.from({ length: 10 }, (_, i) => createPatternSelection({ id: i + 1 }));
 
@@ -364,7 +314,7 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
     it('should handle cache collisions gracefully', async () => {
       const tiles1 = [createTile({ id: '1B' }), createTile({ id: '2B' })]
       const tiles2 = [createTile({ id: '2B' }), createTile({ id: '1B' })] // Same tiles, different order
-      const patterns = [createPatternSelection({ id: 'test' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // First call
       await AnalysisEngine.analyzeHand(tiles1, patterns)
@@ -389,7 +339,7 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
     })
 
     it('should manage cache size limits', async () => {
-      const basePatterns = [createPatternSelection({ id: 'base' })]
+      const basePatterns = [createPatternSelection({ id: 1 })]
 
       // Generate enough different requests to trigger cache management
       for (let i = 0; i < 100; i++) {
@@ -523,7 +473,7 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
 
       vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue(mockFacts)
 
-      await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 'test' })])
+      await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 1 })])
 
       // Verify Engine 1 facts are passed to Engine 3
       expect(TileRecommendationEngine.generateRecommendations).toHaveBeenCalledWith(
