@@ -164,6 +164,40 @@ export const TilePresets = {
     ...TilePresets.pair('f1'),
     createTile({ suit: 'bams', value: '7', id: '7B' }),
     createTile({ suit: 'cracks', value: '8', id: '8C' })
+  ],
+
+  // Charleston phase hand for testing
+  charlestonHand: () => [
+    createTile({ suit: 'bams', value: '1', id: '1B' }),
+    createTile({ suit: 'bams', value: '2', id: '2B' }),
+    createTile({ suit: 'bams', value: '3', id: '3B' }),
+    createTile({ suit: 'cracks', value: '4', id: '4C' }),
+    createTile({ suit: 'cracks', value: '5', id: '5C' }),
+    createTile({ suit: 'cracks', value: '6', id: '6C' }),
+    createTile({ suit: 'dots', value: '7', id: '7D' }),
+    createTile({ suit: 'dots', value: '8', id: '8D' }),
+    createTile({ suit: 'dots', value: '9', id: '9D' }),
+    createTile({ suit: 'winds', value: 'east', id: 'east' }),
+    createTile({ suit: 'dragons', value: 'red', id: 'red' }),
+    createTile({ suit: 'dragons', value: 'green', id: 'green' }),
+    createTile({ suit: 'flowers', value: 'f1', id: 'f1' })
+  ],
+
+  // Strong hand for testing pattern prioritization
+  strongHand: () => [
+    createTile({ suit: 'bams', value: '1', id: '1B' }),
+    createTile({ suit: 'bams', value: '1', id: '1B' }),
+    createTile({ suit: 'bams', value: '1', id: '1B' }),
+    createTile({ suit: 'cracks', value: '2', id: '2C' }),
+    createTile({ suit: 'cracks', value: '2', id: '2C' }),
+    createTile({ suit: 'cracks', value: '2', id: '2C' }),
+    createTile({ suit: 'dots', value: '3', id: '3D' }),
+    createTile({ suit: 'dots', value: '3', id: '3D' }),
+    createTile({ suit: 'dots', value: '3', id: '3D' }),
+    createTile({ suit: 'winds', value: 'east', id: 'east' }),
+    createTile({ suit: 'winds', value: 'east', id: 'east' }),
+    createTile({ suit: 'dragons', value: 'red', id: 'red' }),
+    createTile({ suit: 'jokers', value: 'joker', id: 'joker', isJoker: true })
   ]
 }
 
