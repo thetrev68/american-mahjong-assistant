@@ -174,61 +174,132 @@ export class PatternRankingEngine {
   }
 
   /**
-   * Calculate enhanced availability score with individual tile difficulty and joker integration (0-50 points)
+   * Calculate enhanced availability score with quantity-weighted difficulty and joker integration (0-50 points)
    */
   private static calculateAvailabilityScore(
-    tileAvailability: PatternAnalysisFacts['tileAvailability'], 
+    tileAvailability: PatternAnalysisFacts['tileAvailability'],
     jokerAnalysis: PatternAnalysisFacts['jokerAnalysis'],
     bestVariation: TileMatchResult
   ): number {
     const { missingTileCounts } = tileAvailability
     const { jokersAvailable } = jokerAnalysis
-    
+
     if (!missingTileCounts || missingTileCounts.length === 0) {
       return 50 // Perfect - no missing tiles
     }
-    
-    let totalDifficultyScore = 0
-    
-    // Calculate difficulty for each missing tile individually
-    for (const tileAvailability of missingTileCounts) {
-      const effectiveAvailability = this.calculateEffectiveTileAvailability(
-        tileAvailability,
-        bestVariation,
-        jokersAvailable
-      )
-      
-      const difficulty = this.calculateTileDifficulty(tileAvailability.tileId, effectiveAvailability)
-      totalDifficultyScore += difficulty
+
+    // Calculate quantity needed for each unique tile from bestVariation.missingTiles
+    const tileQuantities = new Map<string, number>()
+    for (const tileId of bestVariation.missingTiles) {
+      tileQuantities.set(tileId, (tileQuantities.get(tileId) || 0) + 1)
     }
-    
-    // Use weighted average instead of simple average
-    const averageDifficulty = totalDifficultyScore / missingTileCounts.length
-    
+
+    let totalWeightedDifficulty = 0
+    let totalQuantity = 0
+
+    // Calculate quantity-weighted difficulty for each missing tile
+    for (const tileAvail of missingTileCounts) {
+      const quantityNeeded = tileQuantities.get(tileAvail.tileId) || 0
+
+      if (quantityNeeded > 0) {
+        const effectiveAvailability = this.calculateEffectiveTileAvailability(
+          tileAvail,
+          bestVariation,
+          jokersAvailable,
+          jokerAnalysis.substitutablePositions
+        )
+
+        const difficulty = this.calculateTileDifficultyWithQuantity(
+          tileAvail.tileId,
+          effectiveAvailability,
+          quantityNeeded
+        )
+
+        // Weight difficulty by quantity needed - more tiles needed = higher impact
+        totalWeightedDifficulty += difficulty * quantityNeeded
+        totalQuantity += quantityNeeded
+      }
+    }
+
+    // Use quantity-weighted average instead of simple average
+    const weightedAverageDifficulty = totalQuantity > 0 ? totalWeightedDifficulty / totalQuantity : 0
+
     // Convert to 50-point score (expanded from original 30 to include joker component)
-    return Math.min(50, Math.max(0, averageDifficulty * 50))
+    return Math.min(50, Math.max(0, weightedAverageDifficulty * 50))
   }
 
   /**
-   * Calculate effective tile availability including joker substitution
+   * Calculate effective tile availability including NMJL-compliant joker substitution
    */
   private static calculateEffectiveTileAvailability(
     tileAvailability: TileAvailability,
     bestVariation: TileMatchResult,
-    jokersAvailable: number
+    jokersAvailable: number,
+    substitutablePositions?: number[]
   ): number {
     const baseTilesAvailable = tileAvailability.remainingAvailable as number
-    
-    // Check if this tile can be substituted by jokers in the best variation
-    // This is a simplified check - in full implementation we'd check specific positions
-    const canUseJokers = bestVariation && jokersAvailable > 0
-    
-    if (canUseJokers) {
-      // Add available jokers to effective availability
-      return baseTilesAvailable + jokersAvailable
+
+    if (jokersAvailable <= 0 || !substitutablePositions) {
+      return baseTilesAvailable
     }
-    
-    return baseTilesAvailable as number
+
+    // Find positions where this specific tile appears in the best variation
+    const tilePositions = this.findTilePositionsInVariation(
+      tileAvailability.tileId,
+      bestVariation.patternTiles
+    )
+
+    if (tilePositions.length === 0) {
+      return baseTilesAvailable // Tile not in pattern
+    }
+
+    // Count how many of this tile's positions can actually use jokers according to NMJL rules
+    const jokerEligiblePositionsForThisTile = tilePositions.filter(position =>
+      substitutablePositions.includes(position)
+    )
+
+    if (jokerEligiblePositionsForThisTile.length === 0) {
+      return baseTilesAvailable // None of this tile's positions allow jokers
+    }
+
+    // We can add jokers up to the number of joker-eligible positions for this specific tile
+    // or the number of available jokers, whichever is smaller
+    const effectiveJokersForThisTile = Math.min(
+      jokersAvailable,
+      jokerEligiblePositionsForThisTile.length
+    )
+
+    return baseTilesAvailable + effectiveJokersForThisTile
+  }
+
+  /**
+   * Find positions where a tile appears in the variation tiles array
+   */
+  private static findTilePositionsInVariation(tileId: string, patternTiles: string[]): number[] {
+    const positions: number[] = []
+    patternTiles.forEach((tile, index) => {
+      if (tile === tileId) {
+        positions.push(index)
+      }
+    })
+    return positions
+  }
+
+  /**
+   * Calculate tile difficulty with quantity consideration - if you need more than available, impossible
+   */
+  private static calculateTileDifficultyWithQuantity(
+    tileId: string,
+    availableCount: number,
+    quantityNeeded: number
+  ): number {
+    // If we need more tiles than are available, impossible regardless of percentage
+    if (quantityNeeded > availableCount) {
+      return 0.0 // Impossible
+    }
+
+    // Otherwise use original logic
+    return this.calculateTileDifficulty(tileId, availableCount)
   }
 
   /**
@@ -237,7 +308,7 @@ export class PatternRankingEngine {
   private static calculateTileDifficulty(tileId: string, availableCount: number): number {
     const originalCount = this.getOriginalTileCount(tileId)
     const availabilityRatio = availableCount / originalCount
-    
+
     // Difficulty based on percentage of original tiles remaining
     if (availabilityRatio >= 0.75) return 1.0    // Easy (75%+ available)
     if (availabilityRatio >= 0.50) return 0.8    // Moderate (50-75% available)
@@ -296,13 +367,14 @@ export class PatternRankingEngine {
 
   /**
    * Determine recommendation level based on total score
+   * Updated thresholds to better reflect gameplay reality where 70% completion should be "good"
    */
   private static getRecommendationLevel(totalScore: number): PatternRanking['recommendation'] {
-    if (totalScore >= 80) return 'excellent'
-    if (totalScore >= 65) return 'good'
-    if (totalScore >= 45) return 'fair'
-    if (totalScore >= 25) return 'poor'
-    return 'impossible'
+    if (totalScore >= 70) return 'excellent'  // 70+ points: High completion with good availability
+    if (totalScore >= 50) return 'good'       // 50+ points: 60-70% completion recognized as good
+    if (totalScore >= 30) return 'fair'       // 30+ points: Moderate completion with potential
+    if (totalScore >= 15) return 'poor'       // 15+ points: Low completion but not impossible
+    return 'impossible'                       // <15 points: Truly unachievable patterns
   }
 
   /**
