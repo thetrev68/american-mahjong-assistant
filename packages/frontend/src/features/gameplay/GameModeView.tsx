@@ -124,9 +124,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
 
     if (hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
-      intelligenceStore.analyzeHand(playerHand, [])
+      console.log('Starting hand analysis with', playerHand.length, 'tiles')
+      intelligenceStore.analyzeHand(playerHand, []).catch(error => {
+        console.error('Hand analysis failed:', error)
+      })
     }
-  }, [tileStore.playerHand, intelligenceStore])
+  }, [tileStore.playerHand, intelligenceStore.currentAnalysis, intelligenceStore.isAnalyzing])
 
 
   // Get selected patterns properly
@@ -306,7 +309,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         intelligenceStore.analyzeHand(playerHand, allPatterns, true)
       }
     }
-  }, [playingPatternIds, gameStore.gamePhase, tileStore.playerHand, baseAnalysis?.recommendedPatterns, intelligenceStore])
+  }, [playingPatternIds, gameStore.gamePhase, tileStore.playerHand, baseAnalysis?.recommendedPatterns])
 
   // Enhanced Intelligence Integration - Use real game state
   const gameState: GameState = useMemo(() => ({
