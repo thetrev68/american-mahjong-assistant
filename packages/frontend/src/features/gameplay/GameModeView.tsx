@@ -124,12 +124,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
 
     if (hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
-      console.log('Starting hand analysis with', playerHand.length, 'tiles')
+      console.log('Starting initial hand analysis with', playerHand.length, 'tiles')
       intelligenceStore.analyzeHand(playerHand, []).catch(error => {
         console.error('Hand analysis failed:', error)
       })
     }
-  }, [tileStore.playerHand, intelligenceStore.currentAnalysis, intelligenceStore.isAnalyzing])
+  }, [tileStore.playerHand])
 
 
   // Get selected patterns properly
