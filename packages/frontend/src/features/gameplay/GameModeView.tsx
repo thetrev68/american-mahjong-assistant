@@ -278,6 +278,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         action: 'pass' as const // Convert discard to pass
       })) || []
 
+    console.log('Charleston analysis adaptation:', charlestonRecommendations?.length, 'pass recommendations created')
     return {
       ...baseAnalysis,
       tileRecommendations: charlestonRecommendations

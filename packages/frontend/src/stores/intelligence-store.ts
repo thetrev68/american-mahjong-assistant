@@ -247,6 +247,8 @@ export const useIntelligenceStore = create<IntelligenceState>()(
           get().setCachedAnalysis(handHash, analysis)
 
           console.log('Analysis completed successfully:', analysis?.recommendedPatterns?.length, 'patterns found')
+          console.log('Tile recommendations:', analysis?.tileRecommendations?.length, 'recommendations found')
+          console.log('Analysis object:', analysis)
           set({
             currentAnalysis: analysis,
             isAnalyzing: false
