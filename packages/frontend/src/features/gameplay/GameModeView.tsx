@@ -128,6 +128,19 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [tileStore.playerHand, intelligenceStore])
 
+  // Re-analyze when playing patterns change (for Charleston phase recommendations)
+  useEffect(() => {
+    const playerHand = tileStore.playerHand
+    if (playerHand.length >= 10 && gamePhase === 'charleston' && playingPatternIds.length > 0) {
+      // Get the current patterns for re-analysis
+      const allPatterns = baseAnalysis?.recommendedPatterns?.map(p => p.pattern) || []
+      if (allPatterns.length > 0) {
+        // Re-analyze with updated playing patterns consideration
+        intelligenceStore.analyzeHand(playerHand, allPatterns, true)
+      }
+    }
+  }, [playingPatternIds, gamePhase, tileStore.playerHand, baseAnalysis?.recommendedPatterns, intelligenceStore])
+
   // Get selected patterns properly
   const selectedPatterns = useMemo(() => {
     return patternStore.getTargetPatterns()
@@ -256,7 +269,29 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   )
 
   // Real-time analysis - get actual analysis from intelligence store
-  const currentAnalysis = intelligenceStore.currentAnalysis
+  const baseAnalysis = intelligenceStore.currentAnalysis
+
+  // Charleston-specific analysis adaptation
+  const currentAnalysis = useMemo(() => {
+    if (!baseAnalysis || gamePhase !== 'charleston') {
+      return baseAnalysis
+    }
+
+    // During Charleston, take the top 3 discard recommendations and convert them to pass recommendations
+    const charlestonRecommendations = baseAnalysis.tileRecommendations
+      ?.filter(rec => rec.action === 'discard') // Only discard recommendations
+      ?.sort((a, b) => b.priority - a.priority) // Sort by priority (highest first = most recommended to discard/pass)
+      ?.slice(0, 3) // Take top 3 for Charleston passing
+      ?.map(rec => ({
+        ...rec,
+        action: 'pass' as const // Convert discard to pass
+      })) || []
+
+    return {
+      ...baseAnalysis,
+      tileRecommendations: charlestonRecommendations
+    }
+  }, [baseAnalysis, gamePhase])
 
   // Auto-include primary pattern in playing patterns
   useEffect(() => {
