@@ -264,21 +264,28 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Charleston-specific analysis adaptation
   const currentAnalysis = useMemo(() => {
+
     if (!baseAnalysis || gameStore.gamePhase !== 'charleston') {
       return baseAnalysis
     }
 
-    // During Charleston, take the top 3 discard recommendations and convert them to pass recommendations
-    const charlestonRecommendations = baseAnalysis.tileRecommendations
-      ?.filter(rec => rec.action === 'discard') // Only discard recommendations
-      ?.sort((a, b) => b.priority - a.priority) // Sort by priority (highest first = most recommended to discard/pass)
+
+    // During Charleston, keep all recommendations but ensure we have exactly 3 pass recommendations
+    const keepRecommendations = baseAnalysis.tileRecommendations?.filter(rec => rec.action === 'keep') || []
+
+    const passRecommendations = baseAnalysis.tileRecommendations
+      ?.filter(rec => rec.action === 'discard' || rec.action === 'pass') // Both discard and pass recommendations (Engine 3 generates 'pass' in Charleston phase)
+      ?.sort((a, b) => b.priority - a.priority) // Sort by priority (highest first = most recommended to pass)
       ?.slice(0, 3) // Take top 3 for Charleston passing
       ?.map(rec => ({
         ...rec,
-        action: 'pass' as const // Convert discard to pass
+        action: 'pass' as const // Ensure all are marked as pass
       })) || []
 
-    console.log('Charleston analysis adaptation:', charlestonRecommendations?.length, 'pass recommendations created')
+    // Combine keep and pass recommendations for Charleston
+    const charlestonRecommendations = [...keepRecommendations, ...passRecommendations]
+
+
     return {
       ...baseAnalysis,
       tileRecommendations: charlestonRecommendations

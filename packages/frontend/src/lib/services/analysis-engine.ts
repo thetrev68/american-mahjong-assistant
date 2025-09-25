@@ -226,7 +226,8 @@ export class AnalysisEngine {
         },
         analysisFacts // Pass Engine 1 facts so Engine 3 can see actual tile matching
       )
-      
+
+
       // const engine3Time = performance.now() - engine3Start
       // Engine 3 completed
       
@@ -376,13 +377,15 @@ export class AnalysisEngine {
     })
 
     // Convert tile actions to TileRecommendation format
-    const tileRecommendationsList: TileRecommendation[] = tileRecommendations.tileActions.map((action) => ({
+
+    const tileRecommendationsList: TileRecommendation[] = tileRecommendations?.tileActions?.map((action) => ({
       tileId: action.tileId,
       action: this.normalizeAction(action.primaryAction),
       confidence: action.confidence,
       reasoning: action.reasoning,
       priority: action.priority
-    }))
+    })) || []
+
 
     // Generate best patterns for detailed analysis
     const bestPatterns = patternRankings.viablePatterns.slice(0, 10).map((ranking) => {

@@ -231,9 +231,10 @@ export const useIntelligenceStore = create<IntelligenceState>()(
           const autoDetectedPatternSwitch = !isPatternSwitching && currentAnalysis &&
             tiles.length > 0 &&
             patterns.length === 1 &&
+            patterns[0] &&
             currentAnalysis.recommendedPatterns.some(p => p.pattern.id !== patterns[0].id)
 
-          const finalIsPatternSwitching = isPatternSwitching || autoDetectedPatternSwitch
+          const finalIsPatternSwitching = Boolean(isPatternSwitching || autoDetectedPatternSwitch)
 
           if (!finalIsPatternSwitching) {
             // Clear cache only for full re-analysis (not pattern switches)
@@ -241,7 +242,7 @@ export const useIntelligenceStore = create<IntelligenceState>()(
           }
 
           // Use real analysis engine (lazy loaded)
-          const analysis = await lazyAnalysisEngine.analyzeHand(tiles, patterns, undefined, finalIsPatternSwitching)
+          const analysis = await lazyAnalysisEngine.analyzeHand(tiles, patterns, {}, finalIsPatternSwitching)
 
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)
@@ -296,7 +297,7 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       },
       
       createWhatIfScenario: async (name, changes) => {
-        const id = `scenario_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+        const id = `scenario_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`
         
         // Mock scenario analysis
         const mockAnalysis: HandAnalysis = {

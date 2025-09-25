@@ -64,6 +64,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
     .map(id => currentAnalysis?.recommendedPatterns?.find(p => p.pattern.id === id))
     .filter(Boolean) as Array<{ expandedTiles?: string[]; pattern: PatternSelectionOption }>
 
+
   // Get tiles that match any of the playing patterns for green highlighting
   const getMatchingTiles = (pattern: { expandedTiles?: string[] }): string[] => {
     if (!pattern?.expandedTiles || pattern.expandedTiles.length !== 14) {
