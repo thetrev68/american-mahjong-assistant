@@ -301,15 +301,17 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Re-analyze when playing patterns change (for Charleston phase recommendations)
   useEffect(() => {
     const playerHand = tileStore.playerHand
-    if (playerHand.length >= 10 && gameStore.gamePhase === 'charleston' && playingPatternIds.length > 0) {
+    if (playerHand.length >= 10 && gameStore.gamePhase === 'charleston' && playingPatternIds.length > 1) {
+      // Only re-analyze if we have more than just the primary pattern
       // Get the current patterns for re-analysis
       const allPatterns = baseAnalysis?.recommendedPatterns?.map(p => p.pattern) || []
       if (allPatterns.length > 0) {
+        console.log('Re-analyzing for Charleston with playing patterns:', playingPatternIds)
         // Re-analyze with updated playing patterns consideration
         intelligenceStore.analyzeHand(playerHand, allPatterns, true)
       }
     }
-  }, [playingPatternIds, gameStore.gamePhase, tileStore.playerHand, baseAnalysis?.recommendedPatterns])
+  }, [playingPatternIds])
 
   // Enhanced Intelligence Integration - Use real game state
   const gameState: GameState = useMemo(() => ({
