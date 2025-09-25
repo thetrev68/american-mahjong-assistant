@@ -1,1 +1,1 @@
-export * from './tile-utils';
+// No exports - tile-utils functionality moved to frontend/src/lib/services/tile-service.ts
