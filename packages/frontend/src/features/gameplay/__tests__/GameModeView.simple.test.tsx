@@ -436,13 +436,11 @@ describe('GameModeView Component - Core Functionality', () => {
       expect(screen.getByText('🔄 Reset Game')).toBeInTheDocument()
     })
 
-    it('should handle reset game action', async () => {
+    it('should handle reset game action', () => {
       renderGameModeView()
 
       const resetButton = screen.getByText('🔄 Reset Game')
-      await act(async () => {
-        fireEvent.click(resetButton)
-      })
+      fireEvent.click(resetButton)
 
       // Should trigger navigation to room setup
       expect(mockNavigate).toHaveBeenCalledWith('/room-setup')
@@ -516,18 +514,17 @@ describe('GameModeView Component - Core Functionality', () => {
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
 
-    it('should handle rapid interactions', async () => {
+    it('should handle rapid interactions', () => {
       renderGameModeView()
 
       // Rapid clicks should be handled gracefully
       const resetButton = screen.getByText('🔄 Reset Game')
 
-      await act(async () => {
-        fireEvent.click(resetButton)
-        fireEvent.click(resetButton)
-        fireEvent.click(resetButton)
-      })
+      fireEvent.click(resetButton)
+      fireEvent.click(resetButton)
+      fireEvent.click(resetButton)
 
+      // Should still render the component without crashing
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
   })

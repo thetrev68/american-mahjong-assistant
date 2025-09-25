@@ -200,6 +200,7 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
   return (
     <div
       ref={panelRef}
+      data-testid="dev-shortcuts"
       className={`fixed z-50 bg-white/95 backdrop-blur-sm border border-gray-300 rounded-lg p-2 shadow-lg transition-shadow ${
         isDragging ? 'shadow-xl' : 'shadow-lg'
       }`}

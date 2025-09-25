@@ -321,8 +321,11 @@ describe('Charleston Phase Transitions', () => {
       store.selectTile(createTile({ id: 'test-tile' }))
 
       // Complete Charleston through normal progression
-      while (store.isActive) {
+      let phaseCount = 0
+      const maxPhases = 10 // Safety limit
+      while (store.isActive && phaseCount < maxPhases) {
         store.completePhase()
+        phaseCount++
       }
 
       expect(store.currentPhase).toBe('complete')

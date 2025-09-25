@@ -734,18 +734,20 @@ export class GameLogicService {
   /**
    * Execute: Pass Out Action
    */
-  private executePassOutAction(playerId: string, _actionData: GameActionData): GameActionResult {
+  private executePassOutAction(playerId: string, actionData: GameActionData): GameActionResult {
     // const player = this.playerData.get(playerId)!
-    
+
     // Mark player as passed out
     // In the socket handler, this will be tracked in game state
-    
+
+    const reason = (actionData as any)?.reason || 'Player chose to pass out'
+
     return {
       success: true,
-      action: 'pass-out',
+      action: 'pass',
       playerId,
       data: {
-        reason: 'Player chose to pass out',
+        reason,
         remainingPlayers: Array.from(this.playerData.keys()).filter(id => id !== playerId)
       },
       nextPlayer: this.getNextPlayer(playerId)

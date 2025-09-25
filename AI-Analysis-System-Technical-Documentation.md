@@ -89,7 +89,7 @@ private static analyzeVariationMatch(
 #### Mathematical Formulas
 
 **Completion Ratio Calculation:**
-```
+```text
 completionRatio = tilesMatched / 14
 ```
 - Range: 0.0 (no tiles match) to 1.0 (perfect match)
@@ -536,7 +536,7 @@ private static calculateEffectiveAvailability(
     bestVariation: TileMatchResult,
     jokersAvailable: number
 ): number {
-    const baseTiles = tileAvailability.remainingAvailable
+    const baseTilesAvailable = tileAvailability.remainingAvailable
 
     // Check if this specific tile can be joker-substituted in this variation
     const tilePositions = this.findTilePositions(tileAvailability.tileId, bestVariation.patternTiles)
@@ -545,7 +545,7 @@ private static calculateEffectiveAvailability(
     ).length
 
     const effectiveJokers = Math.min(jokersAvailable, jokersUsableForThisTile)
-    return baseTiles + effectiveJokers
+    return baseTilesAvailable + effectiveJokers
 }
 ```
 
