@@ -128,18 +128,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [tileStore.playerHand, intelligenceStore])
 
-  // Re-analyze when playing patterns change (for Charleston phase recommendations)
-  useEffect(() => {
-    const playerHand = tileStore.playerHand
-    if (playerHand.length >= 10 && gamePhase === 'charleston' && playingPatternIds.length > 0) {
-      // Get the current patterns for re-analysis
-      const allPatterns = baseAnalysis?.recommendedPatterns?.map(p => p.pattern) || []
-      if (allPatterns.length > 0) {
-        // Re-analyze with updated playing patterns consideration
-        intelligenceStore.analyzeHand(playerHand, allPatterns, true)
-      }
-    }
-  }, [playingPatternIds, gamePhase, tileStore.playerHand, baseAnalysis?.recommendedPatterns, intelligenceStore])
 
   // Get selected patterns properly
   const selectedPatterns = useMemo(() => {
@@ -273,7 +261,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Charleston-specific analysis adaptation
   const currentAnalysis = useMemo(() => {
-    if (!baseAnalysis || gamePhase !== 'charleston') {
+    if (!baseAnalysis || gameStore.gamePhase !== 'charleston') {
       return baseAnalysis
     }
 
@@ -291,7 +279,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       ...baseAnalysis,
       tileRecommendations: charlestonRecommendations
     }
-  }, [baseAnalysis, gamePhase])
+  }, [baseAnalysis, gameStore.gamePhase])
 
   // Auto-include primary pattern in playing patterns
   useEffect(() => {
@@ -306,6 +294,19 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       })
     }
   }, [currentAnalysis?.recommendedPatterns])
+
+  // Re-analyze when playing patterns change (for Charleston phase recommendations)
+  useEffect(() => {
+    const playerHand = tileStore.playerHand
+    if (playerHand.length >= 10 && gameStore.gamePhase === 'charleston' && playingPatternIds.length > 0) {
+      // Get the current patterns for re-analysis
+      const allPatterns = baseAnalysis?.recommendedPatterns?.map(p => p.pattern) || []
+      if (allPatterns.length > 0) {
+        // Re-analyze with updated playing patterns consideration
+        intelligenceStore.analyzeHand(playerHand, allPatterns, true)
+      }
+    }
+  }, [playingPatternIds, gameStore.gamePhase, tileStore.playerHand, baseAnalysis?.recommendedPatterns, intelligenceStore])
 
   // Enhanced Intelligence Integration - Use real game state
   const gameState: GameState = useMemo(() => ({
