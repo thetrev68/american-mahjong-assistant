@@ -269,19 +269,19 @@ export class TileRecommendationEngine {
     } else if (tileContributions.isKeepTile) {
       // TIER-BASED SYSTEM: Use priority tier for recommendations
       if (tileContributions.priorityTier === 1) {
-        // Tier 1: Primary pattern tile
+        // Tier 1: Critical tiles (required + cannot be replaced)
         primaryAction = 'keep'
         confidence = 90
         priority = 9
-        reasoning = 'Required for primary pattern'
+        reasoning = 'Critical tile for primary pattern'
       } else if (tileContributions.priorityTier === 2) {
-        // Tier 2: Top variation tile  
+        // Tier 2: Supporting tiles (required + can be replaced, or strategic value)
         primaryAction = 'keep'
         confidence = 80
         priority = 7
-        reasoning = 'Required for top variation'
+        reasoning = 'Supporting tile for primary pattern'
       } else if (tileContributions.priorityTier === 3) {
-        // Tier 3: Alternate pattern tile
+        // Tier 3: Flexible tiles (alternate pattern tiles)
         primaryAction = 'keep'
         confidence = 65
         priority = 6
@@ -507,31 +507,30 @@ export class TileRecommendationEngine {
         }
       }
       
-      // Tier 2: Top variations of primary pattern
-      // Check if tile helps alternate variations of the same high-priority pattern
+      // Tier 2: Supporting tiles for primary pattern
+      // These are required tiles that can be replaced (e.g., by jokers) or provide strategic flexibility
       if (priorityTier === 0 && allViablePatterns.length > 0) {
         const primaryPattern = allViablePatterns[0]
-        
-        // Check if this tile appears in the pattern's other tile contributions
-        // This helps identify tiles that support the same pattern through different tile groups
+
+        // Check if this tile is a required but replaceable tile in the primary pattern
         const allTileContributions = primaryPattern?.tileMatching?.bestVariation?.tileContributions || []
-        const alternateContribution = allTileContributions.find(contrib => 
-          contrib.tileId === tileId && !contrib.isRequired && contrib.canBeReplaced === false
+        const supportingContribution = allTileContributions.find(contrib =>
+          contrib.tileId === tileId && contrib.isRequired && contrib.canBeReplaced === true
         )
-        
-        // Also check if tile helps multiple groups within the same pattern
+
+        // Also check if tile helps multiple groups within the same pattern (strategic value)
         const sameBaseTiles = allTileContributions.filter(contrib => {
-          const baseType = contrib.tileId.replace(/[0-9]+$/, '') // Remove instance numbers  
+          const baseType = contrib.tileId.replace(/[0-9]+$/, '') // Remove instance numbers
           const currentBaseType = tileId.replace(/[0-9]+$/, '')
           return baseType === currentBaseType && contrib.isRequired
         })
-        
-        if (alternateContribution || sameBaseTiles.length > 0) {
+
+        if (supportingContribution || sameBaseTiles.length > 0) {
           priorityTier = 2
-          tileValue += 0.75 // Medium-high value for same pattern variations
+          tileValue += 0.75 // Medium-high value for supporting tiles
           if (!topPattern) topPattern = primaryPattern.patternId
           patterns.push(primaryPattern.patternId)
-          isCritical = alternateContribution?.isCritical || sameBaseTiles.some(t => t.isCritical) || false
+          isCritical = supportingContribution?.isCritical || sameBaseTiles.some(t => t.isCritical) || false
         }
       }
       
