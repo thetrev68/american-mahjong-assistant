@@ -246,12 +246,14 @@ export const useIntelligenceStore = create<IntelligenceState>()(
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)
 
+          console.log('Analysis completed successfully:', analysis?.recommendedPatterns?.length, 'patterns found')
           set({
             currentAnalysis: analysis,
             isAnalyzing: false
           })
 
         } catch (error) {
+          console.error('Analysis failed with error:', error)
           set({
             analysisError: error instanceof Error ? error.message : 'Analysis failed',
             isAnalyzing: false
