@@ -238,14 +238,16 @@ const mockPatternStore = {
   getTargetPatterns: vi.fn(() => [
     {
       id: 'pattern-1',
-      patternId: '2025-1',
+      patternId: 1,
       displayName: 'Test Pattern',
       section: 'NMJL',
-      line: '1',
+      line: 1,
       pattern: 'AAA BBB CCC DD',
       points: 25,
       concealed: false,
-      difficulty: 'medium',
+      difficulty: 'medium' as const,
+      description: 'Test Pattern Description',
+      allowsJokers: false,
       groups: []
     }
   ]),
@@ -264,7 +266,7 @@ const mockTileStore = {
   ] as Tile[],
   dealerHand: false,
   setDealerHand: vi.fn(),
-  selectedForAction: [],
+  selectedForAction: [] as any[],
   clearSelection: vi.fn(),
   removeTile: vi.fn(),
   addTile: vi.fn(),
@@ -277,21 +279,23 @@ const mockIntelligenceStore = {
       {
         pattern: {
           id: 'pattern-1',
-          patternId: '2025-1',
+          patternId: 1,
           displayName: 'Test Pattern',
           section: 'NMJL',
-          line: '1',
+          line: 1,
           pattern: 'AAA BBB CCC DD',
           points: 25,
           concealed: false,
-          difficulty: 'medium',
+          difficulty: 'medium' as const,
+          description: 'Test Pattern Description',
+          allowsJokers: false,
           groups: []
         },
         confidence: 85,
         totalScore: 78,
         completionPercentage: 65,
         reasoning: 'Good progress on this pattern',
-        difficulty: 'medium',
+        difficulty: 'medium' as const,
         isPrimary: true
       }
     ],
@@ -337,7 +341,7 @@ const mockTurnSelectors = {
 
   // Action management
   getPlayerActions: vi.fn(() => ({ hasDrawn: false, hasDiscarded: false, availableActions: [] })),
-  currentCallOpportunity: null,
+  currentCallOpportunity: null as any,
   discardPile: [],
   wallCount: 70,
 
@@ -365,31 +369,33 @@ const mockGameIntelligence = {
       {
         pattern: {
           id: 'pattern-1',
-          patternId: '2025-1',
+          patternId: 1,
           displayName: 'Test Pattern',
           section: 'NMJL',
-          line: '1',
+          line: 1,
           pattern: 'AAA BBB CCC DD',
           points: 25,
           concealed: false,
-          difficulty: 'medium',
+          difficulty: 'medium' as const,
+          description: 'Test Pattern Description',
+          allowsJokers: false,
           groups: []
         },
         confidence: 85,
         totalScore: 78,
         completionPercentage: 65,
         reasoning: 'Good progress on this pattern',
-        difficulty: 'medium',
+        difficulty: 'medium' as const,
         isPrimary: true
       }
     ],
-    bestPatterns: [],
+    bestPatterns: [] as any[],
     tileRecommendations: [],
     strategicAdvice: ['Focus on completing your best pattern'],
     threats: [],
     lastUpdated: Date.now(),
     analysisVersion: '1.0',
-    currentCallRecommendation: null
+    currentCallRecommendation: null as any
   },
   isAnalyzing: false,
   error: null
@@ -506,21 +512,23 @@ describe('GameModeView Component', () => {
         {
           pattern: {
             id: 'pattern-1',
-            patternId: '2025-1',
+            patternId: 1,
             displayName: 'Test Pattern',
             section: 'NMJL',
-            line: '1',
+            line: 1,
             pattern: 'AAA BBB CCC DD',
             points: 25,
             concealed: false,
-            difficulty: 'medium',
+            difficulty: 'medium' as const,
+            description: 'Test Pattern Description',
+            allowsJokers: false,
             groups: []
           },
           confidence: 85,
           totalScore: 78,
           completionPercentage: 65,
           reasoning: 'Good progress on this pattern',
-          difficulty: 'medium',
+          difficulty: 'medium' as const,
           isPrimary: true
         }
       ],
@@ -569,7 +577,7 @@ describe('GameModeView Component', () => {
           value: '1',
           displayName: `Tile ${i}`
         })) as Tile[]
-        mockIntelligenceStore.currentAnalysis = null
+        mockIntelligenceStore.currentAnalysis = null as any
       })
 
       renderGameModeView()
@@ -593,7 +601,7 @@ describe('GameModeView Component', () => {
     it('should initialize current player when entering playing phase', async () => {
       act(() => {
         mockGameStore.gamePhase = 'playing'
-        mockGameStore.currentPlayerId = null
+        mockGameStore.currentPlayerId = null as any
       })
 
       renderGameModeView()
@@ -864,21 +872,23 @@ describe('GameModeView Component', () => {
           {
             pattern: {
               id: 'pattern-1',
-              patternId: '2025-1',
+              patternId: 1,
               displayName: 'Test Pattern',
               section: 'NMJL',
-              line: '1',
+              line: 1,
               pattern: 'AAA BBB CCC DD',
               points: 25,
               concealed: false,
-              difficulty: 'medium',
+              difficulty: 'medium' as const,
+              description: 'Test Pattern Description',
+              allowsJokers: false,
               groups: []
             },
             confidence: 90,
             totalScore: 85,
             completionPercentage: 75,
             reasoning: 'Excellent progress on this high-value pattern',
-            difficulty: 'medium',
+            difficulty: 'medium' as const,
             isPrimary: true
           }
         ],
@@ -911,21 +921,23 @@ describe('GameModeView Component', () => {
           {
             pattern: {
               id: 'pattern-1',
-              patternId: '2025-1',
+              patternId: 1,
               displayName: 'Current Pattern',
               section: 'NMJL',
-              line: '1',
+              line: 1,
               pattern: 'AAA BBB CCC DD',
               points: 25,
               concealed: false,
-              difficulty: 'medium',
+              difficulty: 'medium' as const,
+              description: 'Current Pattern Description',
+              allowsJokers: false,
               groups: []
             },
             confidence: 45,
             totalScore: 35,
             completionPercentage: 30,
             reasoning: 'Low progress',
-            difficulty: 'medium',
+            difficulty: 'medium' as const,
             isPrimary: true
           }
         ],
@@ -1004,14 +1016,16 @@ describe('GameModeView Component', () => {
         score: 50,
         completedPattern: {
           id: 'pattern-1',
-          patternId: '2025-1',
+          patternId: 1,
           displayName: 'Test Winning Pattern',
           section: 'NMJL',
-          line: '1',
+          line: 1,
           pattern: 'AAA BBB CCC DD',
           points: 50,
           concealed: false,
-          difficulty: 'medium',
+          difficulty: 'medium' as const,
+          description: 'Test Winning Pattern Description',
+          allowsJokers: false,
           groups: []
         }
       }
