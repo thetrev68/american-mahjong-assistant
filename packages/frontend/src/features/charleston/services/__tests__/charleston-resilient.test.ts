@@ -49,6 +49,9 @@ describe('Charleston Resilient Service', () => {
     // Reset service singleton
     destroyCharlestonResilientService()
 
+    // Mock console.error for testing error scenarios
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+
     // Setup mocks
     mockCharlestonStore = {
       setPlayerReady: vi.fn(),
@@ -83,6 +86,7 @@ describe('Charleston Resilient Service', () => {
 
   afterEach(() => {
     vi.clearAllMocks()
+    vi.restoreAllMocks()
     destroyCharlestonResilientService()
   })
 

@@ -98,23 +98,67 @@ export class PatternAnalysisEngine {
     targetPatternIds: string[],
     gameContext: GameContext
   ): Promise<PatternAnalysisFacts[]> {
-    await PatternVariationLoader.loadVariations()
-    
-    const results: PatternAnalysisFacts[] = []
-    
-    for (const patternId of targetPatternIds) {
-      const variations = await PatternVariationLoader.getPatternVariations(patternId)
-      if (variations.length === 0) continue
-      
-      const analysisFacts = await this.analyzePatternVariations(
-        playerTiles,
-        variations,
-        gameContext
-      )
-      
-      results.push(analysisFacts)
+    // Defensive input validation
+    if (!Array.isArray(playerTiles)) {
+      playerTiles = []
     }
-    
+    if (!Array.isArray(targetPatternIds)) {
+      targetPatternIds = []
+    }
+    if (!gameContext || typeof gameContext !== 'object') {
+      gameContext = {
+        jokersInHand: 0,
+        wallTilesRemaining: 84,
+        discardPile: [],
+        exposedTiles: {},
+        currentPhase: 'gameplay'
+      }
+    }
+
+    // Filter out invalid player tiles
+    const validPlayerTiles = playerTiles.filter(tile =>
+      tile && typeof tile === 'string' && tile.length > 0
+    )
+
+    try {
+      await PatternVariationLoader.loadVariations()
+    } catch (error) {
+      // If loader fails, return safe fallback for each pattern
+      return targetPatternIds.map(patternId => this.createFallbackAnalysis(patternId, validPlayerTiles))
+    }
+
+    const results: PatternAnalysisFacts[] = []
+
+    for (const patternId of targetPatternIds) {
+      if (!patternId || typeof patternId !== 'string') {
+        continue
+      }
+
+      try {
+        const variations = await PatternVariationLoader.getPatternVariations(patternId)
+
+        // Filter out invalid variations
+        const validVariations = this.filterValidVariations(variations)
+
+        if (validVariations.length === 0) {
+          // Return fallback analysis even if no valid variations
+          results.push(this.createFallbackAnalysis(patternId, validPlayerTiles))
+          continue
+        }
+
+        const analysisFacts = await this.analyzePatternVariations(
+          validPlayerTiles,
+          validVariations,
+          gameContext
+        )
+
+        results.push(analysisFacts)
+      } catch (error) {
+        // On any error with this pattern, provide fallback
+        results.push(this.createFallbackAnalysis(patternId, validPlayerTiles))
+      }
+    }
+
     return results
   }
 
@@ -152,6 +196,88 @@ export class PatternAnalysisEngine {
   }
 
   /**
+   * Filter out invalid variations to prevent crashes
+   */
+  private static filterValidVariations(variations: PatternVariation[]): PatternVariation[] {
+    if (!Array.isArray(variations)) {
+      return []
+    }
+
+    return variations.filter(variation => {
+      if (!variation || typeof variation !== 'object') {
+        return false
+      }
+
+      // Check required fields exist and have valid types
+      if (!variation.handKey || typeof variation.handKey !== 'string') {
+        return false
+      }
+
+      if (!Array.isArray(variation.tiles) || variation.tiles.length !== 14) {
+        return false
+      }
+
+      if (!Array.isArray(variation.jokers) || variation.jokers.length !== 14) {
+        return false
+      }
+
+      if (typeof variation.sequence !== 'number' || variation.sequence < 1) {
+        return false
+      }
+
+      return true
+    })
+  }
+
+  /**
+   * Create fallback analysis when normal analysis fails
+   */
+  private static createFallbackAnalysis(patternId: string, playerTiles: string[]): PatternAnalysisFacts {
+    const fallbackVariation: TileMatchResult = {
+      variationId: `${patternId}-fallback`,
+      patternId: patternId,
+      sequence: 1,
+      tilesMatched: 0,
+      tilesNeeded: 14,
+      completionRatio: 0,
+      missingTiles: [],
+      tileContributions: [],
+      patternTiles: Array(14).fill('1B') // Safe default tiles
+    }
+
+    return {
+      patternId,
+      tileMatching: {
+        totalVariations: 0,
+        bestVariation: fallbackVariation,
+        worstVariation: fallbackVariation,
+        averageCompletion: 0,
+        allResults: []
+      },
+      jokerAnalysis: {
+        jokersAvailable: 0,
+        substitutablePositions: [],
+        maxJokersUseful: 0,
+        withJokersCompletion: 0,
+        jokersToComplete: 14
+      },
+      tileAvailability: {
+        missingTileCounts: [],
+        totalMissingInWall: 0,
+        totalMissingNeeded: 14,
+        availabilityRatio: 0
+      },
+      progressMetrics: {
+        tilesCollected: 0,
+        tilesRemaining: 14,
+        progressPercentage: 0,
+        pairsFormed: 0,
+        setsFormed: 0
+      }
+    }
+  }
+
+  /**
    * Analyze all variations of a single pattern
    */
   private static async analyzePatternVariations(
@@ -160,20 +286,30 @@ export class PatternAnalysisEngine {
     gameContext: GameContext
   ): Promise<PatternAnalysisFacts> {
     const playerTileCounts = PatternVariationLoader.countTiles(playerTiles)
-    
+
     // Analyze each variation
     const variationResults: TileMatchResult[] = []
     for (const variation of variations) {
-      const result = this.analyzeVariationMatch(playerTiles, variation, playerTileCounts)
-      variationResults.push(result)
+      try {
+        const result = this.analyzeVariationMatch(playerTiles, variation, playerTileCounts)
+        variationResults.push(result)
+      } catch (error) {
+        // Skip invalid variations rather than crashing
+        continue
+      }
     }
     
+    // Handle case where no valid variations were processed
+    if (variationResults.length === 0) {
+      return this.createFallbackAnalysis(variations[0]?.handKey || 'unknown', playerTiles)
+    }
+
     // Find best and worst variations
-    const bestVariation = variationResults.reduce((best, current) => 
+    const bestVariation = variationResults.reduce((best, current) =>
       current.completionRatio > best.completionRatio ? current : best
     )
-    
-    const worstVariation = variationResults.reduce((worst, current) => 
+
+    const worstVariation = variationResults.reduce((worst, current) =>
       current.completionRatio < worst.completionRatio ? current : worst
     )
     
@@ -183,12 +319,21 @@ export class PatternAnalysisEngine {
       sum + result.completionRatio, 0
     ) / variationResults.length
     
-    // Analyze jokers using best variation
-    const jokerAnalysis = this.analyzeJokerSubstitution(
-      bestVariation.missingTiles,
-      variations.find(v => v.sequence === bestVariation.sequence)!,
-      gameContext.jokersInHand
-    )
+    // Analyze jokers using best variation (with safe fallback)
+    const bestVariationData = variations.find(v => v.sequence === bestVariation.sequence)
+    const jokerAnalysis = bestVariationData
+      ? this.analyzeJokerSubstitution(
+          bestVariation.missingTiles,
+          bestVariationData,
+          gameContext.jokersInHand
+        )
+      : {
+          jokersAvailable: gameContext.jokersInHand || 0,
+          substitutablePositions: [],
+          maxJokersUseful: 0,
+          withJokersCompletion: bestVariation.completionRatio,
+          jokersToComplete: bestVariation.tilesNeeded
+        }
     
     // Analyze tile availability
     const tileAvailability = this.analyzeTileAvailability(
@@ -222,6 +367,11 @@ export class PatternAnalysisEngine {
     variation: PatternVariation,
     playerTileCounts: { [tileId: string]: number }
   ): TileMatchResult {
+    // Additional safety checks within the method
+    if (!variation || !Array.isArray(variation.tiles)) {
+      throw new Error('Invalid variation data')
+    }
+
     const requiredTileCounts = PatternVariationLoader.countTiles(variation.tiles)
     
     let tilesMatched = 0
@@ -229,8 +379,12 @@ export class PatternAnalysisEngine {
     const tileContributions: TileContribution[] = []
     
     
-    // Analyze each required tile type
+    // Analyze each required tile type (with null safety)
     for (const [requiredTileId, requiredCount] of Object.entries(requiredTileCounts)) {
+      if (!requiredTileId || typeof requiredCount !== 'number') {
+        continue
+      }
+
       const playerCount = playerTileCounts[requiredTileId] || 0
       const matched = Math.min(playerCount, requiredCount)
       const missing = requiredCount - matched
@@ -326,8 +480,16 @@ export class PatternAnalysisEngine {
     missingTiles: string[],
     gameContext: GameContext
   ): PatternAnalysisFacts['tileAvailability'] {
-    const { discardPile, exposedTiles } = gameContext
-    const allExposedTiles = Object.values(exposedTiles).flat()
+    // Safe access to gameContext properties
+    const discardPile = Array.isArray(gameContext.discardPile) ? gameContext.discardPile : []
+    const exposedTiles = gameContext.exposedTiles && typeof gameContext.exposedTiles === 'object'
+      ? gameContext.exposedTiles
+      : {}
+
+    const allExposedTiles = Object.values(exposedTiles)
+      .filter(tiles => Array.isArray(tiles))
+      .flat()
+      .filter(tile => tile && typeof tile === 'string')
     
     const missingTileCounts: TileAvailability[] = []
     let totalMissingInWall = 0

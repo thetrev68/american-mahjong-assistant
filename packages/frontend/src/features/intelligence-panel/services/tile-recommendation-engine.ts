@@ -520,6 +520,9 @@ export class TileRecommendationEngine {
 
         // Also check if tile helps multiple groups within the same pattern (strategic value)
         const sameBaseTiles = allTileContributions.filter(contrib => {
+          if (!contrib?.tileId || typeof contrib.tileId !== 'string' || !tileId || typeof tileId !== 'string') {
+            return false
+          }
           const baseType = contrib.tileId.replace(/[0-9]+$/, '') // Remove instance numbers
           const currentBaseType = tileId.replace(/[0-9]+$/, '')
           return baseType === currentBaseType && contrib.isRequired
@@ -601,19 +604,27 @@ export class TileRecommendationEngine {
     exposedTiles: { [playerId: string]: string[] },
     discardPile: string[]
   ): OpponentAnalysis[] {
-    
+
     const opponents: OpponentAnalysis[] = []
-    
+
+    // Defensive null/undefined checks
+    if (!exposedTiles || typeof exposedTiles !== 'object') {
+      return opponents
+    }
+
+    const safeDiscardPile = Array.isArray(discardPile) ? discardPile : []
+
     for (const [playerId, exposed] of Object.entries(exposedTiles)) {
-      if (exposed.length === 0) continue
+      // Defensive check: ensure exposed is a valid array
+      if (!Array.isArray(exposed) || exposed.length === 0) continue
       
       const analysis: OpponentAnalysis = {
         playerId,
-        likelyNeeds: this.inferOpponentNeeds(exposed, discardPile),
+        likelyNeeds: this.inferOpponentNeeds(exposed, safeDiscardPile),
         exposedPatterns: this.identifyExposedPatterns(exposed),
-        safeDiscards: this.identifySafeDiscards(exposed, discardPile),
+        safeDiscards: this.identifySafeDiscards(exposed, safeDiscardPile),
         riskyDiscards: this.identifyRiskyDiscards(exposed),
-        patternClues: this.analyzePatternClues(exposed, discardPile)
+        patternClues: this.analyzePatternClues(exposed, safeDiscardPile)
       }
       
       opponents.push(analysis)
@@ -629,7 +640,9 @@ export class TileRecommendationEngine {
     const needs: OpponentAnalysis['likelyNeeds'] = []
     
     // Analyze what tiles they've discarded - they likely don't need these types
-    const discardedTypes = new Set(discardPile.map(tile => tile.replace(/[0-9]/g, '')))
+    const discardedTypes = new Set(discardPile
+      .filter(tile => tile && typeof tile === 'string')
+      .map(tile => tile.replace(/[0-9]/g, '')))
     
     // Simple pattern recognition - check for incomplete sets
     const tileCounts = this.countTiles(exposed)
@@ -831,13 +844,15 @@ export class TileRecommendationEngine {
     
     // Pattern destruction danger - check against top pattern rankings
     if (action === 'discard' && patternValue.isCritical) {
-      const topPattern = patternRankings.topRecommendations[0]
-      dangers.push({
-        type: 'pattern_destruction',
-        severity: topPattern?.totalScore > 70 ? 'high' : 'medium',
-        message: `Discarding ${tileId} would destroy your best pattern`,
-        impact: `${patternValue.topPattern} completion would drop significantly (current score: ${topPattern?.totalScore})`
-      })
+      const topPattern = patternRankings?.topRecommendations?.[0]
+      if (topPattern) {
+        dangers.push({
+          type: 'pattern_destruction',
+          severity: topPattern.totalScore > 70 ? 'high' : 'medium',
+          message: `Discarding ${tileId} would destroy your best pattern`,
+          impact: `${patternValue.topPattern} completion would drop significantly (current score: ${topPattern.totalScore})`
+        })
+      }
     }
     
     // Opponent feeding danger
@@ -871,20 +886,30 @@ export class TileRecommendationEngine {
     patternRankings: RankedPatternResults,
     tileActions: TileAction[]
   ) {
+    // Defensive null/undefined checks
+    if (!patternRankings?.topRecommendations || !Array.isArray(patternRankings.topRecommendations) || patternRankings.topRecommendations.length === 0) {
+      return {
+        primaryPattern: 'fallback-pattern',
+        backupPattern: null,
+        pivotCondition: null,
+        expectedCompletion: 0
+      }
+    }
+
     const topPattern = patternRankings.topRecommendations[0]
     const backupPattern = patternRankings.topRecommendations[1] || null
-    
+
     // Calculate expected completion based on current recommendations
-    const keepTiles = tileActions.filter(a => a.primaryAction === 'keep').length
-    const expectedCompletion = Math.min(95, (keepTiles / 14) * 100 + topPattern.totalScore / 2)
+    const keepTiles = Array.isArray(tileActions) ? tileActions.filter(a => a?.primaryAction === 'keep').length : 0
+    const expectedCompletion = Math.min(95, (keepTiles / 14) * 100 + (topPattern?.totalScore || 0) / 2)
     
     let pivotCondition: string | null = null
     if (backupPattern && patternRankings.switchAnalysis?.shouldSuggestSwitch) {
-      pivotCondition = `Switch if ${topPattern.patternId} completion drops below 60%`
+      pivotCondition = `Switch if ${topPattern?.patternId || 'current pattern'} completion drops below 60%`
     }
-    
+
     return {
-      primaryPattern: topPattern.patternId,
+      primaryPattern: topPattern?.patternId || 'fallback-pattern',
       backupPattern: backupPattern?.patternId || null,
       pivotCondition,
       expectedCompletion
@@ -901,18 +926,30 @@ export class TileRecommendationEngine {
       phase: 'charleston' | 'gameplay'
     }
   ): string[] {
-    
+
     const advice: string[] = []
+
+    // Defensive null/undefined checks
+    if (!patternRankings?.topRecommendations || !Array.isArray(patternRankings.topRecommendations) || patternRankings.topRecommendations.length === 0) {
+      advice.push('No pattern recommendations available - consider reviewing your hand')
+      return advice
+    }
+
     const topPattern = patternRankings.topRecommendations[0]
-    
+
     // Primary strategy advice
-    advice.push(`Focus on ${topPattern.patternId} (${topPattern.recommendation} viability)`)
-    
+    if (topPattern?.patternId && topPattern?.recommendation) {
+      advice.push(`Focus on ${topPattern.patternId} (${topPattern.recommendation} viability)`)
+    } else {
+      advice.push('Focus on building viable patterns with current tiles')
+    }
+
     // Realistic tile management advice
-    const keepCount = tileActions.filter(a => a.primaryAction === 'keep').length
-    const passCount = tileActions.filter(a => a.primaryAction === 'pass').length
-    const discardCount = tileActions.filter(a => a.primaryAction === 'discard').length
-    const totalHand = tileActions.length
+    const safeTileActions = Array.isArray(tileActions) ? tileActions : []
+    const keepCount = safeTileActions.filter(a => a?.primaryAction === 'keep').length
+    const passCount = safeTileActions.filter(a => a?.primaryAction === 'pass').length
+    const discardCount = safeTileActions.filter(a => a?.primaryAction === 'discard').length
+    const totalHand = safeTileActions.length
     
     // Phase-specific realistic advice
     if (gameContext.phase === 'charleston') {

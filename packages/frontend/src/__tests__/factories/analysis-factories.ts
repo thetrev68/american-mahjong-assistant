@@ -134,6 +134,15 @@ export function createRankedPatternResults(options: {
     totalScore: number
     confidence: number
     recommendation: string
+    components?: {
+      currentTileScore: number
+      availabilityScore: number
+      jokerScore: number
+      priorityScore: number
+    }
+    riskFactors?: string[]
+    strategicValue?: number
+    isViable?: boolean
   }>
 } = {}): RankedPatternResults {
   const patterns = options.patterns || [
@@ -141,21 +150,38 @@ export function createRankedPatternResults(options: {
     createPatternSelection({ id: 2 }),
     createPatternSelection({ id: 3 })
   ]
-  
-  const topRecommendations = options.topRecommendations || patterns.slice(0, 3).map((pattern, index) => ({
-    patternId: pattern.id,
-    totalScore: 85 - (index * 13),
-    confidence: 0.9 - (index * 0.15),
-    recommendation: index === 0 ? 'excellent' : index === 1 ? 'good' : 'fair',
-    components: {
-      currentTileScore: 32 - (index * 6),
-      availabilityScore: 28 - (index * 5),
-      jokerScore: 15 - (index * 3),
-      priorityScore: 10 - (index * 1)
-    },
-    riskFactors: index === 0 ? [] : index === 1 ? ['Wall depletion risk'] : ['Limited tile availability', 'High joker dependency'],
-    strategicValue: 0.85 - (index * 0.13)
-  }))
+
+  const topRecommendations = options.topRecommendations ?
+    options.topRecommendations.map((rec, index) => ({
+      patternId: rec.patternId,
+      totalScore: rec.totalScore,
+      confidence: rec.confidence,
+      recommendation: rec.recommendation as 'excellent' | 'good' | 'fair' | 'poor' | 'impossible',
+      components: rec.components || {
+        currentTileScore: Math.max(0, 32 - (index * 6)),
+        availabilityScore: Math.max(0, 28 - (index * 5)),
+        jokerScore: Math.max(0, 15 - (index * 3)),
+        priorityScore: Math.max(0, 10 - (index * 1))
+      },
+      riskFactors: rec.riskFactors || (index === 0 ? [] : index === 1 ? ['Wall depletion risk'] : ['Limited tile availability', 'High joker dependency']),
+      strategicValue: rec.strategicValue ?? (0.85 - (index * 0.13)),
+      isViable: rec.isViable ?? (rec.totalScore > 40)
+    })) :
+    patterns.slice(0, 3).map((pattern, index) => ({
+      patternId: pattern.id,
+      totalScore: 85 - (index * 13),
+      confidence: 0.9 - (index * 0.15),
+      recommendation: index === 0 ? 'excellent' : index === 1 ? 'good' : 'fair',
+      components: {
+        currentTileScore: 32 - (index * 6),
+        availabilityScore: 28 - (index * 5),
+        jokerScore: 15 - (index * 3),
+        priorityScore: 10 - (index * 1)
+      },
+      riskFactors: index === 0 ? [] : index === 1 ? ['Wall depletion risk'] : ['Limited tile availability', 'High joker dependency'],
+      strategicValue: 0.85 - (index * 0.13),
+      isViable: true
+    }))
   
   return {
     topRecommendations,

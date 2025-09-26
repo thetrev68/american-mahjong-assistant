@@ -69,13 +69,23 @@ export class PatternRankingEngine {
       wallTilesRemaining?: number
     }
   ): Promise<RankedPatternResults> {
-    
+    // Defensive input validation
+    const validAnalysisFacts = this.filterValidAnalysisFacts(analysisFacts)
+    const validSelectedPatterns = this.filterValidPatterns(selectedPatterns)
+    const safeGameContext = this.sanitizeGameContext(gameContext)
+
     // Calculate rankings for all patterns
     const rankings: PatternRanking[] = []
-    
-    for (const facts of analysisFacts) {
-      const ranking = this.calculatePatternRanking(facts, selectedPatterns, gameContext)
-      rankings.push(ranking)
+
+    for (const facts of validAnalysisFacts) {
+      try {
+        const ranking = this.calculatePatternRanking(facts, validSelectedPatterns, safeGameContext)
+        rankings.push(ranking)
+      } catch (error) {
+        // Create fallback ranking for failed analysis
+        const fallbackRanking = this.createFallbackRanking(facts.patternId)
+        rankings.push(fallbackRanking)
+      }
     }
     
     // Sort by total score (highest first)
@@ -105,6 +115,96 @@ export class PatternRankingEngine {
   }
 
   /**
+   * Filter and validate analysis facts to prevent null reference errors
+   */
+  private static filterValidAnalysisFacts(analysisFacts: PatternAnalysisFacts[]): PatternAnalysisFacts[] {
+    if (!Array.isArray(analysisFacts)) {
+      return []
+    }
+
+    return analysisFacts.filter(facts => {
+      if (!facts || typeof facts !== 'object') {
+        return false
+      }
+
+      if (!facts.patternId || typeof facts.patternId !== 'string') {
+        return false
+      }
+
+      if (!facts.tileMatching || typeof facts.tileMatching !== 'object') {
+        return false
+      }
+
+      if (!facts.tileMatching.bestVariation || typeof facts.tileMatching.bestVariation !== 'object') {
+        return false
+      }
+
+      return true
+    })
+  }
+
+  /**
+   * Filter and validate selected patterns
+   */
+  private static filterValidPatterns(selectedPatterns: PatternSelectionOption[]): PatternSelectionOption[] {
+    if (!Array.isArray(selectedPatterns)) {
+      return []
+    }
+
+    return selectedPatterns.filter(pattern => {
+      if (!pattern || typeof pattern !== 'object') {
+        return false
+      }
+
+      if (!pattern.id || typeof pattern.id !== 'string') {
+        return false
+      }
+
+      return true
+    })
+  }
+
+  /**
+   * Sanitize game context to prevent null reference errors
+   */
+  private static sanitizeGameContext(gameContext: any): {
+    phase: 'charleston' | 'gameplay'
+    currentFocus?: string
+    turnsElapsed?: number
+    wallTilesRemaining?: number
+  } {
+    return {
+      phase: (gameContext?.phase === 'charleston' || gameContext?.phase === 'gameplay')
+        ? gameContext.phase
+        : 'gameplay',
+      currentFocus: typeof gameContext?.currentFocus === 'string' ? gameContext.currentFocus : undefined,
+      turnsElapsed: typeof gameContext?.turnsElapsed === 'number' ? gameContext.turnsElapsed : undefined,
+      wallTilesRemaining: typeof gameContext?.wallTilesRemaining === 'number' ? gameContext.wallTilesRemaining : 80
+    }
+  }
+
+  /**
+   * Create fallback ranking when normal ranking fails
+   */
+  private static createFallbackRanking(patternId: string): PatternRanking {
+    return {
+      patternId: patternId || 'unknown',
+      totalScore: 0,
+      components: {
+        currentTileScore: 0,
+        availabilityScore: 0,
+        jokerScore: 0,
+        priorityScore: 0
+      },
+      recommendation: 'impossible',
+      confidence: 0,
+      isViable: false,
+      strategicValue: 0,
+      riskFactors: ['Data corruption prevented analysis']
+    }
+  }
+
+  /**
    * Calculate ranking for a single pattern using 4-component system
    */
   private static calculatePatternRanking(
@@ -117,33 +217,50 @@ export class PatternRankingEngine {
       wallTilesRemaining?: number
     }
   ): PatternRanking {
+    // Defensive access to facts properties
+    const bestVariation = facts.tileMatching?.bestVariation
+    if (!bestVariation) {
+      return this.createFallbackRanking(facts.patternId)
+    }
+
+    const pattern = selectedPatterns.find(p => p?.id === facts.patternId)
     
-    const bestVariation = facts.tileMatching.bestVariation
-    const pattern = selectedPatterns.find(p => p.id === facts.patternId)
-    
-    // Component 1: Current tile score (0-40 points)
+    // Component 1: Current tile score (0-40 points) with safety checks
+    const completionRatio = typeof bestVariation.completionRatio === 'number'
+      ? Math.max(0, Math.min(1, bestVariation.completionRatio))
+      : 0
+
     const currentTileScore = Math.min(
       this.SCORING_WEIGHTS.currentTile.max,
-      bestVariation.completionRatio * this.SCORING_WEIGHTS.currentTile.max
+      completionRatio * this.SCORING_WEIGHTS.currentTile.max
     )
-    
+
     // Component 2: Enhanced Availability score with joker integration (0-50 points)
     const availabilityScore = Math.min(
       this.SCORING_WEIGHTS.availability.max,
-      this.calculateAvailabilityScore(facts.tileAvailability, facts.jokerAnalysis, facts.tileMatching.bestVariation)
+      this.calculateAvailabilityScore(
+        facts.tileAvailability,
+        facts.jokerAnalysis,
+        bestVariation
+      )
     )
     
     // Component 3: Priority score (0-10 points)
     const priorityScore = this.calculatePriorityScore(pattern, facts, gameContext)
-    
+
+    // Ensure all scores are valid numbers within expected ranges
+    const safeCurrentTileScore = this.clampScore(currentTileScore, 0, this.SCORING_WEIGHTS.currentTile.max)
+    const safeAvailabilityScore = this.clampScore(availabilityScore, 0, this.SCORING_WEIGHTS.availability.max)
+    const safePriorityScore = this.clampScore(priorityScore, 0, this.SCORING_WEIGHTS.priority.max)
+
     const components: ScoringComponents = {
-      currentTileScore,
-      availabilityScore,
+      currentTileScore: safeCurrentTileScore,
+      availabilityScore: safeAvailabilityScore,
       jokerScore: 0, // Eliminated - now integrated into availability score
-      priorityScore
+      priorityScore: safePriorityScore
     }
-    
-    const totalScore = currentTileScore + availabilityScore + priorityScore
+
+    const totalScore = safeCurrentTileScore + safeAvailabilityScore + safePriorityScore
     
     // Determine recommendation level
     const recommendation = this.getRecommendationLevel(totalScore)
@@ -151,8 +268,8 @@ export class PatternRankingEngine {
     // Calculate confidence (based on score consistency and data quality)
     const confidence = this.calculateConfidence(totalScore, facts)
     
-    // Determine if viable
-    const isViable = bestVariation.completionRatio >= this.VIABILITY_THRESHOLD || 
+    // Determine if viable (with safe completion ratio access)
+    const isViable = completionRatio >= this.VIABILITY_THRESHOLD ||
                      this.hasStrategicValue(pattern, facts)
     
     // Calculate strategic value
@@ -181,8 +298,17 @@ export class PatternRankingEngine {
     jokerAnalysis: PatternAnalysisFacts['jokerAnalysis'],
     bestVariation: TileMatchResult
   ): number {
-    const { missingTileCounts } = tileAvailability
-    const { jokersAvailable } = jokerAnalysis
+    // Defensive access to nested properties
+    if (!tileAvailability || !jokerAnalysis || !bestVariation) {
+      return 0
+    }
+
+    const missingTileCounts = Array.isArray(tileAvailability.missingTileCounts)
+      ? tileAvailability.missingTileCounts
+      : []
+    const jokersAvailable = typeof jokerAnalysis.jokersAvailable === 'number'
+      ? jokerAnalysis.jokersAvailable
+      : 0
 
     if (!missingTileCounts || missingTileCounts.length === 0) {
       return 50 // Perfect - no missing tiles
@@ -190,8 +316,12 @@ export class PatternRankingEngine {
 
     // Calculate quantity needed for each unique tile from bestVariation.missingTiles
     const tileQuantities = new Map<string, number>()
-    for (const tileId of bestVariation.missingTiles) {
-      tileQuantities.set(tileId, (tileQuantities.get(tileId) || 0) + 1)
+    const missingTiles = Array.isArray(bestVariation.missingTiles) ? bestVariation.missingTiles : []
+
+    for (const tileId of missingTiles) {
+      if (tileId && typeof tileId === 'string') {
+        tileQuantities.set(tileId, (tileQuantities.get(tileId) || 0) + 1)
+      }
     }
 
     let totalWeightedDifficulty = 0
@@ -273,10 +403,26 @@ export class PatternRankingEngine {
   }
 
   /**
+   * Safely clamp a score to valid range and handle NaN/Infinity
+   */
+  private static clampScore(score: number, min: number, max: number): number {
+    if (typeof score !== 'number' || isNaN(score) || !isFinite(score)) {
+      return min
+    }
+    return Math.max(min, Math.min(max, score))
+  }
+
+  /**
    * Find positions where a tile appears in the variation tiles array
    */
   private static findTilePositionsInVariation(tileId: string, patternTiles: string[]): number[] {
     const positions: number[] = []
+
+    // Safe array access
+    if (!Array.isArray(patternTiles) || !tileId || typeof tileId !== 'string') {
+      return positions
+    }
+
     patternTiles.forEach((tile, index) => {
       if (tile === tileId) {
         positions.push(index)
@@ -293,13 +439,17 @@ export class PatternRankingEngine {
     availableCount: number,
     quantityNeeded: number
   ): number {
+    // Handle extreme/invalid values
+    const safeAvailableCount = this.clampScore(availableCount, 0, Number.MAX_SAFE_INTEGER)
+    const safeQuantityNeeded = this.clampScore(quantityNeeded, 0, Number.MAX_SAFE_INTEGER)
+
     // If we need more tiles than are available, impossible regardless of percentage
-    if (quantityNeeded > availableCount) {
+    if (safeQuantityNeeded > safeAvailableCount) {
       return 0.0 // Impossible
     }
 
     // Otherwise use original logic
-    return this.calculateTileDifficulty(tileId, availableCount)
+    return this.calculateTileDifficulty(tileId, safeAvailableCount)
   }
 
   /**
@@ -307,7 +457,14 @@ export class PatternRankingEngine {
    */
   private static calculateTileDifficulty(tileId: string, availableCount: number): number {
     const originalCount = this.getOriginalTileCount(tileId)
-    const availabilityRatio = availableCount / originalCount
+
+    // Handle extreme values and prevent division by zero
+    if (originalCount <= 0 || typeof availableCount !== 'number' || !isFinite(availableCount)) {
+      return 0.0
+    }
+
+    const safeAvailableCount = Math.max(0, availableCount)
+    const availabilityRatio = safeAvailableCount / originalCount
 
     // Difficulty based on percentage of original tiles remaining
     if (availabilityRatio >= 0.75) return 1.0    // Easy (75%+ available)
@@ -381,20 +538,27 @@ export class PatternRankingEngine {
    * Calculate confidence in recommendation
    */
   private static calculateConfidence(totalScore: number, facts: PatternAnalysisFacts): number {
-    let confidence = Math.min(95, totalScore + 10) // Base confidence from score
-    
-    // Adjust based on data quality
-    const { totalVariations, averageCompletion } = facts.tileMatching
+    // Ensure totalScore is a valid number
+    const safeScore = typeof totalScore === 'number' && !isNaN(totalScore) ? totalScore : 0
+    let confidence = Math.min(95, safeScore + 10) // Base confidence from score
+
+    // Adjust based on data quality (with safe access)
+    const tileMatching = facts.tileMatching || {}
+    const totalVariations = typeof tileMatching.totalVariations === 'number' ? tileMatching.totalVariations : 0
+    const averageCompletion = typeof tileMatching.averageCompletion === 'number' ? tileMatching.averageCompletion : 0
     
     // More variations = more confidence
     if (totalVariations >= 50) confidence += 5
     else if (totalVariations <= 10) confidence -= 5
     
-    // Consistent variations = more confidence
-    const consistencyBonus = Math.abs(averageCompletion - facts.tileMatching.bestVariation.completionRatio) < 0.1 ? 5 : 0
+    // Consistent variations = more confidence (with safe access)
+    const bestVariationRatio = facts.tileMatching?.bestVariation?.completionRatio
+    const consistencyBonus = (typeof bestVariationRatio === 'number' &&
+                             Math.abs(averageCompletion - bestVariationRatio) < 0.1) ? 5 : 0
     confidence += consistencyBonus
-    
-    return Math.min(95, Math.max(15, confidence))
+
+    // Ensure final confidence is within valid range
+    return Math.min(1, Math.max(0, confidence / 100))
   }
 
   /**

@@ -1,49 +1,64 @@
 {
+  "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
     ".": {
       "entry": [
-        "scripts/*.js", 
-        "setup-test.js" 
-      ]
+        "scripts/*.js",
+        "setup-test.js",
+        "{eslint,vite,vitest,tailwind}.config.{js,ts,mjs,cjs}",
+        "*.config.{js,ts,mjs,cjs}"
+      ],
+      "project": ["*.{js,ts,mjs,cjs}", "scripts/**/*.{js,ts}"]
     },
     "packages/backend": {
       "entry": [
         "src/features/**/*.ts",
         "src/services/**/*.ts"
       ],
-      "project": [
-        "src/**/*.ts"
-      ]
+      "project": ["src/**/*.ts"]
     },
     "packages/frontend": {
       "entry": [
         "src/main.tsx",
         "src/App.tsx",
-        "src/features/**/*.ts", 
-        "src/features/**/*.tsx",
-        "src/hooks/**/*.ts",
-        "src/lib/services/**/*.ts",
-        "src/stores/**/*.ts",
-        "src/ui-components/**/*.ts",
-        "src/ui-components/**/*.tsx",
-        "src/utils/**/*.ts",
-        "src/utils/**/*.tsx"
+        "src/features/**/*.{ts,tsx}",
+        "src/hooks/**/*.{ts,tsx}",
+        "src/lib/services/**/*.{ts,tsx}",
+        "src/stores/**/*.{ts,tsx}",
+        "src/ui-components/**/*.{ts,tsx}",
+        "src/utils/**/*.{ts,tsx}"
       ],
       "project": [
-        "src/**/*.ts",
-        "src/**/*.tsx"
+        "src/**/*.{ts,tsx}",
+        "public/**/*"
       ]
     },
     "packages/shared-types": {
-      "entry": ["src/index.ts"],
-      "project": ["src/**/*.ts"],
-      "ignore": ["**/*-types.ts"]
+      "project": ["src/**/*.ts"]
     },
     "packages/shared-utils": {
-      "entry": ["src/index.ts"],
       "project": ["src/**/*.ts"]
     }
   },
-  "ignore": ["**/tests/**", "**/__tests__/**"],  
-  "ignoreExportsUsedInFile": true  
+  "ignore": [
+    "**/tests/**",
+    "**/__tests__/**",
+    "**/*.test.{ts,tsx,js,jsx}",
+    "**/*.spec.{ts,tsx,js,jsx}",
+    "**/test-utils/**",
+    "**/test-setup/**",
+    "**/__mocks__/**",
+    "**/coverage/**",
+    "**/dist/**",
+    "**/build/**",
+    "**/node_modules/**",
+    "**/.vite/**",
+    "**/.turbo/**",
+    "**/legacy/**"
+  ],
+  "includeEntryExports": true,
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": [
+    "tailwindcss"
+  ]
 }

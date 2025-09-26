@@ -6,6 +6,7 @@ import { PatternAnalysisEngine, type GameContext } from '../pattern-analysis-eng
 import { PatternRankingEngine } from '../pattern-ranking-engine'
 import { TileRecommendationEngine } from '../tile-recommendation-engine'
 import { PatternVariationLoader } from '../pattern-variation-loader'
+import { createAnalysisFacts } from '../../../../__tests__/factories/analysis-factories'
 
 // Mock the PatternVariationLoader to control failure scenarios
 vi.mock('../pattern-variation-loader')
@@ -462,7 +463,8 @@ describe('Intelligence Panel Services - Error Handling', () => {
       const result = await TileRecommendationEngine.generateRecommendations(
         ['1B', '2B', '3B'],
         invalidRankings as any,
-        gameContext
+        gameContext,
+        [createAnalysisFacts({ patternId: 'test-pattern' })]
       )
 
       // Should return safe fallback structure
@@ -554,7 +556,8 @@ describe('Intelligence Panel Services - Error Handling', () => {
       const result = await TileRecommendationEngine.generateRecommendations(
         ['1B', '2B', '3B'],
         validRankings,
-        corruptedGameContext as any
+        corruptedGameContext as any,
+        [createAnalysisFacts({ patternId: 'network-test-pattern' })]
       )
 
       expect(result).toBeDefined()
@@ -593,7 +596,8 @@ describe('Intelligence Panel Services - Error Handling', () => {
           discardPile: [],
           exposedTiles: {},
           wallTilesRemaining: 50
-        }
+        },
+        [createAnalysisFacts({ patternId: 'extreme-tiles-pattern' })]
       )
 
       expect(result).toBeDefined()
@@ -622,7 +626,8 @@ describe('Intelligence Panel Services - Error Handling', () => {
           discardPile: [],
           exposedTiles: {},
           wallTilesRemaining: 0
-        }
+        },
+        [createAnalysisFacts({ patternId: 'charleston-minimal-test' })]
       )
 
       expect(charlestonResult.passTiles.length).toBeGreaterThanOrEqual(0) // Should try to meet Charleston requirements
@@ -636,7 +641,8 @@ describe('Intelligence Panel Services - Error Handling', () => {
           discardPile: [],
           exposedTiles: {},
           wallTilesRemaining: 0
-        }
+        },
+        [createAnalysisFacts({ patternId: 'gameplay-minimal-test' })]
       )
 
       expect(gameplayResult.tileActions.length).toBeGreaterThan(0) // Should always provide some recommendation
