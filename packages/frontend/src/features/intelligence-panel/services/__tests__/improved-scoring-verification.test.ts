@@ -17,9 +17,9 @@ function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck'
         tilesMatched: 3,
         tilesNeeded: 11,
         completionRatio: 3/14,
-        missingTiles: [],
+        missingTiles: ['1B', 'f1'], // These should match the tiles in tileAvailability.missingTileCounts
         tileContributions: [],
-        patternTiles: []
+        patternTiles: ['1B', '1B', '1B', 'f1', '2C', '2C', '2C', '3D', '3D', '3D', 'red', 'green', 'white', 'east'] // 14-tile pattern
       },
       worstVariation: {
         variationId: 'test-variation-worst',
@@ -28,9 +28,9 @@ function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck'
         tilesMatched: 1,
         tilesNeeded: 13,
         completionRatio: 1/14,
-        missingTiles: [],
+        missingTiles: ['1B', 'f1'], // These should match the tiles in tileAvailability.missingTileCounts
         tileContributions: [],
-        patternTiles: []
+        patternTiles: ['1B', '1B', '1B', 'f1', '2C', '2C', '2C', '3D', '3D', '3D', 'red', 'green', 'white', 'east'] // 14-tile pattern
       },
       allResults: [],
       totalVariations: 1,
@@ -100,6 +100,7 @@ function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck'
       }
       baseFacts.jokerAnalysis.jokersAvailable = 8
       baseFacts.jokerAnalysis.maxJokersUseful = 2
+      baseFacts.jokerAnalysis.substitutablePositions = [0, 1, 3] // Positions where jokers can substitute in the pattern
       break
   }
 

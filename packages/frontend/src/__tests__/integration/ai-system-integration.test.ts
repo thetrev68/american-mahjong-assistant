@@ -18,60 +18,57 @@ import type { PlayerTile, PatternSelectionOption } from 'shared-types'
 // Integration tests use real engine implementations (no mocks)
 // Only mock external data loading for consistency
 
-// Mock PatternAnalysisEngine to return test data
-vi.mock('../../features/intelligence-panel/services/pattern-analysis-engine', async (importOriginal) => {
-  const actual = await importOriginal() as any
-  return {
-    ...actual,
-    PatternAnalysisEngine: {
-      ...actual.PatternAnalysisEngine,
-      analyzePatterns: vi.fn().mockImplementation(async (tileIds: string[], patternIds: string[]) => {
-        // Return mock analysis facts for test patterns
-        return patternIds.map(patternId => ({
-          patternId,
-          tileMatching: {
-            bestVariation: {
-              variationId: `${patternId}-var-1`,
-              patternId,
-              sequence: 1,
-              tilesMatched: 7,
-              tilesNeeded: 7,
-              completionRatio: 0.5,
-              missingTiles: ['4B', '5B', '6B', '7B', '8B', '9B', 'red'],
-              tileContributions: [
-                { tileId: tileIds[0] || '1B', positionsInPattern: [0], isRequired: true, isCritical: true, canBeReplaced: false }
-              ],
-              patternTiles: ['1B', '1B', '1B', '2B', '2B', '2B', '3B', '3B', '3B', 'red', 'green', 'white', 'joker', 'east']
-            }
-          },
-          jokerAnalysis: {
-            jokersAvailable: 1,
-            substitutablePositions: [12],
-            maxJokersUseful: 3,
-            withJokersCompletion: 0.7,
-            jokersToComplete: 3
-          },
-          tileAvailability: {
-            criticalTiles: ['4B', '5B', '6B'],
-            abundantTiles: ['red', 'green'],
-            bottleneckTiles: []
-          },
-          progressMetrics: {
-            tilesMatched: 7,
-            tilesNeeded: 7,
-            completionRatio: 0.5,
-            nextMilestone: 10
-          }
-        }))
-      })
-    }
-  }
-})
-
 describe('AI System Integration Tests', () => {
   beforeAll(async () => {
     // Ensure pattern data is loaded before integration tests
     await PatternVariationLoader.loadVariations()
+  })
+
+  beforeEach(() => {
+    // Mock PatternAnalysisEngine specifically for integration tests
+    vi.spyOn(PatternAnalysisEngine, 'analyzePatterns').mockImplementation(async (tileIds: string[], patternIds: string[]) => {
+      // Return mock analysis facts for test patterns
+      return patternIds.map(patternId => ({
+        patternId,
+        tileMatching: {
+          bestVariation: {
+            variationId: `${patternId}-var-1`,
+            patternId,
+            sequence: 1,
+            tilesMatched: 7,
+            tilesNeeded: 7,
+            completionRatio: 0.5,
+            missingTiles: ['4B', '5B', '6B', '7B', '8B', '9B', 'red'],
+            tileContributions: [
+              { tileId: tileIds[0] || '1B', positionsInPattern: [0], isRequired: true, isCritical: true, canBeReplaced: false }
+            ],
+            patternTiles: ['1B', '1B', '1B', '2B', '2B', '2B', '3B', '3B', '3B', 'red', 'green', 'white', 'joker', 'east']
+          }
+        },
+        jokerAnalysis: {
+          jokersAvailable: 1,
+          substitutablePositions: [12],
+          maxJokersUseful: 3,
+          withJokersCompletion: 0.7,
+          jokersToComplete: 3
+        },
+        tileAvailability: {
+          criticalTiles: ['4B', '5B', '6B'],
+          abundantTiles: ['red', 'green'],
+          bottleneckTiles: []
+        },
+        progressMetrics: {
+          tilesMatched: 7,
+          tilesNeeded: 7,
+          completionRatio: 0.5,
+          nextMilestone: 10
+        }
+      }))
+    })
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   describe('Complete Analysis Workflow', () => {
