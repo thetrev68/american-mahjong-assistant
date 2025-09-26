@@ -141,6 +141,13 @@ export class AnalysisEngine {
   }
 
   /**
+   * Clear all cache entries (for testing)
+   */
+  static clearCache(): void {
+    this.engine1Cache.clear()
+  }
+
+  /**
    * Main analysis function - coordinates 3-engine intelligence system
    */
   static async analyzeHand(

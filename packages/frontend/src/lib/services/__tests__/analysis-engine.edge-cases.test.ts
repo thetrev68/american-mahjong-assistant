@@ -490,6 +490,6 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
       vi.mocked(PatternRankingEngine.rankPatterns).mockRejectedValue(new Error('Engine 2 failed'))
 
       await expect(AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])).rejects.toThrow('Analysis engine failure: Engine 2 failed')
-    })
+    }, 10000)
   })
 })

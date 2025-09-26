@@ -258,9 +258,9 @@ const mockPatternStore = {
 
 const mockTileStore = {
   playerHand: [
-    { id: 'bamboo-1', suit: 'bamboos', value: '1', displayName: '1 Bamboo' },
-    { id: 'bamboo-2', suit: 'bamboos', value: '2', displayName: '2 Bamboo' },
-    { id: 'bamboo-3', suit: 'bamboos', value: '3', displayName: '3 Bamboo' }
+    { id: 'bamboo-1', suit: 'bams', value: '1', displayName: '1 Bamboo' },
+    { id: 'bamboo-2', suit: 'bams', value: '2', displayName: '2 Bamboo' },
+    { id: 'bamboo-3', suit: 'bams', value: '3', displayName: '3 Bamboo' }
   ] as Tile[],
   dealerHand: false,
   setDealerHand: vi.fn(),
@@ -305,11 +305,43 @@ const mockTurnStore = {
 }
 
 const mockTurnSelectors = {
+  // Basic turn info
+  isGameActive: true,
+  currentPlayerName: 'You',
+  nextPlayerName: 'Right',
+  turnNumber: 1,
+  roundNumber: 1,
+  currentWind: 'east' as const,
+
+  // Turn state
+  canAdvanceTurn: true,
+  turnDuration: 30,
+
+  // Player info
+  playerCount: 4,
+  turnOrderDisplay: [
+    { player: { id: 'player1', name: 'You', position: 'east', isReady: true }, isCurrent: true, isNext: false },
+    { player: { id: 'player2', name: 'Right', position: 'south', isReady: true }, isCurrent: false, isNext: true },
+    { player: { id: 'player3', name: 'Across', position: 'west', isReady: true }, isCurrent: false, isNext: false },
+    { player: { id: 'player4', name: 'Left', position: 'north', isReady: true }, isCurrent: false, isNext: false }
+  ],
+
+  // Current player checks
   isMyTurn: vi.fn(() => true),
+
+  // Mode info
+  isMultiplayer: false,
+
+  // Action management
+  getPlayerActions: vi.fn(() => ({ hasDrawn: false, hasDiscarded: false, availableActions: [] })),
+  currentCallOpportunity: null,
+  discardPile: [],
+  wallCount: 70,
+
+  // Action helpers
   canPlayerDraw: vi.fn(() => true),
   canPlayerDiscard: vi.fn(() => true),
-  wallCount: 70,
-  currentCallOpportunity: null
+  hasCallOpportunity: () => false
 }
 
 const mockCharlestonStore = {
@@ -328,22 +360,27 @@ const mockGameIntelligence = {
     currentCallRecommendation: null,
     tileRecommendations: [],
     patternProgress: []
-  }
+  },
+  isAnalyzing: false,
+  error: null
 }
 
 const mockGameEndCoordination = {
+  pendingRequests: [],
+  clearGameEndState: vi.fn(),
+  navigateToPostGame: vi.fn(),
   isMultiplayerSession: false,
-  shouldNavigateToPostGame: false,
+  isCoordinatingGameEnd: false,
   gameEndData: null,
   allPlayerHands: null,
   finalScores: null,
-  clearGameEndState: vi.fn()
+  shouldNavigateToPostGame: false
 }
 
 const mockTileService = {
   createPlayerTile: vi.fn((id: string) => ({
     id,
-    suit: 'bamboos',
+    suit: 'bams',
     value: '1',
     displayName: `${id} tile`,
     instanceId: `${id}-instance`,
@@ -410,13 +447,15 @@ const renderGameModeView = (props: Partial<GameModeViewProps> = {}) => {
     ...props
   }
 
-  return act(() => {
-    return render(
+  let result: any
+  act(() => {
+    result = render(
       <MemoryRouter>
         <GameModeView {...defaultProps} />
       </MemoryRouter>
     )
   })
+  return result
 }
 
 describe('GameModeView Component', () => {
@@ -490,7 +529,7 @@ describe('GameModeView Component', () => {
     it('should trigger hand analysis on mount if hand has enough tiles', async () => {
       mockTileStore.playerHand = Array(13).fill(0).map((_, i) => ({
         id: `tile-${i}`,
-        suit: 'bamboos',
+        suit: 'bams',
         value: '1',
         displayName: `Tile ${i}`
       })) as Tile[]
@@ -591,7 +630,7 @@ describe('GameModeView Component', () => {
     it('should handle discard tile action', async () => {
       const testTile: Tile = {
         id: 'bamboo-1',
-        suit: 'bamboos',
+        suit: 'bams',
         value: '1',
         displayName: '1 Bamboo'
       }
@@ -610,7 +649,7 @@ describe('GameModeView Component', () => {
     it('should prevent discard when player must draw first', async () => {
       const testTile: Tile = {
         id: 'bamboo-1',
-        suit: 'bamboos',
+        suit: 'bams',
         value: '1',
         displayName: '1 Bamboo'
       }
@@ -642,7 +681,7 @@ describe('GameModeView Component', () => {
 
     it('should display call opportunity modal when available', () => {
       mockTurnSelectors.currentCallOpportunity = {
-        tile: { id: 'bamboo-5', suit: 'bamboos', value: '5', displayName: '5 Bamboo' },
+        tile: { id: 'bamboo-5', suit: 'bams', value: '5', displayName: '5 Bamboo' },
         isActive: true,
         duration: 5000,
         deadline: new Date(Date.now() + 5000)
@@ -655,7 +694,7 @@ describe('GameModeView Component', () => {
 
     it('should handle call opportunity response - call', async () => {
       const callOpportunity = {
-        tile: { id: 'bamboo-5', suit: 'bamboos', value: '5', displayName: '5 Bamboo' },
+        tile: { id: 'bamboo-5', suit: 'bams', value: '5', displayName: '5 Bamboo' },
         isActive: true,
         duration: 5000,
         deadline: new Date(Date.now() + 5000)
@@ -681,7 +720,7 @@ describe('GameModeView Component', () => {
 
     it('should handle call opportunity response - pass', async () => {
       mockTurnSelectors.currentCallOpportunity = {
-        tile: { id: 'bamboo-5', suit: 'bamboos', value: '5', displayName: '5 Bamboo' },
+        tile: { id: 'bamboo-5', suit: 'bams', value: '5', displayName: '5 Bamboo' },
         isActive: true,
         duration: 5000,
         deadline: new Date(Date.now() + 5000)
@@ -706,7 +745,7 @@ describe('GameModeView Component', () => {
 
       // Set up an enhanced call opportunity
       mockTurnSelectors.currentCallOpportunity = {
-        tile: { id: 'bamboo-5', suit: 'bamboos', value: '5', displayName: '5 Bamboo' },
+        tile: { id: 'bamboo-5', suit: 'bams', value: '5', displayName: '5 Bamboo' },
         isActive: true,
         duration: 5000,
         deadline: new Date(Date.now() + 5000)
@@ -731,7 +770,7 @@ describe('GameModeView Component', () => {
     it('should update game state when actions are executed', async () => {
       const testTile: Tile = {
         id: 'bamboo-1',
-        suit: 'bamboos',
+        suit: 'bams',
         value: '1',
         displayName: '1 Bamboo'
       }
@@ -750,13 +789,13 @@ describe('GameModeView Component', () => {
 
     it('should trigger re-analysis when hand changes', async () => {
       const newHand = [
-        { id: 'bamboo-1', suit: 'bamboos', value: '1', displayName: '1 Bamboo' },
-        { id: 'bamboo-2', suit: 'bamboos', value: '2', displayName: '2 Bamboo' },
-        { id: 'bamboo-3', suit: 'bamboos', value: '3', displayName: '3 Bamboo' },
+        { id: 'bamboo-1', suit: 'bams', value: '1', displayName: '1 Bamboo' },
+        { id: 'bamboo-2', suit: 'bams', value: '2', displayName: '2 Bamboo' },
+        { id: 'bamboo-3', suit: 'bams', value: '3', displayName: '3 Bamboo' },
         // Add more tiles to meet minimum analysis requirement
         ...Array(10).fill(0).map((_, i) => ({
           id: `extra-${i}`,
-          suit: 'bamboos',
+          suit: 'bams',
           value: '1',
           displayName: `Extra ${i}`
         }))
@@ -807,7 +846,7 @@ describe('GameModeView Component', () => {
     it('should handle action recommendations from AI', async () => {
       const testTile: PlayerTile = {
         id: 'bamboo-7',
-        suit: 'bamboos',
+        suit: 'bams',
         value: '7',
         displayName: '7 Bamboo',
         instanceId: 'bamboo-7-inst',
@@ -1108,7 +1147,7 @@ describe('GameModeView Component', () => {
       mockIntelligenceStore.analyzeHand.mockRejectedValueOnce(new Error('Analysis failed'))
       mockTileStore.playerHand = Array(13).fill(0).map((_, i) => ({
         id: `tile-${i}`,
-        suit: 'bamboos',
+        suit: 'bams',
         value: '1',
         displayName: `Tile ${i}`
       })) as Tile[]

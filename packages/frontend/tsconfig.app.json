@@ -5,7 +5,7 @@
     "target": "ES2022",
     "useDefineForClassFields": true,
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
-    "types": ["vitest/globals"],
+    "types": ["vitest/globals", "@testing-library/jest-dom"],
     "module": "ESNext",
     "skipLibCheck": true,
 
@@ -27,9 +27,6 @@
   },
   "include": ["src"],
   "exclude": [
-    "**/__tests__/**",
-    "**/*.test.ts",
-    "**/*.test.tsx",
     "src/ui-components/accessibility/**",
     "src/ui-components/mobile/TouchOptimizedTile.tsx",
     "src/ui-components/performance/**",

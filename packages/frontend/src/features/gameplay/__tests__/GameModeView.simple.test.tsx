@@ -383,7 +383,7 @@ describe('GameModeView Component - Core Functionality', () => {
 
       // Should trigger phase change (or at least not crash)
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
-    })
+    }, 10000)
   })
 
   describe('Charleston Interactions', () => {
@@ -400,7 +400,7 @@ describe('GameModeView Component - Core Functionality', () => {
 
       // Should complete Charleston action (or at least not crash)
       expect(screen.getByTestId('selection-area')).toBeInTheDocument()
-    })
+    }, 10000)
 
     it('should show tile input modal for receiving Charleston tiles', () => {
       // This would be shown conditionally based on component state

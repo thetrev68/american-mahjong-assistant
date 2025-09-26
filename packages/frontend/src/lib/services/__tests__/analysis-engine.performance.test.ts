@@ -24,6 +24,7 @@ vi.mock('../../../features/intelligence-panel/services/tile-recommendation-engin
 describe('Analysis Engine - Performance & Caching', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    AnalysisEngine.clearCache()
 
     // Setup fast, consistent mocks for performance testing
     vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue([
