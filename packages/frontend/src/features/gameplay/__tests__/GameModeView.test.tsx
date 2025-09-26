@@ -1191,7 +1191,7 @@ describe('GameModeView Component', () => {
     it('should handle missing player data gracefully', () => {
       act(() => {
         mockRoomStore.players = []
-        mockRoomStore.hostPlayerId = null
+        mockRoomStore.hostPlayerId = ''
       })
 
       renderGameModeView()
@@ -1202,7 +1202,7 @@ describe('GameModeView Component', () => {
 
     it('should handle empty hand analysis gracefully', async () => {
       mockTileStore.playerHand = []
-      mockIntelligenceStore.currentAnalysis = null
+      mockIntelligenceStore.currentAnalysis = { recommendedPatterns: [], bestPatterns: [] }
 
       renderGameModeView()
 
