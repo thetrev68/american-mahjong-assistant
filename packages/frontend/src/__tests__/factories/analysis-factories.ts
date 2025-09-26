@@ -133,7 +133,7 @@ export function createRankedPatternResults(options: {
     patternId: string
     totalScore: number
     confidence: number
-    recommendation: string
+    recommendation: 'excellent' | 'good' | 'fair' | 'poor' | 'impossible'
     components?: {
       currentTileScore: number
       availabilityScore: number
@@ -171,7 +171,7 @@ export function createRankedPatternResults(options: {
       patternId: pattern.id,
       totalScore: 85 - (index * 13),
       confidence: 0.9 - (index * 0.15),
-      recommendation: index === 0 ? 'excellent' : index === 1 ? 'good' : 'fair',
+      recommendation: (index === 0 ? 'excellent' : index === 1 ? 'good' : 'fair') as 'excellent' | 'good' | 'fair' | 'poor' | 'impossible',
       components: {
         currentTileScore: 32 - (index * 6),
         availabilityScore: 28 - (index * 5),
@@ -186,11 +186,20 @@ export function createRankedPatternResults(options: {
   return {
     topRecommendations,
     viablePatterns: topRecommendations,
+    rankings: topRecommendations,
+    gameStateFactors: {
+      wallTileCount: 70,
+      discardPileSize: 0,
+      jokersRemaining: 8,
+      estimatedTurnsLeft: 12
+    },
     switchAnalysis: {
       shouldSuggestSwitch: false,
-      switchTarget: null,
-      switchReason: '',
-      improvementPercentage: 0
+      currentFocus: 'pattern-1',
+      recommendedPattern: '',
+      improvementPercent: 0,
+      improvementThreshold: 15,
+      reasoning: []
     }
   }
 }
@@ -254,7 +263,7 @@ export function createPatternAnalysis(options: {
   confidenceScore?: number
   estimatedTurns?: number
   riskLevel?: 'low' | 'medium' | 'high'
-} = {}): PatternAnalysis {
+} = {}): PatternAnalysisFacts {
   return {
     patternId: options.patternId || '2025-TEST-1',
     section: options.section || '2025',
@@ -293,6 +302,7 @@ export function createHandAnalysis(options: {
   const recommendedPatterns: PatternRecommendation[] = patterns.map((pattern, index) => ({
     pattern,
     confidence: 0.85 - (index * 0.1),
+    totalScore: 85 - (index * 10),
     completionPercentage: 60 - (index * 10),
     reasoning: `Pattern ${index + 1} analysis`,
     difficulty: pattern.difficulty,
