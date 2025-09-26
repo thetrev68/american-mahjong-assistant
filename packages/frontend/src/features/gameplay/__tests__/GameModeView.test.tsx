@@ -320,10 +320,10 @@ const mockTurnSelectors = {
   // Player info
   playerCount: 4,
   turnOrderDisplay: [
-    { player: { id: 'player1', name: 'You', position: 'east', isReady: true }, isCurrent: true, isNext: false },
-    { player: { id: 'player2', name: 'Right', position: 'south', isReady: true }, isCurrent: false, isNext: true },
-    { player: { id: 'player3', name: 'Across', position: 'west', isReady: true }, isCurrent: false, isNext: false },
-    { player: { id: 'player4', name: 'Left', position: 'north', isReady: true }, isCurrent: false, isNext: false }
+    { player: { id: 'player1', name: 'You', position: 'east' as const, isReady: true }, isCurrent: true, isNext: false },
+    { player: { id: 'player2', name: 'Right', position: 'south' as const, isReady: true }, isCurrent: false, isNext: true },
+    { player: { id: 'player3', name: 'Across', position: 'west' as const, isReady: true }, isCurrent: false, isNext: false },
+    { player: { id: 'player4', name: 'Left', position: 'north' as const, isReady: true }, isCurrent: false, isNext: false }
   ],
 
   // Current player checks
@@ -357,9 +357,32 @@ const mockHistoryStore = {
 
 const mockGameIntelligence = {
   analysis: {
-    currentCallRecommendation: null,
+    overallScore: 75,
+    recommendedPatterns: [
+      {
+        pattern: {
+          id: 'pattern-1',
+          patternId: '2025-1',
+          displayName: 'Test Pattern',
+          section: 'NMJL',
+          line: '1',
+          pattern: 'AAA BBB CCC DD',
+          points: 25,
+          concealed: false,
+          difficulty: 'medium',
+          groups: []
+        },
+        completionPercentage: 65,
+        tilesNeeded: 3,
+        reasoning: 'Good progress on this pattern'
+      }
+    ],
+    bestPatterns: [],
     tileRecommendations: [],
-    patternProgress: []
+    strategicAdvice: ['Focus on completing your best pattern'],
+    threats: [],
+    lastUpdated: Date.now(),
+    analysisVersion: '1.0'
   },
   isAnalyzing: false,
   error: null
