@@ -299,7 +299,7 @@ const mockIntelligenceStore = {
         isPrimary: true
       }
     ],
-    bestPatterns: []
+    bestPatterns: [] as any[]
   },
   isAnalyzing: false,
   analyzeHand: vi.fn().mockResolvedValue(undefined),
@@ -532,7 +532,7 @@ describe('GameModeView Component', () => {
           isPrimary: true
         }
       ],
-      bestPatterns: []
+      bestPatterns: [] as any[]
     }
   })
 
@@ -1202,7 +1202,7 @@ describe('GameModeView Component', () => {
 
     it('should handle empty hand analysis gracefully', async () => {
       mockTileStore.playerHand = []
-      mockIntelligenceStore.currentAnalysis = { recommendedPatterns: [], bestPatterns: [] }
+      mockIntelligenceStore.currentAnalysis = { recommendedPatterns: [], bestPatterns: [] as any[] }
 
       renderGameModeView()
 
