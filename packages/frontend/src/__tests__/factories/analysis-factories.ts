@@ -188,10 +188,9 @@ export function createRankedPatternResults(options: {
     viablePatterns: topRecommendations,
     rankings: topRecommendations,
     gameStateFactors: {
-      wallTileCount: 70,
-      discardPileSize: 0,
-      jokersRemaining: 8,
-      estimatedTurnsLeft: 12
+      phase: 'gameplay',
+      turnsRemaining: 12,
+      riskTolerance: 'balanced'
     },
     switchAnalysis: {
       shouldSuggestSwitch: false,
@@ -266,18 +265,53 @@ export function createPatternAnalysis(options: {
 } = {}): PatternAnalysisFacts {
   return {
     patternId: options.patternId || '2025-TEST-1',
-    section: options.section || '2025',
-    line: options.line || 1,
-    pattern: options.pattern || 'FFFF 2025 222 222',
-    groups: [],
-    completionPercentage: options.completionPercentage || 60,
-    tilesNeeded: options.tilesNeeded || 7,
-    missingTiles: options.missingTiles || ['4B', '5B', '6B'],
-    confidenceScore: options.confidenceScore || 0.8,
-    difficulty: options.difficulty || 'medium',
-    estimatedTurns: options.estimatedTurns || 8,
-    riskLevel: options.riskLevel || 'low',
-    strategicValue: options.strategicValue || 7
+    tileMatching: {
+      totalVariations: 3,
+      bestVariation: {
+        variationId: 'variation-1',
+        patternId: options.patternId || '2025-TEST-1',
+        sequence: 1,
+        tilesMatched: 7,
+        tilesNeeded: options.tilesNeeded || 7,
+        completionRatio: options.completionPercentage ? options.completionPercentage / 100 : 0.6,
+        missingTiles: options.missingTiles || ['4B', '5B', '6B'],
+        tileContributions: [],
+        patternTiles: []
+      },
+      worstVariation: {
+        variationId: 'variation-3',
+        patternId: options.patternId || '2025-TEST-1',
+        sequence: 3,
+        tilesMatched: 3,
+        tilesNeeded: 11,
+        completionRatio: 0.2,
+        missingTiles: ['4B', '5B', '6B', '7B', '8B'],
+        tileContributions: [],
+        patternTiles: []
+      },
+      averageCompletion: options.completionPercentage ? options.completionPercentage / 100 : 0.6,
+      allResults: []
+    },
+    jokerAnalysis: {
+      jokersAvailable: 0,
+      substitutablePositions: [2, 5, 8],
+      maxJokersUseful: 2,
+      withJokersCompletion: 0.8,
+      jokersToComplete: 1
+    },
+    tileAvailability: {
+      missingTileCounts: [],
+      totalMissingInWall: 12,
+      totalMissingNeeded: 7,
+      availabilityRatio: 0.7
+    },
+    progressMetrics: {
+      tilesCollected: 7,
+      tilesRemaining: options.tilesNeeded || 7,
+      progressPercentage: options.completionPercentage || 60,
+      pairsFormed: 2,
+      setsFormed: 1
+    }
   }
 }
 

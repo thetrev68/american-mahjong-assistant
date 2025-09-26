@@ -274,7 +274,7 @@ export const GameStatePresets = {
   // Solo mode game
   soloMode: () => {
     const gameState = createTestGameState({
-      players: [createTestPlayer({ id: 'solo-player', name: 'Solo Player', isHost: true })]
+      players: [createTestPlayer({ id: 'solo-player', name: 'Solo Player' })]
     })
     return gameState
   },
@@ -321,7 +321,7 @@ export const GameStateHelpers = {
   addTileToPlayer: (gameState: TestGameState, playerId: string, tile: PlayerTile): TestGameState => {
     const updatedState = { ...gameState }
     const player = updatedState.players.find(p => p.id === playerId)
-    if (player) {
+    if (player && player.hand) {
       player.hand = [...player.hand, tile]
     }
     return updatedState
@@ -331,7 +331,7 @@ export const GameStateHelpers = {
   removeTileFromPlayer: (gameState: TestGameState, playerId: string, tileId: string): TestGameState => {
     const updatedState = { ...gameState }
     const player = updatedState.players.find(p => p.id === playerId)
-    if (player) {
+    if (player && player.hand) {
       player.hand = player.hand.filter(tile => tile.id !== tileId)
     }
     return updatedState

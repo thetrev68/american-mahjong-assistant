@@ -250,11 +250,14 @@ export function createPatternGroup(options: {
   groupType?: string
 } = {}): PatternGroup {
   return {
-    Group_Seq: 1,
-    Group_Description: options.description || 'Test Group',
-    Group_Pattern: 'FFFF',
+    Group: options.groupType || 'FFFF',
+    Suit_Role: 'any',
+    Suit_Note: null,
+    Constraint_Type: 'pung',
+    Constraint_Values: '',
+    Constraint_Must_Match: null,
+    Constraint_Extra: null,
     Jokers_Allowed: options.jokersAllowed || false,
-    Group_Type: options.groupType || 'pung',
-    Tiles: options.tiles || ['f1', 'f2', 'f3', 'f4']
+    display_color: 'blue'
   }
 }
