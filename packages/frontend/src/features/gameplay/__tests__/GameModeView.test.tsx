@@ -481,18 +481,26 @@ interface GameModeViewProps {
 }
 
 // Test component wrapper
-const renderGameModeView = (props: Partial<GameModeViewProps> = {}) => {
+const renderGameModeView = async (props: Partial<GameModeViewProps> = {}) => {
   const defaultProps: GameModeViewProps = {
     onNavigateToCharleston: vi.fn(),
     onNavigateToPostGame: vi.fn(),
     ...props
   }
 
-  return render(
+  const result = render(
     <MemoryRouter>
       <GameModeView {...defaultProps} />
     </MemoryRouter>
   )
+
+  // Wait for all initial async operations to complete
+  await waitFor(() => {
+    // Wait for component to stabilize after initial effects
+    expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
+  }, { timeout: 500 })
+
+  return result
 }
 
 describe('GameModeView Component', () => {
@@ -541,29 +549,29 @@ describe('GameModeView Component', () => {
   })
 
   describe('Component Rendering and Initial State', () => {
-    it('should render without crashing', () => {
-      renderGameModeView()
+    it('should render without crashing', async () => {
+      await renderGameModeView()
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
 
-    it('should render all key child components', () => {
-      renderGameModeView()
+    it('should render all key child components', async () => {
+      await renderGameModeView()
 
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
       expect(screen.getByTestId('selection-area')).toBeInTheDocument()
       expect(screen.getByTestId('dev-shortcuts')).toBeInTheDocument()
     })
 
-    it('should initialize current player ID from room store', () => {
-      renderGameModeView()
+    it('should initialize current player ID from room store', async () => {
+      await renderGameModeView()
 
       // Component should render properly with initial state
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
       expect(screen.getByTestId('game-screen-layout')).toHaveAttribute('data-current-player', 'You')
     })
 
-    it('should set dealer hand status based on player position', () => {
-      renderGameModeView()
+    it('should set dealer hand status based on player position', async () => {
+      await renderGameModeView()
 
       // Player1 has east position (dealer)
       expect(mockTileStore.setDealerHand).toHaveBeenCalledWith(true)
@@ -580,7 +588,7 @@ describe('GameModeView Component', () => {
         mockIntelligenceStore.currentAnalysis = null as any
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       await waitFor(() => {
         expect(mockIntelligenceStore.analyzeHand).toHaveBeenCalled()
@@ -589,11 +597,11 @@ describe('GameModeView Component', () => {
   })
 
   describe('Game Phase Transitions', () => {
-    it('should transition from tile-input to Charleston phase', () => {
+    it('should transition from tile-input to Charleston phase', async () => {
       act(() => {
         mockGameStore.gamePhase = 'tile-input'
       })
-      renderGameModeView()
+      await renderGameModeView()
 
       expect(mockGameStore.setGamePhase).toHaveBeenCalledWith('charleston')
     })
@@ -604,7 +612,7 @@ describe('GameModeView Component', () => {
         mockGameStore.currentPlayerId = null as any
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       await waitFor(() => {
         expect(mockGameStore.setCurrentPlayer).toHaveBeenCalledWith('player1')
@@ -612,15 +620,15 @@ describe('GameModeView Component', () => {
       })
     })
 
-    it('should pass correct game phase to GameScreenLayout', () => {
+    it('should pass correct game phase to GameScreenLayout', async () => {
       act(() => {
         mockGameStore.gamePhase = 'charleston'
       })
-      const { rerender } = renderGameModeView()
+      const { rerender } = await renderGameModeView()
 
       expect(screen.getByTestId('game-screen-layout')).toHaveAttribute('data-game-phase', 'charleston')
 
-      act(() => {
+      await act(async () => {
         mockGameStore.gamePhase = 'playing'
         rerender(
           <MemoryRouter>
@@ -641,7 +649,7 @@ describe('GameModeView Component', () => {
     it('should handle draw tile action when player can draw', async () => {
       mockTurnSelectors.canPlayerDraw.mockReturnValue(true)
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Verify the component renders and can handle draw actions
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -660,7 +668,7 @@ describe('GameModeView Component', () => {
         mockTurnSelectors.canPlayerDraw.mockReturnValue(false)
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Verify the component renders and handles the state correctly
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -675,7 +683,7 @@ describe('GameModeView Component', () => {
     it('should handle discard tile action', async () => {
       mockTurnSelectors.canPlayerDiscard.mockReturnValue(true)
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate discard action
       await act(async () => {
@@ -690,7 +698,7 @@ describe('GameModeView Component', () => {
         mockTurnSelectors.canPlayerDiscard.mockReturnValue(false)
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Verify the component renders and handles the state correctly
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -708,7 +716,7 @@ describe('GameModeView Component', () => {
       mockGameStore.gamePhase = 'playing'
     })
 
-    it('should display call opportunity modal when available', () => {
+    it('should display call opportunity modal when available', async () => {
       const callOpportunity = {
         tile: { id: 'bamboo-5', suit: 'bams', value: '5', displayName: '5 Bamboo' },
         isActive: true,
@@ -719,7 +727,7 @@ describe('GameModeView Component', () => {
         mockTurnSelectors.currentCallOpportunity = callOpportunity as any
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // The component should render with call opportunity state
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -743,7 +751,7 @@ describe('GameModeView Component', () => {
         mockTurnSelectors.currentCallOpportunity = callOpportunity
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // The component should render with the call opportunity
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -773,7 +781,7 @@ describe('GameModeView Component', () => {
         mockTurnSelectors.currentCallOpportunity = callOpportunity as any
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // The component should render with the call opportunity
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -783,7 +791,7 @@ describe('GameModeView Component', () => {
       expect(mockTurnSelectors.currentCallOpportunity).toBeDefined()
     })
 
-    it('should show enhanced call opportunity overlay with AI recommendation', () => {
+    it('should show enhanced call opportunity overlay with AI recommendation', async () => {
       act(() => {
         mockGameIntelligence.analysis.currentCallRecommendation = {
           action: 'call',
@@ -801,7 +809,7 @@ describe('GameModeView Component', () => {
         mockTurnSelectors.currentCallOpportunity = callOpportunity as any
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // The component should render with AI recommendation state
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -816,8 +824,8 @@ describe('GameModeView Component', () => {
   })
 
   describe('Store Integration and State Synchronization', () => {
-    it('should sync with multiple stores on initialization', () => {
-      renderGameModeView()
+    it('should sync with multiple stores on initialization', async () => {
+      await renderGameModeView()
 
       // Verify all stores are accessed
       expect(mockPatternStore.getTargetPatterns).toHaveBeenCalled()
@@ -827,7 +835,7 @@ describe('GameModeView Component', () => {
 
     it('should update game state when actions are executed', async () => {
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate successful action execution
       mockTurnStore.executeAction.mockResolvedValueOnce(true)
@@ -857,7 +865,7 @@ describe('GameModeView Component', () => {
         mockTileStore.playerHand = newHand
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       await waitFor(() => {
         expect(mockIntelligenceStore.analyzeHand).toHaveBeenCalled()
@@ -866,7 +874,7 @@ describe('GameModeView Component', () => {
   })
 
   describe('Co-Pilot AI Features and Recommendations', () => {
-    it('should display AI analysis recommendations', () => {
+    it('should display AI analysis recommendations', async () => {
       mockIntelligenceStore.currentAnalysis = {
         recommendedPatterns: [
           {
@@ -895,7 +903,7 @@ describe('GameModeView Component', () => {
         bestPatterns: []
       }
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // GameScreenLayout should receive the analysis
       // Note: currentAnalysis is passed as a prop to the real component
@@ -903,7 +911,7 @@ describe('GameModeView Component', () => {
 
     it('should handle action recommendations from AI', async () => {
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate AI discard suggestion
       await act(async () => {
@@ -915,7 +923,7 @@ describe('GameModeView Component', () => {
       expect(mockIntelligenceStore.currentAnalysis).toBeDefined()
     })
 
-    it('should show pattern switching recommendations', () => {
+    it('should show pattern switching recommendations', async () => {
       mockIntelligenceStore.currentAnalysis = {
         recommendedPatterns: [
           {
@@ -951,7 +959,7 @@ describe('GameModeView Component', () => {
         ]
       }
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // GameScreenLayout should receive pattern switching capability
       // Note: onPatternSwitch is passed as a function prop to the real component
@@ -960,7 +968,7 @@ describe('GameModeView Component', () => {
     it('should handle pattern switching', async () => {
       const newPatternId = 'pattern-2'
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate pattern switch
       await act(async () => {
@@ -979,7 +987,7 @@ describe('GameModeView Component', () => {
     })
 
     it('should show mahjong declaration modal when triggered', async () => {
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate mahjong declaration
       await act(async () => {
@@ -1030,7 +1038,7 @@ describe('GameModeView Component', () => {
         }
       }
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate successful mahjong validation
       await act(async () => {
@@ -1062,7 +1070,7 @@ describe('GameModeView Component', () => {
         mockGameEndCoordination.allPlayerHands = allPlayerHands as any
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // The component should handle the game end state
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -1107,7 +1115,7 @@ describe('GameModeView Component', () => {
         { id: 'tile-3', instanceId: 'tile-3-inst' }
       ] as PlayerTile[]
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate Charleston pass
       await act(async () => {
@@ -1128,7 +1136,7 @@ describe('GameModeView Component', () => {
         mockRoomSetupStore.coPilotMode = 'solo'
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Charleston tile receiving would be handled by TileInputModal
       // The component should render and handle this mode
@@ -1139,7 +1147,7 @@ describe('GameModeView Component', () => {
     it('should handle receiving Charleston tiles', async () => {
       const receivedTileIds = ['bamboo-4', 'bamboo-5', 'bamboo-6']
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate receiving tiles
       await act(async () => {
@@ -1174,7 +1182,7 @@ describe('GameModeView Component', () => {
     it('should handle failed action execution gracefully', async () => {
       mockTurnStore.executeAction.mockRejectedValueOnce(new Error('Action failed'))
 
-      renderGameModeView()
+      await renderGameModeView()
 
       await act(async () => {
         try {
@@ -1188,13 +1196,13 @@ describe('GameModeView Component', () => {
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
 
-    it('should handle missing player data gracefully', () => {
+    it('should handle missing player data gracefully', async () => {
       act(() => {
         mockRoomStore.players = []
         mockRoomStore.hostPlayerId = ''
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Should render without crashing despite missing player data
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -1204,7 +1212,7 @@ describe('GameModeView Component', () => {
       mockTileStore.playerHand = []
       mockIntelligenceStore.currentAnalysis = { recommendedPatterns: [], bestPatterns: [] as any[] }
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Should not trigger analysis with empty hand
       await waitFor(() => {
@@ -1212,10 +1220,10 @@ describe('GameModeView Component', () => {
       })
     })
 
-    it('should handle missing pattern data', () => {
+    it('should handle missing pattern data', async () => {
       mockPatternStore.getTargetPatterns.mockReturnValue([])
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Should render without errors even with no patterns
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -1232,7 +1240,7 @@ describe('GameModeView Component', () => {
         })) as Tile[]
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Component should render without crashing despite analysis errors
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -1248,8 +1256,8 @@ describe('GameModeView Component', () => {
   })
 
   describe('Performance and Optimization', () => {
-    it('should not re-render excessively on state changes', () => {
-      const { rerender } = renderGameModeView()
+    it('should not re-render excessively on state changes', async () => {
+      const { rerender } = await renderGameModeView()
 
       // Simulate multiple state updates
       act(() => {
@@ -1257,18 +1265,20 @@ describe('GameModeView Component', () => {
         mockTileStore.playerHand = [...mockTileStore.playerHand]
       })
 
-      rerender(
-        <MemoryRouter>
-          <GameModeView onNavigateToCharleston={vi.fn()} onNavigateToPostGame={vi.fn()} />
-        </MemoryRouter>
-      )
+      act(() => {
+        rerender(
+          <MemoryRouter>
+            <GameModeView onNavigateToCharleston={vi.fn()} onNavigateToPostGame={vi.fn()} />
+          </MemoryRouter>
+        )
+      })
 
       // Component should still be functional
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
 
-    it('should memoize expensive computations', () => {
-      renderGameModeView()
+    it('should memoize expensive computations', async () => {
+      await renderGameModeView()
 
       // Current hand and game state should be memoized
       expect(gameScreenLayout()).toHaveAttribute('data-is-my-turn')
@@ -1276,7 +1286,7 @@ describe('GameModeView Component', () => {
     })
 
     it('should handle rapid user interactions without issues', async () => {
-      renderGameModeView()
+      await renderGameModeView()
 
       // Simulate rapid clicking (would be handled by debouncing/throttling)
       await act(async () => {
@@ -1292,8 +1302,8 @@ describe('GameModeView Component', () => {
   })
 
   describe('Accessibility and Mobile Interactions', () => {
-    it('should have proper ARIA labels and roles', () => {
-      renderGameModeView()
+    it('should have proper ARIA labels and roles', async () => {
+      await renderGameModeView()
 
       // Key interactive elements should be accessible
       expect(gameScreenLayout()).toBeInTheDocument()
@@ -1304,7 +1314,7 @@ describe('GameModeView Component', () => {
     })
 
     it('should support keyboard navigation', async () => {
-      renderGameModeView()
+      await renderGameModeView()
 
       // Tab navigation should work through interactive elements
       await user.tab()
@@ -1313,22 +1323,22 @@ describe('GameModeView Component', () => {
       expect(document.activeElement).toBeDefined()
     })
 
-    it('should handle touch interactions properly', () => {
-      renderGameModeView()
+    it('should handle touch interactions properly', async () => {
+      await renderGameModeView()
 
       // Touch events should be properly handled by child components
       // Note: handleDiscardTile and handleDrawTile are function props passed to the real component
     })
 
-    it('should provide proper screen reader support', () => {
-      renderGameModeView()
+    it('should provide proper screen reader support', async () => {
+      await renderGameModeView()
 
       // Important game state should be announced to screen readers
       expect(gameScreenLayout()).toHaveAttribute('data-current-player')
       expect(gameScreenLayout()).toHaveAttribute('data-is-my-turn')
     })
 
-    it('should support reduced motion preferences', () => {
+    it('should support reduced motion preferences', async () => {
       // Mock reduced motion preference
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
@@ -1344,7 +1354,7 @@ describe('GameModeView Component', () => {
         })),
       })
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Animations should respect reduced motion preferences
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -1352,8 +1362,8 @@ describe('GameModeView Component', () => {
   })
 
   describe('Dev Tools and Debugging', () => {
-    it('should render dev shortcuts component', () => {
-      renderGameModeView()
+    it('should render dev shortcuts component', async () => {
+      await renderGameModeView()
 
       expect(screen.getByTestId('dev-shortcuts')).toBeInTheDocument()
     })
@@ -1361,7 +1371,7 @@ describe('GameModeView Component', () => {
     it('should handle skip to gameplay shortcut', async () => {
       mockGameStore.gamePhase = 'charleston'
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Dev shortcut should allow skipping Charleston
       await act(async () => {
@@ -1374,7 +1384,7 @@ describe('GameModeView Component', () => {
     })
 
     it('should handle game reset shortcut', async () => {
-      renderGameModeView()
+      await renderGameModeView()
 
       // Dev shortcut should reset all stores and navigate
       await act(async () => {
@@ -1394,10 +1404,10 @@ describe('GameModeView Component', () => {
   })
 
   describe('Wall Exhaustion and Game Ending', () => {
-    it('should show wall exhaustion warning when tiles are low', () => {
+    it('should show wall exhaustion warning when tiles are low', async () => {
       mockTurnSelectors.wallCount = 5 // Low tile count
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Warning should be passed to GameScreenLayout
       expect(gameScreenLayout()).toHaveAttribute('data-wall-count', '5')
@@ -1406,7 +1416,7 @@ describe('GameModeView Component', () => {
     it('should handle automatic game end on wall exhaustion', async () => {
       mockTurnSelectors.wallCount = 0
 
-      renderGameModeView()
+      await renderGameModeView()
 
       // Game should end automatically
       await waitFor(() => {
@@ -1415,7 +1425,7 @@ describe('GameModeView Component', () => {
     })
 
     it('should handle pass out (dead hand) action', async () => {
-      renderGameModeView()
+      await renderGameModeView()
 
       // Player should be able to declare dead hand
       await act(async () => {
@@ -1442,14 +1452,14 @@ describe('GameModeView Component', () => {
       }
       mockGameEndCoordination.allPlayerHands = allPlayerHands as any
 
-      renderGameModeView()
+      await renderGameModeView()
 
       await waitFor(() => {
         expect(mockGameEndCoordination.isMultiplayerSession).toBe(true)
       })
     })
 
-    it('should sync final scores in multiplayer', () => {
+    it('should sync final scores in multiplayer', async () => {
       const finalScores = [
         { playerId: 'player1', score: 50 },
         { playerId: 'player2', score: 25 },
@@ -1458,7 +1468,7 @@ describe('GameModeView Component', () => {
       ]
       mockGameEndCoordination.finalScores = finalScores as any
 
-      renderGameModeView()
+      await renderGameModeView()
 
       expect(mockGameEndCoordination.finalScores).toBeDefined()
       expect(mockGameEndCoordination.finalScores).toHaveLength(4)
@@ -1467,7 +1477,7 @@ describe('GameModeView Component', () => {
     it('should clear game end state after coordination', async () => {
       mockGameEndCoordination.shouldNavigateToPostGame = true
 
-      renderGameModeView()
+      await renderGameModeView()
 
       await act(async () => {
         mockGameEndCoordination.clearGameEndState()

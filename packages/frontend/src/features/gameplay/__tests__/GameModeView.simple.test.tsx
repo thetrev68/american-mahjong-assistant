@@ -2,7 +2,7 @@
 // Focuses on core functionality with reliable mocks and minimal setup
 // Tests the primary user interface for co-pilot system during gameplay
 
-import { render, screen, fireEvent, act } from '@testing-library/react'
+import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
@@ -312,21 +312,25 @@ interface GameModeViewProps {
 }
 
 // Test component wrapper
-const renderGameModeView = (props: Partial<GameModeViewProps> = {}) => {
+const renderGameModeView = async (props: Partial<GameModeViewProps> = {}) => {
   const defaultProps: GameModeViewProps = {
     onNavigateToCharleston: vi.fn(),
     onNavigateToPostGame: vi.fn(),
     ...props
   }
 
-  let result: any
-  act(() => {
-    result = render(
-      <MemoryRouter>
-        <GameModeView {...defaultProps} />
-      </MemoryRouter>
-    )
-  })
+  const result = render(
+    <MemoryRouter>
+      <GameModeView {...defaultProps} />
+    </MemoryRouter>
+  )
+
+  // Wait for all initial async operations to complete
+  await waitFor(() => {
+    // Wait for component to stabilize after initial effects
+    expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
+  }, { timeout: 500 })
+
   return result
 }
 
@@ -336,42 +340,42 @@ describe('GameModeView Component - Core Functionality', () => {
   })
 
   describe('Basic Rendering', () => {
-    it('should render without crashing', () => {
-      renderGameModeView()
+    it('should render without crashing', async () => {
+      await renderGameModeView()
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
 
-    it('should render all key child components', () => {
-      renderGameModeView()
+    it('should render all key child components', async () => {
+      await renderGameModeView()
 
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
       expect(screen.getByTestId('selection-area')).toBeInTheDocument()
       expect(screen.getByTestId('dev-shortcuts')).toBeInTheDocument()
     })
 
-    it('should display current player information', () => {
-      renderGameModeView()
+    it('should display current player information', async () => {
+      await renderGameModeView()
 
       expect(screen.getByTestId('current-player')).toHaveTextContent('You')
       expect(screen.getByTestId('my-turn')).toHaveTextContent('My Turn')
     })
 
-    it('should display wall count', () => {
-      renderGameModeView()
+    it('should display wall count', async () => {
+      await renderGameModeView()
 
       expect(screen.getByTestId('wall-count')).toHaveTextContent('70')
     })
   })
 
   describe('Game Phase Management', () => {
-    it('should pass correct game phase to layout', () => {
-      renderGameModeView()
+    it('should pass correct game phase to layout', async () => {
+      await renderGameModeView()
 
       expect(screen.getByTestId('game-screen-layout')).toHaveAttribute('data-game-phase', 'gameplay')
     })
 
-    it('should handle advance to gameplay', () => {
-      renderGameModeView()
+    it('should handle advance to gameplay', async () => {
+      await renderGameModeView()
 
       // Check if button exists, if not skip the interaction part
       const advanceButton = screen.queryByText('Advance to Gameplay')
@@ -385,8 +389,8 @@ describe('GameModeView Component - Core Functionality', () => {
   })
 
   describe('Charleston Interactions', () => {
-    it('should handle Charleston pass action', () => {
-      renderGameModeView()
+    it('should handle Charleston pass action', async () => {
+      await renderGameModeView()
 
       // Check if button exists, if not skip the interaction part
       const passButton = screen.queryByText('Charleston Pass')
@@ -398,9 +402,9 @@ describe('GameModeView Component - Core Functionality', () => {
       expect(screen.getByTestId('selection-area')).toBeInTheDocument()
     })
 
-    it('should show tile input modal for receiving Charleston tiles', () => {
+    it('should show tile input modal for receiving Charleston tiles', async () => {
       // This would be shown conditionally based on component state
-      renderGameModeView()
+      await renderGameModeView()
 
       // The modal would be rendered based on showCharlestonModal state
       // In actual implementation, this would be triggered by Charleston flow
@@ -409,8 +413,8 @@ describe('GameModeView Component - Core Functionality', () => {
   })
 
   describe('Call Opportunities', () => {
-    it('should handle call opportunity actions', () => {
-      renderGameModeView()
+    it('should handle call opportunity actions', async () => {
+      await renderGameModeView()
 
       // Call opportunity overlay would be shown when there's an active opportunity
       // This tests the basic structure is in place
@@ -435,15 +439,15 @@ describe('GameModeView Component - Core Functionality', () => {
   })
 
   describe('Dev Tools', () => {
-    it('should render dev shortcuts', () => {
-      renderGameModeView()
+    it('should render dev shortcuts', async () => {
+      await renderGameModeView()
 
       expect(screen.getByTestId('dev-shortcuts')).toBeInTheDocument()
       expect(screen.getByText('🔄 Reset Game')).toBeInTheDocument()
     })
 
-    it('should handle reset game action', () => {
-      renderGameModeView()
+    it('should handle reset game action', async () => {
+      await renderGameModeView()
 
       const resetButton = screen.getByText('🔄 Reset Game')
       fireEvent.click(resetButton)
@@ -454,32 +458,32 @@ describe('GameModeView Component - Core Functionality', () => {
   })
 
   describe('Error Handling', () => {
-    it('should handle missing or invalid data gracefully', () => {
+    it('should handle missing or invalid data gracefully', async () => {
       // Component should render even with minimal data
-      renderGameModeView()
+      await renderGameModeView()
 
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
 
-    it('should not crash with empty player data', () => {
+    it('should not crash with empty player data', async () => {
       // Mock stores return basic data, component should handle edge cases
-      renderGameModeView()
+      await renderGameModeView()
 
       expect(screen.getByTestId('current-player')).toBeInTheDocument()
     })
   })
 
   describe('Store Integration', () => {
-    it('should integrate with multiple stores', () => {
-      renderGameModeView()
+    it('should integrate with multiple stores', async () => {
+      await renderGameModeView()
 
       // Component should successfully read from all mocked stores
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
       expect(screen.getByTestId('current-player')).toHaveTextContent('You')
     })
 
-    it('should handle store updates', () => {
-      renderGameModeView()
+    it('should handle store updates', async () => {
+      await renderGameModeView()
 
       // Component should react to store changes and maintain stable rendering
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
@@ -490,15 +494,15 @@ describe('GameModeView Component - Core Functionality', () => {
   describe('User Interactions', () => {
     it('should support keyboard navigation', async () => {
       const user = userEvent.setup()
-      renderGameModeView()
+      await renderGameModeView()
 
       // Tab navigation should work
       await user.tab()
       expect(document.activeElement).toBeDefined()
     })
 
-    it('should handle touch interactions', () => {
-      renderGameModeView()
+    it('should handle touch interactions', async () => {
+      await renderGameModeView()
 
       // Touch events should be properly handled
       const gameLayout = screen.getByTestId('game-screen-layout')
@@ -507,8 +511,8 @@ describe('GameModeView Component - Core Functionality', () => {
   })
 
   describe('Performance', () => {
-    it('should not re-render excessively', () => {
-      const { rerender } = renderGameModeView()
+    it('should not re-render excessively', async () => {
+      const { rerender } = await renderGameModeView()
 
       // Multiple rerenders should not cause issues
       rerender(
@@ -520,8 +524,8 @@ describe('GameModeView Component - Core Functionality', () => {
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
     })
 
-    it('should handle rapid interactions', () => {
-      renderGameModeView()
+    it('should handle rapid interactions', async () => {
+      await renderGameModeView()
 
       // Rapid clicks should be handled gracefully
       const resetButton = screen.getByText('🔄 Reset Game')
@@ -536,16 +540,16 @@ describe('GameModeView Component - Core Functionality', () => {
   })
 
   describe('Accessibility', () => {
-    it('should provide accessible interface', () => {
-      renderGameModeView()
+    it('should provide accessible interface', async () => {
+      await renderGameModeView()
 
       // Basic accessibility - elements should be present and accessible
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
       expect(screen.getByTestId('current-player')).toBeInTheDocument()
     })
 
-    it('should support screen readers', () => {
-      renderGameModeView()
+    it('should support screen readers', async () => {
+      await renderGameModeView()
 
       // Important game state should be available to screen readers
       const currentPlayer = screen.getByTestId('current-player')
