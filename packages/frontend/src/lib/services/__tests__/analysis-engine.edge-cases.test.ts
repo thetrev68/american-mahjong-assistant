@@ -496,10 +496,27 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
 
       // Clear previous mock calls and set up specific mock for this test
       vi.mocked(PatternAnalysisEngine.analyzePatterns).mockClear()
+      vi.mocked(PatternRankingEngine.rankPatterns).mockClear()
       vi.mocked(TileRecommendationEngine.generateRecommendations).mockClear()
+
+      // Set up complete mock chain for this test
       vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue(mockFacts)
 
-      await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 1 })])
+      // Create matching ranking result that uses the same pattern ID
+      const mockRankings = createRankedPatternResults()
+      mockRankings.topRecommendations = [{
+        patternId: 'test',
+        totalScore: 85,
+        components: { currentTileScore: 30, availabilityScore: 35, jokerScore: 15, priorityScore: 5 },
+        confidence: 0.9,
+        reasoning: 'Test pattern ranking',
+        isViable: true,
+        strategicValue: 0.8,
+        riskFactors: [] // CRITICAL: Must include this array for analysis engine
+      }]
+      vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockRankings)
+
+      await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 'test' })])
 
       // Verify Engine 3 is called and receives Engine 1 facts
       expect(TileRecommendationEngine.generateRecommendations).toHaveBeenCalled()
