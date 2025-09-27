@@ -5,11 +5,20 @@ import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useMultiplayer } from '../useMultiplayer'
 import { useSocket } from '../useSocket'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
+import { useGameStore } from '../../stores/game-store'
+import { useRoomStore } from '../../stores/room.store'
+import { useRoomSetupStore } from '../../stores/room-setup.store'
+import { useConnectionStore } from '../../stores/connection.store'
 import type { Room, GameState } from 'shared-types'
 
 // Mock dependencies
 vi.mock('../useSocket')
 vi.mock('../../stores/multiplayer-store')
+vi.mock('../../stores/game-store')
+vi.mock('../../stores/room.store')
+vi.mock('../../stores/room-setup.store')
+vi.mock('../../stores/connection.store')
+
 
 const mockSocketHook = {
   isConnected: true,
@@ -17,8 +26,28 @@ const mockSocketHook = {
   on: vi.fn(),
   off: vi.fn(),
   socketId: 'test-socket-id',
-  connectionError: null as string | null
+  connectionError: null as string | null,
+  eventQueue: [],
+  lastError: null,
+  rawSocket: {}
 }
+
+const mockGameStore = {
+  addAlert: vi.fn(),
+};
+
+const mockRoomStore = {
+  room: { id: 'room-123' },
+  hostPlayerId: 'player1',
+};
+
+const mockRoomSetupStore = {
+  coPilotMode: 'everyone',
+};
+
+const mockConnectionStore = {
+  connectionStatus: 'connected',
+};
 
 const mockMultiplayerStore = {
   currentRoom: null as Room | null,
@@ -45,7 +74,21 @@ describe('useMultiplayer Hook', () => {
     // @ts-expect-error - vi namespace not available in test config
     ;(useSocket as vi.MockedFunction<typeof useSocket>).mockReturnValue(mockSocketHook)
     // @ts-expect-error - vi namespace not available in test config
-    ;(useMultiplayerStore as vi.MockedFunction<typeof useMultiplayerStore>).mockReturnValue(mockMultiplayerStore)
+    ;(useMultiplayerStore as vi.MockedFunction<any>).mockImplementation(selector => {
+      if (selector) {
+        return selector(mockMultiplayerStore)
+      }
+      return mockMultiplayerStore
+    })
+    vi.mocked(useGameStore).mockReturnValue(mockGameStore)
+    vi.mocked(useRoomStore).mockReturnValue(mockRoomStore)
+    vi.mocked(useRoomSetupStore).mockReturnValue(mockRoomSetupStore)
+    vi.mocked(useConnectionStore).mockReturnValue(mockConnectionStore)
+
+    Object.defineProperty(useRoomStore, 'getState', {
+      value: vi.fn(() => mockRoomStore),
+      writable: true
+    })
   })
 
   describe('Room Management', () => {
@@ -116,7 +159,15 @@ describe('useMultiplayer Hook', () => {
     })
 
     it('should leave room successfully', async () => {
-      mockMultiplayerStore.currentRoom = { id: 'room-123', hostId: 'other-player' }
+      mockMultiplayerStore.currentRoom = {
+        id: 'room-123',
+        hostId: 'other-player',
+        players: [],
+        phase: 'setup',
+        maxPlayers: 4,
+        isPrivate: false,
+        createdAt: new Date()
+      }
       const { result } = renderHook(() => useMultiplayer())
 
       await act(async () => {
@@ -154,11 +205,28 @@ describe('useMultiplayer Hook', () => {
 
   describe('Game State Management', () => {
     beforeEach(() => {
-      mockMultiplayerStore.currentRoom = { id: 'room-123', hostId: 'host-id' }
+      mockMultiplayerStore.currentRoom = {
+        id: 'room-123',
+        hostId: 'host-id',
+        players: [],
+        phase: 'setup',
+        maxPlayers: 4,
+        isPrivate: false,
+        createdAt: new Date()
+      }
       mockMultiplayerStore.gameState = {
+        roomId: 'room-123',
         phase: 'setup',
         currentRound: 1,
-        playerStates: {}
+        currentWind: 'east',
+        dealerPosition: 0,
+        playerStates: {},
+        sharedState: {
+          discardPile: [],
+          wallTilesRemaining: 0,
+          currentPlayer: null
+        },
+        lastUpdated: new Date()
       }
     })
 
@@ -293,7 +361,15 @@ describe('useMultiplayer Hook', () => {
     })
 
     it('should handle room-deleted events', () => {
-      mockMultiplayerStore.currentRoom = { id: 'room-123' }
+      mockMultiplayerStore.currentRoom = {
+        id: 'room-123',
+        hostId: 'host-id',
+        players: [],
+        phase: 'setup',
+        maxPlayers: 4,
+        isPrivate: false,
+        createdAt: new Date()
+      }
       renderHook(() => useMultiplayer())
 
       act(() => {
@@ -334,7 +410,15 @@ describe('useMultiplayer Hook', () => {
 
     it('should queue state updates when disconnected', async () => {
       mockSocketHook.isConnected = false
-      mockMultiplayerStore.currentRoom = { id: 'room-123' }
+      mockMultiplayerStore.currentRoom = {
+        id: 'room-123',
+        hostId: 'host-id',
+        players: [],
+        phase: 'setup',
+        maxPlayers: 4,
+        isPrivate: false,
+        createdAt: new Date()
+      }
       
       const { result } = renderHook(() => useMultiplayer())
 

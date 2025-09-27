@@ -2,6 +2,7 @@
 
 import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import type { MockedFunction } from 'vitest'
 import { useSocket } from '../useSocket'
 import { io } from 'socket.io-client'
 
@@ -23,7 +24,7 @@ const mockSocket = {
 describe('useSocket Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    ;(io as vi.MockedFunction<typeof io>).mockReturnValue(mockSocket)
+    ;(io as ReturnType<typeof vi.fn>).mockReturnValue(mockSocket)
   })
 
   describe('Connection Management', () => {
@@ -48,7 +49,7 @@ describe('useSocket Hook', () => {
           throw new Error('Connection failed')
         })
       }
-      ;(io as vi.MockedFunction<typeof io>).mockReturnValue(failingSocket)
+      ;(io as MockedFunction<typeof io>).mockReturnValue(failingSocket)
 
       const { result } = renderHook(() => useSocket())
 
@@ -77,7 +78,7 @@ describe('useSocket Hook', () => {
       // Simulate connection event
       act(() => {
         const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
-        connectHandler()
+        if (connectHandler) connectHandler()
       })
 
       expect(result.current.isConnected).toBe(true)
@@ -86,7 +87,7 @@ describe('useSocket Hook', () => {
       // Simulate disconnection event
       act(() => {
         const disconnectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'disconnect')?.[1] as ((...args: unknown[]) => void) | undefined
-        disconnectHandler('server error')
+        if (disconnectHandler) disconnectHandler('server error')
       })
 
       expect(result.current.isConnected).toBe(false)
@@ -98,7 +99,7 @@ describe('useSocket Hook', () => {
         ...mockSocket,
         connected: false
       }
-      ;(io as vi.MockedFunction<typeof io>).mockReturnValue(retriableSocket)
+      ;(io as MockedFunction<typeof io>).mockReturnValue(retriableSocket)
 
       const { result } = renderHook(() => useSocket())
 
@@ -142,7 +143,7 @@ describe('useSocket Hook', () => {
         ...mockSocket,
         connected: false
       }
-      ;(io as vi.MockedFunction<typeof io>).mockReturnValue(disconnectedSocket)
+      ;(io as MockedFunction<typeof io>).mockReturnValue(disconnectedSocket)
 
       const { result } = renderHook(() => useSocket())
 
@@ -164,7 +165,7 @@ describe('useSocket Hook', () => {
       // Simulate disconnect and queue events
       act(() => {
         const disconnectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'disconnect')?.[1] as ((...args: unknown[]) => void) | undefined
-        disconnectHandler()
+        if (disconnectHandler) disconnectHandler()
         result.current.emit('queued-event', { data: 'queued' })
       })
 
@@ -173,7 +174,7 @@ describe('useSocket Hook', () => {
       // Simulate reconnection
       act(() => {
         const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
-        connectHandler()
+        if (connectHandler) connectHandler()
       })
 
       expect(mockSocket.emit).toHaveBeenCalledWith('queued-event', { data: 'queued' })
@@ -246,7 +247,9 @@ describe('useSocket Hook', () => {
       // Simulate pong response
       act(() => {
         const pongHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'pong')?.[1] as ((...args: unknown[]) => void) | undefined
-        pongHandler({ timestamp: Date.now() - 100 }) // 100ms latency
+        if (pongHandler) {
+          pongHandler({ timestamp: Date.now() - 100 }) // 100ms latency
+        }
       })
 
       expect(result.current.connectionHealth.latency).toBeCloseTo(100, -1)
