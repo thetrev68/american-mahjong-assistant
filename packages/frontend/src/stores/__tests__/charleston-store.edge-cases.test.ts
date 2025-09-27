@@ -159,21 +159,26 @@ describe('Charleston Store Edge Cases', () => {
 
   describe('Tile Selection Edge Cases', () => {
     it('should handle selecting tiles with duplicate IDs', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const tile1 = createTile({ id: 'duplicate' })
       const tile2 = createTile({ id: 'duplicate' }) // Same ID
 
       store.selectTile(tile1)
+      store = useCharlestonStore.getState() // Get fresh state
       store.selectTile(tile2) // Should be prevented
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.selectedTiles).toHaveLength(1)
     })
 
     it('should handle selecting tiles beyond the 3-tile limit', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const tiles = createLargeHand(10)
 
-      tiles.forEach(tile => store.selectTile(tile))
+      tiles.forEach(tile => {
+        store.selectTile(tile)
+        store = useCharlestonStore.getState() // Get fresh state after each selection
+      })
 
       // Should only have first 3 tiles selected
       expect(store.selectedTiles).toHaveLength(3)
@@ -185,46 +190,53 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle deselecting non-existent tiles', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const tile1 = createTile({ id: 'exists' })
       const tile2 = createTile({ id: 'not-selected' })
 
       store.selectTile(tile1)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles).toHaveLength(1)
 
       // Try to deselect a tile that wasn't selected
       store.deselectTile(tile2)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles).toHaveLength(1) // Should remain unchanged
       expect(store.selectedTiles[0].id).toBe(tile1.id)
     })
 
     it('should handle empty tile selection operations', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.clearSelection() // Should not error when already empty
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles).toHaveLength(0)
 
       // Multiple clears
       store.clearSelection()
       store.clearSelection()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles).toHaveLength(0)
     })
 
     it('should handle setting empty tile arrays', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setPlayerTiles([])
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerTiles).toHaveLength(0)
 
       store.setSelectedTiles([])
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles).toHaveLength(0)
     })
 
     it('should handle setting large tile arrays', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const largeTileSet = createLargeHand(100)
 
       store.setPlayerTiles(largeTileSet)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerTiles).toHaveLength(100)
 
       // Should still work with large sets
@@ -233,7 +245,7 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle tiles with missing or invalid properties', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Tile with minimal properties
       const minimalTile = {
@@ -245,6 +257,7 @@ describe('Charleston Store Edge Cases', () => {
       }
 
       store.selectTile(minimalTile)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles).toHaveLength(1)
       expect(store.selectedTiles[0].id).toBe('minimal')
     })
@@ -252,12 +265,14 @@ describe('Charleston Store Edge Cases', () => {
 
   describe('Analysis and Recommendation Edge Cases', () => {
     it('should handle analysis with empty hand', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.setPlayerTiles([]) // Empty hand
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should not generate recommendations for empty hand
       expect(store.recommendations).toBeNull()
@@ -265,13 +280,15 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle analysis with hand of only jokers', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const jokerHand = createJokerTiles(5)
 
       store.startCharleston()
       store.setPlayerTiles(jokerHand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should handle joker-only hand gracefully
       const recommendations = store.recommendations
@@ -282,13 +299,15 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle analysis with hand of only flowers', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const flowerHand = createFlowerTiles(5)
 
       store.startCharleston()
       store.setPlayerTiles(flowerHand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -300,13 +319,15 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle analysis with very small hand (less than 3 tiles)', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const smallHand = createLargeHand(2) // Only 2 tiles
 
       store.startCharleston()
       store.setPlayerTiles(smallHand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -317,13 +338,15 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle analysis when not active', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const hand = createLargeHand(5)
 
       // Don't start Charleston
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should not generate recommendations when not active
       expect(store.recommendations).toBeNull()
@@ -331,11 +354,12 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle concurrent analysis requests', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const hand = createLargeHand(10)
 
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Start multiple analysis requests
       const promises = [
@@ -345,13 +369,14 @@ describe('Charleston Store Edge Cases', () => {
       ]
 
       await Promise.all(promises)
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should handle gracefully without errors
       expect(store.isAnalyzing).toBe(false)
     })
 
     it('should handle analysis with malformed pattern data', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const hand = createLargeHand(5)
 
       // Pattern with unusual structure
@@ -364,8 +389,10 @@ describe('Charleston Store Edge Cases', () => {
       store.startCharleston()
       store.setPlayerTiles(hand)
       store.setTargetPatterns([malformedPattern])
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should handle malformed patterns gracefully
       expect(store.recommendations).not.toBeNull()
@@ -374,19 +401,21 @@ describe('Charleston Store Edge Cases', () => {
 
   describe('Multiplayer State Edge Cases', () => {
     it('should handle setting multiplayer mode without room ID', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setMultiplayerMode(true) // No room ID provided
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.isMultiplayerMode).toBe(true)
       expect(store.roomId).toBeNull()
     })
 
     it('should handle player readiness with invalid player IDs', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setPlayerReady('', true) // Empty string
       store.setPlayerReady('   ', false) // Whitespace
       store.setPlayerReady('very-long-player-id-that-might-cause-issues-in-storage', true)
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.playerReadiness['']).toBe(true)
       expect(store.playerReadiness['   ']).toBe(false)
@@ -394,7 +423,7 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle rapid readiness changes for same player', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       const playerId = 'player1'
 
@@ -402,31 +431,36 @@ describe('Charleston Store Edge Cases', () => {
       for (let i = 0; i < 10; i++) {
         store.setPlayerReady(playerId, i % 2 === 0)
       }
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.playerReadiness[playerId]).toBe(false) // Last value
     })
 
     it('should handle setting current player to invalid values', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setCurrentPlayer('') // Empty string
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPlayerId).toBe('')
 
       store.setCurrentPlayer('   ') // Whitespace
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPlayerId).toBe('   ')
 
       store.setCurrentPlayer('non-existent-player')
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPlayerId).toBe('non-existent-player')
     })
 
     it('should handle many simultaneous players', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const playerCount = 100
 
       // Set readiness for many players
       for (let i = 0; i < playerCount; i++) {
         store.setPlayerReady(`player${i}`, i % 2 === 0)
       }
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(Object.keys(store.playerReadiness)).toHaveLength(playerCount)
       expect(store.playerReadiness['player0']).toBe(true)
@@ -437,7 +471,7 @@ describe('Charleston Store Edge Cases', () => {
 
   describe('Store Persistence Edge Cases', () => {
     it('should handle reset during active Charleston', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.setPlayerTiles(createLargeHand(5))
@@ -458,12 +492,13 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle multiple resets', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.reset()
       store.reset()
       store.reset()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Multiple resets should not cause issues
       expect(store.isActive).toBe(false)
@@ -473,10 +508,11 @@ describe('Charleston Store Edge Cases', () => {
 
   describe('Selectors Edge Cases', () => {
     it('should handle selectors with edge state values', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Test selectors with various states
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // No tiles selected
       expect(store.selectedTiles.length < 3).toBe(true) // canSelectMore
@@ -484,11 +520,13 @@ describe('Charleston Store Edge Cases', () => {
 
       // Exactly 3 tiles selected
       store.setSelectedTiles(createLargeHand(3))
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles.length < 3).toBe(false) // canSelectMore
       expect(store.selectedTiles.length === 3).toBe(true) // isReadyToPass
 
       // More than 3 tiles (should not happen in normal flow)
       store.setSelectedTiles(createLargeHand(5))
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.selectedTiles.length < 3).toBe(false) // canSelectMore
       expect(store.selectedTiles.length === 3).toBe(false) // isReadyToPass
     })
@@ -496,7 +534,7 @@ describe('Charleston Store Edge Cases', () => {
 
   describe('Memory and Performance Edge Cases', () => {
     it('should handle large phase history', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Simulate many phase completions
       store.startCharleston()
@@ -507,16 +545,18 @@ describe('Charleston Store Edge Cases', () => {
         store.setPhase('right')
         store.setPhase('across')
       }
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.currentPhase).toBe('across')
     })
 
     it('should handle frequent recommendation generation', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const hand = createLargeHand(10)
 
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Generate many recommendations
       const promises = []
@@ -525,6 +565,7 @@ describe('Charleston Store Edge Cases', () => {
       }
 
       await Promise.all(promises)
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should complete without memory issues
       expect(store.recommendations).not.toBeNull()
@@ -532,38 +573,42 @@ describe('Charleston Store Edge Cases', () => {
     })
 
     it('should handle rapid state changes', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Rapid state changes
       for (let i = 0; i < 1000; i++) {
         store.setShowStrategy(i % 2 === 0)
         store.setPlayerCount((i % 8) + 1)
       }
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.showStrategy).toBe(false) // Last value
-      expect(store.playerCount).toBe(1) // Last value: (999 % 8) + 1 = 8
+      expect(store.playerCount).toBe(8) // Last value: (999 % 8) + 1 = 8
     })
   })
 
   describe('Error Recovery', () => {
     it('should recover from analysis errors', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.setPlayerTiles(createLargeHand(5))
+      store = useCharlestonStore.getState() // Get fresh state
 
       // First analysis should work
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.analysisError).toBeNull()
 
       // Clear recommendations and try again
       store.clearRecommendations()
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.recommendations).not.toBeNull()
     })
 
     it('should maintain consistency after errors', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       try {
         // Force error scenario
@@ -572,6 +617,7 @@ describe('Charleston Store Edge Cases', () => {
       } catch (error) {
         // Should not error, but if it does, state should remain consistent
       }
+      store = useCharlestonStore.getState() // Get fresh state
 
       // State should still be consistent
       expect(store.selectedTiles).toHaveLength(10)

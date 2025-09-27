@@ -21,7 +21,10 @@ vi.mock('../../../features/intelligence-panel/services/tile-recommendation-engin
 describe('Analysis Engine', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    
+
+    // Clear AnalysisEngine cache between tests
+    AnalysisEngine.clearCache()
+
     // Mock default responses from each engine
     vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue([
       createPatternSelection({ id: 1 }),
@@ -140,8 +143,8 @@ describe('Analysis Engine', () => {
       expect(PatternAnalysisEngine.analyzePatterns).toHaveBeenCalledWith(
         tiles.map(t => t.id),
         expect.arrayContaining([
-          expect.stringContaining('custom1'),
-          expect.stringContaining('custom2')
+          '2025-CONSECUTIVE_RUN-1',
+          '2025-CONSECUTIVE_RUN-2'
         ]),
         expect.objectContaining({
           jokersInHand: expect.any(Number),
@@ -163,9 +166,9 @@ describe('Analysis Engine', () => {
       expect(PatternAnalysisEngine.analyzePatterns).toHaveBeenCalledWith(
         tiles.map(t => t.id),
         expect.arrayContaining([
-          expect.stringContaining('pattern1'),
-          expect.stringContaining('pattern2')
-        ]), // From mocked service response with prefixes
+          '2025-CONSECUTIVE_RUN-1',
+          '2025-CONSECUTIVE_RUN-2'
+        ]), // From mocked service response with actual IDs
         expect.objectContaining({
           jokersInHand: expect.any(Number),
           wallTilesRemaining: expect.any(Number),
@@ -570,25 +573,29 @@ describe('Analysis Engine', () => {
       expect(result.engine1Facts).toHaveLength(2) // Based on default mock
     })
 
-    it('should sort recommendations by completion percentage', async () => {
+    it('should sort recommendations by AI total score (enhanced precision)', async () => {
       const mockRankings = createRankedPatternResults({
         patterns: [
           createPatternSelection({ id: 1 }),
           createPatternSelection({ id: 2 })
         ]
       })
-      
-      // Set different completion scores
-      mockRankings.topRecommendations[0].components.currentTileScore = 10 // 25%
-      mockRankings.topRecommendations[1].components.currentTileScore = 30 // 75%
-      
+
+      // Set different AI total scores (pattern with higher AI score should come first)
+      mockRankings.topRecommendations[0].totalScore = 60 // Lower AI score
+      mockRankings.topRecommendations[0].components.currentTileScore = 30 // Higher completion
+      mockRankings.topRecommendations[1].totalScore = 85 // Higher AI score
+      mockRankings.topRecommendations[1].components.currentTileScore = 10 // Lower completion
+
       vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockRankings)
-      
+
       const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])
-      
-      // Should be sorted by completion (highest first)
-      expect(result.recommendedPatterns[0].completionPercentage).toBe(75)
-      expect(result.recommendedPatterns[1].completionPercentage).toBe(25)
+
+      // Should be sorted by AI total score (highest first), not just completion percentage
+      expect(result.recommendedPatterns[0].totalScore).toBe(85) // Higher AI score comes first
+      expect(result.recommendedPatterns[1].totalScore).toBe(60) // Lower AI score comes second
+      expect(result.recommendedPatterns[0].completionPercentage).toBe(25) // Lower completion but higher AI score
+      expect(result.recommendedPatterns[1].completionPercentage).toBe(75) // Higher completion but lower AI score
     })
   })
 })
