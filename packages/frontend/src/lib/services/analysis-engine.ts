@@ -22,6 +22,8 @@ interface CacheEntry {
 export class AnalysisEngine {
   // Engine 1 cache: Map<cacheKey, CacheEntry>
   private static engine1Cache = new Map<string, CacheEntry>()
+  // Pending promises cache to prevent race conditions
+  private static pendingPromises = new Map<string, Promise<PatternAnalysisFacts[]>>()
   private static readonly CACHE_SIZE_LIMIT = 50 // Prevent memory issues
   private static readonly CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes TTL
 
@@ -53,37 +55,54 @@ export class AnalysisEngine {
   ): Promise<PatternAnalysisFacts[]> {
     const cacheKey = this.generateCacheKey(tileIds, patternIds, gameContext)
     const handHash = [...tileIds].sort().join(',')
-    
+
     // Check cache first
     const cached = this.engine1Cache.get(cacheKey)
     const now = Date.now()
-    
+
     if (cached && (now - cached.timestamp) < this.CACHE_TTL_MS) {
       // Cache hit - using cached analysis
       return cached.facts
     }
-    
+
+    // Check if there's already a pending computation for this key
+    const pending = this.pendingPromises.get(cacheKey)
+    if (pending) {
+      // Return the existing promise to prevent duplicate computation
+      return pending
+    }
+
     // Cache miss - computing fresh analysis
-    
-    // Compute fresh Engine 1 results
-    const facts = await PatternAnalysisEngine.analyzePatterns(
+    const computationPromise = PatternAnalysisEngine.analyzePatterns(
       tileIds,
       patternIds,
       gameContext
-    )
-    
-    // Store in cache
-    this.engine1Cache.set(cacheKey, {
-      facts,
-      timestamp: now,
-      handHash,
-      patternIds: [...patternIds]
+    ).then(facts => {
+      // Store in cache
+      this.engine1Cache.set(cacheKey, {
+        facts,
+        timestamp: now,
+        handHash,
+        patternIds: [...patternIds]
+      })
+
+      // Remove from pending promises
+      this.pendingPromises.delete(cacheKey)
+
+      // Manage cache size
+      this.manageCacheSize()
+
+      return facts
+    }).catch(error => {
+      // Remove from pending promises on error
+      this.pendingPromises.delete(cacheKey)
+      throw error
     })
-    
-    // Manage cache size
-    this.manageCacheSize()
-    
-    return facts
+
+    // Store the promise to prevent race conditions
+    this.pendingPromises.set(cacheKey, computationPromise)
+
+    return computationPromise
   }
 
   /**
@@ -145,6 +164,7 @@ export class AnalysisEngine {
    */
   static clearCache(): void {
     this.engine1Cache.clear()
+    this.pendingPromises.clear()
   }
 
   /**
