@@ -1,21 +1,21 @@
 // Charleston AI Recommendation Engine Tests
 // Tests for Charleston strategic intelligence, tile selection analysis, and AI recommendations
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useCharlestonStore } from '../../../stores/charleston-store'
 import { createTile, createPatternSelection } from '../../../__tests__/factories'
-import type { Tile, PatternSelectionOption } from 'shared-types'
+import type { Tile, PatternSelectionOption, TileValue } from 'shared-types'
 
 // Test utilities for creating specific tile combinations
 const createSequenceTiles = (suit: 'dots' | 'bams' | 'cracks', start: number, count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `${suit}-${start + i}`,
     suit,
-    value: String(start + i),
+    value: String(start + i) as TileValue,
     displayName: `${start + i} ${suit.charAt(0).toUpperCase()}${suit.slice(1, -1)}`
   }))
 
-const createSameTiles = (suit: 'dots' | 'bams' | 'cracks', value: string, count: number): Tile[] =>
+const createSameTiles = (suit: 'dots' | 'bams' | 'cracks', value: TileValue, count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `${suit}-${value}-${i}`,
     suit,
@@ -23,7 +23,7 @@ const createSameTiles = (suit: 'dots' | 'bams' | 'cracks', value: string, count:
     displayName: `${value} ${suit.charAt(0).toUpperCase()}${suit.slice(1, -1)}`
   }))
 
-const createHonorTiles = (type: 'winds' | 'dragons', value: string, count: number): Tile[] =>
+const createHonorTiles = (type: 'winds' | 'dragons', value: TileValue, count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `${type}-${value}-${i}`,
     suit: type,
@@ -35,7 +35,7 @@ const createFlowerTiles = (count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `flower-${i}`,
     suit: 'flowers',
-    value: `f${i + 1}`,
+    value: `f${i + 1}` as TileValue,
     displayName: `Flower ${i + 1}`
   }))
 
@@ -51,26 +51,26 @@ const createJokerTiles = (count: number): Tile[] =>
 // Pattern creation utilities
 const create2025Pattern = (): PatternSelectionOption => createPatternSelection({
   pattern: '2025 YEAR',
-  displayName: '2025 Year Pattern',
-  category: 'YEAR'
+  description: '2025 Year Pattern',
+  section: 'YEAR'
 })
 
 const createLikeNumbersPattern = (): PatternSelectionOption => createPatternSelection({
   pattern: 'LIKE NUMBERS 1111 2222 3333',
-  displayName: 'Like Numbers Pattern',
-  category: 'NUMBERS'
+  description: 'Like Numbers Pattern',
+  section: 'NUMBERS'
 })
 
 const createSequencePattern = (): PatternSelectionOption => createPatternSelection({
   pattern: 'SEQUENCE 123 456 789',
-  displayName: 'Sequence Pattern',
-  category: 'CONSECUTIVE'
+  description: 'Sequence Pattern',
+  section: 'CONSECUTIVE'
 })
 
 const createDragonPattern = (): PatternSelectionOption => createPatternSelection({
   pattern: 'DRAGONS RED GREEN WHITE',
-  displayName: 'Dragon Pattern',
-  category: 'DRAGONS'
+  description: 'Dragon Pattern',
+  section: 'DRAGONS'
 })
 
 describe('Charleston AI Recommendation Engine', () => {
@@ -194,12 +194,12 @@ describe('Charleston AI Recommendation Engine', () => {
     it('should consider 2025 pattern when selecting tiles to pass', async () => {
       const hand = [
         createTile({ id: 'dot-2', suit: 'dots', value: '2' }),
-        createTile({ id: 'bam-0', suit: 'bams', value: '0' }), // For 2025
+        createTile({ id: 'bam-2', suit: 'bams', value: '2' }), // For 2025
         createTile({ id: 'crack-5', suit: 'cracks', value: '5' }),
         createTile({ id: 'dot-7', suit: 'dots', value: '7' }), // Not in 2025
         createTile({ id: 'bam-8', suit: 'bams', value: '8' }), // Not in 2025
         ...createFlowerTiles(3),
-        ...createSameTiles('winds', 'east', 4)
+        ...createHonorTiles('winds', 'east', 4)
       ]
 
       let store = useCharlestonStore.getState()
@@ -324,7 +324,7 @@ describe('Charleston AI Recommendation Engine', () => {
       const hand = [
         ...createFlowerTiles(4),
         ...createSequenceTiles('dots', 1, 4),
-        ...createSameTiles('winds', 'east', 4)
+        ...createHonorTiles('winds', 'east', 4)
       ]
 
       let store = useCharlestonStore.getState()
@@ -569,7 +569,7 @@ describe('Charleston AI Recommendation Engine', () => {
         createTile({ id: 'bam-7', suit: 'bams', value: '7' }), // Isolated
         ...createFlowerTiles(4),
         ...createJokerTiles(1),
-        ...createSameTiles('winds', 'east', 3)
+        ...createHonorTiles('winds', 'east', 3)
       ]
 
       let store = useCharlestonStore.getState()
