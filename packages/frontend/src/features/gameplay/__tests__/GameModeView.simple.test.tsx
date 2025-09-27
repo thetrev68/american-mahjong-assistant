@@ -370,37 +370,33 @@ describe('GameModeView Component - Core Functionality', () => {
       expect(screen.getByTestId('game-screen-layout')).toHaveAttribute('data-game-phase', 'gameplay')
     })
 
-    it('should handle advance to gameplay', async () => {
+    it('should handle advance to gameplay', () => {
       renderGameModeView()
 
       // Check if button exists, if not skip the interaction part
       const advanceButton = screen.queryByText('Advance to Gameplay')
       if (advanceButton) {
-        await act(async () => {
-          fireEvent.click(advanceButton)
-        })
+        fireEvent.click(advanceButton)
       }
 
       // Should trigger phase change (or at least not crash)
       expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
-    }, 10000)
+    })
   })
 
   describe('Charleston Interactions', () => {
-    it('should handle Charleston pass action', async () => {
+    it('should handle Charleston pass action', () => {
       renderGameModeView()
 
       // Check if button exists, if not skip the interaction part
       const passButton = screen.queryByText('Charleston Pass')
       if (passButton) {
-        await act(async () => {
-          fireEvent.click(passButton)
-        })
+        fireEvent.click(passButton)
       }
 
       // Should complete Charleston action (or at least not crash)
       expect(screen.getByTestId('selection-area')).toBeInTheDocument()
-    }, 10000)
+    })
 
     it('should show tile input modal for receiving Charleston tiles', () => {
       // This would be shown conditionally based on component state

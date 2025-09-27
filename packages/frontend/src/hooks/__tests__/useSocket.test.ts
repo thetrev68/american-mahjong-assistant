@@ -24,6 +24,9 @@ const mockSocket = {
 describe('useSocket Hook', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    // Reset the emit mock implementation and socket state
+    mockSocket.emit.mockImplementation(vi.fn())
+    mockSocket.connected = true
     ;(io as ReturnType<typeof vi.fn>).mockReturnValue(mockSocket)
   })
 
@@ -35,6 +38,14 @@ describe('useSocket Hook', () => {
         autoConnect: true,
         timeout: 10000,
         retries: 3
+      })
+
+      // Simulate the connect event
+      act(() => {
+        const connectHandler = mockSocket.on.mock.calls.find(call => call[0] === 'connect')?.[1]
+        if (connectHandler) {
+          connectHandler()
+        }
       })
 
       expect(result.current.isConnected).toBe(true)
@@ -161,11 +172,22 @@ describe('useSocket Hook', () => {
 
     it('should flush event queue on reconnection', () => {
       const { result } = renderHook(() => useSocket())
-      
-      // Simulate disconnect and queue events
+
+      // First connect the socket
+      act(() => {
+        const connectHandler = mockSocket.on.mock.calls.find(call => call[0] === 'connect')?.[1]
+        if (connectHandler) {
+          connectHandler()
+        }
+      })
+
+      // Then simulate disconnect and queue events
       act(() => {
         const disconnectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'disconnect')?.[1] as ((...args: unknown[]) => void) | undefined
-        if (disconnectHandler) disconnectHandler()
+        if (disconnectHandler) {
+          mockSocket.connected = false  // Set socket to disconnected state
+          disconnectHandler()
+        }
         result.current.emit('queued-event', { data: 'queued' })
       })
 
@@ -174,7 +196,10 @@ describe('useSocket Hook', () => {
       // Simulate reconnection
       act(() => {
         const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
-        if (connectHandler) connectHandler()
+        if (connectHandler) {
+          mockSocket.connected = true  // Set socket back to connected state
+          connectHandler()
+        }
       })
 
       expect(mockSocket.emit).toHaveBeenCalledWith('queued-event', { data: 'queued' })
@@ -234,6 +259,14 @@ describe('useSocket Hook', () => {
     it('should implement ping/pong mechanism', () => {
       vi.useFakeTimers()
       const { result } = renderHook(() => useSocket())
+
+      // First connect the socket to start ping mechanism
+      act(() => {
+        const connectHandler = mockSocket.on.mock.calls.find(call => call[0] === 'connect')?.[1]
+        if (connectHandler) {
+          connectHandler()
+        }
+      })
 
       // Advance timers to trigger ping
       act(() => {

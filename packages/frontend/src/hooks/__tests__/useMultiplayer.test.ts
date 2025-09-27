@@ -9,6 +9,7 @@ import { useGameStore } from '../../stores/game-store'
 import { useRoomStore } from '../../stores/room.store'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { useConnectionStore } from '../../stores/connection.store'
+import { getConnectionResilienceService } from '../../lib/services/connection-resilience'
 import type { Room, GameState } from 'shared-types'
 
 // Mock dependencies
@@ -18,6 +19,7 @@ vi.mock('../../stores/game-store')
 vi.mock('../../stores/room.store')
 vi.mock('../../stores/room-setup.store')
 vi.mock('../../stores/connection.store')
+vi.mock('../../lib/services/connection-resilience')
 
 
 const mockSocketHook = {
@@ -47,6 +49,12 @@ const mockRoomSetupStore = {
 
 const mockConnectionStore = {
   connectionStatus: 'connected',
+};
+
+const mockConnectionResilienceService = {
+  initialize: vi.fn(),
+  handleReconnection: vi.fn(),
+  cleanup: vi.fn(),
 };
 
 const mockMultiplayerStore = {
@@ -84,6 +92,7 @@ describe('useMultiplayer Hook', () => {
     vi.mocked(useRoomStore).mockReturnValue(mockRoomStore)
     vi.mocked(useRoomSetupStore).mockReturnValue(mockRoomSetupStore)
     vi.mocked(useConnectionStore).mockReturnValue(mockConnectionStore)
+    vi.mocked(getConnectionResilienceService).mockReturnValue(mockConnectionResilienceService)
 
     Object.defineProperty(useRoomStore, 'getState', {
       value: vi.fn(() => mockRoomStore),
