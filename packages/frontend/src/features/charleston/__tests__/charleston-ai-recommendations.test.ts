@@ -91,11 +91,13 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSameTiles('bams', '5', 3)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -114,11 +116,13 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createHonorTiles('winds', 'east', 2)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -138,11 +142,13 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSameTiles('cracks', '9', 4)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -163,11 +169,13 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSequenceTiles('bams', 5, 3)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -194,12 +202,14 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSameTiles('winds', 'east', 4)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
       store.setTargetPatterns([create2025Pattern()])
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -225,12 +235,14 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createFlowerTiles(4)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
       store.setTargetPatterns([createLikeNumbersPattern()])
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -253,12 +265,14 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSequenceTiles('dots', 1, 5)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
       store.setTargetPatterns([createDragonPattern()])
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -281,7 +295,7 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSequenceTiles('cracks', 6, 4)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
       store.setTargetPatterns([
@@ -289,8 +303,10 @@ describe('Charleston AI Recommendation Engine', () => {
         createLikeNumbersPattern(),
         createDragonPattern()
       ])
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -311,12 +327,14 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSameTiles('winds', 'east', 4)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
       // No target patterns set
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -336,11 +354,13 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSameTiles('dots', '1', 4) // Definitely keep
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -356,11 +376,13 @@ describe('Charleston AI Recommendation Engine', () => {
         createJokerTiles(1)[0]
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -376,12 +398,14 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSequenceTiles('bams', 2, 4)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
       store.setTargetPatterns([createLikeNumbersPattern()])
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -401,11 +425,13 @@ describe('Charleston AI Recommendation Engine', () => {
         createTile({ id: 'crack-3', suit: 'cracks', value: '3' })
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -419,11 +445,13 @@ describe('Charleston AI Recommendation Engine', () => {
         createTile({ id: 'dot-1', suit: 'dots', value: '1' })
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -440,11 +468,13 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSameTiles('cracks', '1', 3)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -452,7 +482,7 @@ describe('Charleston AI Recommendation Engine', () => {
     })
 
     it('should handle analysis errors gracefully', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Mock error by setting invalid state
       store.startCharleston()
@@ -477,13 +507,15 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createJokerTiles(2)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(largeHand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       const startTime = Date.now()
       await store.generateRecommendations()
       const endTime = Date.now()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -509,14 +541,16 @@ describe('Charleston AI Recommendation Engine', () => {
         createDragonPattern()
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(complexHand)
       store.setTargetPatterns(complexPatterns)
+      store = useCharlestonStore.getState() // Get fresh state
 
       const startTime = Date.now()
       await store.generateRecommendations()
       const endTime = Date.now()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -538,11 +572,13 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSameTiles('winds', 'east', 3)
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()
@@ -569,12 +605,14 @@ describe('Charleston AI Recommendation Engine', () => {
         ...createSequenceTiles('bams', 4, 3) // Sequence potential - keep
       ]
 
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.startCharleston()
       store.setPlayerTiles(hand)
       store.setTargetPatterns([create2025Pattern()])
+      store = useCharlestonStore.getState() // Get fresh state
 
       await store.generateRecommendations()
+      store = useCharlestonStore.getState() // Get fresh state after async call
 
       const recommendations = store.recommendations
       expect(recommendations).not.toBeNull()

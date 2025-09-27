@@ -77,9 +77,10 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should start Charleston with proper initialization', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.isActive).toBe(true)
       expect(store.currentPhase).toBe('right')
@@ -89,9 +90,10 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should handle repeated start calls', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
       const firstState = {
         isActive: store.isActive,
         currentPhase: store.currentPhase,
@@ -99,6 +101,7 @@ describe('Charleston Phase Transitions', () => {
       }
 
       store.startCharleston() // Second call
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should reset to initial state
       expect(store.isActive).toBe(true)
@@ -115,31 +118,35 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should follow correct 4-player phase sequence', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Start: right
       expect(store.currentPhase).toBe('right')
 
       // right -> across
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('across')
 
       // across -> left
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('left')
 
       // left -> optional
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('optional')
 
       // optional -> complete
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('complete')
       expect(store.isActive).toBe(false)
     })
 
     it('should handle each phase transition correctly', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       const expectedSequence: CharlestonPhase[] = ['right', 'across', 'left', 'optional', 'complete']
 
@@ -150,6 +157,7 @@ describe('Charleston Phase Transitions', () => {
         } else {
           // Transition to next phase
           store.completePhase()
+          store = useCharlestonStore.getState() // Get fresh state
           expect(store.currentPhase).toBe(expectedPhase)
 
           if (expectedPhase === 'complete') {
@@ -162,13 +170,14 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should maintain phase consistency during transitions', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       for (let i = 0; i < 4; i++) {
         const phaseBefore = store.currentPhase
         const isActiveBefore = store.isActive
 
         store.completePhase()
+        store = useCharlestonStore.getState() // Get fresh state
 
         const phaseAfter = store.currentPhase
         const isActiveAfter = store.isActive
@@ -194,33 +203,37 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should skip across phase in 3-player games', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Start: right
       expect(store.currentPhase).toBe('right')
 
       // right -> left (skipping across)
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('left')
 
       // left -> optional
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('optional')
 
       // optional -> complete
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('complete')
       expect(store.isActive).toBe(false)
     })
 
     it('should complete 3-player Charleston in correct number of phases', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       let phaseCount = 0
       const maxPhases = 10 // Safety limit
 
       while (store.isActive && phaseCount < maxPhases) {
         store.completePhase()
+        store = useCharlestonStore.getState() // Get fresh state
         phaseCount++
       }
 
@@ -232,21 +245,24 @@ describe('Charleston Phase Transitions', () => {
 
   describe('Edge Case Player Counts', () => {
     it('should handle 2-player Charleston transitions', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setPlayerCount(2)
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should still follow normal sequence
       store.completePhase() // right -> across
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('across')
 
       store.completePhase() // across -> left
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('left')
     })
 
     it('should handle unusual player counts gracefully', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       const unusualCounts = [1, 5, 6, 8]
 
@@ -254,9 +270,11 @@ describe('Charleston Phase Transitions', () => {
         store.reset()
         store.setPlayerCount(count)
         store.startCharleston()
+        store = useCharlestonStore.getState() // Get fresh state
 
         // Should still follow logical progression
         store.completePhase()
+        store = useCharlestonStore.getState() // Get fresh state
         if (count === 3) {
           expect(store.currentPhase).toBe('left') // Skip across
         } else {
@@ -266,13 +284,15 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should handle zero or negative player counts', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setPlayerCount(0)
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should still allow phase transitions (edge case behavior)
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('across') // Default behavior
     })
   })
@@ -285,20 +305,21 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should complete Charleston properly', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Progress to completion
       store.completePhase() // right -> across
       store.completePhase() // across -> left
       store.completePhase() // left -> optional
       store.completePhase() // optional -> complete
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.currentPhase).toBe('complete')
       expect(store.isActive).toBe(false)
     })
 
     it('should handle direct Charleston ending', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Set up some state
       store.setPlayerTiles(createCharlestonHand())
@@ -306,6 +327,7 @@ describe('Charleston Phase Transitions', () => {
 
       // End Charleston directly
       store.endCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.isActive).toBe(false)
       expect(store.currentPhase).toBe('complete')
@@ -314,17 +336,19 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should clear state appropriately on completion', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Set up state
       store.setPlayerTiles(createCharlestonHand())
       store.selectTile(createTile({ id: 'test-tile' }))
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Complete Charleston through normal progression
       let phaseCount = 0
       const maxPhases = 10 // Safety limit
       while (store.isActive && phaseCount < maxPhases) {
         store.completePhase()
+        store = useCharlestonStore.getState() // Get fresh state
         phaseCount++
       }
 
@@ -335,7 +359,7 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should handle completion at different phases', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Test ending at each phase
       const phases: CharlestonPhase[] = ['right', 'across', 'left', 'optional']
@@ -346,6 +370,7 @@ describe('Charleston Phase Transitions', () => {
         store.setPhase(phase)
 
         store.endCharleston()
+        store = useCharlestonStore.getState() // Get fresh state
 
         expect(store.currentPhase).toBe('complete')
         expect(store.isActive).toBe(false)
@@ -366,7 +391,7 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should reset history on Charleston start', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Manually add some history
       const mockHistory = createPhaseHistory(['right', 'across'])
@@ -374,63 +399,73 @@ describe('Charleston Phase Transitions', () => {
       // but it should start empty
 
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.phaseHistory).toHaveLength(0)
     })
 
     it('should handle history across multiple Charleston sessions', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // First Charleston session
       store.startCharleston()
       store.endCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Second Charleston session
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.phaseHistory).toHaveLength(0) // Should reset
     })
   })
 
   describe('Manual Phase Setting', () => {
     it('should allow manual phase setting', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setPhase('across')
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('across')
 
       store.setPhase('left')
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('left')
 
       store.setPhase('complete')
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('complete')
     })
 
     it('should handle manual setting to all valid phases', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       const allPhases: CharlestonPhase[] = ['right', 'across', 'left', 'optional', 'complete']
 
       allPhases.forEach(phase => {
         store.setPhase(phase)
+        store = useCharlestonStore.getState() // Get fresh state
         expect(store.currentPhase).toBe(phase)
       })
     })
 
     it('should allow manual phase setting during active Charleston', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('right')
 
       store.setPhase('left')
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('left')
       expect(store.isActive).toBe(true) // Should remain active
     })
 
     it('should handle setting to complete phase manually', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.setPhase('complete')
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.currentPhase).toBe('complete')
       expect(store.isActive).toBe(true) // Manual setting doesn't change active state
@@ -439,24 +474,27 @@ describe('Charleston Phase Transitions', () => {
 
   describe('Phase Transition Error Cases', () => {
     it('should handle transitions when not active', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Don't start Charleston
       expect(store.isActive).toBe(false)
 
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       // Should handle gracefully - phase still advances but Charleston isn't active
       expect(store.currentPhase).toBe('across')
     })
 
     it('should handle multiple rapid transitions', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Rapid phase completions
       for (let i = 0; i < 10; i++) {
         store.completePhase()
+        store = useCharlestonStore.getState() // Get fresh state
       }
 
       // Should end up at complete and inactive
@@ -465,25 +503,28 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should handle transitions after manual completion', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.endCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.currentPhase).toBe('complete')
       expect(store.isActive).toBe(false)
 
       // Try to transition after ending
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('complete') // Should stay complete
     })
   })
 
   describe('Integration with Game State', () => {
     it('should maintain consistency with game phase', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.isActive).toBe(true)
       expect(store.currentPhase).toBe('right')
 
@@ -492,24 +533,27 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should coordinate with tile management', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.setPlayerTiles(createCharlestonHand())
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.playerTiles).toHaveLength(14)
       expect(store.isActive).toBe(true)
     })
 
     it('should handle state synchronization during transitions', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.setPlayerTiles(createCharlestonHand())
       store.selectTile(createTile())
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Complete phase
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Tile state should be preserved during phase transition
       expect(store.playerTiles).toHaveLength(14)
@@ -542,7 +586,7 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should handle reset at any phase', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       const phases: CharlestonPhase[] = ['right', 'across', 'left', 'optional', 'complete']
 
@@ -550,6 +594,7 @@ describe('Charleston Phase Transitions', () => {
         store.startCharleston()
         store.setPhase(phase)
         store.reset()
+        store = useCharlestonStore.getState() // Get fresh state
 
         expect(store.currentPhase).toBe('right')
         expect(store.isActive).toBe(false)
@@ -557,7 +602,7 @@ describe('Charleston Phase Transitions', () => {
     })
 
     it('should recover from invalid states', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Create potentially invalid state
       store.startCharleston()
@@ -566,6 +611,7 @@ describe('Charleston Phase Transitions', () => {
 
       // Reset should fix any inconsistency
       store.reset()
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.currentPhase).toBe('right')
       expect(store.isActive).toBe(false)
