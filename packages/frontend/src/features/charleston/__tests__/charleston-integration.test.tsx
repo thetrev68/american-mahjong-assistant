@@ -15,7 +15,7 @@ import { useTurnStore, useTurnSelectors } from '../../../stores/turn-store'
 import { useHistoryStore } from '../../../stores/history-store'
 import { usePlayerStore } from '../../../stores/player.store'
 import { useRoomStore } from '../../../stores/room.store'
-import { createTestHand, TilePresets } from '../../../__tests__/factories'
+import { createTestHand } from '../../../__tests__/factories'
 import type { Tile } from 'shared-types'
 
 // Mock all store dependencies
@@ -98,7 +98,7 @@ vi.mock('../../gameplay/GameScreenLayout', () => ({
 }))
 
 vi.mock('../../gameplay/SelectionArea', () => ({
-  SelectionArea: ({ onAdvanceToGameplay, onCharlestonPass, onPass, isReadyToPass, allPlayersReady }: any) => (
+  SelectionArea: ({ onAdvanceToGameplay, onCharlestonPass, onPass, isReadyToPass }: any) => (
     <div data-testid="selection-area">
       {onAdvanceToGameplay && (
         <button onClick={onAdvanceToGameplay} data-testid="advance-to-gameplay">
@@ -417,12 +417,13 @@ describe('Charleston Integration Tests', () => {
       })
 
       await waitFor(() => {
-        const modal = screen.getByTestId('tile-input-modal')
-        expect(modal).toBeVisible()
-        expect(modal).toHaveAttribute('data-mode', 'receive')
-        expect(modal).toHaveAttribute('data-count', '3')
-        expect(modal).toHaveAttribute('data-context', 'charleston')
+        expect(screen.getByTestId('tile-input-modal')).toBeVisible()
       })
+
+      const modal = screen.getByTestId('tile-input-modal')
+      expect(modal).toHaveAttribute('data-mode', 'receive')
+      expect(modal).toHaveAttribute('data-count', '3')
+      expect(modal).toHaveAttribute('data-context', 'charleston')
     })
 
     it('should show completion alert when Charleston is complete', async () => {
@@ -673,10 +674,6 @@ describe('Charleston Integration Tests', () => {
     })
 
     it('should trigger intelligence analysis after Charleston', async () => {
-      const mockIntelligenceStore = {
-        analyzeHand: vi.fn()
-      }
-
       // This would be integrated through the actual intelligence store mock
       render(<GameModeView />)
 
