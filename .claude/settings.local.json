@@ -36,7 +36,9 @@
       "Bash(cat:*)",
       "Read(//c/Users/thetr/OneDrive/Pictures/Screenshots 1/**)",
       "Bash(npx vitest:*)",
-      "Bash(timeout 10 npx vitest src/features/charleston/__tests__/charleston-integration.test.tsx --run)"
+      "Bash(timeout 10 npx vitest src/features/charleston/__tests__/charleston-integration.test.tsx --run)",
+      "Bash(timeout 15 npx vitest src/hooks/__tests__/useMultiplayer.test.ts --run)",
+      "Bash(timeout 10 npx vitest src/__tests__/integration/solo-game-workflow.test.tsx --run)"
     ],
     "deny": [],
     "ask": [],

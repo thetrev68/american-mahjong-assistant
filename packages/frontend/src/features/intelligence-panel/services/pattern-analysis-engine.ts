@@ -122,7 +122,7 @@ export class PatternAnalysisEngine {
 
     try {
       await PatternVariationLoader.loadVariations()
-    } catch (error) {
+    } catch {
       // If loader fails, return safe fallback for each pattern
       return targetPatternIds.map(patternId => this.createFallbackAnalysis(patternId, validPlayerTiles))
     }
@@ -153,7 +153,7 @@ export class PatternAnalysisEngine {
         )
 
         results.push(analysisFacts)
-      } catch (error) {
+      } catch {
         // On any error with this pattern, provide fallback
         results.push(this.createFallbackAnalysis(patternId, validPlayerTiles))
       }
@@ -232,7 +232,7 @@ export class PatternAnalysisEngine {
   /**
    * Create fallback analysis when normal analysis fails
    */
-  private static createFallbackAnalysis(patternId: string, playerTiles: string[]): PatternAnalysisFacts {
+  private static createFallbackAnalysis(patternId: string, _playerTiles: string[]): PatternAnalysisFacts {
     const fallbackVariation: TileMatchResult = {
       variationId: `${patternId}-fallback`,
       patternId: patternId,
@@ -293,7 +293,7 @@ export class PatternAnalysisEngine {
       try {
         const result = this.analyzeVariationMatch(playerTiles, variation, playerTileCounts)
         variationResults.push(result)
-      } catch (error) {
+      } catch {
         // Skip invalid variations rather than crashing
         continue
       }

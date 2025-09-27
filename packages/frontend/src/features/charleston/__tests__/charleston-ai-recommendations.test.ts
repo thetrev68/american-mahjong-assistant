@@ -482,7 +482,7 @@ describe('Charleston AI Recommendation Engine', () => {
     })
 
     it('should handle analysis errors gracefully', async () => {
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
 
       // Mock error by setting invalid state
       store.startCharleston()

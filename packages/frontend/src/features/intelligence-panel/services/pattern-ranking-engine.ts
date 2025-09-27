@@ -81,7 +81,7 @@ export class PatternRankingEngine {
       try {
         const ranking = this.calculatePatternRanking(facts, validSelectedPatterns, safeGameContext)
         rankings.push(ranking)
-      } catch (error) {
+      } catch {
         // Create fallback ranking for failed analysis
         const fallbackRanking = this.createFallbackRanking(facts.patternId)
         rankings.push(fallbackRanking)

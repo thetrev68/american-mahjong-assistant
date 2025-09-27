@@ -142,7 +142,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Player Readiness Coordination', () => {
     beforeEach(() => {
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
     })
@@ -216,7 +216,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Charleston Phase Coordination', () => {
     beforeEach(() => {
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
       store.setPlayerCount(4)
@@ -334,7 +334,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Tile Exchange Coordination', () => {
     beforeEach(() => {
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
       store.setPlayerTiles(createTestTiles(14))
@@ -355,7 +355,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
     it('should coordinate tile passing between players', async () => {
       const service = initializeCharlestonResilientService()
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
 
       const selectedTiles = createTestTiles(3)
 
@@ -369,14 +369,14 @@ describe('Charleston Multiplayer Coordination', () => {
     it('should handle tile reception coordination', () => {
       // This would be tested through event simulation
       // The actual tile reception is handled by the resilient service event listeners
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
       expect(store.playerTiles).toBeDefined()
     })
   })
 
   describe('Error Handling and Recovery', () => {
     beforeEach(() => {
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
     })

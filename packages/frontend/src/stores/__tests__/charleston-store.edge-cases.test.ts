@@ -471,7 +471,7 @@ describe('Charleston Store Edge Cases', () => {
 
   describe('Store Persistence Edge Cases', () => {
     it('should handle reset during active Charleston', () => {
-      let store = useCharlestonStore.getState()
+      const store = useCharlestonStore.getState()
 
       store.startCharleston()
       store.setPlayerTiles(createLargeHand(5))
