@@ -100,16 +100,17 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Multiplayer Mode Setup', () => {
     it('should initialize multiplayer Charleston mode', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setMultiplayerMode(true, 'room123')
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.isMultiplayerMode).toBe(true)
       expect(store.roomId).toBe('room123')
     })
 
     it('should handle player readiness initialization', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setMultiplayerMode(true, 'room123')
       store.setCurrentPlayer('player1')
@@ -119,6 +120,7 @@ describe('Charleston Multiplayer Coordination', () => {
       playerIds.forEach(id => {
         store.setPlayerReady(id, false)
       })
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(Object.keys(store.playerReadiness)).toHaveLength(4)
       expect(store.playerReadiness['player1']).toBe(false)
@@ -126,45 +128,51 @@ describe('Charleston Multiplayer Coordination', () => {
     })
 
     it('should handle current player assignment', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setCurrentPlayer('player2')
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPlayerId).toBe('player2')
 
       store.setCurrentPlayer('player1')
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPlayerId).toBe('player1')
     })
   })
 
   describe('Player Readiness Coordination', () => {
     beforeEach(() => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
     })
 
     it('should manage individual player readiness', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Set players ready one by one
       store.setPlayerReady('player1', true)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerReadiness['player1']).toBe(true)
 
       store.setPlayerReady('player2', true)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerReadiness['player2']).toBe(true)
 
       store.setPlayerReady('player3', false)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerReadiness['player3']).toBe(false)
     })
 
     it('should handle all players ready scenario', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Mark all players as ready
       const playerIds = ['player1', 'player2', 'player3', 'player4']
       playerIds.forEach(id => {
         store.setPlayerReady(id, true)
       })
+      store = useCharlestonStore.getState() // Get fresh state
 
       // All players should be ready
       const allReady = playerIds.every(id => store.playerReadiness[id])
@@ -172,27 +180,30 @@ describe('Charleston Multiplayer Coordination', () => {
     })
 
     it('should handle partial readiness scenarios', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Mix of ready and not ready players
       store.setPlayerReady('player1', true)
       store.setPlayerReady('player2', false)
       store.setPlayerReady('player3', true)
       store.setPlayerReady('player4', false)
+      store = useCharlestonStore.getState() // Get fresh state
 
       const readyCount = Object.values(store.playerReadiness).filter(Boolean).length
       expect(readyCount).toBe(2)
     })
 
     it('should handle readiness changes', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Player becomes ready
       store.setPlayerReady('player1', true)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerReadiness['player1']).toBe(true)
 
       // Player becomes not ready
       store.setPlayerReady('player1', false)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerReadiness['player1']).toBe(false)
 
       // Multiple state changes
@@ -205,14 +216,14 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Charleston Phase Coordination', () => {
     beforeEach(() => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
       store.setPlayerCount(4)
     })
 
     it('should coordinate phase transitions in multiplayer', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Start at right phase
       expect(store.currentPhase).toBe('right')
@@ -223,6 +234,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
       // Complete phase should advance to next
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('across')
 
       // Reset readiness for next phase
@@ -231,15 +243,17 @@ describe('Charleston Multiplayer Coordination', () => {
       // Continue phase progression
       playerIds.forEach(id => store.setPlayerReady(id, true))
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('left')
     })
 
     it('should handle different player counts in multiplayer', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Test 3-player game
       store.setPlayerCount(3)
       store.completePhase() // right -> left (skips across)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('left')
 
       // Reset for 4-player test
@@ -248,16 +262,18 @@ describe('Charleston Multiplayer Coordination', () => {
       store.startCharleston()
       store.setPlayerCount(4)
       store.completePhase() // right -> across
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('across')
     })
 
     it('should synchronize Charleston completion', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Progress through all phases
       const phases = ['across', 'left', 'optional', 'complete']
       phases.forEach(expectedPhase => {
         store.completePhase()
+        store = useCharlestonStore.getState() // Get fresh state
         expect(store.currentPhase).toBe(expectedPhase)
       })
 
@@ -318,27 +334,28 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Tile Exchange Coordination', () => {
     beforeEach(() => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
       store.setPlayerTiles(createTestTiles(14))
     })
 
     it('should handle tile selection for passing', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const tiles = createTestTiles(5)
 
       // Select tiles for passing
       store.selectTile(tiles[0])
       store.selectTile(tiles[1])
       store.selectTile(tiles[2])
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.selectedTiles).toHaveLength(3)
     })
 
     it('should coordinate tile passing between players', async () => {
       const service = initializeCharlestonResilientService()
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       const selectedTiles = createTestTiles(3)
 
@@ -352,27 +369,29 @@ describe('Charleston Multiplayer Coordination', () => {
     it('should handle tile reception coordination', () => {
       // This would be tested through event simulation
       // The actual tile reception is handled by the resilient service event listeners
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       expect(store.playerTiles).toBeDefined()
     })
   })
 
   describe('Error Handling and Recovery', () => {
     beforeEach(() => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
     })
 
     it('should handle player disconnections', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Player was ready, then disconnects
       store.setPlayerReady('player2', true)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerReadiness['player2']).toBe(true)
 
       // Simulate disconnection by setting to false
       store.setPlayerReady('player2', false)
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.playerReadiness['player2']).toBe(false)
     })
 
@@ -386,11 +405,12 @@ describe('Charleston Multiplayer Coordination', () => {
     })
 
     it('should recover from partial state synchronization', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Simulate partial state
       store.setPlayerReady('player1', true)
       store.setPlayerReady('player3', true)
+      store = useCharlestonStore.getState() // Get fresh state
 
       // State should remain consistent
       expect(store.playerReadiness['player1']).toBe(true)
@@ -399,11 +419,12 @@ describe('Charleston Multiplayer Coordination', () => {
     })
 
     it('should handle room state inconsistencies', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Room changes during Charleston
       store.setMultiplayerMode(true, 'room123')
       store.setMultiplayerMode(true, 'room456') // Different room
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(store.roomId).toBe('room456')
       expect(store.isMultiplayerMode).toBe(true)
@@ -412,7 +433,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Performance in Multiplayer Scenarios', () => {
     it('should handle rapid player state changes', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Rapid state changes from multiple players
       const playerIds = ['player1', 'player2', 'player3', 'player4']
@@ -422,19 +443,21 @@ describe('Charleston Multiplayer Coordination', () => {
         const isReady = i % 2 === 0
         store.setPlayerReady(playerId, isReady)
       }
+      store = useCharlestonStore.getState() // Get fresh state
 
       // Should handle without issues
       expect(Object.keys(store.playerReadiness)).toHaveLength(4)
     })
 
     it('should handle many simultaneous players', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       // Simulate many players (stress test)
       const playerCount = 50
       for (let i = 1; i <= playerCount; i++) {
         store.setPlayerReady(`player${i}`, i % 2 === 0)
       }
+      store = useCharlestonStore.getState() // Get fresh state
 
       expect(Object.keys(store.playerReadiness)).toHaveLength(playerCount)
     })
@@ -457,7 +480,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
   describe('Charleston Multiplayer Integration Scenarios', () => {
     it('should coordinate complete Charleston workflow', async () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
       const service = initializeCharlestonResilientService()
 
       // Setup multiplayer Charleston
@@ -479,6 +502,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
       // Complete phase
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
       expect(store.currentPhase).toBe('across')
 
       // Continue through Charleston phases...
@@ -487,7 +511,7 @@ describe('Charleston Multiplayer Coordination', () => {
     })
 
     it('should handle mixed player readiness states', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
@@ -497,6 +521,7 @@ describe('Charleston Multiplayer Coordination', () => {
       store.setPlayerReady('player2', false) // Not ready
       store.setPlayerReady('player3', true)  // Ready
       // player4 never set (undefined)
+      store = useCharlestonStore.getState() // Get fresh state
 
       const readyPlayers = Object.entries(store.playerReadiness)
         .filter(([_, isReady]) => isReady)
@@ -506,7 +531,7 @@ describe('Charleston Multiplayer Coordination', () => {
     })
 
     it('should maintain state consistency across phase transitions', () => {
-      const store = useCharlestonStore.getState()
+      let store = useCharlestonStore.getState()
 
       store.setMultiplayerMode(true, 'room123')
       store.startCharleston()
@@ -518,6 +543,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
       // Phase transition
       store.completePhase()
+      store = useCharlestonStore.getState() // Get fresh state
 
       // State should remain consistent
       expect(store.isMultiplayerMode).toBe(true)

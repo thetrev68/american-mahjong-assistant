@@ -3,6 +3,7 @@ import globals from 'globals'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 import tseslint from 'typescript-eslint'
+import testingLibrary from 'eslint-plugin-testing-library'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
 
@@ -19,9 +20,7 @@ export default tseslint.config([
       'node_modules/**',
       '**/*.d.ts',
       'src/features/gameplay/GameModeView.tsx',
-      'public/intelligence/nmjl-patterns/pattern-analysis-script.js',
-      'src/__tests__/integration/solo-game-workflow.test.tsx',
-      'src/features/room-setup/__tests__/*.test.tsx'
+      'src/__tests__/integration/solo-game-workflow.test.tsx'
     ]
   },
 
@@ -58,8 +57,8 @@ export default tseslint.config([
         ...globals.es2022,
       },
       parserOptions: {
-        project: null, // Disable type-aware linting for simpler config
-        tsconfigRootDir: __dirname, // Explicitly set root directory to resolve path ambiguity
+        project: ['tsconfig.app.json'],
+        tsconfigRootDir: __dirname,
       }
     },
     rules: {
@@ -87,9 +86,14 @@ export default tseslint.config([
   // Relaxed rules for test files
   {
     files: ['**/__tests__/**/*.{ts,tsx}', '**/*.test.{ts,tsx}', '**/*.spec.{ts,tsx}'],
+    plugins: {
+      'testing-library': testingLibrary,
+    },
     rules: {
+      ...testingLibrary.configs.react.rules,
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
+      'testing-library/no-unnecessary-act': 'off',
     }
   }
 ])

@@ -48,19 +48,19 @@ const mockPatterns: NMJL2025Pattern[] = [
 ]
 
 const mockTiles = [
-  { suit: 'bams', value: '1', id: 'tile-1' },
-  { suit: 'bams', value: '2', id: 'tile-2' },
-  { suit: 'bams', value: '3', id: 'tile-3' },
-  { suit: 'cracks', value: '1', id: 'tile-4' },
-  { suit: 'cracks', value: '2', id: 'tile-5' },
-  { suit: 'cracks', value: '3', id: 'tile-6' },
-  { suit: 'dots', value: '1', id: 'tile-7' },
-  { suit: 'dots', value: '2', id: 'tile-8' },
-  { suit: 'dots', value: '3', id: 'tile-9' },
-  { suit: 'flowers', value: 'f1', id: 'tile-10' },
-  { suit: 'flowers', value: 'f2', id: 'tile-11' },
-  { suit: 'flowers', value: 'f3', id: 'tile-12' },
-  { suit: 'flowers', value: 'f4', id: 'tile-13' }
+  { suit: 'bams', value: '1', id: '1B' },
+  { suit: 'bams', value: '2', id: '2B' },
+  { suit: 'bams', value: '3', id: '3B' },
+  { suit: 'cracks', value: '1', id: '1C' },
+  { suit: 'cracks', value: '2', id: '2C' },
+  { suit: 'cracks', value: '3', id: '3C' },
+  { suit: 'dots', value: '1', id: '1D' },
+  { suit: 'dots', value: '2', id: '2D' },
+  { suit: 'dots', value: '3', id: '3D' },
+  { suit: 'flowers', value: 'f1', id: 'f1' },
+  { suit: 'flowers', value: 'f2', id: 'f2' },
+  { suit: 'flowers', value: 'f3', id: 'f3' },
+  { suit: 'flowers', value: 'f4', id: 'f4' }
 ]
 
 describe('Store Integration Tests', () => {
@@ -76,23 +76,23 @@ describe('Store Integration Tests', () => {
 
   describe('Pattern Store → Tile Store Integration', () => {
     it('should maintain consistent pattern analysis when tiles change', async () => {
-      const patternStore = usePatternStore.getState()
-      const tileStore = useTileStore.getState()
-      const intelligenceStore = useIntelligenceStore.getState()
+      // Access pattern store actions and state correctly
+      // Access tile store actions and state correctly
+      // Access intelligence store actions and state correctly
 
       // Select patterns first
-      patternStore.selectPattern(mockPatterns[0].Hands_Key)
-      patternStore.selectPattern(mockPatterns[1].Hands_Key)
+      usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
+      usePatternStore.getState().selectPattern(mockPatterns[1].Hands_Key)
 
-      const selectedPatterns = patternStore.getTargetPatterns()
+      const selectedPatterns = usePatternStore.getState().getTargetPatterns()
       expect(selectedPatterns).toHaveLength(2)
 
       // Add tiles
-      mockTiles.forEach(tile => tileStore.addTile(tile.id))
-      expect(tileStore.handSize).toBe(13)
+      mockTiles.forEach(tile => useTileStore.getState().addTile(tile.id))
+      expect(useTileStore.getState().handSize).toBe(13)
 
       // Intelligence analysis should reflect both patterns and tiles
-      const analysis = intelligenceStore.currentAnalysis
+      const analysis = useIntelligenceStore.getState().currentAnalysis
       expect(analysis).toBeDefined()
       
       // Analysis should contain pattern recommendations
@@ -108,89 +108,89 @@ describe('Store Integration Tests', () => {
     })
 
     it('should update analysis when patterns are deselected', () => {
-      const patternStore = usePatternStore.getState()
-      const intelligenceStore = useIntelligenceStore.getState()
+      // Access pattern store actions and state correctly
+      // Access intelligence store actions and state correctly
 
       // Select and then deselect pattern
-      patternStore.selectPattern(mockPatterns[0].Hands_Key)
-      expect(patternStore.getTargetPatterns()).toHaveLength(1)
+      usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
+      expect(usePatternStore.getState().getTargetPatterns()).toHaveLength(1)
 
-      patternStore.removeTargetPattern(mockPatterns[0].Hands_Key)
-      expect(patternStore.getTargetPatterns()).toHaveLength(0)
+      usePatternStore.getState().removeTargetPattern(mockPatterns[0].Hands_Key)
+      expect(usePatternStore.getState().getTargetPatterns()).toHaveLength(0)
 
       // Analysis should reflect the change
-      const analysis = intelligenceStore.currentAnalysis
+      const analysis = useIntelligenceStore.getState().currentAnalysis
       expect(analysis?.recommendedPatterns).toHaveLength(0)
     })
   })
 
   describe('Game Store → Charleston Store Integration', () => {
     it('should coordinate phase transitions correctly', () => {
-      const gameStore = useGameStore.getState()
-      const charlestonStore = useCharlestonStore.getState()
+      // Access game store actions and state correctly
+      // Access charleston store actions and state correctly
 
       // Start game in tile input phase
-      gameStore.setGamePhase('tile-input')
-      expect(gameStore.gamePhase).toBe('tile-input')
+      useGameStore.getState().setGamePhase('tile-input')
+      expect(useGameStore.getState().gamePhase).toBe('tile-input')
 
       // Transition to charleston
-      gameStore.setGamePhase('charleston')
-      expect(gameStore.gamePhase).toBe('charleston')
+      useGameStore.getState().setGamePhase('charleston')
+      expect(useGameStore.getState().gamePhase).toBe('charleston')
 
       // Charleston store should initialize properly
-      expect(charlestonStore.currentPhase).toBe('right')
+      expect(useCharlestonStore.getState().currentPhase).toBe('right')
 
       // Complete charleston phases
-      charlestonStore.setPhase('across')
-      expect(charlestonStore.currentPhase).toBe('across')
+      useCharlestonStore.getState().setPhase('across')
+      expect(useCharlestonStore.getState().currentPhase).toBe('across')
 
-      charlestonStore.setPhase('left')
-      expect(charlestonStore.currentPhase).toBe('left')
+      useCharlestonStore.getState().setPhase('left')
+      expect(useCharlestonStore.getState().currentPhase).toBe('left')
 
-      charlestonStore.setPhase('complete')
-      expect(charlestonStore.currentPhase).toBe('complete')
+      useCharlestonStore.getState().setPhase('complete')
+      expect(useCharlestonStore.getState().currentPhase).toBe('complete')
 
       // Game phase should be ready to advance
-      expect(gameStore.gamePhase).toBe('charleston')
+      expect(useGameStore.getState().gamePhase).toBe('charleston')
     })
 
     it('should handle player readiness correctly', () => {
-      const gameStore = useGameStore.getState()
+      // Access game store actions and state correctly
 
       // Set up solo mode
-      gameStore.setCoPilotMode('solo')
-      gameStore.addPlayer({ id: 'player-1', name: 'Solo Player', isReady: false, position: 'east', isConnected: true })
+      useGameStore.getState().setCoPilotMode('solo')
+      useGameStore.getState().addPlayer({ id: 'player-1', name: 'Solo Player', isReady: false, position: 'east', isConnected: true })
 
-      expect(gameStore.players).toHaveLength(1)
-      expect(gameStore.coPilotMode).toBe('solo')
+      expect(useGameStore.getState().players).toHaveLength(1)
+      expect(useGameStore.getState().coPilotMode).toBe('solo')
 
       // Mark player as ready
-      gameStore.updatePlayer('player-1', { isReady: true })
-      const player = gameStore.players.find(p => p.id === 'player-1')
+      useGameStore.getState().updatePlayer('player-1', { isReady: true })
+      const player = useGameStore.getState().players.find(p => p.id === 'player-1')
       expect(player?.isReady).toBe(true)
     })
   })
 
   describe('Tile Store → Charleston Store Integration', () => {
     it('should handle tile passing correctly', () => {
-      const tileStore = useTileStore.getState()
-      const charlestonStore = useCharlestonStore.getState()
+      // Access tile store actions and state correctly
+      // Access charleston store actions and state correctly
 
       // Set up initial hand
-      mockTiles.slice(0, 13).forEach(tile => tileStore.addTile(tile.id))
-      expect(tileStore.handSize).toBe(13)
+      mockTiles.slice(0, 13).forEach(tile => useTileStore.getState().addTile(tile.id))
+      expect(useTileStore.getState().handSize).toBe(13)
 
       // Select tiles to pass
       const tilesToPass = mockTiles.slice(0, 3)
-      tilesToPass.forEach(tile => charlestonStore.selectTile(tile))
+      tilesToPass.forEach(tile => useCharlestonStore.getState().selectTile(tile))
 
-      expect(charlestonStore.selectedTiles).toHaveLength(3)
+      expect(useCharlestonStore.getState().selectedTiles).toHaveLength(3)
 
       // Pass tiles (solo mode simulation)
-      charlestonStore.completePhase()
+      useCharlestonStore.getState().completePhase()
       
       // Tiles should be removed from hand
-      expect(tileStore.handSize).toBe(10)
+      expect(useTileStore.getState().handSize).toBe(10)
 
       // Receive tiles
       const receivedTiles = [
@@ -199,26 +199,26 @@ describe('Store Integration Tests', () => {
         { suit: 'bam', rank: '6', id: 'received-3' }
       ]
 
-      receivedTiles.forEach(tile => tileStore.addTile(tile.id))
-      expect(tileStore.handSize).toBe(13)
+      receivedTiles.forEach(tile => useTileStore.getState().addTile(tile.id))
+      expect(useTileStore.getState().handSize).toBe(13)
 
       // Charleston round should be complete
-      expect(charlestonStore.selectedTiles).toHaveLength(0)
+      expect(useCharlestonStore.getState().selectedTiles).toHaveLength(0)
     })
   })
 
   describe('Game Store → History Store Integration', () => {
     it('should record completed games correctly', async () => {
-      const gameStore = useGameStore.getState()
-      const historyStore = useHistoryStore.getState()
-      const patternStore = usePatternStore.getState()
+      // Access game store actions and state correctly
+      // Access history store actions and state correctly
+      // Access pattern store actions and state correctly
 
       // Set up game
-      gameStore.setCoPilotMode('solo')
-      gameStore.setGamePhase('playing')
+      useGameStore.getState().setCoPilotMode('solo')
+      useGameStore.getState().setGamePhase('playing')
       
       // Select patterns
-      patternStore.selectPattern(mockPatterns[0].Hands_Key)
+      usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
 
       // Simulate game completion
       const gameData = {
@@ -227,7 +227,7 @@ describe('Store Integration Tests', () => {
         outcome: 'won' as const,
         finalScore: 25,
         difficulty: 'intermediate' as const,
-        selectedPatterns: patternStore.getTargetPatterns(),
+        selectedPatterns: usePatternStore.getState().getTargetPatterns(),
         finalHand: mockTiles.slice(0, 14).map(tile => ({
           ...tile,
           suit: tile.suit as TileSuit,
@@ -266,10 +266,10 @@ describe('Store Integration Tests', () => {
         createdAt: new Date(),
         selectedPatterns: gameData.selectedPatterns.map(() => mockPatterns[0]) // Convert to NMJL2025Pattern format
       }
-      historyStore.completeGame(gameDataWithTimestamp)
+      useHistoryStore.getState().completeGame(gameDataWithTimestamp)
 
       // Verify game was recorded
-      const completedGames = historyStore.completedGames
+      const completedGames = useHistoryStore.getState().completedGames
       expect(completedGames).toHaveLength(1)
 
       const recordedGame = completedGames[0]
@@ -278,7 +278,7 @@ describe('Store Integration Tests', () => {
       expect(recordedGame.selectedPatterns).toHaveLength(1)
 
       // Performance stats should be updated
-      const stats = historyStore.performanceStats
+      const stats = useHistoryStore.getState().performanceStats
       expect(stats.totalGames).toBe(1)
       expect(stats.gamesWon).toBe(1)
       expect(stats.winRate).toBe(100)
@@ -287,53 +287,53 @@ describe('Store Integration Tests', () => {
 
   describe('Cross-Store State Consistency', () => {
     it('should maintain consistent state across all stores', () => {
-      const gameStore = useGameStore.getState()
-      const patternStore = usePatternStore.getState()
-      const tileStore = useTileStore.getState()
+      // Access game store actions and state correctly
+      // Access pattern store actions and state correctly
+      // Access tile store actions and state correctly
 
       // Set up coordinated state
-      gameStore.setCoPilotMode('solo')
-      gameStore.setGamePhase('tile-input')
+      useGameStore.getState().setCoPilotMode('solo')
+      useGameStore.getState().setGamePhase('tile-input')
       
-      patternStore.selectPattern(mockPatterns[0].Hands_Key)
-      mockTiles.forEach(tile => tileStore.addTile(tile.id))
+      usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
+      mockTiles.forEach(tile => useTileStore.getState().addTile(tile.id))
 
       // All stores should reflect consistent state
-      expect(gameStore.coPilotMode).toBe('solo')
-      expect(patternStore.getTargetPatterns()).toHaveLength(1)
-      expect(tileStore.handSize).toBe(13)
+      expect(useGameStore.getState().coPilotMode).toBe('solo')
+      expect(usePatternStore.getState().getTargetPatterns()).toHaveLength(1)
+      expect(useTileStore.getState().handSize).toBe(13)
 
       // Transition to next phase
-      gameStore.setGamePhase('charleston')
+      useGameStore.getState().setGamePhase('charleston')
       
       // State should remain consistent
-      expect(gameStore.gamePhase).toBe('charleston')
-      expect(patternStore.getTargetPatterns()).toHaveLength(1) // Patterns preserved
-      expect(tileStore.handSize).toBe(13) // Tiles preserved
+      expect(useGameStore.getState().gamePhase).toBe('charleston')
+      expect(usePatternStore.getState().getTargetPatterns()).toHaveLength(1) // Patterns preserved
+      expect(useTileStore.getState().handSize).toBe(13) // Tiles preserved
     })
 
     it('should handle store resets gracefully', () => {
-      const gameStore = useGameStore.getState()
-      const patternStore = usePatternStore.getState()
-      const tileStore = useTileStore.getState()
+      // Access game store actions and state correctly
+      // Access pattern store actions and state correctly
+      // Access tile store actions and state correctly
 
       // Set up some state
-      gameStore.setCoPilotMode('solo')
-      patternStore.selectPattern(mockPatterns[0].Hands_Key)
-      tileStore.addTile(mockTiles[0].id)
+      useGameStore.getState().setCoPilotMode('solo')
+      usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
+      useTileStore.getState().addTile(mockTiles[0].id)
 
       // Reset individual store
-      patternStore.clearSelection()
-      expect(patternStore.getTargetPatterns()).toHaveLength(0)
+      usePatternStore.getState().clearSelection()
+      expect(usePatternStore.getState().getTargetPatterns()).toHaveLength(0)
       
       // Other stores should remain unaffected
-      expect(gameStore.coPilotMode).toBe('solo')
-      expect(tileStore.handSize).toBe(1)
+      expect(useGameStore.getState().coPilotMode).toBe('solo')
+      expect(useTileStore.getState().handSize).toBe(1)
 
       // Reset game should reset everything
-      gameStore.resetGame()
-      expect(gameStore.coPilotMode).toBe(null) // default
-      expect(gameStore.gamePhase).toBe('lobby') // default
+      useGameStore.getState().resetGame()
+      expect(useGameStore.getState().coPilotMode).toBe(null) // default
+      expect(useGameStore.getState().gamePhase).toBe('lobby') // default
     })
   })
 })

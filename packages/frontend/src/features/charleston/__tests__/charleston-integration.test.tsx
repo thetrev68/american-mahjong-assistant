@@ -9,18 +9,56 @@ import { useCharlestonStore } from '../../../stores/charleston-store'
 import { useGameStore } from '../../../stores/game-store'
 import { useTileStore } from '../../../stores/tile-store'
 import { useRoomSetupStore } from '../../../stores/room-setup.store'
+import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { usePatternStore } from '../../../stores/pattern-store'
+import { useTurnStore, useTurnSelectors } from '../../../stores/turn-store'
+import { useHistoryStore } from '../../../stores/history-store'
+import { usePlayerStore } from '../../../stores/player.store'
+import { useRoomStore } from '../../../stores/room.store'
 import { createTestHand, TilePresets } from '../../../__tests__/factories'
 import type { Tile } from 'shared-types'
 
 // Mock all store dependencies
-vi.mock('../../../stores/charleston-store')
-vi.mock('../../../stores/game-store')
-vi.mock('../../../stores/tile-store')
-vi.mock('../../../stores/room-setup.store')
-vi.mock('../../../stores/intelligence-store')
-vi.mock('../../../stores/pattern-store')
-vi.mock('../../../stores/turn-store')
-vi.mock('../../../stores/history-store')
+vi.mock('../../../stores/charleston-store', () => ({
+  useCharlestonStore: vi.fn()
+}))
+
+vi.mock('../../../stores/game-store', () => ({
+  useGameStore: vi.fn()
+}))
+
+vi.mock('../../../stores/tile-store', () => ({
+  useTileStore: vi.fn()
+}))
+
+vi.mock('../../../stores/room-setup.store', () => ({
+  useRoomSetupStore: vi.fn()
+}))
+
+vi.mock('../../../stores/intelligence-store', () => ({
+  useIntelligenceStore: vi.fn()
+}))
+
+vi.mock('../../../stores/pattern-store', () => ({
+  usePatternStore: vi.fn()
+}))
+
+vi.mock('../../../stores/turn-store', () => ({
+  useTurnStore: vi.fn(),
+  useTurnSelectors: vi.fn()
+}))
+
+vi.mock('../../../stores/history-store', () => ({
+  useHistoryStore: vi.fn()
+}))
+
+vi.mock('../../../stores/player.store', () => ({
+  usePlayerStore: vi.fn()
+}))
+
+vi.mock('../../../stores/room.store', () => ({
+  useRoomStore: vi.fn()
+}))
 
 // Mock navigation
 const mockNavigate = vi.fn()
@@ -200,46 +238,62 @@ describe('Charleston Integration Tests', () => {
       clearRoom: vi.fn()
     }
 
-    // Mock store getState functions
+    // Setup store mocks to return mock objects when called as hooks
     ;(useCharlestonStore as any).mockReturnValue(mockCharlestonStore)
     ;(useGameStore as any).mockReturnValue(mockGameStore)
     ;(useTileStore as any).mockReturnValue(mockTileStore)
     ;(useRoomSetupStore as any).mockReturnValue(mockRoomSetupStore)
 
-    // Mock other required stores
-    vi.mock('../../../stores/intelligence-store', () => ({
-      useIntelligenceStore: () => ({
-        currentAnalysis: null,
-        isAnalyzing: false,
-        clearAnalysis: vi.fn(),
-        analyzeHand: vi.fn()
-      })
-    }))
+    // Mock additional stores that GameModeView imports
+    const mockIntelligenceStore = {
+      currentAnalysis: null,
+      isAnalyzing: false,
+      clearAnalysis: vi.fn(),
+      analyzeHand: vi.fn()
+    }
 
-    vi.mock('../../../stores/pattern-store', () => ({
-      usePatternStore: () => ({
-        selectedPatterns: [],
-        clearSelection: vi.fn()
-      })
-    }))
+    const mockPatternStore = {
+      selectedPatterns: [],
+      targetPatterns: [],
+      clearSelection: vi.fn(),
+      getTargetPatterns: vi.fn(() => [])
+    }
 
-    vi.mock('../../../stores/turn-store', () => ({
-      useTurnStore: () => ({
-        currentPlayer: 'player1',
-        turnTimeRemaining: 30
-      }),
-      useTurnSelectors: () => ({
-        isCurrentPlayerTurn: true,
-        canTakeAction: true
-      })
-    }))
+    const mockTurnStore = {
+      currentPlayer: 'player1',
+      turnTimeRemaining: 30
+    }
 
-    vi.mock('../../../stores/history-store', () => ({
-      useHistoryStore: () => ({
-        gameHistory: [],
-        addEntry: vi.fn()
-      })
-    }))
+    const mockHistoryStore = {
+      gameHistory: [],
+      addEntry: vi.fn()
+    }
+
+    const mockPlayerStore = {
+      currentPlayer: { id: 'player1', name: 'Player 1' },
+      allPlayers: [{ id: 'player1', name: 'Player 1' }]
+    }
+
+    const mockRoomStore = {
+      roomId: 'room123',
+      roomCode: 'TEST123',
+      players: [{ id: 'player1', name: 'Player 1' }],
+      hostId: 'player1'
+    }
+
+    const mockTurnSelectors = {
+      isCurrentPlayerTurn: true,
+      canTakeAction: true
+    }
+
+    // Setup all additional store mocks
+    ;(useIntelligenceStore as any).mockReturnValue(mockIntelligenceStore)
+    ;(usePatternStore as any).mockReturnValue(mockPatternStore)
+    ;(useTurnStore as any).mockReturnValue(mockTurnStore)
+    ;(useHistoryStore as any).mockReturnValue(mockHistoryStore)
+    ;(usePlayerStore as any).mockReturnValue(mockPlayerStore)
+    ;(useRoomStore as any).mockReturnValue(mockRoomStore)
+    ;(useTurnSelectors as any).mockReturnValue(mockTurnSelectors)
   })
 
   afterEach(() => {
