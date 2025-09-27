@@ -1,12 +1,31 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { useIntelligenceStore } from '../intelligence-store'
+import type { PatternAnalysis } from '../intelligence-store'
 import {
   createTileRecommendation,
-  createPatternAnalysis,
   AnalysisPresets,
   createTurnIntelligenceGameState,
   createTile
 } from '../../__tests__/factories'
+
+// Helper factory for intelligence store PatternAnalysis (different from engine PatternAnalysisFacts)
+function createIntelligencePatternAnalysis(options: Partial<PatternAnalysis> = {}): PatternAnalysis {
+  return {
+    patternId: options.patternId || 'test-pattern',
+    section: options.section || 'TEST',
+    line: options.line || 1,
+    pattern: options.pattern || 'Test Pattern',
+    groups: options.groups || [],
+    completionPercentage: options.completionPercentage ?? 50,
+    tilesNeeded: options.tilesNeeded ?? 5,
+    missingTiles: options.missingTiles || ['1B', '2B'],
+    confidenceScore: options.confidenceScore ?? 75,
+    difficulty: options.difficulty || 'medium',
+    estimatedTurns: options.estimatedTurns ?? 8,
+    riskLevel: options.riskLevel || 'medium',
+    strategicValue: options.strategicValue ?? 5
+  }
+}
 
 // Mock the analysis engine
 vi.mock('../../lib/services/analysis-engine-lazy', () => ({
@@ -447,20 +466,21 @@ describe('Intelligence Store', () => {
     })
 
     it('should get best patterns', () => {
-      const store = useIntelligenceStore.getState()
       const analysis = {
         ...AnalysisPresets.basic(),
         bestPatterns: [
-          createPatternAnalysis({ patternId: 'pattern1', strategicValue: 7 }),
-          createPatternAnalysis({ patternId: 'pattern2', strategicValue: 9 }),
-          createPatternAnalysis({ patternId: 'pattern3', strategicValue: 6 })
+          createIntelligencePatternAnalysis({ patternId: 'pattern1', strategicValue: 7 }),
+          createIntelligencePatternAnalysis({ patternId: 'pattern2', strategicValue: 9 }),
+          createIntelligencePatternAnalysis({ patternId: 'pattern3', strategicValue: 6 })
         ]
       }
-      
+
       useIntelligenceStore.setState({ currentAnalysis: analysis })
-      
+
+      // Get fresh state after updating
+      const store = useIntelligenceStore.getState()
       const bestPatterns = store.getBestPatterns(2)
-      
+
       expect(bestPatterns).toHaveLength(2)
       expect(bestPatterns[0].patternId).toBe('pattern2') // Highest strategic value
       expect(bestPatterns[1].patternId).toBe('pattern1')
@@ -507,27 +527,28 @@ describe('Intelligence Store', () => {
     })
 
     it('should generate strategic summary', () => {
-      const store = useIntelligenceStore.getState()
-      
       // With analysis
       const analysis = {
         ...AnalysisPresets.basic(),
         bestPatterns: [
-          createPatternAnalysis({ 
-            patternId: 'pattern1', 
+          createIntelligencePatternAnalysis({
+            patternId: 'pattern1',
             completionPercentage: 75,
             tilesNeeded: 3
           })
         ]
       }
       useIntelligenceStore.setState({ currentAnalysis: analysis })
-      
+
+      // Get fresh state after updating
+      let store = useIntelligenceStore.getState()
       const summary = store.getStrategicSummary()
       expect(summary).toContain('75%')
       expect(summary).toContain('3 tiles needed')
-      
+
       // Without analysis
       useIntelligenceStore.setState({ currentAnalysis: null })
+      store = useIntelligenceStore.getState() // Get fresh state again
       expect(store.getStrategicSummary()).toBe('No analysis available')
       
       // With analysis but no patterns
