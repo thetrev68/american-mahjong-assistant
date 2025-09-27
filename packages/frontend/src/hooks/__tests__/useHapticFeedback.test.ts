@@ -27,13 +27,27 @@ describe('useHapticFeedback Hook', () => {
 
   beforeEach(() => {
     // Set up mocks for each test
-    navigator.vibrate = mockVibrate;
+    Object.defineProperty(navigator, 'vibrate', {
+      value: mockVibrate,
+      writable: true,
+      configurable: true
+    });
     (window as WindowWithHaptics).TapticEngine = mockTapticEngine;
-    (window as WindowWithHaptics).DeviceMotionEvent = DeviceMotionEvent;
+    // Mock DeviceMotionEvent for test environment
+    (window as WindowWithHaptics).DeviceMotionEvent = class MockDeviceMotionEvent {} as any;
   });
 
   afterEach(() => {
-    navigator.vibrate = originalVibrate;
+    // Restore original values
+    if (originalVibrate) {
+      Object.defineProperty(navigator, 'vibrate', {
+        value: originalVibrate,
+        writable: true,
+        configurable: true
+      });
+    } else {
+      delete (navigator as any).vibrate;
+    }
     (window as WindowWithHaptics).TapticEngine = originalTapticEngine;
     (window as WindowWithHaptics).DeviceMotionEvent = originalDeviceMotionEvent;
     vi.clearAllMocks();
@@ -61,8 +75,11 @@ describe('useHapticFeedback Hook', () => {
 
   describe('Haptic Functions', () => {
     it('should call vibrate function when triggering haptic feedback', () => {
+      // Remove TapticEngine to force fallback to navigator.vibrate
+      delete (window as WindowWithHaptics).TapticEngine;
+
       const { result } = renderHook(() => useHapticFeedback());
-      
+
       act(() => {
         result.current.triggerLight();
       });
@@ -102,10 +119,3 @@ describe('useHapticFeedback Hook', () => {
   });
 });
 
-describe('useHapticTester Hook', () => {
-  // ...
-});
-
-describe('useContextualHaptics Hook', () => {
-  // ...
-});

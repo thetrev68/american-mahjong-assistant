@@ -68,7 +68,7 @@ vi.mock('react-router-dom', () => ({
 
 // Mock UI components that might cause issues in tests
 vi.mock('../../../ui-components/DevShortcuts', () => ({
-  DevShortcuts: ({ variant, onSkipToGameplay, onResetGame }: any) => (
+  default: ({ variant, onSkipToGameplay, onResetGame }: any) => (
     <div data-testid="dev-shortcuts" data-variant={variant}>
       {onSkipToGameplay && (
         <button onClick={onSkipToGameplay} data-testid="skip-to-gameplay">
@@ -85,7 +85,7 @@ vi.mock('../../../ui-components/DevShortcuts', () => ({
 }))
 
 vi.mock('../../gameplay/GameScreenLayout', () => ({
-  GameScreenLayout: ({ gamePhase, onNavigateToCharleston, children }: any) => (
+  default: ({ gamePhase, onNavigateToCharleston, children }: any) => (
     <div data-testid="game-screen-layout" data-phase={gamePhase}>
       {onNavigateToCharleston && (
         <button onClick={onNavigateToCharleston} data-testid="navigate-to-charleston">
@@ -221,14 +221,19 @@ describe('Charleston Integration Tests', () => {
     // Setup Tile store mock
     mockTileStore = {
       playerTiles: createCharlestonHand(),
+      playerHand: createCharlestonHand(),
       selectedForAction: [],
       exposedTiles: [],
       discardPile: [],
+      handSize: 13,
       clearHand: vi.fn(),
       addToHand: vi.fn(),
       removeFromHand: vi.fn(),
       clearSelection: vi.fn(),
-      setSelectedForAction: vi.fn()
+      setSelectedForAction: vi.fn(),
+      setDealerHand: vi.fn(),
+      addTile: vi.fn(),
+      removeTile: vi.fn()
     }
 
     // Setup Room Setup store mock
@@ -249,7 +254,7 @@ describe('Charleston Integration Tests', () => {
       currentAnalysis: null,
       isAnalyzing: false,
       clearAnalysis: vi.fn(),
-      analyzeHand: vi.fn()
+      analyzeHand: vi.fn(() => Promise.resolve())
     }
 
     const mockPatternStore = {
@@ -282,8 +287,38 @@ describe('Charleston Integration Tests', () => {
     }
 
     const mockTurnSelectors = {
-      isCurrentPlayerTurn: true,
-      canTakeAction: true
+      // Basic turn info
+      isGameActive: true,
+      currentPlayerName: 'Player 1',
+      nextPlayerName: 'Player 2',
+      turnNumber: 1,
+      roundNumber: 1,
+      currentWind: 'east',
+
+      // Turn state
+      canAdvanceTurn: true,
+      turnDuration: 0,
+
+      // Player info
+      playerCount: 1,
+      turnOrderDisplay: ['Player 1'],
+
+      // Current player checks
+      isMyTurn: vi.fn((playerId: string) => playerId === 'player1'),
+
+      // Mode info
+      isMultiplayer: false,
+
+      // Action management
+      getPlayerActions: vi.fn(() => ({ hasDrawn: false, hasDiscarded: false, availableActions: [] })),
+      currentCallOpportunity: null,
+      discardPile: [],
+      wallCount: 136,
+
+      // Action helpers
+      canPlayerDraw: vi.fn(() => true),
+      canPlayerDiscard: vi.fn(() => false),
+      hasCallOpportunity: vi.fn(() => false)
     }
 
     // Setup all additional store mocks

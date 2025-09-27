@@ -59,7 +59,7 @@ describe('Error Handling and Edge Cases Integration', () => {
       expect(screen.getByText(/American Mahjong/i)).toBeInTheDocument()
 
       // Navigate to pattern selection
-      const startButton = screen.getByText(/Start Playing/i) || screen.getByText(/Get Started/i)
+      const startButton = screen.getByText(/Start Game/i) || screen.getByText(/Get Started/i)
       await userEvent.click(startButton)
 
       // Should show error state but not crash
@@ -134,7 +134,7 @@ describe('Error Handling and Edge Cases Integration', () => {
       )
 
       // Navigate and trigger pattern loading
-      const startButton = screen.getByText(/Start Playing/i) || screen.getByText(/Get Started/i)
+      const startButton = screen.getByText(/Start Game/i) || screen.getByText(/Get Started/i)
       await userEvent.click(startButton)
 
       // Should eventually recover

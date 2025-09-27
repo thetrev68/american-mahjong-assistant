@@ -35,7 +35,8 @@
       "Bash(npm uninstall:*)",
       "Bash(cat:*)",
       "Read(//c/Users/thetr/OneDrive/Pictures/Screenshots 1/**)",
-      "Bash(npx vitest:*)"
+      "Bash(npx vitest:*)",
+      "Bash(timeout 10 npx vitest src/features/charleston/__tests__/charleston-integration.test.tsx --run)"
     ],
     "deny": [],
     "ask": [],
