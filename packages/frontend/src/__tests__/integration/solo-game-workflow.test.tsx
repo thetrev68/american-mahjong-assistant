@@ -7,7 +7,6 @@ import React from 'react'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 // Import the main application components
@@ -51,9 +50,7 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        {children}
-      </BrowserRouter>
+      {children}
     </QueryClientProvider>
   )
 }
@@ -87,12 +84,12 @@ describe('Solo Game Complete Workflow Integration', () => {
     expect(screen.getByText(/American Mahjong/i)).toBeInTheDocument()
     
     // Navigate to room setup
-    const startButton = screen.getByText(/Start Playing/i) || screen.getByText(/Get Started/i)
+    const startButton = screen.getByText(/Start Game/i)
     await user.click(startButton)
 
     // Wait for room setup to load
     await waitFor(() => {
-      expect(screen.getByText(/Room Setup/i) || screen.getByText(/Co-Pilot Mode/i)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /Room Setup/i })).toBeInTheDocument()
     })
 
     // Select Solo Co-Pilot Mode
