@@ -6,7 +6,7 @@
 import { forwardRef, useRef, useImperativeHandle } from 'react'
 import type { KeyboardEvent } from 'react'
 import { AnimatedTile, type AnimatedTileProps } from '../tiles/AnimatedTile'
-import { useAccessibilityContext } from './AccessibilityProvider'
+import { useAccessibilityContext } from './useAccessibilityContext'
 import type { Tile } from 'shared-types';
 
 interface AccessibleTileProps extends Omit<AnimatedTileProps, 'onClick'> {

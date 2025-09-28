@@ -285,7 +285,7 @@ export const useMultiplayerStore = create<MultiplayerState>()(
           // Uses sessionStorage for temporary persistence - cleared on browser restart
           currentPlayerId: state.currentPlayerId,
           currentRoom: state.currentRoom
-        } as any)
+        }) as any // eslint-disable-line @typescript-eslint/no-explicit-any -- Required for Zustand partialize function signature
       }
     ),
     { name: 'multiplayer-store' }

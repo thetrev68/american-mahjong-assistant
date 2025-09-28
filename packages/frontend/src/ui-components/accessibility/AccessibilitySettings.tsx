@@ -6,7 +6,7 @@
 import React, { useState } from 'react'
 import { Card } from '../Card'
 import { Button } from '../Button'
-import { useAccessibilityContext } from './AccessibilityProvider'
+import { useAccessibilityContext } from './useAccessibilityContext'
 import { FocusManager } from './FocusManager'
 
 interface AccessibilitySettingsProps {

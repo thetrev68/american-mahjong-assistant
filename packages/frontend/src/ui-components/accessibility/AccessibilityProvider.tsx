@@ -3,34 +3,10 @@
  * Global accessibility context and configuration
  */
 
-import React, { createContext, useContext } from 'react'
+import React from 'react'
 import type { ReactNode } from 'react'
-import { useAccessibility, type AccessibilityOptions } from '../../hooks/useAccessibility'
-
-interface AccessibilityContextType {
-  options: AccessibilityOptions
-  setOptions: (options: Partial<AccessibilityOptions>) => void
-  announceToScreenReader: (message: string, options?: { priority?: 'polite' | 'assertive' | 'off'; atomic?: boolean; relevant?: 'additions' | 'removals' | 'text' | 'all' }) => void
-  handleArrowNavigation: (
-    e: KeyboardEvent,
-    items: NodeListOf<HTMLElement> | HTMLElement[],
-    currentIndex: number,
-    onIndexChange: (newIndex: number) => void,
-    options?: { wrap?: boolean; orientation?: 'horizontal' | 'vertical' | 'both' }
-  ) => void
-  trapFocus: (container: HTMLElement, selector?: string) => () => void
-  getContrastRatio: (color1: string, color2: string) => number
-  isWCAGCompliant: (
-    foreground: string,
-    background: string,
-    level?: 'AA' | 'AAA',
-    size?: 'normal' | 'large'
-  ) => boolean
-  generateAriaAttributes: (config: { label?: string; labelledBy?: string; describedBy?: string; expanded?: boolean; selected?: boolean; checked?: boolean; invalid?: boolean; required?: boolean; live?: 'polite' | 'assertive' | 'off'; role?: string; level?: number }) => Record<string, string>
-  createSkipLink: (href: string, children: ReactNode) => React.ReactElement
-}
-
-const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined)
+import { useAccessibility } from '../../hooks/useAccessibility'
+import { AccessibilityContext } from './AccessibilityContext'
 
 interface AccessibilityProviderProps {
   children: ReactNode
@@ -93,14 +69,4 @@ const AccessibilityProvider: React.FC<AccessibilityProviderProps> = ({ children 
   )
 }
 
-// Moved to accessibility-utils.ts to avoid Fast Refresh issues
-const useAccessibilityContext = (): AccessibilityContextType => {
-  const context = useContext(AccessibilityContext)
-  if (!context) {
-    throw new Error('useAccessibilityContext must be used within AccessibilityProvider')
-  }
-  return context
-}
-
 export default AccessibilityProvider
-export { useAccessibilityContext }

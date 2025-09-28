@@ -228,7 +228,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
     touchState.current = null
   }, [
     onClick, onDoubleTap, onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown,
-    doubleTapEnabled, swipeThreshold, triggerHaptic, hideVisualFeedback, lastTap
+    doubleTapEnabled, swipeThreshold, triggerHaptic, hideVisualFeedback, lastTap, tile
   ])
 
   // Handle touch cancel
