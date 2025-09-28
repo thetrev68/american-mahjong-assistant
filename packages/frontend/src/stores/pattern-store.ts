@@ -230,9 +230,37 @@ export const usePatternStore = create<PatternState>()(
       },
       
       getTargetPatterns: () => {
-        const { targetPatterns, selectionOptions } = get()
+        const { targetPatterns, selectionOptions, patterns } = get()
+
+        // If selectionOptions are loaded, use them
+        if (selectionOptions.length > 0) {
+          return targetPatterns
+            .map(id => selectionOptions.find(option => option.id === id))
+            .filter(Boolean) as PatternSelectionOption[]
+        }
+
+        // Fallback: Create minimal PatternSelectionOption from raw patterns
+        // This handles the case where patterns are selected before loadPatterns() is called
         return targetPatterns
-          .map(id => selectionOptions.find(option => option.id === id))
+          .map(id => {
+            const pattern = patterns.find(p => p.Hands_Key === id)
+            if (!pattern) return null
+
+            return {
+              id: pattern.Hands_Key,
+              patternId: pattern['Pattern ID'],
+              displayName: `${pattern.Section} #${pattern.Line}: ${pattern.Hand_Description.toUpperCase()}`,
+              pattern: pattern.Hand_Pattern,
+              points: pattern.Hand_Points,
+              difficulty: pattern.Hand_Difficulty,
+              description: pattern.Hand_Description,
+              section: String(pattern.Section),
+              line: pattern.Line,
+              allowsJokers: pattern.Groups.some(group => group.Jokers_Allowed),
+              concealed: pattern.Hand_Conceiled,
+              groups: pattern.Groups
+            } as PatternSelectionOption
+          })
           .filter(Boolean) as PatternSelectionOption[]
       }
     })

@@ -137,11 +137,28 @@ export const useCharlestonStore = create<CharlestonStore>()(
 
         completePhase: () => {
           const state = get()
+
+          // Record the phase history with selected tiles
+          const phaseRecord = {
+            phase: state.currentPhase,
+            tilesPassed: [...state.selectedTiles],
+            tilesReceived: [], // Will be populated when receiving tiles
+            timestamp: Date.now()
+          }
+
+          // Note: In production, tile removal would be handled by the UI component
+          // that coordinates between Charleston Store and Tile Store
+          // This store focuses on Charleston phase logic only
+
           const nextPhase = getNextPhase(state.currentPhase, state.playerCount)
           if (nextPhase === 'complete') {
             get().endCharleston()
           } else {
-            set({ currentPhase: nextPhase }, false, 'charleston/completePhase')
+            set({
+              currentPhase: nextPhase,
+              phaseHistory: [...state.phaseHistory, phaseRecord],
+              selectedTiles: [] // Clear selection for next phase
+            }, false, 'charleston/completePhase')
           }
         },
 
