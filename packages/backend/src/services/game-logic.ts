@@ -740,7 +740,7 @@ export class GameLogicService {
     // Mark player as passed out
     // In the socket handler, this will be tracked in game state
 
-    const reason = (actionData as any)?.reason || 'Player chose to pass out'
+    const reason = (actionData as { reason?: string })?.reason || 'Player chose to pass out'
 
     return {
       success: true,

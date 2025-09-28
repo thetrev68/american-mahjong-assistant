@@ -167,19 +167,22 @@ export class PatternRankingEngine {
   /**
    * Sanitize game context to prevent null reference errors
    */
-  private static sanitizeGameContext(gameContext: any): {
+  private static sanitizeGameContext(gameContext: unknown): {
     phase: 'charleston' | 'gameplay'
     currentFocus?: string
     turnsElapsed?: number
     wallTilesRemaining?: number
   } {
+    const context = gameContext as Record<string, unknown>
+    const phase = context?.phase
+
     return {
-      phase: (gameContext?.phase === 'charleston' || gameContext?.phase === 'gameplay')
-        ? gameContext.phase
+      phase: (phase === 'charleston' || phase === 'gameplay')
+        ? phase
         : 'gameplay',
-      currentFocus: typeof gameContext?.currentFocus === 'string' ? gameContext.currentFocus : undefined,
-      turnsElapsed: typeof gameContext?.turnsElapsed === 'number' ? gameContext.turnsElapsed : undefined,
-      wallTilesRemaining: typeof gameContext?.wallTilesRemaining === 'number' ? gameContext.wallTilesRemaining : 80
+      currentFocus: typeof context?.currentFocus === 'string' ? context.currentFocus : undefined,
+      turnsElapsed: typeof context?.turnsElapsed === 'number' ? context.turnsElapsed : undefined,
+      wallTilesRemaining: typeof context?.wallTilesRemaining === 'number' ? context.wallTilesRemaining : 80
     }
   }
 

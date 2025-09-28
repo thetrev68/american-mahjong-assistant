@@ -12,6 +12,7 @@ import { getCallOpportunityAnalyzer } from '../features/intelligence-panel/servi
 import type { TurnRecommendations, DefensiveAnalysis, PatternSwitchSuggestion, GameState } from '../features/intelligence-panel/services/turn-intelligence-engine'
 import type { OpponentProfile, DangerousTileAnalysis } from '../features/intelligence-panel/services/opponent-analysis-engine'
 import type { CallRecommendation, CallOpportunity, CallAnalysisContext } from '../features/intelligence-panel/services/call-opportunity-analyzer'
+import type { PatternAnalysisFacts } from '../features/intelligence-panel/services/pattern-analysis-engine'
 
 export interface TileRecommendation {
   tileId: string
@@ -119,7 +120,7 @@ export interface HandAnalysis {
   }[]
   lastUpdated: number
   analysisVersion: string
-  engine1Facts?: Array<{ patternId: string; tileMatching?: { bestVariation?: { patternTiles: string[]; sequence: number } } }> // Engine 1 pattern analysis facts with tile arrays
+  engine1Facts?: PatternAnalysisFacts[] // Engine 1 pattern analysis facts
   
   // Phase 4C: Enhanced turn-aware intelligence
   turnIntelligence?: TurnRecommendations

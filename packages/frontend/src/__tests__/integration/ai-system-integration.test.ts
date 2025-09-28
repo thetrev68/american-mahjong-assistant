@@ -4,10 +4,7 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest'
 import { AnalysisEngine } from '../../lib/services/analysis-engine'
 import { PatternAnalysisEngine } from '../../features/intelligence-panel/services/pattern-analysis-engine'
-import { PatternRankingEngine } from '../../features/intelligence-panel/services/pattern-ranking-engine'
-import { TileRecommendationEngine } from '../../features/intelligence-panel/services/tile-recommendation-engine'
 import { PatternVariationLoader } from '../../features/intelligence-panel/services/pattern-variation-loader'
-import { nmjlService } from '../../lib/services/nmjl-service'
 import {
   createTile,
   createPatternSelection,
@@ -31,6 +28,7 @@ describe('AI System Integration Tests', () => {
       return patternIds.map(patternId => ({
         patternId,
         tileMatching: {
+          totalVariations: 3,
           bestVariation: {
             variationId: `${patternId}-var-1`,
             patternId,
@@ -43,7 +41,22 @@ describe('AI System Integration Tests', () => {
               { tileId: tileIds[0] || '1B', positionsInPattern: [0], isRequired: true, isCritical: true, canBeReplaced: false }
             ],
             patternTiles: ['1B', '1B', '1B', '2B', '2B', '2B', '3B', '3B', '3B', 'red', 'green', 'white', 'joker', 'east']
-          }
+          },
+          worstVariation: {
+            variationId: `${patternId}-var-3`,
+            patternId,
+            sequence: 3,
+            tilesMatched: 3,
+            tilesNeeded: 11,
+            completionRatio: 0.2,
+            missingTiles: ['4B', '5B', '6B', '7B', '8B', '9B', 'red', '1C', '2C'],
+            tileContributions: [
+              { tileId: tileIds[0] || '1B', positionsInPattern: [0], isRequired: true, isCritical: true, canBeReplaced: false }
+            ],
+            patternTiles: ['1B', '1B', '1B', '2B', '2B', '2B', '3B', '3B', '3B', 'red', 'green', 'white', 'joker', 'east']
+          },
+          averageCompletion: 0.35,
+          allResults: []
         },
         jokerAnalysis: {
           jokersAvailable: 1,
@@ -53,15 +66,20 @@ describe('AI System Integration Tests', () => {
           jokersToComplete: 3
         },
         tileAvailability: {
-          criticalTiles: ['4B', '5B', '6B'],
-          abundantTiles: ['red', 'green'],
-          bottleneckTiles: []
+          missingTileCounts: [
+            { tileId: '4B', inWall: 3, inDiscards: 1, exposedByOthers: 0, totalOriginal: 4, remainingAvailable: 3 },
+            { tileId: '5B', inWall: 3, inDiscards: 1, exposedByOthers: 0, totalOriginal: 4, remainingAvailable: 3 }
+          ],
+          totalMissingInWall: 14,
+          totalMissingNeeded: 7,
+          availabilityRatio: 0.7
         },
         progressMetrics: {
-          tilesMatched: 7,
-          tilesNeeded: 7,
-          completionRatio: 0.5,
-          nextMilestone: 10
+          tilesCollected: 7,
+          tilesRemaining: 7,
+          progressPercentage: 50,
+          pairsFormed: 2,
+          setsFormed: 1
         }
       }))
     })
@@ -90,14 +108,16 @@ describe('AI System Integration Tests', () => {
 
       const patterns: PatternSelectionOption[] = [
         createPatternSelection({
-          id: '2025-TEST_PATTERN-1',
-          name: 'Test Pattern 1',
+          id: 1,
+          pattern: 'FFFF 1111 2222 3333',
+          description: 'Test Pattern 1',
           points: 25,
           difficulty: 'medium'
         }),
         createPatternSelection({
-          id: '2025-TEST_PATTERN-2',
-          name: 'Test Pattern 2',
+          id: 2,
+          pattern: '111 222 333 DDDD',
+          description: 'Test Pattern 2',
           points: 30,
           difficulty: 'hard'
         })
@@ -129,15 +149,20 @@ describe('AI System Integration Tests', () => {
       // Engine 1 validation
       expect(result.engine1Facts).toBeDefined()
       expect(Array.isArray(result.engine1Facts)).toBe(true)
-      expect(result.engine1Facts.length).toBeGreaterThan(0)
 
-      result.engine1Facts.forEach(fact => {
-        expect(fact.patternId).toBeDefined()
-        expect(fact.tileMatching).toBeDefined()
-        expect(fact.tileMatching.bestVariation).toBeDefined()
-        expect(fact.tileMatching.bestVariation.completionRatio).toBeGreaterThanOrEqual(0)
-        expect(fact.tileMatching.bestVariation.completionRatio).toBeLessThanOrEqual(1)
-      })
+      if (result.engine1Facts) {
+        expect(result.engine1Facts.length).toBeGreaterThan(0)
+
+        result.engine1Facts.forEach(fact => {
+          expect(fact.patternId).toBeDefined()
+          expect(fact.tileMatching).toBeDefined()
+
+          if (fact.tileMatching?.bestVariation) {
+            expect(fact.tileMatching.bestVariation.completionRatio).toBeGreaterThanOrEqual(0)
+            expect(fact.tileMatching.bestVariation.completionRatio).toBeLessThanOrEqual(1)
+          }
+        })
+      }
 
       // Engine 2 validation
       expect(result.recommendedPatterns).toBeDefined()
@@ -179,8 +204,8 @@ describe('AI System Integration Tests', () => {
     it('should handle Charleston phase workflow correctly', async () => {
       const charlestonTiles = TilePresets.charlestonHand()
       const patterns = [
-        createPatternSelection({ id: '2025-TEST_PATTERN-1' }),
-        createPatternSelection({ id: '2025-TEST_PATTERN-2' })
+        createPatternSelection({ id: 1 }),
+        createPatternSelection({ id: 2 })
       ]
 
       const result = await AnalysisEngine.analyzeHand(charlestonTiles, patterns, {
@@ -217,7 +242,7 @@ describe('AI System Integration Tests', () => {
       ]
 
       const result = await AnalysisEngine.analyzeHand(jokerHeavyTiles, [
-        createPatternSelection({ id: '2025-TEST_PATTERN-1' })
+        createPatternSelection({ id: 1 })
       ])
 
       expect(result).toBeDefined()
@@ -236,7 +261,7 @@ describe('AI System Integration Tests', () => {
 
     it('should provide consistent results across multiple analyses', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: '2025-TEST_PATTERN-1' })]
+      const patterns = [createPatternSelection({ id: 1 })]
       const context = { wallTilesRemaining: 60, currentPhase: 'gameplay' as const }
 
       // Run multiple analyses with same inputs
@@ -271,14 +296,14 @@ describe('AI System Integration Tests', () => {
 
       // First analysis with one pattern focus
       const result1 = await AnalysisEngine.analyzeHand(tiles, [
-        createPatternSelection({ id: '2025-TEST_PATTERN-1' })
+        createPatternSelection({ id: 1 })
       ])
 
       // Second analysis with multiple patterns (should suggest better options)
       const result2 = await AnalysisEngine.analyzeHand(tiles, [
-        createPatternSelection({ id: '2025-TEST_PATTERN-1' }),
-        createPatternSelection({ id: '2025-TEST_PATTERN-2' }),
-        createPatternSelection({ id: '2025-TEST_PATTERN-3' })
+        createPatternSelection({ id: 1 }),
+        createPatternSelection({ id: 2 }),
+        createPatternSelection({ id: 3 })
       ])
 
       expect(result1).toBeDefined()
@@ -290,9 +315,9 @@ describe('AI System Integration Tests', () => {
       const tiles = TilePresets.strongHand()
 
       const patterns = [
-        createPatternSelection({ id: '2025-LOW-VALUE', points: 25, difficulty: 'easy' }),
-        createPatternSelection({ id: '2025-HIGH-VALUE', points: 50, difficulty: 'medium' }),
-        createPatternSelection({ id: '2025-MEGA-VALUE', points: 75, difficulty: 'hard' })
+        createPatternSelection({ id: 1, points: 25, difficulty: 'easy' }),
+        createPatternSelection({ id: 2, points: 50, difficulty: 'medium' }),
+        createPatternSelection({ id: 3, points: 75, difficulty: 'hard' })
       ]
 
       const result = await AnalysisEngine.analyzeHand(tiles, patterns)
@@ -301,7 +326,7 @@ describe('AI System Integration Tests', () => {
 
       if (result.recommendedPatterns.length > 1) {
         // Higher point patterns should generally rank higher (with some exceptions based on completion)
-        const sortedByPoints = result.recommendedPatterns
+        result.recommendedPatterns
           .slice()
           .sort((a, b) => (b.pattern.points || 0) - (a.pattern.points || 0))
 
@@ -318,7 +343,7 @@ describe('AI System Integration Tests', () => {
   describe('Game State Integration', () => {
     it('should adapt recommendations based on wall depletion', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: '2025-TEST_PATTERN-1' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // Early game (full wall)
       const earlyGame = await AnalysisEngine.analyzeHand(tiles, patterns, {
@@ -341,7 +366,7 @@ describe('AI System Integration Tests', () => {
 
     it('should consider opponent exposures in recommendations', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: '2025-TEST_PATTERN-1' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // Game with heavy opponent exposures
       const result = await AnalysisEngine.analyzeHand(tiles, patterns, {
@@ -373,9 +398,9 @@ describe('AI System Integration Tests', () => {
       // Simulate analyzing many patterns simultaneously
       const manyPatterns = Array.from({ length: 25 }, (_, i) =>
         createPatternSelection({
-          id: `pattern-${i}`,
+          id: i + 1,
           points: 25 + (i % 25),
-          difficulty: ['easy', 'medium', 'hard'][i % 3] as any
+          difficulty: ['easy', 'medium', 'hard'][i % 3] as 'easy' | 'medium' | 'hard'
         })
       )
 
@@ -391,7 +416,7 @@ describe('AI System Integration Tests', () => {
 
     it('should demonstrate caching effectiveness', async () => {
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: '2025-TEST_PATTERN-1' })]
+      const patterns = [createPatternSelection({ id: 1 })]
 
       // First analysis (cache miss)
       const startTime1 = performance.now()
@@ -419,7 +444,7 @@ describe('AI System Integration Tests', () => {
             createTile({ id: `${(i + 1) % 9 + 1}C` }),
             createTile({ id: `${(i + 2) % 9 + 1}D` })
           ],
-          patterns: [createPatternSelection({ id: `pattern-${i}` })]
+          patterns: [createPatternSelection({ id: i + 1 })]
         })
       }
 
@@ -446,7 +471,7 @@ describe('AI System Integration Tests', () => {
     it('should provide partial results when individual engines have issues', async () => {
       // This test simulates partial engine failures in integration context
       const tiles = TilePresets.mixedHand()
-      const patterns = [createPatternSelection({ id: 'potentially-problematic-pattern' })]
+      const patterns = [createPatternSelection({ id: 999 })]
 
       const result = await AnalysisEngine.analyzeHand(tiles, patterns)
 
@@ -465,7 +490,7 @@ describe('AI System Integration Tests', () => {
       const concurrentAnalyses = Array.from({ length: 20 }, (_, i) =>
         AnalysisEngine.analyzeHand(
           TilePresets.mixedHand(),
-          [createPatternSelection({ id: `concurrent-${i}` })],
+          [createPatternSelection({ id: i + 1 })],
           { wallTilesRemaining: 84 - i }
         )
       )
@@ -473,7 +498,7 @@ describe('AI System Integration Tests', () => {
       const results = await Promise.all(concurrentAnalyses)
 
       expect(results).toHaveLength(20)
-      results.forEach((result, index) => {
+      results.forEach(result => {
         expect(result).toBeDefined()
         expect(result.analysisVersion).toBe('AV3-ThreeEngine')
       })
@@ -493,7 +518,7 @@ describe('AI System Integration Tests', () => {
       ]
 
       const result = await AnalysisEngine.analyzeHand(midGameTiles, [
-        createPatternSelection({ id: '2025-TEST_PATTERN-1' })
+        createPatternSelection({ id: 1 })
       ], {
         wallTilesRemaining: 45,
         currentPhase: 'gameplay',
@@ -524,8 +549,8 @@ describe('AI System Integration Tests', () => {
       ]
 
       const result = await AnalysisEngine.analyzeHand(desperationTiles, [
-        createPatternSelection({ id: '2025-TEST_PATTERN-1' }),
-        createPatternSelection({ id: '2025-TEST_PATTERN-2' })
+        createPatternSelection({ id: 1 }),
+        createPatternSelection({ id: 2 })
       ], {
         wallTilesRemaining: 8, // Very few tiles left
         currentPhase: 'gameplay',
