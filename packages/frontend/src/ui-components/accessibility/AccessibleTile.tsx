@@ -78,14 +78,14 @@ export const AccessibleTile = forwardRef<AccessibleTileRef, AccessibleTileProps>
     }
 
     const suit = suitNames[tile.suit as keyof typeof suitNames] || tile.suit
-    const rank = tile.rank === 'R' ? 'Red' : 
-                tile.rank === 'G' ? 'Green' : 
-                tile.rank === 'W' ? 'White' :
-                tile.rank === 'E' ? 'East' :
-                tile.rank === 'S' ? 'South' :
-                tile.rank === 'W' ? 'West' :
-                tile.rank === 'N' ? 'North' :
-                tile.rank
+    const rank = tile.value === 'red' ? 'Red' :
+                tile.value === 'green' ? 'Green' :
+                tile.value === 'white' ? 'White' :
+                tile.value === 'east' ? 'East' :
+                tile.value === 'south' ? 'South' :
+                tile.value === 'west' ? 'West' :
+                tile.value === 'north' ? 'North' :
+                tile.value
 
     return `${rank} ${suit}`
   }

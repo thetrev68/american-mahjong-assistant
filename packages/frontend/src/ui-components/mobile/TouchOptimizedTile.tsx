@@ -43,6 +43,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
   onDoubleTap,
   touchFeedback = 'both',
   minTouchTarget = 44, // iOS/Android minimum
+  touchPadding,
   onSwipeLeft,
   onSwipeRight,
   onSwipeUp,
@@ -50,12 +51,14 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
   swipeThreshold = 50,
   onClick,
   className = '',
+  tile,
+  size = 'md',
   ...tileProps
 }) => {
   const [isPressed, setIsPressed] = useState(false)
   const [lastTap, setLastTap] = useState<number>(0)
   const touchState = useRef<TouchState | null>(null)
-  const longPressTimeout = useRef<NodeJS.Timeout>()
+  const longPressTimeout = useRef<ReturnType<typeof setTimeout>>()
   const tileRef = useRef<HTMLDivElement>(null)
 
   // Haptic feedback utility
@@ -137,7 +140,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
       
       // Clear long press timer
       if (longPressTimeout.current) {
-        clearTimeout(longPressTimeout.current)
+        if (longPressTimeout.current) clearTimeout(longPressTimeout.current)
         longPressTimeout.current = undefined
       }
     }
@@ -152,7 +155,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
 
     // Clear long press timer
     if (longPressTimeout.current) {
-      clearTimeout(longPressTimeout.current)
+      if (longPressTimeout.current) clearTimeout(longPressTimeout.current)
       longPressTimeout.current = undefined
     }
 
@@ -231,7 +234,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
   // Handle touch cancel
   const handleTouchCancel = useCallback(() => {
     if (longPressTimeout.current) {
-      clearTimeout(longPressTimeout.current)
+      if (longPressTimeout.current) clearTimeout(longPressTimeout.current)
       longPressTimeout.current = undefined
     }
     hideVisualFeedback()
@@ -242,16 +245,16 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
   useEffect(() => {
     return () => {
       if (longPressTimeout.current) {
-        clearTimeout(longPressTimeout.current)
+        if (longPressTimeout.current) clearTimeout(longPressTimeout.current)
       }
     }
   }, [])
 
   // Calculate proper touch target size
   const touchTargetSize = Math.max(minTouchTarget, 40) // Ensure minimum accessibility size
-  const actualTileSize = tileProps.size === 'sm' ? 32 : 
-                        tileProps.size === 'md' ? 48 : 
-                        tileProps.size === 'lg' ? 64 : 48
+  const actualTileSize = size === 'sm' ? 32 :
+                        size === 'md' ? 48 :
+                        size === 'lg' ? 64 : 48
 
   const needsPadding = touchTargetSize > actualTileSize
   const paddingSize = needsPadding ? (touchTargetSize - actualTileSize) / 2 : 0
@@ -279,15 +282,16 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
       // Accessibility
       role="button"
       tabIndex={0}
-      aria-label={`Tile ${tileProps.tile.suit} ${tileProps.tile.rank}`}
+      aria-label={`Tile ${tile.suit} ${tile.rank || tile.value}`}
       
       // Prevent context menu on long press
       onContextMenu={(e) => e.preventDefault()}
     >
       <AnimatedTile
+        tile={tile}
+        size={size}
         {...tileProps}
         className={`
-          ${tileProps.className || ''}
           transition-all duration-150 ease-out
           ${isPressed ? 'scale-95 brightness-110' : 'scale-100'}
           ${className}

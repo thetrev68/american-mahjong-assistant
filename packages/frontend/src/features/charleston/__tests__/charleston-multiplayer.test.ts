@@ -5,13 +5,12 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useCharlestonStore } from '../../../stores/charleston-store'
 import { useRoomStore } from '../../../stores/room.store'
 import {
-  getCharlestonResilientService,
   initializeCharlestonResilientService,
   destroyCharlestonResilientService,
   useCharlestonResilience
 } from '../services/charleston-resilient'
-import { createTile, createTestHand } from '../../../__tests__/factories'
-import type { Tile } from 'shared-types'
+import { createTile } from '../../../__tests__/factories'
+import type { Tile, TileValue } from 'shared-types'
 
 // Mock dependencies
 vi.mock('../../../stores/room.store')
@@ -23,7 +22,7 @@ const createTestTiles = (count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `test-tile-${i + 1}`,
     suit: ['dots', 'bams', 'cracks'][i % 3] as any,
-    value: String((i % 9) + 1),
+    value: String((i % 9) + 1) as TileValue,
     displayName: `Test Tile ${i + 1}`
   }))
 
@@ -50,7 +49,7 @@ const createTestRoom = (playerCount = 4) => ({
 
 describe('Charleston Multiplayer Coordination', () => {
   let mockRoomStore: any
-  let charlestonStore: any
+  // let charlestonStore: any // Unused variable
 
   beforeEach(() => {
     // Reset services
@@ -355,7 +354,7 @@ describe('Charleston Multiplayer Coordination', () => {
 
     it('should coordinate tile passing between players', async () => {
       const service = initializeCharlestonResilientService()
-      const store = useCharlestonStore.getState()
+      // const store = useCharlestonStore.getState() // Unused variable
 
       const selectedTiles = createTestTiles(3)
 

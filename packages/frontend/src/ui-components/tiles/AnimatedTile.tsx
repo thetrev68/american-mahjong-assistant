@@ -9,7 +9,7 @@ import { useHapticFeedback } from '../../hooks/useHapticFeedback'
 import { usePerformance } from '../../hooks/usePerformance'
 import { getAnimationConfig, createOptimizedKeyframes } from '../../utils/animation-config'
 
-interface AnimatedTileProps {
+export interface AnimatedTileProps {
   tile: PlayerTile
   size?: 'sm' | 'md' | 'lg' | 'xl'
   interactive?: boolean
@@ -17,11 +17,11 @@ interface AnimatedTileProps {
   onDoubleClick?: (tile: PlayerTile) => void
   className?: string
   children?: React.ReactNode
-  
+
   // Animation props
   animateOnSelect?: boolean
   enableHaptics?: boolean
-  
+
   // Context-specific animations
   context?: 'charleston' | 'gameplay' | 'analysis' | 'selection'
   recommendationType?: 'keep' | 'pass' | 'discard' | 'joker'

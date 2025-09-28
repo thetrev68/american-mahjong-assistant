@@ -59,7 +59,7 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
     return selectedForAction.some(tile => {
       const recommendation = currentAnalysis.tileRecommendations?.find(rec => rec.tileId === tile.id)
       const isKeepRecommendation = recommendation?.action === 'keep'
-      const isInPrimaryPattern = primaryPattern.expandedTiles.includes(tile.id)
+      const isInPrimaryPattern = primaryPattern.expandedTiles!.includes(tile.id)
       return isKeepRecommendation && isInPrimaryPattern
     })
   }

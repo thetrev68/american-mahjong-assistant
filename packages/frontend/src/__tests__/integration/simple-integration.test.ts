@@ -20,11 +20,6 @@ describe('Simple Integration Tests', () => {
 
   describe('Store Integration', () => {
     it('should maintain consistent state across stores', () => {
-      // Get store actions (not just state)
-      const gameStore = useGameStore
-      const patternStore = usePatternStore
-      const tileStore = useTileStore
-
       // Set up coordinated state using store actions
       useGameStore.getState().setCoPilotMode('solo')
       useGameStore.getState().setGamePhase('tile-input')

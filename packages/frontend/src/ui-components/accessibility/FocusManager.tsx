@@ -3,7 +3,7 @@
  * Comprehensive focus management for complex UI interactions
  */
 
-import React, { useRef, useEffect, useCallback, ReactNode } from 'react'
+import React, { useRef, useEffect, useCallback, type ReactNode } from 'react'
 import { useAccessibilityContext } from './AccessibilityProvider'
 
 interface FocusManagerProps {

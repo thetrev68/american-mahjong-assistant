@@ -3,7 +3,7 @@
  * Utility functions for lazy component creation and preloading
  */
 
-import React, { Suspense, lazy, ComponentType } from 'react'
+import React, { Suspense, lazy, type ComponentType } from 'react'
 
 interface LazyComponentOptions {
   loader: () => Promise<{ default: ComponentType<Record<string, unknown>> }>

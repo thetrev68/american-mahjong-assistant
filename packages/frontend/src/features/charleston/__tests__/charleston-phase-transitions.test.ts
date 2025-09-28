@@ -6,7 +6,7 @@ import { useCharlestonStore, type CharlestonPhase } from '../../../stores/charle
 import { useGameStore } from '../../../stores/game-store'
 import { useTileStore } from '../../../stores/tile-store'
 import { createTile, createTestHand } from '../../../__tests__/factories'
-import type { Tile } from 'shared-types'
+import type { Tile, TileValue } from 'shared-types'
 
 // Mock dependencies
 vi.mock('../../../stores/game-store')
@@ -17,7 +17,7 @@ const createCharlestonHand = (count = 14): Tile[] =>
   Array.from({ length: count }, (_, i) => createTile({
     id: `charleston-tile-${i + 1}`,
     suit: ['dots', 'bams', 'cracks', 'winds', 'dragons', 'flowers'][i % 6] as any,
-    value: String((i % 9) + 1),
+    value: String((i % 9) + 1) as TileValue,
     displayName: `Charleston Tile ${i + 1}`
   }))
 

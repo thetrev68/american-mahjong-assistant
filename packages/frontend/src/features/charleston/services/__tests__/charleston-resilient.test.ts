@@ -1,7 +1,7 @@
 // Charleston Resilient Service Tests
 // Tests for multiplayer Charleston coordination with connection resilience and event queuing
 
-import { describe, it, expect, beforeEach, afterEach, vi, Mock } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi, type Mock } from 'vitest'
 import {
   CharlestonResilientService,
   getCharlestonResilientService,
@@ -15,7 +15,7 @@ import { useCharlestonStore } from '../../../../stores/charleston-store'
 import { useRoomStore } from '../../../../stores/room.store'
 import { getConnectionResilienceService } from '../../../../lib/services/connection-resilience'
 import { getNetworkErrorHandler } from '../../../../lib/services/network-error-handler'
-import type { Tile } from 'shared-types'
+import type { Tile, TileValue } from 'shared-types'
 
 // Mock dependencies
 vi.mock('../../../../stores/charleston-store')
@@ -35,7 +35,7 @@ const createTestTile = (overrides: Partial<Tile> = {}): Tile => ({
 const createTestTiles = (count: number): Tile[] =>
   Array.from({ length: count }, (_, i) => createTestTile({
     id: `test-tile-${i + 1}`,
-    value: String((i % 9) + 1)
+    value: String((i % 9) + 1) as TileValue
   }))
 
 describe('Charleston Resilient Service', () => {

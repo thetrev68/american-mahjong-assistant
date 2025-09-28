@@ -10,6 +10,7 @@ interface OpponentExposedZoneProps {
     action: string
     timestamp: Date
   }>
+  gameRound: number
 }
 
 const OpponentExposedZone: React.FC<OpponentExposedZoneProps> = ({
