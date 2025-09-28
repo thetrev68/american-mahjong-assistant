@@ -24,7 +24,14 @@ vi.mock('../../../stores/charleston-store', () => ({
 }))
 
 vi.mock('../../../stores/game-store', () => ({
-  useGameStore: vi.fn()
+  useGameStore: vi.fn(() => ({})),
+  // Mock the getState method that GameModeView calls directly
+  ...(() => {
+    const mockGetState = vi.fn(() => ({ currentTurn: 1 }))
+    const useGameStore = vi.fn(() => ({}))
+    useGameStore.getState = mockGetState
+    return { useGameStore }
+  })()
 }))
 
 vi.mock('../../../stores/tile-store', () => ({
@@ -215,7 +222,11 @@ describe('Charleston Integration Tests', () => {
       startTurn: vi.fn(),
       incrementTurn: vi.fn(),
       addAlert: vi.fn(),
-      clearAlerts: vi.fn()
+      clearAlerts: vi.fn(),
+      // Method required by GameModeView reset functionality
+      resetGame: vi.fn(),
+      // getState method required by GameModeView console logging
+      getState: vi.fn(() => ({ currentTurn: 1 }))
     }
 
     // Setup Tile store mock
@@ -240,7 +251,9 @@ describe('Charleston Integration Tests', () => {
     mockRoomSetupStore = {
       coPilotMode: 'solo',
       playerCount: 4,
-      clearRoom: vi.fn()
+      clearRoom: vi.fn(),
+      // Method required by GameModeView reset functionality
+      resetToStart: vi.fn()
     }
 
     // Setup store mocks to return mock objects when called as hooks
@@ -254,7 +267,11 @@ describe('Charleston Integration Tests', () => {
       currentAnalysis: null,
       isAnalyzing: false,
       clearAnalysis: vi.fn(),
-      analyzeHand: vi.fn(() => Promise.resolve())
+      analyzeHand: vi.fn(() => Promise.resolve()),
+      // Functions required by useGameIntelligence hook
+      analyzeTurnSituation: vi.fn(() => Promise.resolve()),
+      analyzeOpponents: vi.fn(() => Promise.resolve()),
+      updateDefensiveAnalysis: vi.fn(() => Promise.resolve())
     }
 
     const mockPatternStore = {

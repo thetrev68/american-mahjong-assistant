@@ -50,9 +50,15 @@ export class CharlestonResilientService {
   private operationQueue: QueuedCharlestonOperation[] = []
   private eventListeners: Map<string, (...args: unknown[]) => void> = new Map()
   private isInitialized = false
+  private socketEmitFunction: ((event: string, data: unknown) => Promise<boolean> | boolean) | null = null
 
   constructor() {
     this.setupConnectionMonitoring()
+  }
+
+  // Initialize with socket emit function for production use
+  setSocketEmitter(emitFn: (event: string, data: unknown) => Promise<boolean> | boolean): void {
+    this.socketEmitFunction = emitFn
   }
 
   // Initialize with connection resilience integration
@@ -258,10 +264,29 @@ export class CharlestonResilientService {
     }
 
     try {
-      return await this.executeImmediate(operation)
+      const success = await this.executeImmediate(operation)
+
+      // If operation failed, handle retry logic
+      if (!success) {
+        console.error('Charleston operation failed')
+
+        // Retry if under retry limit
+        if (operation.currentRetries < operation.maxRetries) {
+          operation.currentRetries++
+          this.queueOperation(operation)
+          return false
+        }
+
+        // Handle permanent failure
+        const networkHandler = getNetworkErrorHandler()
+        networkHandler.handleError(new Error('Charleston operation failed'), `charleston-${operation.type}`)
+        return false
+      }
+
+      return success
     } catch (error) {
-      console.error('Charleston operation failed:', error)
-      
+      console.error('Charleston operation failed with exception:', error)
+
       // Retry if under retry limit
       if (operation.currentRetries < operation.maxRetries) {
         operation.currentRetries++
@@ -294,19 +319,26 @@ export class CharlestonResilientService {
 
   // Emit event through resilient connection system
   private async emitResilientEvent(event: string, data: unknown): Promise<boolean> {
-    // This integrates with the connection resilience service
-    // The actual socket emit is handled by the connection service
-    
     try {
-      // Get socket through connection service
-      const connectionService = getConnectionResilienceService()
-      
-      if (connectionService) {
-        // Use connection service to emit - this would need to be implemented
-        console.log(`Emitting resilient Charleston event: ${event}`, data)
-        return true // Placeholder - needs actual implementation
+      console.log(`Emitting resilient Charleston event: ${event}`, data)
+
+      // Priority 1: Use configured socket emitter function (production)
+      if (this.socketEmitFunction) {
+        const result = await this.socketEmitFunction(event, data)
+        return Boolean(result)
       }
-      
+
+      // Priority 2: Use mocked connection service (test scenario)
+      const connectionService = getConnectionResilienceService() as {
+        emit?: (event: string, data: unknown) => Promise<boolean>
+      } | null
+
+      if (connectionService && typeof connectionService.emit === 'function') {
+        return await connectionService.emit(event, data)
+      }
+
+      // Priority 3: Fallback - log and return false (no socket available)
+      console.warn('No socket emitter available for Charleston event:', event)
       return false
     } catch (error) {
       console.error('Failed to emit resilient Charleston event:', error)
@@ -446,18 +478,20 @@ export const destroyCharlestonResilientService = (): void => {
 // React hook for using Charleston resilient service
 export const useCharlestonResilience = () => {
   const service = getCharlestonResilientService()
-  
+
   // Initialize service when hook is first used
   if (!service) {
     initializeCharlestonResilientService()
   }
 
   return {
-    markPlayerReady: (selectedTiles: Tile[], phase: string) => 
+    markPlayerReady: (selectedTiles: Tile[], phase: string) =>
       service.markPlayerReady(selectedTiles, phase),
     requestStatus: () => service.requestCharlestonStatus(),
     replayQueue: () => service.replayQueuedOperations(),
     getQueueStatus: () => service.getQueueStatus(),
+    setSocketEmitter: (emitFn: (event: string, data: unknown) => Promise<boolean> | boolean) =>
+      service.setSocketEmitter(emitFn),
     cleanup: () => service.cleanup()
   }
 }

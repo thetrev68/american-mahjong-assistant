@@ -99,10 +99,18 @@ describe('Charleston Resilient Service', () => {
 
     it('should not re-initialize if already initialized', () => {
       const consoleSpy = vi.spyOn(console, 'log')
+      consoleSpy.mockClear() // Clear any previous calls
+
       service.initialize()
+      const callsAfterFirst = consoleSpy.mock.calls.length
+
       service.initialize() // Second call should be ignored
+      const callsAfterSecond = consoleSpy.mock.calls.length
+
+      expect(callsAfterSecond).toBe(callsAfterFirst) // No additional calls
       expect(consoleSpy).toHaveBeenCalledWith('Charleston resilient service initialized')
-      expect(consoleSpy).toHaveBeenCalledTimes(1)
+
+      consoleSpy.mockRestore()
     })
 
     it('should setup singleton service correctly', () => {
@@ -260,9 +268,14 @@ describe('Charleston Resilient Service', () => {
       const tiles2 = createTestTiles(3)
       const tiles3 = createTestTiles(3)
 
-      // Queue operations with different priorities (implicitly through operation type)
+      // Queue operations with different players to avoid duplicate removal
+      mockRoomStore.hostPlayerId = 'player1'
       await service.markPlayerReady(tiles1, 'right')
+
+      mockRoomStore.hostPlayerId = 'player2'
       await service.markPlayerReady(tiles2, 'across')
+
+      mockRoomStore.hostPlayerId = 'player3'
       await service.markPlayerReady(tiles3, 'left')
 
       const queueStatus = service.getQueueStatus()
@@ -367,9 +380,18 @@ describe('Charleston Resilient Service', () => {
       mockConnectionService.emit = vi.fn(() => Promise.reject(new Error('Network error')))
 
       const tiles = createTestTiles(3)
-      const result = await service.markPlayerReady(tiles, 'right')
 
-      expect(result).toBe(false)
+      // First attempt will queue for retry (retry count = 0)
+      const result1 = await service.markPlayerReady(tiles, 'right')
+      expect(result1).toBe(false)
+      expect(mockNetworkHandler.handleError).not.toHaveBeenCalled() // Not called yet
+
+      // Make network healthy for replay
+      mockNetworkHandler.isNetworkHealthy.mockReturnValue(true)
+
+      // Replay will exhaust retries and call error handler
+      await service.replayQueuedOperations()
+
       expect(mockNetworkHandler.handleError).toHaveBeenCalled()
     })
 
