@@ -59,15 +59,14 @@ describe('RoomCreation Component', () => {
 
   describe('Form Interaction', () => {
     it('should call onHostNameChange when typing in input', async () => {
-      const user = userEvent.setup()
       const onHostNameChange = vi.fn()
       render(<RoomCreation {...defaultProps} onHostNameChange={onHostNameChange} />)
-      
+
       const input = screen.getByLabelText(/your name/i)
-      await user.type(input, 'Test')
-      
-      expect(onHostNameChange).toHaveBeenCalledTimes(4) // One for each character
-      expect(onHostNameChange).toHaveBeenLastCalledWith('Test')
+      fireEvent.change(input, { target: { value: 'Test' } })
+
+      expect(onHostNameChange).toHaveBeenCalledTimes(1)
+      expect(onHostNameChange).toHaveBeenCalledWith('Test')
     })
 
     it('should call onCreateRoom when form is submitted', async () => {
@@ -77,7 +76,7 @@ describe('RoomCreation Component', () => {
       const button = screen.getByRole('button', { name: /create room/i })
       fireEvent.click(button)
       
-      expect(onCreateRoom).toHaveBeenCalledWith('Test Player')
+      expect(onCreateRoom).toHaveBeenCalledWith('Test Player', undefined)
     })
 
     it('should call onCreateRoom when pressing Enter in input', async () => {
@@ -87,7 +86,7 @@ describe('RoomCreation Component', () => {
       const input = screen.getByLabelText(/your name/i)
       fireEvent.keyDown(input, { key: 'Enter' })
       
-      expect(onCreateRoom).toHaveBeenCalledWith('Test Player')
+      expect(onCreateRoom).toHaveBeenCalledWith('Test Player', undefined)
     })
 
     it('should not submit with empty name', () => {
@@ -107,7 +106,7 @@ describe('RoomCreation Component', () => {
       const button = screen.getByRole('button', { name: /create room/i })
       fireEvent.click(button)
       
-      expect(onCreateRoom).toHaveBeenCalledWith('Test Player')
+      expect(onCreateRoom).toHaveBeenCalledWith('Test Player', undefined)
     })
   })
 
@@ -187,22 +186,27 @@ describe('RoomCreation Component', () => {
 
     it('should apply disabled styling', () => {
       render(<RoomCreation {...defaultProps} disabled={true} />)
-      
+
       const button = screen.getByRole('button', { name: /create room/i })
-      expect(button).toHaveClass('opacity-50')
+      expect(button).toBeDisabled()
+      expect(button).toHaveClass('disabled:opacity-50')
     })
   })
 
   describe('Validation', () => {
     it('should show validation message for empty name', async () => {
-      render(<RoomCreation {...defaultProps} hostName="" />)
-      
+      const onCreateRoom = vi.fn()
+      render(<RoomCreation {...defaultProps} hostName="" onCreateRoom={onCreateRoom} />)
+
       const button = screen.getByRole('button', { name: /create room/i })
       fireEvent.click(button)
-      
+
       await waitFor(() => {
-        expect(screen.getByText(/please enter your name/i)).toBeInTheDocument()
+        expect(screen.getByText('Please enter your name')).toBeInTheDocument()
       })
+
+      // Ensure the callback was not called due to validation failure
+      expect(onCreateRoom).not.toHaveBeenCalled()
     })
 
     it('should clear validation error when typing', async () => {

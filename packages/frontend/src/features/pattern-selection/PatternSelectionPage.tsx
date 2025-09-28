@@ -14,7 +14,9 @@ export const PatternSelectionPage = () => {
   const {
     loadPatterns,
     targetPatterns,
-    getSelectedPattern
+    getSelectedPattern,
+    isLoading,
+    error
   } = usePatternStore()
   
   const { playerHand } = useTileStore()
@@ -53,7 +55,36 @@ export const PatternSelectionPage = () => {
             )}
           </p>
         </div>
-        
+
+        {/* Error State */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mx-auto max-w-md">
+            <div className="flex items-center space-x-2">
+              <span className="text-red-500" role="img" aria-label="Error">⚠️</span>
+              <div className="text-red-700">
+                <div className="font-medium">Error loading patterns</div>
+                <div className="text-sm">{error}</div>
+                <button
+                  onClick={() => loadPatterns()}
+                  className="mt-2 text-red-600 hover:text-red-800 underline text-sm"
+                >
+                  Try again
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-8">
+            <div className="inline-flex items-center space-x-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+              <span className="text-gray-600">Loading patterns...</span>
+            </div>
+          </div>
+        )}
+
         {/* Layout: Filters + Grid + Selection Panel */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Main Content Area */}

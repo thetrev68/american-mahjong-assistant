@@ -43,7 +43,8 @@
       "Bash(timeout 10 npx vitest src/hooks/__tests__/useHapticFeedback.test.ts --run)",
       "Bash(timeout 10 npx vitest src/features/gameplay/__tests__/GameModeView.simple.test.tsx --run)",
       "Bash(timeout 10 npx vitest src/hooks/__tests__/useMultiplayer.test.ts --run --reporter=verbose)",
-      "Bash(timeout 10 npx vitest src/hooks/__tests__/useMultiplayer.test.ts --run)"
+      "Bash(timeout 10 npx vitest src/hooks/__tests__/useMultiplayer.test.ts --run)",
+      "Bash(timeout 15 npx vitest src/features/charleston/__tests__/charleston-integration.test.tsx --run)"
     ],
     "deny": [],
     "ask": [],

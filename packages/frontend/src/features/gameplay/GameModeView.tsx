@@ -1446,10 +1446,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       />
 
       {/* Selection Area - Fixed overlay for tile actions */}
-      <SelectionArea 
-        onAdvanceToGameplay={handleAdvanceToGameplay} 
-        onCharlestonPass={handleCharlestonPass}
-        onPass={gameStore.gamePhase === 'charleston' ? handleCharlestonPass : undefined}
+      <SelectionArea
+        onAdvanceToGameplay={handleAdvanceToGameplay}
+        onCharlestonPass={gameStore.gamePhase === 'charleston' ? handleCharlestonPass : undefined}
+        onPass={undefined}
         isReadyToPass={gameStore.gamePhase === 'charleston' ? false : undefined}
         allPlayersReady={gameStore.gamePhase === 'charleston' ? false : undefined}
       />

@@ -185,13 +185,13 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
               <Button
                 variant="primary"
                 size="sm"
+                data-testid="charleston-pass"
                 onClick={() => {
                   console.log('🔧 Charleston Pass button clicked:', { selectedCount: selectedForAction.length })
-                  if (selectedForAction.length === 3) {
-                    handleAction('pass')
-                    if (onCharlestonPass) {
-                      setTimeout(() => onCharlestonPass(), 1000)
-                    }
+                  if (selectedForAction.length === 3 && onCharlestonPass) {
+                    onCharlestonPass()
+                  } else if (selectedForAction.length !== 3) {
+                    console.warn('Must select exactly 3 tiles for Charleston')
                   }
                 }}
                 disabled={actionType !== null || isReadyToPass || selectedForAction.length !== 3}
