@@ -57,15 +57,23 @@ export const createLazyComponent = ({
     return React.createElement(
       'div',
       { onMouseEnter: handleMouseEnter },
-      React.createElement(
-        ErrorBoundary || React.Fragment,
-        ErrorBoundary ? {} : null,
-        React.createElement(
-          Suspense,
-          { fallback: fallbackElement },
-          React.createElement(LazyComponent, props)
-        )
-      )
+      ErrorBoundary
+        ? React.createElement(
+            ErrorBoundary,
+            {
+              fallback: fallbackElement,
+              children: React.createElement(
+                Suspense,
+                { fallback: fallbackElement },
+                React.createElement(LazyComponent, props)
+              )
+            }
+          )
+        : React.createElement(
+            Suspense,
+            { fallback: fallbackElement },
+            React.createElement(LazyComponent, props)
+          )
     )
   }
 

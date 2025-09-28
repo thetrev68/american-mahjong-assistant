@@ -61,12 +61,12 @@ describe('useHapticFeedback Hook', () => {
     });
 
     it('should handle unsupported devices gracefully', () => {
-      const nav = navigator as Navigator & { vibrate?: unknown }
+      const nav = navigator as Navigator & { vibrate?: any }
       if ('vibrate' in nav) {
-        delete nav.vibrate
+        nav.vibrate = null
       }
-      delete (window as WindowWithHaptics).TapticEngine;
-      delete (window as WindowWithHaptics).DeviceMotionEvent;
+      (window as WindowWithHaptics).TapticEngine = undefined;
+      (window as WindowWithHaptics).DeviceMotionEvent = undefined;
 
       const { result } = renderHook(() => useHapticFeedback());
       expect(result.current.isSupported).toBe(false);

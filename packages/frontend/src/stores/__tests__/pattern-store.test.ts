@@ -209,7 +209,7 @@ describe('Pattern Store', () => {
 
     it('should set loading state during pattern loading', async () => {
       let resolveFn: ((value: any) => void) | null = null
-      const promise = new Promise(resolve => {
+      const promise = new Promise<any>(resolve => {
         resolveFn = resolve
       })
 
@@ -354,10 +354,12 @@ describe('Pattern Store', () => {
     it('should update pattern progress', () => {
       const store = usePatternStore.getState()
       const progress: PatternProgress = {
+        patternId: 1,
         completionPercentage: 75,
-        tilesMatched: 10,
         tilesNeeded: 4,
-        lastUpdated: Date.now()
+        completingTiles: ['DOT1', 'DOT2'],
+        canUseJokers: true,
+        jokersNeeded: 1
       }
 
       store.updatePatternProgress('2025-2025-1-1', progress)

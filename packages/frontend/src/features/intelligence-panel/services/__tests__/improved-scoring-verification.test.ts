@@ -44,7 +44,7 @@ function createVerificationFacts(scenario: 'easy_bottleneck' | 'hard_bottleneck'
     },
     jokerAnalysis: {
       jokersAvailable: 0,
-      substitutablePositions: [],
+      substitutablePositions: [] as number[],
       maxJokersUseful: 0,
       withJokersCompletion: 3/14,
       jokersToComplete: 11

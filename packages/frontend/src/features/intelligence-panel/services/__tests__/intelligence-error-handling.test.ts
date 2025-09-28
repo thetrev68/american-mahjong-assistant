@@ -182,14 +182,17 @@ describe('Intelligence Panel Services - Error Handling', () => {
 
       const patterns = [{
         id: 'valid-pattern',
-        name: 'Test Pattern',
+        patternId: 1,
+        displayName: 'Test Pattern',
+        pattern: 'AAA BBB CCC DDD',
         points: 25,
         difficulty: 'medium' as const,
         description: 'Test',
-        groups: [],
-        jokerRules: { allowJokers: true, minTiles: 8 },
-        isStarred: false,
-        completionProgress: 0
+        section: 'TEST_SECTION',
+        line: 1,
+        allowsJokers: true,
+        concealed: false,
+        groups: []
       }]
 
       const result = await PatternRankingEngine.rankPatterns(
@@ -332,14 +335,17 @@ describe('Intelligence Panel Services - Error Handling', () => {
 
       const patterns = [{
         id: 'extreme-pattern',
-        name: 'Extreme Test',
+        patternId: 2,
+        displayName: 'Extreme Test',
+        pattern: 'XXX YYY ZZZ WWW',
         points: Number.MAX_SAFE_INTEGER,
-        difficulty: 'extreme' as any,
+        difficulty: 'hard' as const, // Use valid difficulty
         description: 'Test',
-        groups: [],
-        jokerRules: { allowJokers: true, minTiles: -1 },
-        isStarred: false,
-        completionProgress: Number.NaN
+        section: 'EXTREME_SECTION',
+        line: 1,
+        allowsJokers: true,
+        concealed: false,
+        groups: []
       }]
 
       const result = await PatternRankingEngine.rankPatterns(
@@ -410,14 +416,17 @@ describe('Intelligence Panel Services - Error Handling', () => {
 
       const patterns = [{
         id: 'concurrent-test',
-        name: 'Concurrent Test',
+        patternId: 3,
+        displayName: 'Concurrent Test',
+        pattern: 'CCC UUU RRR ENT',
         points: 25,
         difficulty: 'medium' as const,
         description: 'Test',
-        groups: [],
-        jokerRules: { allowJokers: true, minTiles: 8 },
-        isStarred: false,
-        completionProgress: 0
+        section: 'CONCURRENT_SECTION',
+        line: 1,
+        allowsJokers: true,
+        concealed: false,
+        groups: []
       }]
 
       // Launch multiple concurrent ranking requests

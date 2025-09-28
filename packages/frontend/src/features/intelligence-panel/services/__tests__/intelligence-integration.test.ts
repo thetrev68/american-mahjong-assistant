@@ -243,14 +243,17 @@ describe('3-Engine Intelligence System Integration', () => {
         ...createTestPatterns(),
         {
           id: '2025-2025-1-1',
-          name: '2025 Pattern',
+          patternId: 4,
+          displayName: '2025 Pattern',
+          pattern: 'FFFF 2025 222 222',
           points: 25,
-          difficulty: 'medium',
+          difficulty: 'medium' as const,
           description: 'FFFF 2025 222 222',
-          groups: [] as PatternGroup[],
-          jokerRules: { allowJokers: true, minTiles: 8 },
-          isStarred: false,
-          completionProgress: 0
+          section: '2025',
+          line: 1,
+          allowsJokers: true,
+          concealed: false,
+          groups: [] as PatternGroup[]
         }
       ]
 

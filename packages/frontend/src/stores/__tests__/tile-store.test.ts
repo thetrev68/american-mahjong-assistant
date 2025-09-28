@@ -65,15 +65,23 @@ describe('Tile Store', () => {
     // Setup default mocks
     mockTileService.createPlayerTile = vi.fn((tileId: string) => createTile({ id: tileId }))
     mockTileService.validateHand = vi.fn((hand, expectedCount) => ({
-      isValid: hand.length === expectedCount,
-      errors: hand.length !== expectedCount ? [`Expected ${expectedCount} tiles, got ${hand.length}`] : [],
+      isValid: hand.length === (expectedCount || 14),
+      errors: hand.length !== (expectedCount || 14) ? [`Expected ${expectedCount || 14} tiles, got ${hand.length}`] : [],
       warnings: [],
       tileCount: hand.length,
-      expectedCount,
+      expectedCount: expectedCount || 14,
       duplicateErrors: []
     }))
     mockTileService.sortTiles = vi.fn((tiles) => [...tiles].sort((a, b) => a.id.localeCompare(b.id)))
-    mockTileService.getTilesGroupedBySuit = vi.fn((tiles) => ({ bams: tiles }))
+    mockTileService.getTilesGroupedBySuit = vi.fn((tiles) => ({
+      dots: [],
+      bams: tiles,
+      cracks: [],
+      winds: [],
+      dragons: [],
+      flowers: [],
+      jokers: []
+    }))
     
     mockAnalysisEngine.clearCacheForHandChange = vi.fn()
   })
@@ -442,10 +450,10 @@ describe('Tile Store', () => {
       it('should update input mode', () => {
         const store = useTileStore.getState()
         
-        store.setInputMode('build')
+        store.setInputMode('edit')
         
         const newState = useTileStore.getState()
-        expect(newState.inputMode).toBe('build')
+        expect(newState.inputMode).toBe('edit')
       })
     })
 

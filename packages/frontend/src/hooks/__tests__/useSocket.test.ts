@@ -19,7 +19,7 @@ const mockSocket = {
   off: vi.fn(),
   connected: true,
   id: 'test-socket-id'
-}
+} as any
 
 describe('useSocket Hook', () => {
   beforeEach(() => {
@@ -42,7 +42,7 @@ describe('useSocket Hook', () => {
 
       // Simulate the connect event
       act(() => {
-        const connectHandler = mockSocket.on.mock.calls.find(call => call[0] === 'connect')?.[1]
+        const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
         if (connectHandler) {
           connectHandler()
         }
@@ -59,7 +59,7 @@ describe('useSocket Hook', () => {
         connect: vi.fn().mockImplementation(() => {
           throw new Error('Connection failed')
         })
-      }
+      } as any
       ;(io as MockedFunction<typeof io>).mockReturnValue(failingSocket)
 
       const { result } = renderHook(() => useSocket())
@@ -109,7 +109,7 @@ describe('useSocket Hook', () => {
       const retriableSocket = {
         ...mockSocket,
         connected: false
-      }
+      } as any
       ;(io as MockedFunction<typeof io>).mockReturnValue(retriableSocket)
 
       const { result } = renderHook(() => useSocket())
@@ -153,7 +153,7 @@ describe('useSocket Hook', () => {
       const disconnectedSocket = {
         ...mockSocket,
         connected: false
-      }
+      } as any
       ;(io as MockedFunction<typeof io>).mockReturnValue(disconnectedSocket)
 
       const { result } = renderHook(() => useSocket())
@@ -175,7 +175,7 @@ describe('useSocket Hook', () => {
 
       // First connect the socket
       act(() => {
-        const connectHandler = mockSocket.on.mock.calls.find(call => call[0] === 'connect')?.[1]
+        const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
         if (connectHandler) {
           connectHandler()
         }
@@ -262,7 +262,7 @@ describe('useSocket Hook', () => {
 
       // First connect the socket to start ping mechanism
       act(() => {
-        const connectHandler = mockSocket.on.mock.calls.find(call => call[0] === 'connect')?.[1]
+        const connectHandler = mockSocket.on.mock.calls.find((call: unknown[]) => call[0] === 'connect')?.[1] as ((...args: unknown[]) => void) | undefined
         if (connectHandler) {
           connectHandler()
         }

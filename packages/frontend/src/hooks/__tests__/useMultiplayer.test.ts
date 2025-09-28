@@ -15,36 +15,75 @@ vi.mock('../useConnectionResilience')
 // Simple mocks for external dependencies
 const mockSocket = {
   isConnected: true,
+  socketId: 'test-socket-id' as string | null,
+  connectionError: null as string | null,
+  connectionHealth: { isHealthy: true, latency: 50, packetLoss: 0, consecutiveFailures: 0, lastPing: new Date(), reconnectAttempts: 0 },
+  eventQueue: [] as any[],
+  lastError: null as string | null,
+  connect: vi.fn(),
+  disconnect: vi.fn(),
   emit: vi.fn(),
   on: vi.fn(),
   off: vi.fn(),
-  socketId: 'test-socket-id',
-  connectionError: null,
-  eventQueue: [],
-  lastError: null,
+  retry: vi.fn(),
   rawSocket: {
     on: vi.fn(),
     off: vi.fn(),
     emit: vi.fn(),
     connected: true,
     id: 'test-socket-id'
-  }
+  } as any
 }
 
 const mockConnectionResilience = {
+  // State from ConnectionResilienceState
   isConnected: true,
   isReconnecting: false,
-  connectionHealth: 'healthy' as const,
-  lastError: null,
-  isOperationSafe: vi.fn(() => true),
-  retryConnection: vi.fn(),
+  connectionHealth: 'healthy' as 'poor' | 'healthy' | 'degraded' | 'offline',
+  reconnectAttempts: 0,
+  maxAttempts: 3,
   canRecover: false,
+  hasQueuedEvents: false,
+  lastError: null as string | null,
+
+  // Config
+  config: {
+    enableAutoReconnect: true,
+    enableStateRecovery: true,
+    maxReconnectAttempts: 3,
+    heartbeatInterval: 30000,
+    showConnectionIndicator: true
+  },
+
+  // Actions
+  retryConnection: vi.fn(),
+  leaveRoom: vi.fn(),
+  forceDisconnect: vi.fn(),
+
+  // Recovery
+  attemptRecovery: vi.fn(),
+  clearRecoveryData: vi.fn(),
+
+  // Utilities
+  isOperationSafe: vi.fn(() => true),
+  getConnectionDetails: vi.fn(() => ({
+    socket: { id: 'test-socket-id', connected: true, health: { isHealthy: true, latency: 50, packetLoss: 0, consecutiveFailures: 0, lastPing: new Date(), reconnectAttempts: 0 } },
+    network: { isOnline: true, quality: 'good', latency: 50, packetLoss: 0, jitter: 1, status: 'healthy' as const, consecutiveFailures: 0, lastSuccessfulConnection: new Date(), errorHistory: [] },
+    resilience: { isHealthy: true, status: 'connected' as const, attempt: 0, maxAttempts: 3, lastPing: null },
+    room: { isConnected: true, lastHeartbeat: new Date(), roomId: 'test-room', reconnectionAttempts: 0 }
+  })),
   getNetworkQuality: vi.fn(() => ({
-    quality: 'excellent',
+    quality: 'excellent' as 'excellent' | 'good' | 'poor' | 'fair' | 'offline',
     latency: 50,
     packetLoss: 0,
     stability: 'stable'
-  }))
+  })),
+
+  // Event handlers
+  handleServerMaintenance: vi.fn(),
+
+  // Raw socket for advanced usage
+  socket: mockSocket
 }
 
 describe('useMultiplayer Hook', () => {
@@ -99,6 +138,7 @@ describe('useMultiplayer Hook', () => {
       const { result } = renderHook(() => useMultiplayer())
 
       // The hook should respect the isOperationSafe check
+      expect(result.current).toBeDefined()
       expect(mockConnectionResilience.isOperationSafe).toHaveBeenCalled()
     })
   })
@@ -172,7 +212,7 @@ describe('useMultiplayer Hook', () => {
           id: 'test-room',
           hostId: 'test-host',
           players: [],
-          phase: 'waiting',
+          phase: 'waiting' as const,
           maxPlayers: 4,
           isPrivate: false,
           createdAt: new Date()

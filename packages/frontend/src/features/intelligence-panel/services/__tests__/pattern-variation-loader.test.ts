@@ -627,7 +627,7 @@ describe('PatternVariationLoader', () => {
 
     it('should handle filtering large datasets efficiently', async () => {
       // Create a larger mock dataset
-      const largeVariations = []
+      const largeVariations: any[] = []
       for (let i = 0; i < 1000; i++) {
         largeVariations.push({
           ...mockVariations[0],

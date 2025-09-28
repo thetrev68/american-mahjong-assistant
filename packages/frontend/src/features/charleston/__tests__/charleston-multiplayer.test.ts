@@ -68,7 +68,7 @@ describe('Charleston Multiplayer Coordination', () => {
       )
     }
 
-    charlestonStore = useCharlestonStore.getState()
+    // charlestonStore = useCharlestonStore.getState() // Unused variable removed
 
     // Mock store functions
     ;(useRoomStore as any).getState = vi.fn(() => mockRoomStore)

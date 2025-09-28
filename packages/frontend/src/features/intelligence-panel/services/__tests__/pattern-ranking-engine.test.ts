@@ -12,58 +12,73 @@ import type { PatternSelectionOption, PatternGroup } from 'shared-types'
 const createMockPatterns = (): PatternSelectionOption[] => ([
   {
     id: '2025-SINGLES_AND_PAIRS-3-1',
-    name: 'Singles And Pairs',
+    patternId: 1,
+    displayName: 'Singles And Pairs',
+    pattern: 'FF DDDD DDDD 33',
     points: 25,
-    difficulty: 'medium',
+    difficulty: 'medium' as const,
     description: 'FF DDDD DDDD 33',
-    groups: [] as PatternGroup[],
-    jokerRules: { allowJokers: true, minTiles: 8 },
-    isStarred: false,
-    completionProgress: 0
+    section: 'SINGLES_AND_PAIRS',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   },
   {
     id: '2025-CONSECUTIVE_RUN-7-1',
-    name: 'Consecutive Run',
+    patternId: 2,
+    displayName: 'Consecutive Run',
+    pattern: '1111 2222 3333 FF',
     points: 30,
-    difficulty: 'hard',
+    difficulty: 'hard' as const,
     description: '1111 2222 3333 FF',
-    groups: [] as PatternGroup[],
-    jokerRules: { allowJokers: true, minTiles: 12 },
-    isStarred: false,
-    completionProgress: 0
+    section: 'CONSECUTIVE_RUN',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   },
   {
     id: '2025-ANY_LIKE_NUMBERS-2-1',
-    name: 'Any Like Numbers',
+    patternId: 3,
+    displayName: 'Any Like Numbers',
+    pattern: '111 222 333 DDDD',
     points: 25,
-    difficulty: 'medium',
+    difficulty: 'medium' as const,
     description: '111 222 333 DDDD',
-    groups: [] as PatternGroup[],
-    jokerRules: { allowJokers: true, minTiles: 9 },
-    isStarred: false,
-    completionProgress: 0
+    section: 'ANY_LIKE_NUMBERS',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   },
   {
     id: '2025-2025-1-1',
-    name: '2025 Pattern',
+    patternId: 4,
+    displayName: '2025 Pattern',
+    pattern: 'FFFF 2025 222 222',
     points: 25,
-    difficulty: 'medium',
+    difficulty: 'medium' as const,
     description: 'FFFF 2025 222 222',
-    groups: [] as PatternGroup[],
-    jokerRules: { allowJokers: true, minTiles: 8 },
-    isStarred: false,
-    completionProgress: 0
+    section: '2025',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   },
   {
     id: '2025-2468-1-1',
-    name: '2468 Pattern',
+    patternId: 5,
+    displayName: '2468 Pattern',
+    pattern: '2468 2468 2468 22',
     points: 25,
-    difficulty: 'medium',
+    difficulty: 'medium' as const,
     description: '2468 2468 2468 22',
-    groups: [] as PatternGroup[],
-    jokerRules: { allowJokers: true, minTiles: 10 },
-    isStarred: false,
-    completionProgress: 0
+    section: '2468',
+    line: 1,
+    allowsJokers: true,
+    concealed: false,
+    groups: [] as PatternGroup[]
   }
 ])
 

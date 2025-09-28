@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import { useCharlestonStore } from '../charleston-store'
-import { createTile, createPatternSelection, TilePresets } from '../../__tests__/factories'
+import { createTile, createPatternSelection } from '../../__tests__/factories'
 
 // Create test tile presets
 const DOT_1 = { suit: 'dots' as const, value: '1' as const, id: '1D' }

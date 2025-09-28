@@ -242,7 +242,7 @@ export class BundleAnalyzer {
     return Math.round(totalSize * 0.25) // Estimate 25% of original size after compression
   }
 
-  public generateOptimizationReport(): string {
+  public generateOptimizationReport(): Promise<string> {
     return this.analyzeBundles().then(analysis => {
       let report = '# Bundle Analysis Report\n\n'
       

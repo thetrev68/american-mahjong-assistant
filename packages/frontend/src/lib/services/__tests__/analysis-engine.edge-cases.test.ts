@@ -271,9 +271,9 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
 
     it('should preserve pattern order when requested', async () => {
       const orderedPatterns = [
-        createPatternSelection({ id: '3', points: 50 }),
-        createPatternSelection({ id: '1', points: 25 }),
-        createPatternSelection({ id: '2', points: 35 })
+        createPatternSelection({ id: 3, points: 50 }),
+        createPatternSelection({ id: 1, points: 25 }),
+        createPatternSelection({ id: 2, points: 35 })
       ]
 
       // Mock rankings to return different scores (third > second > first by score)
@@ -310,7 +310,7 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
 
       // Override mocks to handle 10 patterns
       vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue(
-        patterns.map((pattern, i) => createAnalysisFacts({ patternId: `pattern${i + 1}`, tilesMatched: 5 + i }))
+        patterns.map((_, i) => createAnalysisFacts({ patternId: `pattern${i + 1}`, tilesMatched: 5 + i }))
       )
 
       const mockRankings = createRankedPatternResults({ patterns })
@@ -509,14 +509,14 @@ describe('Analysis Engine - Edge Cases & Integration', () => {
         totalScore: 85,
         components: { currentTileScore: 30, availabilityScore: 35, jokerScore: 15, priorityScore: 5 },
         confidence: 0.9,
-        reasoning: 'Test pattern ranking',
+        recommendation: 'excellent' as const,
         isViable: true,
         strategicValue: 0.8,
         riskFactors: [] // CRITICAL: Must include this array for analysis engine
       }]
       vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockRankings)
 
-      await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 'test' })])
+      await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 1 })])
 
       // Verify Engine 3 is called and receives Engine 1 facts
       expect(TileRecommendationEngine.generateRecommendations).toHaveBeenCalled()

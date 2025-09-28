@@ -279,7 +279,7 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Round</div>
               <div className="font-medium">
-                {charlestonStore.roundNumber}/3
+                {charlestonStore.currentPhase === 'right' ? '1' : charlestonStore.currentPhase === 'across' ? '2' : '3'}/3
               </div>
             </div>
             <div className="bg-white/50 rounded-lg p-3">
@@ -329,8 +329,9 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
             {gameStore.alerts.slice(0, 2).map((alert, index) => (
               <div key={index} className={`
                 text-xs px-2 py-1 rounded-full
-                ${alert.type === 'error' ? 'bg-red-100 text-red-700' :
-                  alert.type === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                ${alert.type === 'warning' ? 'bg-yellow-100 text-yellow-700' :
+                  alert.type === 'success' ? 'bg-green-100 text-green-700' :
+                  alert.type === 'call' ? 'bg-purple-100 text-purple-700' :
                   'bg-blue-100 text-blue-700'}
               `}>
                 {alert.message}

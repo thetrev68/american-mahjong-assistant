@@ -280,12 +280,12 @@ export const useMultiplayerStore = create<MultiplayerState>()(
           },
           removeItem: (name) => sessionStorage.removeItem(name),
         },
-        partialize: (state): Pick<MultiplayerState, 'currentPlayerId' | 'currentRoom'> => ({
+        partialize: (state) => ({
           // Only persist essential state, not volatile connection info or action methods
           // Uses sessionStorage for temporary persistence - cleared on browser restart
           currentPlayerId: state.currentPlayerId,
           currentRoom: state.currentRoom
-        })
+        } as any)
       }
     ),
     { name: 'multiplayer-store' }

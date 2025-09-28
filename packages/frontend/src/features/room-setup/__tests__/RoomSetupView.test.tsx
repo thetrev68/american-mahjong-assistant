@@ -52,12 +52,14 @@ const mockRoomSetup: MockRoomSetup = {
 }
 
 const mockRoomSetupStore = {
+  coPilotMode: 'everyone' as CoPilotMode,
+  roomCreationStatus: 'idle' as 'idle' | 'creating' | 'joining' | 'success' | 'error',
   resetCoPilotModeSelection: vi.fn(),
   setRoomCreationStatus: vi.fn(),
   setJoinRoomStatus: vi.fn(),
   clearError: vi.fn(),
   getRoomSetupProgress: vi.fn(() => ({
-    currentStep: 'mode-selection' as const,
+    currentStep: 'mode-selection' as 'mode-selection' | 'room-creation' | 'player-positioning' | 'ready',
     completedSteps: 0,
     totalSteps: 3
   }))

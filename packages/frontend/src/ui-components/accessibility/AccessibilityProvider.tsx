@@ -3,8 +3,9 @@
  * Global accessibility context and configuration
  */
 
-import React, { ReactNode, createContext, useContext } from 'react'
-import { useAccessibility, AccessibilityOptions } from '../../hooks/useAccessibility'
+import React, { createContext, useContext } from 'react'
+import type { ReactNode } from 'react'
+import { useAccessibility, type AccessibilityOptions } from '../../hooks/useAccessibility'
 
 interface AccessibilityContextType {
   options: AccessibilityOptions

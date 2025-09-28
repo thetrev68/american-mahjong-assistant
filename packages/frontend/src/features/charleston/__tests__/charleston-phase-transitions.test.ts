@@ -5,7 +5,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useCharlestonStore, type CharlestonPhase } from '../../../stores/charleston-store'
 import { useGameStore } from '../../../stores/game-store'
 import { useTileStore } from '../../../stores/tile-store'
-import { createTile, createTestHand } from '../../../__tests__/factories'
+import { createTile } from '../../../__tests__/factories'
 import type { Tile, TileValue } from 'shared-types'
 
 // Mock dependencies
@@ -21,17 +21,17 @@ const createCharlestonHand = (count = 14): Tile[] =>
     displayName: `Charleston Tile ${i + 1}`
   }))
 
-const createPhaseHistory = (phases: CharlestonPhase[]): Array<{
-  phase: CharlestonPhase
-  tilesPassed: Tile[]
-  tilesReceived: Tile[]
-  timestamp: number
-}> => phases.map((phase, index) => ({
-  phase,
-  tilesPassed: createCharlestonHand(3),
-  tilesReceived: createCharlestonHand(3),
-  timestamp: Date.now() + (index * 1000)
-}))
+// const createPhaseHistory = (phases: CharlestonPhase[]): Array<{ // Unused function removed
+//   phase: CharlestonPhase
+//   tilesPassed: Tile[]
+//   tilesReceived: Tile[]
+//   timestamp: number
+// }> => phases.map((phase, index) => ({
+//   phase,
+//   tilesPassed: createCharlestonHand(3),
+//   tilesReceived: createCharlestonHand(3),
+//   timestamp: Date.now() + (index * 1000)
+// }))
 
 describe('Charleston Phase Transitions', () => {
   let mockGameStore: any
@@ -94,11 +94,11 @@ describe('Charleston Phase Transitions', () => {
 
       store.startCharleston()
       store = useCharlestonStore.getState() // Get fresh state
-      const firstState = {
-        isActive: store.isActive,
-        currentPhase: store.currentPhase,
-        phaseHistory: [...store.phaseHistory]
-      }
+      // const firstState = { // Unused variable
+      //   isActive: store.isActive,
+      //   currentPhase: store.currentPhase,
+      //   phaseHistory: [...store.phaseHistory]
+      // }
 
       store.startCharleston() // Second call
       store = useCharlestonStore.getState() // Get fresh state
@@ -174,7 +174,7 @@ describe('Charleston Phase Transitions', () => {
 
       for (let i = 0; i < 4; i++) {
         const phaseBefore = store.currentPhase
-        const isActiveBefore = store.isActive
+        // const isActiveBefore = store.isActive // Unused variable removed
 
         store.completePhase()
         store = useCharlestonStore.getState() // Get fresh state
@@ -394,7 +394,7 @@ describe('Charleston Phase Transitions', () => {
       let store = useCharlestonStore.getState()
 
       // Manually add some history
-      const mockHistory = createPhaseHistory(['right', 'across'])
+      // const mockHistory = createPhaseHistory(['right', 'across']) // Unused variable removed
       // Note: The store doesn't expose a direct way to set history,
       // but it should start empty
 

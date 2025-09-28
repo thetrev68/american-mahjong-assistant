@@ -2,7 +2,7 @@
 // Focuses on core functionality with reliable mocks and minimal setup
 // Tests the primary user interface for co-pilot system during gameplay
 
-import { render, screen, fireEvent, act, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach } from 'vitest'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'

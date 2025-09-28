@@ -18,7 +18,6 @@ import { useTileStore } from '../tile-store'
 import {
   createTestPlayer,
   createTile,
-  createTestHand,
   AnalysisPresets
 } from '../../__tests__/factories'
 
@@ -256,10 +255,41 @@ describe('Store Integration Tests', () => {
       const tileStore = useTileStore.getState()
 
       // Set up patterns
-      const mockPatterns = [
-        { id: 'pattern-1', displayName: 'Test Pattern 1' },
-        { id: 'pattern-2', displayName: 'Test Pattern 2' }
-      ]
+      const mockPatterns = [{
+        patternId: 1,
+        displayName: 'Test Pattern 1',
+        pattern: '111 222 333 444 55',
+        points: 25,
+        difficulty: 'medium' as const,
+        isPrimary: true,
+        allowsJokers: true,
+        maxJokers: 2,
+        requirements: [],
+        tags: [],
+        description: 'Test Pattern 1 Description',
+        id: '1',
+        section: 'TEST',
+        line: 1,
+        concealed: false,
+        groups: []
+      }, {
+        patternId: 2,
+        displayName: 'Test Pattern 2',
+        pattern: '111 222 333 444 55',
+        points: 30,
+        difficulty: 'medium' as const,
+        isPrimary: true,
+        allowsJokers: true,
+        maxJokers: 2,
+        requirements: [],
+        tags: [],
+        description: 'Test Pattern 2 Description',
+        id: '2',
+        section: 'TEST',
+        line: 2,
+        concealed: false,
+        groups: []
+      }]
 
       usePatternStore.setState({ selectionOptions: mockPatterns })
       patternStore.selectPattern('pattern-1')
@@ -281,7 +311,6 @@ describe('Store Integration Tests', () => {
 
     it('should clear intelligence analysis when patterns are cleared', () => {
       const patternStore = usePatternStore.getState()
-      const intelligenceStore = useIntelligenceStore.getState()
 
       // Set up analysis
       useIntelligenceStore.setState({
@@ -297,14 +326,30 @@ describe('Store Integration Tests', () => {
 
     it('should track pattern progress from intelligence analysis', () => {
       const patternStore = usePatternStore.getState()
-      const intelligenceStore = useIntelligenceStore.getState()
 
       // Simulate analysis results with pattern progress
       const mockAnalysis = {
         ...AnalysisPresets.basic(),
         recommendedPatterns: [
           {
-            pattern: { id: 'pattern-1' },
+            pattern: {
+              patternId: 1,
+              displayName: 'Test Pattern',
+              pattern: '111 222 333 444 55',
+              points: 25,
+              difficulty: 'medium' as const,
+              isPrimary: true,
+              allowsJokers: true,
+              maxJokers: 2,
+              requirements: [],
+              tags: [],
+              description: 'Test Pattern Description',
+              id: '1',
+              section: 'TEST',
+              line: 1,
+              concealed: false,
+              groups: []
+            },
             completionPercentage: 75,
             totalScore: 85,
             confidence: 0.8,
@@ -319,10 +364,12 @@ describe('Store Integration Tests', () => {
 
       // Pattern store should be able to update progress based on analysis
       patternStore.updatePatternProgress('pattern-1', {
+        patternId: 1,
         completionPercentage: 75,
-        tilesMatched: 10,
         tilesNeeded: 4,
-        lastUpdated: Date.now()
+        completingTiles: ['DOT1', 'DOT2'],
+        canUseJokers: true,
+        jokersNeeded: 1
       })
 
       const patternProgress = usePatternStore.getState().patternProgress
@@ -381,7 +428,24 @@ describe('Store Integration Tests', () => {
       gameStore.startGame()
 
       // Select patterns
-      const mockPatterns = [{ id: 'pattern-1', displayName: 'Test Pattern' }]
+      const mockPatterns = [{
+        patternId: 1,
+        displayName: 'Test Pattern',
+        pattern: '111 222 333 444 55',
+        points: 25,
+        difficulty: 'medium' as const,
+        isPrimary: true,
+        allowsJokers: true,
+        maxJokers: 2,
+        requirements: [],
+        tags: [],
+        description: 'Test Pattern Description',
+        id: '1',
+        section: 'TEST',
+        line: 1,
+        concealed: false,
+        groups: []
+      }]
       usePatternStore.setState({ selectionOptions: mockPatterns })
       patternStore.selectPattern('pattern-1')
 
@@ -466,7 +530,6 @@ describe('Store Integration Tests', () => {
     it('should clean up cross-references when resetting stores', () => {
       const gameStore = useGameStore.getState()
       const patternStore = usePatternStore.getState()
-      const intelligenceStore = useIntelligenceStore.getState()
 
       // Set up cross-references
       gameStore.setCurrentPlayer('player-1')

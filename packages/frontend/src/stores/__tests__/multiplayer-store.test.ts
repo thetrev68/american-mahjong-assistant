@@ -8,8 +8,8 @@ const mockRoom: Room = {
   id: 'room-123',
   hostId: 'host-player',
   players: [
-    { id: 'host-player', name: 'Host', isHost: true },
-    { id: 'player2', name: 'Player 2', isHost: false }
+    { id: 'host-player', name: 'Host', isHost: true, isConnected: true, isReady: false },
+    { id: 'player2', name: 'Player 2', isHost: false, isConnected: true, isReady: false }
   ],
   phase: 'waiting',
   maxPlayers: 4,
@@ -122,7 +122,7 @@ describe('Multiplayer Store', () => {
 
     it('should add player to current room', () => {
       const store = useMultiplayerStore.getState()
-      const newPlayer: Player = { id: 'player3', name: 'Player 3', isHost: false }
+      const newPlayer: Player = { id: 'player3', name: 'Player 3', isHost: false, isConnected: true, isReady: false }
 
       store.addPlayerToRoom(newPlayer)
 
@@ -168,7 +168,7 @@ describe('Multiplayer Store', () => {
       const store = useMultiplayerStore.getState()
       store.clearCurrentRoom()
 
-      const newPlayer: Player = { id: 'player3', name: 'Player 3', isHost: false }
+      const newPlayer: Player = { id: 'player3', name: 'Player 3', isHost: false, isConnected: true, isReady: false }
       store.addPlayerToRoom(newPlayer)
 
       const updatedStore = useMultiplayerStore.getState()
@@ -370,10 +370,10 @@ describe('Multiplayer Store', () => {
       const fullRoom = {
         ...mockRoom,
         players: [
-          { id: 'p1', name: 'P1', isHost: true },
-          { id: 'p2', name: 'P2', isHost: false },
-          { id: 'p3', name: 'P3', isHost: false },
-          { id: 'p4', name: 'P4', isHost: false }
+          { id: 'p1', name: 'P1', isHost: true, isConnected: true, isReady: false },
+          { id: 'p2', name: 'P2', isHost: false, isConnected: true, isReady: false },
+          { id: 'p3', name: 'P3', isHost: false, isConnected: true, isReady: false },
+          { id: 'p4', name: 'P4', isHost: false, isConnected: true, isReady: false }
         ]
       }
       store.setCurrentRoom(fullRoom)

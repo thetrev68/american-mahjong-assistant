@@ -8,8 +8,8 @@ import {
   initializeCharlestonResilientService,
   destroyCharlestonResilientService,
   useCharlestonResilience,
-  type QueuedCharlestonOperation,
-  type CharlestonEventData
+  // type QueuedCharlestonOperation, // Unused type import removed
+  // type CharlestonEventData // Unused type import removed
 } from '../charleston-resilient'
 import { useCharlestonStore } from '../../../../stores/charleston-store'
 import { useRoomStore } from '../../../../stores/room.store'
@@ -197,12 +197,12 @@ describe('Charleston Resilient Service', () => {
 
     it('should handle player readiness updates', () => {
       // Simulate event listener being called
-      const eventData = {
-        playerId: 'player2',
-        isReady: true,
-        phase: 'right',
-        roomId: 'room123'
-      }
+      // const eventData = { // Unused variable removed
+      //   playerId: 'player2',
+      //   isReady: true,
+      //   phase: 'right',
+      //   roomId: 'room123'
+      // }
 
       // We can't directly test private event listeners, but we can test the store calls they make
       service.initialize()
@@ -213,28 +213,28 @@ describe('Charleston Resilient Service', () => {
     })
 
     it('should handle tile exchange events', () => {
-      const eventData = {
-        tilesReceived: [
-          { id: 'tile1', suit: 'dots', value: '1', displayName: '1 Dot', isJoker: false },
-          { id: 'tile2', suit: 'dots', value: '2', displayName: '2 Dot', isJoker: false },
-          { id: 'tile3', suit: 'dots', value: '3', displayName: '3 Dot', isJoker: false }
-        ],
-        phase: 'right',
-        nextPhase: 'across',
-        fromPlayerId: 'player2'
-      }
+      // const eventData = { // Unused variable removed
+      //   tilesReceived: [
+      //     { id: 'tile1', suit: 'dots', value: '1', displayName: '1 Dot', isJoker: false },
+      //     { id: 'tile2', suit: 'dots', value: '2', displayName: '2 Dot', isJoker: false },
+      //     { id: 'tile3', suit: 'dots', value: '3', displayName: '3 Dot', isJoker: false }
+      //   ],
+      //   phase: 'right',
+      //   nextPhase: 'across',
+      //   fromPlayerId: 'player2'
+      // }
 
       // Event handling setup is verified through initialization
       expect(service).toBeInstanceOf(CharlestonResilientService)
     })
 
     it('should handle phase change events', () => {
-      const eventData = {
-        fromPhase: 'right',
-        toPhase: 'across',
-        roomId: 'room123',
-        allPlayersReady: true
-      }
+      // const eventData = { // Unused variable removed
+      //   fromPhase: 'right',
+      //   toPhase: 'across',
+      //   roomId: 'room123',
+      //   allPlayersReady: true
+      // }
 
       // Event handling is set up in initialization
       service.initialize()
@@ -242,12 +242,12 @@ describe('Charleston Resilient Service', () => {
     })
 
     it('should handle Charleston completion events', () => {
-      const eventData = {
-        roomId: 'room123',
-        finalTiles: [
-          { id: 'tile1', suit: 'dots', value: '1' }
-        ]
-      }
+      // const eventData = { // Unused variable removed
+      //   roomId: 'room123',
+      //   finalTiles: [
+      //     { id: 'tile1', suit: 'dots', value: '1' }
+      //   ]
+      // }
 
       // Event handling is set up in initialization
       service.initialize()
@@ -411,7 +411,7 @@ describe('Charleston Resilient Service', () => {
     it('should cleanup correctly', () => {
       service.initialize()
 
-      const queueStatusBefore = service.getQueueStatus()
+      // const queueStatusBefore = service.getQueueStatus() // Unused variable removed
       service.cleanup()
       const queueStatusAfter = service.getQueueStatus()
 

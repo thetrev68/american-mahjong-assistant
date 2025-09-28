@@ -3,8 +3,9 @@
  * WCAG 2.1 AA compliant tile with full keyboard and screen reader support
  */
 
-import React, { forwardRef, useRef, useImperativeHandle, KeyboardEvent } from 'react'
-import { AnimatedTile, AnimatedTileProps } from '../tiles/AnimatedTile'
+import { forwardRef, useRef, useImperativeHandle } from 'react'
+import type { KeyboardEvent } from 'react'
+import { AnimatedTile, type AnimatedTileProps } from '../tiles/AnimatedTile'
 import { useAccessibilityContext } from './AccessibilityProvider'
 import type { Tile } from 'shared-types';
 

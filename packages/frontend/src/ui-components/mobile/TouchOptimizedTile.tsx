@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback, useRef, useEffect } from 'react'
-import { AnimatedTile, AnimatedTileProps } from '../tiles/AnimatedTile'
+import { AnimatedTile, type AnimatedTileProps } from '../tiles/AnimatedTile'
 
 interface TouchOptimizedTileProps extends AnimatedTileProps {
   // Touch-specific props
@@ -58,7 +58,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
   const [isPressed, setIsPressed] = useState(false)
   const [lastTap, setLastTap] = useState<number>(0)
   const touchState = useRef<TouchState | null>(null)
-  const longPressTimeout = useRef<ReturnType<typeof setTimeout>>()
+  const longPressTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const tileRef = useRef<HTMLDivElement>(null)
 
   // Haptic feedback utility
@@ -222,7 +222,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
     // Handle regular tap
     if (onClick && distance < 20 && deltaTime < 300) {
       triggerHaptic('light')
-      onClick()
+      onClick(tile)
     }
 
     touchState.current = null
@@ -282,7 +282,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
       // Accessibility
       role="button"
       tabIndex={0}
-      aria-label={`Tile ${tile.suit} ${tile.rank || tile.value}`}
+      aria-label={`Tile ${tile.suit} ${tile.value}`}
       
       // Prevent context menu on long press
       onContextMenu={(e) => e.preventDefault()}
