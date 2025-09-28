@@ -500,7 +500,7 @@ const renderGameModeView = async (props: Partial<GameModeViewProps> = {}) => {
     expect(screen.getByTestId('game-screen-layout')).toBeInTheDocument()
   }, { timeout: 500 })
 
-  return result
+  return view
 }
 
 describe('GameModeView Component', () => {
