@@ -36,7 +36,7 @@ export function GameplayRecommendations({
     const pass = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'pass')
 
     return { keep, discard, pass }
-  }, [analysis?.tileRecommendations, gamePhase])
+  }, [analysis?.tileRecommendations])
 
   if (isLoading) {
     return (

@@ -488,7 +488,7 @@ const renderGameModeView = async (props: Partial<GameModeViewProps> = {}) => {
     ...props
   }
 
-  const result = render(
+  const view = render(
     <MemoryRouter>
       <GameModeView {...defaultProps} />
     </MemoryRouter>
@@ -616,6 +616,8 @@ describe('GameModeView Component', () => {
 
       await waitFor(() => {
         expect(mockGameStore.setCurrentPlayer).toHaveBeenCalledWith('player1')
+      })
+      await waitFor(() => {
         expect(mockGameStore.startTurn).toHaveBeenCalled()
       })
     })
@@ -1319,8 +1321,9 @@ describe('GameModeView Component', () => {
       // Tab navigation should work through interactive elements
       await user.tab()
 
-      // Focus should be manageable
-      expect(document.activeElement).toBeDefined()
+      // Focus should be manageable (check for focusable elements instead of direct DOM access)
+      const focusableElements = screen.getAllByRole('button')
+      expect(focusableElements.length).toBeGreaterThan(0)
     })
 
     it('should handle touch interactions properly', async () => {

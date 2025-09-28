@@ -47,7 +47,7 @@ export const TileInputModal = ({
         setModalHand([])
       }
     }
-  }, [isOpen]) // Remove initialTiles dependency to prevent infinite loops
+  }, [isOpen, initialTiles])
 
   // Get current hand as colored single characters
   const getCurrentHandDisplay = () => {
@@ -86,7 +86,7 @@ export const TileInputModal = ({
     const tileIds = modalHand.map(tile => tile.id)
     onConfirm(tileIds)
     setModalHand([])
-  }, [modalHand.length, requiredCount, modalHand, onConfirm])
+  }, [requiredCount, modalHand, onConfirm])
 
   const handleCancel = useCallback(() => {
     setModalHand([])

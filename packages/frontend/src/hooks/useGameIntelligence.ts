@@ -40,7 +40,8 @@ export const useGameIntelligence = (gameState: GameState | null, playerId: strin
     playerId,
     lastAnalysisUpdate,
     analyzeTurnSituation,
-    analyzeOpponents
+    analyzeOpponents,
+    updateDefensiveAnalysis
   ])
   
   // Return current intelligence state

@@ -23,16 +23,12 @@ vi.mock('../../../stores/charleston-store', () => ({
   useCharlestonStore: vi.fn()
 }))
 
-vi.mock('../../../stores/game-store', () => ({
-  useGameStore: vi.fn(() => ({})),
-  // Mock the getState method that GameModeView calls directly
-  ...(() => {
-    const mockGetState = vi.fn(() => ({ currentTurn: 1 }))
-    const useGameStore = vi.fn(() => ({}))
-    useGameStore.getState = mockGetState
-    return { useGameStore }
-  })()
-}))
+vi.mock('../../../stores/game-store', () => {
+  const mockGetState = vi.fn(() => ({ currentTurn: 1 }))
+  const useGameStore = vi.fn(() => ({})) as any
+  useGameStore.getState = mockGetState
+  return { useGameStore }
+})
 
 vi.mock('../../../stores/tile-store', () => ({
   useTileStore: vi.fn()

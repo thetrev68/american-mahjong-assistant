@@ -210,9 +210,9 @@ describe('usePerformance Hook', () => {
       let capability: 'high' | 'medium' | 'low'
       
       await act(async () => {
-        const capabilityPromise = result.current.checkRenderingCapability()
+        const view = result.current.checkRenderingCapability()
         vi.advanceTimersByTime(2000)
-        capability = await capabilityPromise
+        capability = await view
       })
 
       expect(['high', 'medium', 'low']).toContain(capability!)
@@ -229,9 +229,9 @@ describe('usePerformance Hook', () => {
       expect(result.current.isMonitoring).toBe(false)
 
       await act(async () => {
-        const capabilityPromise = result.current.checkRenderingCapability()
+        const view = result.current.checkRenderingCapability()
         vi.advanceTimersByTime(2000)
-        await capabilityPromise
+        await view
       })
 
       // Should not be monitoring after check if it wasn't before

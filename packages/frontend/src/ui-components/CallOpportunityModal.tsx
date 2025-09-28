@@ -29,6 +29,13 @@ export const CallOpportunityModal: React.FC<CallOpportunityModalProps> = ({
   const [timeRemaining, setTimeRemaining] = useState(0)
   const [hasResponded, setHasResponded] = useState(false)
 
+  const handleResponse = React.useCallback((response: 'call' | 'pass', callType?: CallType) => {
+    if (hasResponded) return
+
+    setHasResponded(true)
+    onRespond(response, callType)
+  }, [hasResponded, onRespond])
+
   useEffect(() => {
     if (!opportunity) {
       setHasResponded(false)
@@ -36,11 +43,11 @@ export const CallOpportunityModal: React.FC<CallOpportunityModalProps> = ({
     }
 
     setHasResponded(false)
-    
+
     const updateTimer = () => {
       const remaining = Math.max(0, Math.floor((opportunity.deadline - Date.now()) / 1000))
       setTimeRemaining(remaining)
-      
+
       if (remaining <= 0 && !hasResponded) {
         // Auto-pass when timer expires
         handleResponse('pass')
@@ -49,19 +56,12 @@ export const CallOpportunityModal: React.FC<CallOpportunityModalProps> = ({
 
     // Update immediately
     updateTimer()
-    
+
     // Update every 100ms for smooth countdown
     const interval = setInterval(updateTimer, 100)
-    
-    return () => clearInterval(interval)
-  }, [opportunity, hasResponded]) // handleResponse is stable and doesn't need to be in deps
 
-  const handleResponse = React.useCallback((response: 'call' | 'pass', callType?: CallType) => {
-    if (hasResponded) return
-    
-    setHasResponded(true)
-    onRespond(response, callType)
-  }, [hasResponded, onRespond])
+    return () => clearInterval(interval)
+  }, [opportunity, hasResponded, handleResponse])
 
   if (!opportunity || hasResponded) {
     return null
