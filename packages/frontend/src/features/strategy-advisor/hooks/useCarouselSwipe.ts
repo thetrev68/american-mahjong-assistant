@@ -114,53 +114,44 @@ export const useCarouselSwipe = ({
   const maxIndex = patterns.length - 1
   const minIndex = 0
 
-  // Carousel state
-  const carouselState: CarouselState = useMemo(() => ({
-    currentIndex,
-    totalPatterns: patterns.length,
-    isAnimating,
-    canSwipeLeft: currentIndex > minIndex,
-    canSwipeRight: currentIndex < maxIndex,
-    snapToIndex: (index: number) => goToPattern(index),
-    nextPattern: () => nextPattern(),
-    previousPattern: () => previousPattern()
-  }), [currentIndex, patterns.length, isAnimating])
-
   // Phase 4: Performance-optimized velocity update
-  const updateVelocity = gesturePerformanceUtils.optimizeForFrameRate(
-    useCallback((currentX: number, timestamp: number) => {
-      const timeDelta = timestamp - lastTimeRef.current
+  const updateVelocity = useCallback((currentX: number, timestamp: number) => {
+    const timeDelta = timestamp - lastTimeRef.current
 
-      if (timeDelta > 0) {
-        const velocity = calculateVelocity(currentX, lastPositionRef.current, timeDelta)
-        velocityHistoryRef.current.push(velocity)
+    if (timeDelta > 0) {
+      const velocity = calculateVelocity(currentX, lastPositionRef.current, timeDelta)
+      velocityHistoryRef.current.push(velocity)
 
-        // Keep only recent velocity samples for smoothing
-        if (velocityHistoryRef.current.length > 5) {
-          velocityHistoryRef.current.shift()
-        }
-
-        // Calculate average velocity for smoother gesture recognition
-        const avgVelocity = velocityHistoryRef.current.reduce((sum, v) => sum + v, 0) / velocityHistoryRef.current.length
-
-        setSwipeState(prev => ({
-          ...prev,
-          currentX,
-          deltaX: currentX - prev.startX,
-          velocity: avgVelocity,
-          direction: avgVelocity > 0.1 ? 'right' : avgVelocity < -0.1 ? 'left' : null
-        }))
+      // Keep only recent velocity samples for smoothing
+      if (velocityHistoryRef.current.length > 5) {
+        velocityHistoryRef.current.shift()
       }
 
-      lastPositionRef.current = currentX
-      lastTimeRef.current = timestamp
-    }, [])
-  )
+      // Calculate average velocity for smoother gesture recognition
+      const avgVelocity = velocityHistoryRef.current.reduce((sum, v) => sum + v, 0) / velocityHistoryRef.current.length
+
+      setSwipeState(prev => ({
+        ...prev,
+        currentX,
+        deltaX: currentX - prev.startX,
+        velocity: avgVelocity,
+        direction: avgVelocity > 0.1 ? 'right' : avgVelocity < -0.1 ? 'left' : null
+      }))
+    }
+
+    lastPositionRef.current = currentX
+    lastTimeRef.current = timestamp
+  }, [])
 
   // Phase 4: Enhanced throttling for smooth 60fps
-  const throttledVelocityUpdate = useMemo(() =>
-    gesturePerformanceUtils.throttleGesture(updateVelocity, 16), // 60fps target
+  const optimizedUpdateVelocity = useMemo(() =>
+    gesturePerformanceUtils.optimizeForFrameRate(updateVelocity),
     [updateVelocity]
+  )
+
+  const throttledVelocityUpdate = useMemo(() =>
+    gesturePerformanceUtils.throttleGesture(optimizedUpdateVelocity, 16), // 60fps target
+    [optimizedUpdateVelocity]
   )
 
   // Phase 4: Enhanced touch event handlers with conflict avoidance
@@ -310,6 +301,10 @@ export const useCarouselSwipe = ({
     longPress,
     conflictAvoidance,
     triggerPatternSwipeFeedback,
+    nextPattern,
+    previousPattern,
+    snapToCurrentPosition,
+    patterns.length,
     onSwipeEnd
   ])
 
@@ -374,7 +369,18 @@ export const useCarouselSwipe = ({
     }))
 
     onSwipeEnd?.()
-  }, [swipeState, cardWidth, currentIndex, maxIndex, minIndex, onSwipeEnd])
+  }, [
+    swipeState,
+    cardWidth,
+    currentIndex,
+    maxIndex,
+    minIndex,
+    nextPattern,
+    previousPattern,
+    snapToCurrentPosition,
+    patterns.length,
+    onSwipeEnd
+  ])
 
   // Keyboard navigation
   const onKeyDown = useCallback((event: React.KeyboardEvent) => {
@@ -398,7 +404,7 @@ export const useCarouselSwipe = ({
         goToPattern(maxIndex)
         break
     }
-  }, [patterns.length, maxIndex])
+  }, [patterns.length, maxIndex, goToPattern, nextPattern, previousPattern])
 
   // Phase 4: Enhanced navigation functions with better haptic feedback
   const goToPattern = useCallback((index: number) => {
@@ -458,6 +464,18 @@ export const useCarouselSwipe = ({
     }, ANIMATION_CONFIG.TRANSITION_DURATION)
   }, [])
 
+  // Carousel state - defined after navigation functions to avoid circular deps
+  const carouselState: CarouselState = useMemo(() => ({
+    currentIndex,
+    totalPatterns: patterns.length,
+    isAnimating,
+    canSwipeLeft: currentIndex > minIndex,
+    canSwipeRight: currentIndex < maxIndex,
+    snapToIndex: (index: number) => goToPattern(index),
+    nextPattern: () => nextPattern(),
+    previousPattern: () => previousPattern()
+  }), [currentIndex, patterns.length, isAnimating, minIndex, maxIndex, goToPattern, nextPattern, previousPattern])
+
   // Handle initial index changes
   useEffect(() => {
     if (initialIndex !== currentIndex && initialIndex >= 0 && initialIndex <= maxIndex) {
@@ -467,9 +485,10 @@ export const useCarouselSwipe = ({
 
   // Cleanup animation on unmount
   useEffect(() => {
+    const animationId = animationIdRef.current
     return () => {
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current)
+      if (animationId) {
+        cancelAnimationFrame(animationId)
       }
     }
   }, [])

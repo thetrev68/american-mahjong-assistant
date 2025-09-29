@@ -178,7 +178,7 @@ export const useUrgencyDetection = (options: Partial<UrgencyDetectionOptions> = 
     ) / metrics.calculationCount
 
     return urgencyContext
-  }, [gameStateSnapshot, phase.currentPhase, config.enablePerformanceOptimization, config.quickCheckInterval])
+  }, [gameStateSnapshot, phase.currentPhase, currentTurn, wallTilesRemaining, config.enablePerformanceOptimization, config.quickCheckInterval])
 
   // Memoized urgency context with smoothing
   const urgencyContext = useMemo((): UrgencyContext => {
@@ -226,7 +226,7 @@ export const useUrgencyDetection = (options: Partial<UrgencyDetectionOptions> = 
       previousUrgencyLevel: previousUrgencyLevelRef.current,
       transitionDuration
     }
-  }, [urgencyContext.urgencyLevel])
+  }, []) // No dependencies needed - only uses refs and Date.now()
 
   // Manual recalculation function
   const forceRecalculation = useCallback(() => {

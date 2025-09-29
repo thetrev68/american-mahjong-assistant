@@ -66,56 +66,23 @@ export const useGestureConflictAvoidance = (): UseGestureConflictAvoidance => {
     })
   }, [])
 
-  // Register a gesture for conflict detection
-  const registerGesture = useCallback((gestureId: string, element?: HTMLElement) => {
-    const registration: GestureRegistration = {
-      id: gestureId,
-      priority: getPriorityForGesture(gestureId),
-      element,
-      isActive: false,
-      startTime: 0,
-      conflictsWith: getConflictsForGesture(gestureId)
+  // Update allowed gestures based on current state
+  const updateAllowedGestures = useCallback(() => {
+    const allowedGestures = new Set<string>()
+
+    for (const [gestureId, registration] of registeredGesturesRef.current) {
+      if (registration.isActive || canActivateGesture(gestureId)) {
+        allowedGestures.add(gestureId)
+      }
     }
-
-    registeredGesturesRef.current.set(gestureId, registration)
-
-    // Update allowed gestures
-    updateAllowedGestures()
-  }, [])
-
-  // Unregister a gesture
-  const unregisterGesture = useCallback((gestureId: string) => {
-    registeredGesturesRef.current.delete(gestureId)
-    updateAllowedGestures()
-  }, [])
-
-  // Register a conflict zone
-  const registerConflictZone = useCallback((zone: DOMRect, zoneId: string) => {
-    const conflictZone: ConflictZone = {
-      id: zoneId,
-      rect: zone,
-      gestureTypes: new Set(['tile-interaction', 'long-press']) // Default conflicts
-    }
-
-    conflictZonesRef.current.set(zoneId, conflictZone)
 
     setConflictState(prev => ({
       ...prev,
-      conflictZones: Array.from(conflictZonesRef.current.values()).map(z => z.rect)
+      allowedGestures
     }))
-  }, [])
+  }, [canActivateGesture])
 
-  // Unregister a conflict zone
-  const unregisterConflictZone = useCallback((zoneId: string) => {
-    conflictZonesRef.current.delete(zoneId)
-
-    setConflictState(prev => ({
-      ...prev,
-      conflictZones: Array.from(conflictZonesRef.current.values()).map(z => z.rect)
-    }))
-  }, [])
-
-  // Check if a gesture can be activated
+  // Define canActivateGesture before it's used
   const canActivateGesture = useCallback((
     gestureId: string,
     position?: { x: number; y: number }
@@ -144,7 +111,7 @@ export const useGestureConflictAvoidance = (): UseGestureConflictAvoidance => {
     }
 
     return true
-  }, [])
+  }, [isInConflictZone])
 
   // Check if position is in a conflict zone
   const isInConflictZone = useCallback((position: { x: number; y: number }): boolean => {
@@ -161,6 +128,56 @@ export const useGestureConflictAvoidance = (): UseGestureConflictAvoidance => {
     }
     return false
   }, [])
+
+  // Register a gesture for conflict detection
+  const registerGesture = useCallback((gestureId: string, element?: HTMLElement) => {
+    const registration: GestureRegistration = {
+      id: gestureId,
+      priority: getPriorityForGesture(gestureId),
+      element,
+      isActive: false,
+      startTime: 0,
+      conflictsWith: getConflictsForGesture(gestureId)
+    }
+
+    registeredGesturesRef.current.set(gestureId, registration)
+
+    // Update allowed gestures
+    updateAllowedGestures()
+  }, [updateAllowedGestures])
+
+  // Unregister a gesture
+  const unregisterGesture = useCallback((gestureId: string) => {
+    registeredGesturesRef.current.delete(gestureId)
+    updateAllowedGestures()
+  }, [updateAllowedGestures])
+
+  // Register a conflict zone
+  const registerConflictZone = useCallback((zone: DOMRect, zoneId: string) => {
+    const conflictZone: ConflictZone = {
+      id: zoneId,
+      rect: zone,
+      gestureTypes: new Set(['tile-interaction', 'long-press']) // Default conflicts
+    }
+
+    conflictZonesRef.current.set(zoneId, conflictZone)
+
+    setConflictState(prev => ({
+      ...prev,
+      conflictZones: Array.from(conflictZonesRef.current.values()).map(z => z.rect)
+    }))
+  }, [])
+
+  // Unregister a conflict zone
+  const unregisterConflictZone = useCallback((zoneId: string) => {
+    conflictZonesRef.current.delete(zoneId)
+
+    setConflictState(prev => ({
+      ...prev,
+      conflictZones: Array.from(conflictZonesRef.current.values()).map(z => z.rect)
+    }))
+  }, [])
+
 
   // Check if there are active conflicts
   const hasActiveConflicts = useCallback((): boolean => {
@@ -180,82 +197,6 @@ export const useGestureConflictAvoidance = (): UseGestureConflictAvoidance => {
 
     return false
   }, [])
-
-  // Notify that a gesture has started
-  const notifyGestureStart = useCallback((gestureId: string, element?: HTMLElement) => {
-    const registration = registeredGesturesRef.current.get(gestureId)
-    if (!registration) return
-
-    // Check if gesture is allowed to start
-    if (!canActivateGesture(gestureId)) {
-      // Dispatch conflict event
-      dispatchGestureEvent({
-        type: 'gesture-conflict',
-        gestureId,
-        timestamp: performance.now(),
-        element,
-        data: { reason: 'activation_blocked' }
-      })
-      return
-    }
-
-    // Update registration
-    registration.isActive = true
-    registration.startTime = performance.now()
-    registration.element = element
-
-    // Update state based on gesture type
-    updateStateForGestureStart(gestureId)
-
-    // Dispatch start event
-    dispatchGestureEvent({
-      type: getEventTypeForGesture(gestureId, 'start'),
-      gestureId,
-      timestamp: registration.startTime,
-      element
-    })
-
-    updateAllowedGestures()
-  }, [canActivateGesture])
-
-  // Notify that a gesture has ended
-  const notifyGestureEnd = useCallback((gestureId: string) => {
-    const registration = registeredGesturesRef.current.get(gestureId)
-    if (!registration || !registration.isActive) return
-
-    // Update registration
-    registration.isActive = false
-    registration.startTime = 0
-
-    // Update state based on gesture type
-    updateStateForGestureEnd(gestureId)
-
-    // Dispatch end event
-    dispatchGestureEvent({
-      type: getEventTypeForGesture(gestureId, 'end'),
-      gestureId,
-      timestamp: performance.now(),
-      element: registration.element
-    })
-
-    updateAllowedGestures()
-  }, [])
-
-  // Update allowed gestures based on current state
-  const updateAllowedGestures = useCallback(() => {
-    const allowedGestures = new Set<string>()
-
-    for (const [gestureId, registration] of registeredGesturesRef.current) {
-      if (registration.isActive || canActivateGesture(gestureId)) {
-        allowedGestures.add(gestureId)
-      }
-    }
-
-    setConflictState(prev => ({
-      ...prev,
-      allowedGestures
-    }))
-  }, [canActivateGesture])
 
   // Update state for gesture start
   const updateStateForGestureStart = useCallback((gestureId: string) => {
@@ -326,6 +267,67 @@ export const useGestureConflictAvoidance = (): UseGestureConflictAvoidance => {
       })
     }
   }, [])
+
+  // Notify that a gesture has started
+  const notifyGestureStart = useCallback((gestureId: string, element?: HTMLElement) => {
+    const registration = registeredGesturesRef.current.get(gestureId)
+    if (!registration) return
+
+    // Check if gesture is allowed to start
+    if (!canActivateGesture(gestureId)) {
+      // Dispatch conflict event
+      dispatchGestureEvent({
+        type: 'gesture-conflict',
+        gestureId,
+        timestamp: performance.now(),
+        element,
+        data: { reason: 'activation_blocked' }
+      })
+      return
+    }
+
+    // Update registration
+    registration.isActive = true
+    registration.startTime = performance.now()
+    registration.element = element
+
+    // Update state based on gesture type
+    updateStateForGestureStart(gestureId)
+
+    // Dispatch start event
+    dispatchGestureEvent({
+      type: getEventTypeForGesture(gestureId, 'start'),
+      gestureId,
+      timestamp: registration.startTime,
+      element
+    })
+
+    updateAllowedGestures()
+  }, [canActivateGesture, dispatchGestureEvent, updateStateForGestureStart, updateAllowedGestures])
+
+  // Notify that a gesture has ended
+  const notifyGestureEnd = useCallback((gestureId: string) => {
+    const registration = registeredGesturesRef.current.get(gestureId)
+    if (!registration || !registration.isActive) return
+
+    // Update registration
+    registration.isActive = false
+    registration.startTime = 0
+
+    // Update state based on gesture type
+    updateStateForGestureEnd(gestureId)
+
+    // Dispatch end event
+    dispatchGestureEvent({
+      type: getEventTypeForGesture(gestureId, 'end'),
+      gestureId,
+      timestamp: performance.now(),
+      element: registration.element
+    })
+
+    updateAllowedGestures()
+  }, [dispatchGestureEvent, updateStateForGestureEnd, updateAllowedGestures])
+
 
   return {
     // State

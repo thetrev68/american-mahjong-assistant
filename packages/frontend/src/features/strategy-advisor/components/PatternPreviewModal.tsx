@@ -367,29 +367,5 @@ const PreviewContent: React.FC<{
   )
 }
 
-// Keyboard event handler hook for modal
-export const usePreviewModalKeyboard = (
-  isOpen: boolean,
-  onConfirm: () => void,
-  onCancel: () => void
-) => {
-  React.useEffect(() => {
-    if (!isOpen) return
-
-    const handleKeydown = (event: KeyboardEvent) => {
-      switch (event.key) {
-        case 'Escape':
-          event.preventDefault()
-          onCancel()
-          break
-        case 'Enter':
-          event.preventDefault()
-          onConfirm()
-          break
-      }
-    }
-
-    document.addEventListener('keydown', handleKeydown)
-    return () => document.removeEventListener('keydown', handleKeydown)
-  }, [isOpen, onConfirm, onCancel])
-}
+// Note: usePreviewModalKeyboard moved to ../utils/pattern-preview-modal.utils.ts for React Fast Refresh compatibility
+// Import from there: import { usePreviewModalKeyboard } from '../utils/pattern-preview-modal.utils'

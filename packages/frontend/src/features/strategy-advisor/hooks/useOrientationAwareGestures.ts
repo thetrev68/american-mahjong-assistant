@@ -223,12 +223,16 @@ export const useOrientationAwareGestures = (): UseOrientationAwareGestures => {
 
   // Cleanup on unmount
   useEffect(() => {
+    const timeoutId = transitionTimeoutRef.current
+    const orientationCallbacks = orientationCallbacksRef.current
+    const transitionCallbacks = transitionCallbacksRef.current
+
     return () => {
-      if (transitionTimeoutRef.current) {
-        clearTimeout(transitionTimeoutRef.current)
+      if (timeoutId) {
+        clearTimeout(timeoutId)
       }
-      orientationCallbacksRef.current.clear()
-      transitionCallbacksRef.current.clear()
+      orientationCallbacks.clear()
+      transitionCallbacks.clear()
     }
   }, [])
 

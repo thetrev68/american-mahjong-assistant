@@ -170,7 +170,7 @@ export const useStrategyAdvisor = (
     }
   }, [
     strategyStore.isActive,
-    strategyStore.config.refreshInterval,
+    strategyStore.config,
     autoRefresh,
     refresh
   ])

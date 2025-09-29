@@ -144,7 +144,7 @@ export const useHapticFeedback = (): UseHapticFeedback => {
     }
 
     isProcessingQueueRef.current = false
-  }, [])
+  }, [performHapticFeedback])
 
   // Core haptic feedback implementation
   const performHapticFeedback = useCallback(async (pattern: HapticPattern): Promise<void> => {

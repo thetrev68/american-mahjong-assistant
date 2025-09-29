@@ -1,7 +1,7 @@
 // Pull-to-Refresh Hook - High-performance gesture handling for hand re-analysis
 // Optimized for mobile with haptic feedback and smooth 60fps animations
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import type {
   UsePullToRefresh,
   PullToRefreshState,
@@ -35,8 +35,11 @@ export const usePullToRefresh = ({
   config: userConfig = {},
   disabled = false
 }: UsePullToRefreshOptions): UsePullToRefresh => {
-  // Merge configuration
-  const config: PullToRefreshConfig = { ...DEFAULT_CONFIG, ...userConfig }
+  // Merge configuration - memoized to prevent re-renders
+  const config: PullToRefreshConfig = useMemo(() => ({
+    ...DEFAULT_CONFIG,
+    ...userConfig
+  }), [userConfig])
 
   // State
   const [state, setState] = useState<PullToRefreshState>({

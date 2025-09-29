@@ -136,6 +136,7 @@ export const usePatternSwitching = ({
     isLoading,
     selectedPatternId,
     availablePatterns,
+    canSwitchToPattern,
     selectPattern,
     addTargetPattern,
     enableHapticFeedback,

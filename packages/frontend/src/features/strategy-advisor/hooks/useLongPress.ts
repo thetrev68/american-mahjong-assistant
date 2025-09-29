@@ -1,7 +1,7 @@
 // Long Press Gesture Hook - Progressive disclosure for pattern details
 // Provides tap-and-hold functionality with stage-based haptic feedback
 
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react'
 import type {
   UseLongPress,
   LongPressState,
@@ -39,8 +39,11 @@ export const useLongPress = ({
   onDetails,
   onCancel
 }: UseLongPressOptions = {}): UseLongPress => {
-  // Merge configuration
-  const config: LongPressConfig = { ...DEFAULT_CONFIG, ...userConfig }
+  // Merge configuration - memoized to prevent re-renders
+  const config: LongPressConfig = useMemo(() => ({
+    ...DEFAULT_CONFIG,
+    ...userConfig
+  }), [userConfig])
 
   // State
   const [state, setState] = useState<LongPressState>({
@@ -203,6 +206,37 @@ export const useLongPress = ({
     updateProgress
   ])
 
+  // Cancel gesture - define before it's used
+  const cancel = useCallback(() => {
+    if (!state.isPressed) return
+
+    // Cancel haptic feedback
+    if (config.enableHaptics && hapticSupported) {
+      triggerLightFeedback() // Light feedback for cancellation
+    }
+
+    // Reset state
+    pointerIdRef.current = null
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = null
+    }
+
+    updateStateOptimized({
+      isPressed: false,
+      progress: 0,
+      stage: 'none'
+    })
+
+    onCancelRef.current?.()
+  }, [
+    state.isPressed,
+    config.enableHaptics,
+    hapticSupported,
+    triggerLightFeedback,
+    updateStateOptimized
+  ])
+
   const onPointerMove = useCallback((event: React.PointerEvent) => {
     if (!state.isPressed || event.pointerId !== pointerIdRef.current) return
 
@@ -217,7 +251,7 @@ export const useLongPress = ({
     updateStateOptimized({
       position: currentPosition
     })
-  }, [state.isPressed, checkMovementCancel, updateStateOptimized])
+  }, [state.isPressed, checkMovementCancel, cancel, updateStateOptimized])
 
   const onPointerUp = useCallback((event: React.PointerEvent) => {
     if (!state.isPressed || event.pointerId !== pointerIdRef.current) return
@@ -260,38 +294,8 @@ export const useLongPress = ({
     if (!state.isPressed || event.pointerId !== pointerIdRef.current) return
 
     cancel()
-  }, [state.isPressed])
+  }, [state.isPressed, cancel])
 
-  // Cancel gesture
-  const cancel = useCallback(() => {
-    if (!state.isPressed) return
-
-    // Cancel haptic feedback
-    if (config.enableHaptics && hapticSupported) {
-      triggerLightFeedback() // Light feedback for cancellation
-    }
-
-    // Reset state
-    pointerIdRef.current = null
-    if (animationFrameRef.current) {
-      cancelAnimationFrame(animationFrameRef.current)
-      animationFrameRef.current = null
-    }
-
-    updateStateOptimized({
-      isPressed: false,
-      progress: 0,
-      stage: 'none'
-    })
-
-    onCancelRef.current?.()
-  }, [
-    state.isPressed,
-    config.enableHaptics,
-    hapticSupported,
-    triggerLightFeedback,
-    updateStateOptimized
-  ])
 
   // Update configuration
   const updateConfig = useCallback((newConfig: Partial<LongPressConfig>) => {

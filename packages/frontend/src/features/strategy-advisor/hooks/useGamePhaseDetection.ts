@@ -45,18 +45,28 @@ export const useGamePhaseDetection = (): UseGamePhaseDetection => {
 
   // Subscribe to intelligence state for threat analysis
   const currentAnalysis = useIntelligenceStore(state => state.currentAnalysis)
-  const threats = currentAnalysis?.threats || []
   const overallScore = currentAnalysis?.overallScore || 0
 
-  // Memoized game state snapshot for urgency detection
-  const gameStateSnapshot = useMemo((): GameStateSnapshot => {
-    const highThreat = threats.some(threat => threat.level === 'high')
-    const threatsLevel = threats.length > 0
+  // Stable threat analysis - threats array calculated inside to prevent re-renders
+  const threatAnalysis = useMemo(() => {
+    const threats = currentAnalysis?.threats || []
+    const hasHighThreat = threats.some(threat => threat.level === 'high')
+    const hasAnyThreats = threats.length > 0
+    const threatsLevel = hasAnyThreats
       ? (threats.some(t => t.level === 'high') ? 'high'
         : threats.some(t => t.level === 'medium') ? 'medium'
         : 'low')
       : undefined
 
+    return {
+      hasHighThreat,
+      threatsLevel,
+      threatCount: threats.length
+    }
+  }, [currentAnalysis?.threats])
+
+  // Memoized game state snapshot for urgency detection
+  const gameStateSnapshot = useMemo((): GameStateSnapshot => {
     return {
       currentTurn,
       wallTilesRemaining,
@@ -64,10 +74,10 @@ export const useGamePhaseDetection = (): UseGamePhaseDetection => {
       passedOutPlayers,
       totalPlayers: players.length || 4,
       handCompletionPercentage: overallScore / 100,
-      hasDefensiveThreat: highThreat,
-      threatsLevel
+      hasDefensiveThreat: threatAnalysis.hasHighThreat,
+      threatsLevel: threatAnalysis.threatsLevel
     }
-  }, [currentTurn, wallTilesRemaining, gamePhase, passedOutPlayers, players.length, threats, overallScore])
+  }, [currentTurn, wallTilesRemaining, gamePhase, passedOutPlayers, players.length, overallScore, threatAnalysis])
 
   // Memoized phase analysis
   const phaseAnalysis = useMemo((): GamePhaseAnalysis => {
