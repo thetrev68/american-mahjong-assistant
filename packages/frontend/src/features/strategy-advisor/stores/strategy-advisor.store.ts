@@ -6,6 +6,20 @@ import { subscribeWithSelector } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
 import type { StrategyAdvisorTypes } from '../types/strategy-advisor.types'
 
+// Type extension for window to avoid any usage
+declare global {
+  interface Window {
+    __strategyAdvisorAutoCollapseTimer?: NodeJS.Timeout
+  }
+}
+import type {
+  DisclosureLevel,
+  StrategyMode,
+  DisclosureState,
+  StrategyModeState,
+  DisclosureConfig
+} from '../types/strategy-advisor.types'
+
 // Default configuration for Glance Mode
 const DEFAULT_CONFIG: StrategyAdvisorTypes.GlanceModeConfig = {
   showConfidence: true,
@@ -16,7 +30,61 @@ const DEFAULT_CONFIG: StrategyAdvisorTypes.GlanceModeConfig = {
   prioritizeUrgent: true
 }
 
-export const useStrategyAdvisorStore = create<StrategyAdvisorTypes.StrategyAdvisorState>()(
+// Default disclosure configuration
+const DEFAULT_DISCLOSURE_CONFIG: DisclosureConfig = {
+  defaultLevel: 'glance',
+  enableAutoCollapse: true,
+  autoCollapseDelay: 15000,
+  animationDuration: 300,
+  respectsUrgency: true,
+  keyboardNavigation: true,
+  enableLongPressAdvanced: true
+}
+
+// Default disclosure state
+const DEFAULT_DISCLOSURE_STATE: DisclosureState = {
+  currentLevel: 'glance',
+  previousLevel: null,
+  isTransitioning: false,
+  transitionStartTime: 0,
+  allowedLevels: ['glance', 'details', 'advanced'],
+  autoCollapseTimeout: undefined
+}
+
+// Default strategy mode state
+const DEFAULT_STRATEGY_MODE_STATE: StrategyModeState = {
+  currentMode: 'flexible',
+  isCustomizing: false,
+  customConfig: undefined,
+  modeHistory: ['flexible'],
+  lastChanged: Date.now()
+}
+
+// Extended state interface with disclosure and strategy mode state
+interface ExtendedStrategyAdvisorState extends StrategyAdvisorTypes.StrategyAdvisorState {
+  // Progressive disclosure state
+  disclosureState: DisclosureState
+  disclosureConfig: DisclosureConfig
+
+  // Strategy mode state
+  strategyModeState: StrategyModeState
+
+  // Disclosure actions
+  setDisclosureLevel: (level: DisclosureLevel) => void
+  setDisclosureTransitioning: (isTransitioning: boolean) => void
+  updateDisclosureConfig: (config: Partial<DisclosureConfig>) => void
+  setAllowedDisclosureLevels: (levels: DisclosureLevel[]) => void
+  startAutoCollapseTimer: (delay?: number) => void
+  clearAutoCollapseTimer: () => void
+
+  // Strategy mode actions
+  setStrategyMode: (mode: StrategyMode) => void
+  setCustomStrategyConfig: (config: Partial<StrategyAdvisorTypes.GlanceModeConfig>) => void
+  clearCustomStrategyConfig: () => void
+  addModeToHistory: (mode: StrategyMode) => void
+}
+
+export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
   devtools(
     subscribeWithSelector(
       (set, get) => ({
@@ -28,6 +96,13 @@ export const useStrategyAdvisorStore = create<StrategyAdvisorTypes.StrategyAdvis
         expandedMessageId: null,
         isLoading: false,
         error: null,
+
+        // Progressive disclosure state
+        disclosureState: DEFAULT_DISCLOSURE_STATE,
+        disclosureConfig: DEFAULT_DISCLOSURE_CONFIG,
+
+        // Strategy mode state
+        strategyModeState: DEFAULT_STRATEGY_MODE_STATE,
 
         // Core Actions
         addMessage: (message: StrategyAdvisorTypes.StrategyMessage) => {
@@ -140,15 +215,182 @@ export const useStrategyAdvisorStore = create<StrategyAdvisorTypes.StrategyAdvis
         getActionableMessages: () => {
           const { currentMessages } = get()
           return currentMessages.filter(msg => msg.isActionable)
+        },
+
+        // Disclosure Actions
+        setDisclosureLevel: (level: DisclosureLevel) => {
+          set((state) => ({
+            disclosureState: {
+              ...state.disclosureState,
+              previousLevel: state.disclosureState.currentLevel,
+              currentLevel: level,
+              isTransitioning: true,
+              transitionStartTime: Date.now()
+            }
+          }))
+
+          // Clear transition state after animation duration
+          setTimeout(() => {
+            set((state) => ({
+              disclosureState: {
+                ...state.disclosureState,
+                isTransitioning: false
+              }
+            }))
+          }, get().disclosureConfig.animationDuration)
+        },
+
+        setDisclosureTransitioning: (isTransitioning: boolean) => {
+          set((state) => ({
+            disclosureState: {
+              ...state.disclosureState,
+              isTransitioning
+            }
+          }))
+        },
+
+        updateDisclosureConfig: (config: Partial<DisclosureConfig>) => {
+          set((state) => ({
+            disclosureConfig: {
+              ...state.disclosureConfig,
+              ...config
+            }
+          }))
+        },
+
+        setAllowedDisclosureLevels: (levels: DisclosureLevel[]) => {
+          set((state) => {
+            const newState = {
+              disclosureState: {
+                ...state.disclosureState,
+                allowedLevels: levels
+              }
+            }
+
+            // If current level is not allowed, fall back to highest allowed level
+            if (!levels.includes(state.disclosureState.currentLevel)) {
+              const fallbackLevel = levels.includes('advanced') ? 'advanced' :
+                                   levels.includes('details') ? 'details' : 'glance'
+
+              newState.disclosureState = {
+                ...newState.disclosureState,
+                previousLevel: state.disclosureState.currentLevel,
+                currentLevel: fallbackLevel,
+                isTransitioning: true,
+                transitionStartTime: Date.now()
+              }
+            }
+
+            return newState
+          })
+        },
+
+        startAutoCollapseTimer: (delay?: number) => {
+          const { disclosureConfig } = get()
+          const collapseDelay = delay || disclosureConfig.autoCollapseDelay
+
+          // Clear existing timer
+          get().clearAutoCollapseTimer()
+
+          const timerId = setTimeout(() => {
+            const currentState = get()
+            if (currentState.disclosureState.currentLevel !== 'glance') {
+              currentState.setDisclosureLevel('glance')
+            }
+          }, collapseDelay)
+
+          set((state) => ({
+            disclosureState: {
+              ...state.disclosureState,
+              autoCollapseTimeout: Date.now() + collapseDelay
+            }
+          }))
+
+          // Store timer ID for cleanup (in a real app, you'd use a ref or different approach)
+          window.__strategyAdvisorAutoCollapseTimer = timerId
+        },
+
+        clearAutoCollapseTimer: () => {
+          const timerId = window.__strategyAdvisorAutoCollapseTimer
+          if (timerId) {
+            clearTimeout(timerId)
+            window.__strategyAdvisorAutoCollapseTimer = undefined
+          }
+
+          set((state) => ({
+            disclosureState: {
+              ...state.disclosureState,
+              autoCollapseTimeout: undefined
+            }
+          }))
+        },
+
+        // Strategy Mode Actions
+        setStrategyMode: (mode: StrategyMode) => {
+          set((state) => {
+            // Add to history if it's a different mode
+            const newHistory = mode !== state.strategyModeState.currentMode
+              ? [mode, ...state.strategyModeState.modeHistory.filter(m => m !== mode)].slice(0, 10)
+              : state.strategyModeState.modeHistory
+
+            return {
+              strategyModeState: {
+                ...state.strategyModeState,
+                currentMode: mode,
+                modeHistory: newHistory,
+                lastChanged: Date.now(),
+                // Reset customization when switching modes
+                isCustomizing: false,
+                customConfig: undefined
+              }
+            }
+          })
+        },
+
+        setCustomStrategyConfig: (config: Partial<StrategyAdvisorTypes.GlanceModeConfig>) => {
+          set((state) => ({
+            strategyModeState: {
+              ...state.strategyModeState,
+              isCustomizing: true,
+              customConfig: config,
+              lastChanged: Date.now()
+            }
+          }))
+        },
+
+        clearCustomStrategyConfig: () => {
+          set((state) => ({
+            strategyModeState: {
+              ...state.strategyModeState,
+              isCustomizing: false,
+              customConfig: undefined,
+              lastChanged: Date.now()
+            }
+          }))
+        },
+
+        addModeToHistory: (mode: StrategyMode) => {
+          set((state) => ({
+            strategyModeState: {
+              ...state.strategyModeState,
+              modeHistory: [mode, ...state.strategyModeState.modeHistory.filter(m => m !== mode)].slice(0, 10)
+            }
+          }))
         }
       })
     ),
     {
       name: 'strategy-advisor-store',
       partialize: (state) => ({
-        // Persist only configuration, not transient state
+        // Persist configuration and disclosure preferences
         config: state.config,
-        isActive: state.isActive
+        isActive: state.isActive,
+        disclosureConfig: state.disclosureConfig,
+        strategyModeState: {
+          currentMode: state.strategyModeState.currentMode,
+          customConfig: state.strategyModeState.customConfig,
+          modeHistory: state.strategyModeState.modeHistory.slice(0, 5) // Only persist last 5
+        }
       })
     }
   )
@@ -157,16 +399,16 @@ export const useStrategyAdvisorStore = create<StrategyAdvisorTypes.StrategyAdvis
 // Selectors for optimized component subscriptions
 export const strategyAdvisorSelectors = {
   // Get current messages
-  messages: (state: StrategyAdvisorTypes.StrategyAdvisorState) => state.currentMessages,
+  messages: (state: ExtendedStrategyAdvisorState) => state.currentMessages,
 
   // Get most urgent message
-  mostUrgentMessage: (state: StrategyAdvisorTypes.StrategyAdvisorState) => state.getMostUrgentMessage(),
+  mostUrgentMessage: (state: ExtendedStrategyAdvisorState) => state.getMostUrgentMessage(),
 
   // Get actionable messages
-  actionableMessages: (state: StrategyAdvisorTypes.StrategyAdvisorState) => state.getActionableMessages(),
+  actionableMessages: (state: ExtendedStrategyAdvisorState) => state.getActionableMessages(),
 
   // Get UI state
-  uiState: (state: StrategyAdvisorTypes.StrategyAdvisorState) => ({
+  uiState: (state: ExtendedStrategyAdvisorState) => ({
     isActive: state.isActive,
     isLoading: state.isLoading,
     error: state.error,
@@ -175,17 +417,48 @@ export const strategyAdvisorSelectors = {
   }),
 
   // Get configuration
-  config: (state: StrategyAdvisorTypes.StrategyAdvisorState) => state.config,
+  config: (state: ExtendedStrategyAdvisorState) => state.config,
 
   // Get critical/high urgency messages only
-  urgentMessages: (state: StrategyAdvisorTypes.StrategyAdvisorState) =>
+  urgentMessages: (state: ExtendedStrategyAdvisorState) =>
     state.currentMessages.filter(msg => msg.urgency === 'critical' || msg.urgency === 'high'),
 
   // Check if there are new insights (messages from last 30 seconds)
-  hasNewInsights: (state: StrategyAdvisorTypes.StrategyAdvisorState) => {
+  hasNewInsights: (state: ExtendedStrategyAdvisorState) => {
     const thirtySecondsAgo = Date.now() - (30 * 1000)
     return state.currentMessages.some(msg => msg.timestamp > thirtySecondsAgo)
-  }
+  },
+
+  // Disclosure state selectors
+  disclosureState: (state: ExtendedStrategyAdvisorState) => state.disclosureState,
+  disclosureConfig: (state: ExtendedStrategyAdvisorState) => state.disclosureConfig,
+  currentDisclosureLevel: (state: ExtendedStrategyAdvisorState) => state.disclosureState.currentLevel,
+  isDisclosureTransitioning: (state: ExtendedStrategyAdvisorState) => state.disclosureState.isTransitioning,
+  allowedDisclosureLevels: (state: ExtendedStrategyAdvisorState) => state.disclosureState.allowedLevels,
+
+  // Strategy mode selectors
+  strategyModeState: (state: ExtendedStrategyAdvisorState) => state.strategyModeState,
+  currentStrategyMode: (state: ExtendedStrategyAdvisorState) => state.strategyModeState.currentMode,
+  isStrategyModeCustomizing: (state: ExtendedStrategyAdvisorState) => state.strategyModeState.isCustomizing,
+  strategyModeHistory: (state: ExtendedStrategyAdvisorState) => state.strategyModeState.modeHistory,
+
+  // Combined state selectors
+  progressiveDisclosureState: (state: ExtendedStrategyAdvisorState) => ({
+    disclosureLevel: state.disclosureState.currentLevel,
+    strategyMode: state.strategyModeState.currentMode,
+    isTransitioning: state.disclosureState.isTransitioning,
+    allowedLevels: state.disclosureState.allowedLevels,
+    autoCollapseActive: state.disclosureState.autoCollapseTimeout !== undefined
+  }),
+
+  // Feature availability based on disclosure level
+  isAdvancedFeaturesAvailable: (state: ExtendedStrategyAdvisorState) =>
+    state.disclosureState.allowedLevels.includes('advanced') &&
+    (state.disclosureState.currentLevel === 'advanced' || state.disclosureState.currentLevel === 'details'),
+
+  isDetailedAnalysisAvailable: (state: ExtendedStrategyAdvisorState) =>
+    state.disclosureState.allowedLevels.includes('details') &&
+    state.disclosureState.currentLevel !== 'glance'
 }
 
 // Action creators for common operations

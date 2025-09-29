@@ -686,3 +686,240 @@ export interface LongPressPatternDetailsProps {
   children: React.ReactNode
   className?: string
 }
+
+// === PHASE 5: PROGRESSIVE DISCLOSURE SYSTEM TYPES ===
+
+// Disclosure levels for progressive information reveal
+export type DisclosureLevel = 'glance' | 'details' | 'advanced'
+
+// Strategy modes for different play styles
+export type StrategyMode = 'flexible' | 'quickWin' | 'highScore' | 'defensive'
+
+// Strategy mode configurations
+export interface StrategyModeConfig {
+  prioritizeAdaptability?: boolean
+  prioritizeSpeed?: boolean
+  prioritizePoints?: boolean
+  prioritizeBlocking?: boolean
+  showMultipleOptions?: boolean
+  showFastestPath?: boolean
+  showComplexPatterns?: boolean
+  showOpponentThreats?: boolean
+  riskTolerance: 'minimal' | 'low' | 'medium' | 'high'
+  detailLevel: 'minimal' | 'balanced' | 'focused' | 'comprehensive'
+  recommendationCount: number
+}
+
+// Complete strategy mode definitions
+export interface StrategyModeDefinitions {
+  flexible: StrategyModeConfig
+  quickWin: StrategyModeConfig
+  highScore: StrategyModeConfig
+  defensive: StrategyModeConfig
+}
+
+// Disclosure state management
+export interface DisclosureState {
+  currentLevel: DisclosureLevel
+  previousLevel: DisclosureLevel | null
+  isTransitioning: boolean
+  transitionStartTime: number
+  allowedLevels: DisclosureLevel[]
+  autoCollapseTimeout?: number
+}
+
+// Disclosure configuration
+export interface DisclosureConfig {
+  defaultLevel: DisclosureLevel
+  enableAutoCollapse: boolean
+  autoCollapseDelay: number // ms
+  animationDuration: number // ms
+  respectsUrgency: boolean
+  keyboardNavigation: boolean
+  enableLongPressAdvanced: boolean
+}
+
+// Strategy mode state
+export interface StrategyModeState {
+  currentMode: StrategyMode
+  isCustomizing: boolean
+  customConfig?: Partial<StrategyModeConfig>
+  modeHistory: StrategyMode[]
+  lastChanged: number
+}
+
+// Progressive disclosure content structure
+export interface DisclosureContent {
+  glance: {
+    title: string
+    message: string
+    actionNeeded?: string
+    confidence?: number
+    emoji?: string
+  }
+  details: {
+    technicalAnalysis: string
+    patternRequirements: string[]
+    riskFactors: string[]
+    estimatedTurns: number
+    flexibility: 'low' | 'medium' | 'high'
+    alternativePaths?: string[]
+  }
+  advanced: {
+    probabilityAnalysis: string
+    completionProbability: number
+    expectedTurns: number
+    turnVariance: number
+    tileAvailability: Array<{
+      tile: string
+      available: number
+      probability: number
+    }>
+    alternativeStrategies: Array<{
+      strategy: string
+      probability: number
+      turnsToCompletion: number
+      riskLevel: string
+    }>
+    wallDepletionRisk: string
+    opponentThreatsAnalysis?: string
+  }
+}
+
+// Disclosure transition animation states
+export interface DisclosureTransition {
+  from: DisclosureLevel
+  to: DisclosureLevel
+  duration: number
+  easing: string
+  staggerDelay: number
+}
+
+// Disclosure accessibility features
+export interface DisclosureAccessibility {
+  announceChanges: boolean
+  keyboardShortcuts: {
+    expand: string[]
+    collapse: string[]
+    nextLevel: string[]
+    previousLevel: string[]
+  }
+  focusManagement: boolean
+  screenReaderOptimized: boolean
+}
+
+// Strategy mode persistence
+export interface StrategyModePreferences {
+  preferredMode: StrategyMode
+  customConfigs: Record<string, Partial<StrategyModeConfig>>
+  disclosurePreferences: {
+    defaultLevel: DisclosureLevel
+    rememberLevel: boolean
+    autoCollapse: boolean
+  }
+  lastUsed: number
+}
+
+// Hook interfaces for Phase 5
+
+// Disclosure state management hook
+export interface UseDisclosureState {
+  // Current state
+  state: DisclosureState
+  config: DisclosureConfig
+
+  // Level control
+  setLevel: (level: DisclosureLevel) => void
+  expandToDetails: () => void
+  expandToAdvanced: () => void
+  collapseToGlance: () => void
+  toggleLevel: () => void
+
+  // Auto-behaviors
+  startAutoCollapse: () => void
+  cancelAutoCollapse: () => void
+
+  // Urgency integration
+  adaptToUrgency: (urgencyLevel: UrgencyLevel) => void
+  getAllowedLevels: (urgencyLevel: UrgencyLevel) => DisclosureLevel[]
+
+  // Keyboard navigation
+  onKeyDown: (event: React.KeyboardEvent) => void
+
+  // Configuration
+  updateConfig: (config: Partial<DisclosureConfig>) => void
+}
+
+// Strategy mode management hook
+export interface UseStrategyMode {
+  // Current state
+  state: StrategyModeState
+  currentConfig: StrategyModeConfig
+
+  // Mode switching
+  setMode: (mode: StrategyMode) => void
+  setCustomMode: (config: Partial<StrategyModeConfig>) => void
+  resetToDefault: () => void
+
+  // Mode definitions access
+  getModeConfig: (mode: StrategyMode) => StrategyModeConfig
+  getAllModes: () => StrategyModeDefinitions
+
+  // Persistence
+  savePreferences: () => void
+  loadPreferences: () => void
+
+  // Analytics/recommendations
+  suggestMode: (gameContext: GameContext, urgencyLevel: UrgencyLevel) => StrategyMode
+  getModeDescription: (mode: StrategyMode) => string
+}
+
+// Component props for new disclosure components
+
+// Disclosure Manager component props
+export interface DisclosureManagerProps {
+  content: DisclosureContent
+  urgencyLevel: UrgencyLevel
+  strategyMode: StrategyMode
+  onLevelChange?: (level: DisclosureLevel) => void
+  onModeChange?: (mode: StrategyMode) => void
+  className?: string
+  disabled?: boolean
+}
+
+// Strategy Mode Selector component props
+export interface StrategyModeSelectorProps {
+  currentMode: StrategyMode
+  availableModes: StrategyMode[]
+  onModeChange: (mode: StrategyMode) => void
+  showDescriptions?: boolean
+  compact?: boolean
+  disabled?: boolean
+  className?: string
+}
+
+// Details Mode component props
+export interface DetailsModeProps {
+  content: DisclosureContent['details']
+  isVisible: boolean
+  onExpandToAdvanced: () => void
+  onCollapseToGlance: () => void
+  strategyMode: StrategyMode
+  className?: string
+}
+
+// Advanced Mode component props
+export interface AdvancedModeProps {
+  content: DisclosureContent['advanced']
+  isVisible: boolean
+  onCollapseToDetails: () => void
+  strategyMode: StrategyMode
+  showProbabilityCharts?: boolean
+  className?: string
+}
+
+// Enhanced Strategy Message with disclosure content
+export interface EnhancedStrategyMessage extends StrategyMessage {
+  disclosureContent?: DisclosureContent
+  adaptiveLevel?: DisclosureLevel // Recommended level based on urgency
+}

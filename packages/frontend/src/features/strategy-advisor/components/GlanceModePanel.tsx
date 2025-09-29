@@ -1,11 +1,16 @@
 // Glance Mode Panel - Main Strategy Advisor UI component
 // Shows conversational guidance with progressive disclosure and urgency-aware styling
 
-import React, { useMemo } from 'react'
+import React, { useMemo, useEffect, useCallback } from 'react'
 import { Card } from '../../../ui-components/Card'
 import { useStrategyAdvisor } from '../hooks/useStrategyAdvisor'
 import { useUrgencyDetection } from '../hooks/useUrgencyDetection'
+import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useGameStore } from '../../../stores/game-store'
 import { UrgencyIndicator } from './UrgencyIndicator'
+import { DisclosureManager } from './DisclosureManager'
+import { strategyModeService } from '../services/strategy-mode.service'
+import { useStrategyAdvisorStore, strategyAdvisorSelectors } from '../stores/strategy-advisor.store'
 import {
   getUrgencyClasses,
   shouldShowMessage,
@@ -18,7 +23,10 @@ import type {
   MessageType,
   UrgencyLevel,
   GlanceModeConfig,
-  GlanceModePanelProps
+  GlanceModePanelProps,
+  DisclosureContent,
+  IntelligenceData,
+  GameContext
 } from '../types/strategy-advisor.types'
 
 interface StrategyMessageCardProps {
@@ -281,8 +289,64 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     urgencyLevel
   } = useUrgencyDetection()
 
+  // Get intelligence and game data for disclosure content
+  const currentAnalysis = useIntelligenceStore(state => state.currentAnalysis)
+  const gamePhase = useGameStore(state => state.gamePhase)
+  const currentTurn = useGameStore(state => state.currentTurn)
+  const wallTilesRemaining = useGameStore(state => state.wallTilesRemaining)
+
+  // Get disclosure and strategy mode state from store
+  const currentStrategyMode = useStrategyAdvisorStore(strategyAdvisorSelectors.currentStrategyMode)
+  const setDisclosureLevel = useStrategyAdvisorStore(state => state.setDisclosureLevel)
+  const setStrategyMode = useStrategyAdvisorStore(state => state.setStrategyMode)
+  const setAllowedDisclosureLevels = useStrategyAdvisorStore(state => state.setAllowedDisclosureLevels)
+
   // Respect user motion preferences
   const reduceMotion = prefersReducedMotion()
+
+  // Adapt disclosure levels based on urgency
+  useEffect(() => {
+    const allowedLevels = urgencyLevel === 'critical' ? ['glance'] :
+                         urgencyLevel === 'high' ? ['glance', 'details'] :
+                         ['glance', 'details', 'advanced']
+
+    setAllowedDisclosureLevels(allowedLevels)
+  }, [urgencyLevel, setAllowedDisclosureLevels])
+
+  // Generate disclosure content from intelligence data
+  const disclosureContent = useMemo((): DisclosureContent | null => {
+    if (!currentAnalysis || !currentAnalysis.hasAnalysis) return null
+
+    // Build intelligence data structure
+    const intelligenceData: IntelligenceData = {
+      hasAnalysis: currentAnalysis.hasAnalysis,
+      isAnalyzing: currentAnalysis.isAnalyzing,
+      recommendedPatterns: currentAnalysis.recommendedPatterns || [],
+      tileRecommendations: currentAnalysis.tileRecommendations || [],
+      strategicAdvice: currentAnalysis.strategicAdvice || [],
+      threats: currentAnalysis.threats || [],
+      overallScore: currentAnalysis.overallScore || 0,
+      lastUpdated: currentAnalysis.lastUpdated || Date.now()
+    }
+
+    // Build game context
+    const gameContext: GameContext = {
+      gamePhase: gamePhase === 'charleston' ? 'charleston' :
+                 gamePhase === 'endgame' ? 'endgame' : 'playing',
+      turnsRemaining: Math.max(0, 20 - currentTurn),
+      wallTilesRemaining,
+      playerPosition: 'east', // Would come from actual game state
+      handSize: 13, // Would come from actual hand state
+      hasDrawnTile: false, // Would come from actual game state
+      exposedTilesCount: 0 // Would come from actual game state
+    }
+
+    return strategyModeService.generateDisclosureContent(
+      currentStrategyMode,
+      intelligenceData,
+      gameContext
+    )
+  }, [currentAnalysis, currentStrategyMode, gamePhase, currentTurn, wallTilesRemaining])
 
   // Filter messages based on urgency treatment
   const filteredMessages = useMemo(() => {
@@ -298,7 +362,18 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     })
   }, [uiTreatment, reduceMotion])
 
-  // Handle message expansion
+  // Handle disclosure level changes
+  const handleDisclosureLevelChange = useCallback((level: string) => {
+    setDisclosureLevel(level as 'glance' | 'details' | 'advanced')
+    onMessageExpand?.(level)
+  }, [setDisclosureLevel, onMessageExpand])
+
+  // Handle strategy mode changes
+  const handleStrategyModeChange = useCallback((mode: string) => {
+    setStrategyMode(mode as 'flexible' | 'quickWin' | 'defensive' | 'highScore')
+  }, [setStrategyMode])
+
+  // Handle message expansion (legacy support)
   const handleMessageExpand = (messageId: string) => {
     expandMessage(messageId)
     onMessageExpand?.(messageId)
@@ -382,6 +457,53 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     )
   }
 
+  // If we have disclosure content, use the new DisclosureManager
+  if (disclosureContent) {
+    return (
+      <div className={`space-y-3 ${className}`}>
+        {/* Urgency Indicator - Always shown */}
+        <UrgencyIndicator
+          compact={uiTreatment.informationDensity === 'minimal'}
+          showPhaseDetails={uiTreatment.informationDensity === 'full'}
+          showUrgencyScore={config.showConfidence && uiTreatment.informationDensity !== 'minimal'}
+          showFactors={uiTreatment.informationDensity === 'full'}
+        />
+
+        {/* Progressive Disclosure Interface */}
+        <DisclosureManager
+          content={disclosureContent}
+          urgencyLevel={urgencyLevel}
+          strategyMode={currentStrategyMode}
+          onLevelChange={handleDisclosureLevelChange}
+          onModeChange={handleStrategyModeChange}
+          disabled={isEmergencyMode}
+        />
+
+        {/* Legacy message cards for additional insights */}
+        {filteredMessages.length > 0 && (
+          <div className="space-y-2">
+            <div className="text-xs text-gray-500 font-medium uppercase tracking-wide">
+              Additional Insights
+            </div>
+            {filteredMessages.slice(0, 2).map((message: StrategyMessage) => (
+              <StrategyMessageCard
+                key={message.id}
+                message={message}
+                isExpanded={expandedMessageId === message.id}
+                onExpand={() => handleMessageExpand(message.id)}
+                onCollapse={handleCollapse}
+                onDismiss={() => handleDismiss(message.id)}
+                showConfidence={config.showConfidence}
+                urgencyAware={true}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Fallback to legacy interface when no disclosure content is available
   return (
     <div className={`space-y-3 ${className}`}>
       {/* Urgency Indicator */}
