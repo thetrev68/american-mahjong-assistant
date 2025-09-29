@@ -222,3 +222,201 @@ export interface StrategyMessageCardProps {
     onDismiss: () => void
     showConfidence: boolean
   }
+
+// === PHASE 3: ACTION-FIRST PATTERN NAVIGATION TYPES ===
+
+// Traffic light priority system for patterns
+export type PatternPriority = 'pursue' | 'backup' | 'risky' | 'dead'
+
+// Pattern priority details with action-first messaging
+export interface PatternPriorityInfo {
+  priority: PatternPriority
+  urgencyLevel: UrgencyLevel
+  completionPercentage: number
+  actionMessage: string
+  needsList: string[]
+  riskFactors: string[]
+  confidence: number
+}
+
+// Swipe navigation state
+export interface SwipeGestureState {
+  isDragging: boolean
+  startX: number
+  currentX: number
+  deltaX: number
+  velocity: number
+  direction: 'left' | 'right' | null
+}
+
+// Carousel navigation state
+export interface CarouselState {
+  currentIndex: number
+  totalPatterns: number
+  isAnimating: boolean
+  canSwipeLeft: boolean
+  canSwipeRight: boolean
+  snapToIndex: (index: number) => void
+  nextPattern: () => void
+  previousPattern: () => void
+}
+
+// Pattern switching preview data
+export interface PatternSwitchPreview {
+  fromPattern: {
+    id: string
+    name: string
+    priority: PatternPriority
+    completionPercentage: number
+  }
+  toPattern: {
+    id: string
+    name: string
+    priority: PatternPriority
+    expectedCompletion: number
+  }
+  impactAnalysis: {
+    probabilityChange: number
+    riskChange: number
+    tilesNeededChange: number
+    timeToCompletionChange: number
+  }
+  recommendation: 'strongly_recommend' | 'recommend' | 'neutral' | 'caution' | 'avoid'
+  reasoning: string
+}
+
+// Haptic feedback patterns
+export type HapticPattern =
+  | 'light'
+  | 'medium'
+  | 'heavy'
+  | 'success'
+  | 'warning'
+  | 'error'
+  | 'selection'
+
+// Enhanced pattern data for action-first interface
+export interface ActionPatternData {
+  id: string
+  patternId: string
+  name: string
+  section: string
+  line: number
+  pattern: string
+  points: number
+  difficulty: 'easy' | 'medium' | 'hard'
+
+  // Action-first priority information
+  priorityInfo: PatternPriorityInfo
+
+  // Quick action data
+  actionNeeded: string
+  tilesNeeded: string[]
+  estimatedTurns: number
+
+  // Visual data
+  displayGroups: Array<{
+    tiles: string
+    color: string
+    completed: boolean
+  }>
+}
+
+// Action Pattern Carousel Props
+export interface ActionPatternCarouselProps {
+  patterns: ActionPatternData[]
+  currentPatternId?: string
+  onPatternSwitch: (patternId: string) => Promise<void>
+  onPatternPreview: (patternId: string) => void
+  urgencyLevel: UrgencyLevel
+  showPreviewModal?: boolean
+  enableHapticFeedback?: boolean
+  className?: string
+}
+
+// Pattern Priority Indicator Props
+export interface PatternPriorityIndicatorProps {
+  priority: PatternPriority
+  completionPercentage: number
+  urgencyLevel: UrgencyLevel
+  size?: 'sm' | 'md' | 'lg'
+  showLabel?: boolean
+  animated?: boolean
+  className?: string
+}
+
+// Pattern Preview Modal Props
+export interface PatternPreviewModalProps {
+  isOpen: boolean
+  onClose: () => void
+  previewData: PatternSwitchPreview | null
+  onConfirmSwitch: () => Promise<void>
+  onCancel: () => void
+  className?: string
+}
+
+// Carousel swipe hook return interface
+export interface UseCarouselSwipe {
+  // Gesture state
+  swipeState: SwipeGestureState
+  carouselState: CarouselState
+
+  // Event handlers
+  onTouchStart: (event: React.TouchEvent) => void
+  onTouchMove: (event: React.TouchEvent) => void
+  onTouchEnd: (event: React.TouchEvent) => void
+  onMouseDown: (event: React.MouseEvent) => void
+  onMouseMove: (event: React.MouseEvent) => void
+  onMouseUp: (event: React.MouseEvent) => void
+
+  // Keyboard navigation
+  onKeyDown: (event: React.KeyboardEvent) => void
+
+  // Manual control
+  goToPattern: (index: number) => void
+  nextPattern: () => void
+  previousPattern: () => void
+}
+
+// Pattern switching hook return interface
+export interface UsePatternSwitching {
+  // Current state
+  currentPatternId: string | null
+  isLoading: boolean
+  error: string | null
+
+  // Preview state
+  previewData: PatternSwitchPreview | null
+  isPreviewOpen: boolean
+
+  // Actions
+  switchToPattern: (patternId: string) => Promise<void>
+  generatePreview: (patternId: string) => Promise<PatternSwitchPreview>
+  openPreview: (patternId: string) => void
+  closePreview: () => void
+  confirmSwitch: () => Promise<void>
+
+  // Quick actions
+  canSwitchToPattern: (patternId: string) => boolean
+  getBestPatternRecommendation: () => string | null
+}
+
+// Haptic feedback hook return interface
+export interface UseHapticFeedback {
+  // Capability detection
+  isSupported: boolean
+
+  // Feedback methods
+  triggerFeedback: (pattern: HapticPattern) => void
+  triggerLightFeedback: () => void
+  triggerMediumFeedback: () => void
+  triggerHeavyFeedback: () => void
+  triggerSuccessFeedback: () => void
+  triggerWarningFeedback: () => void
+  triggerErrorFeedback: () => void
+  triggerSelectionFeedback: () => void
+
+  // Settings
+  isEnabled: boolean
+  setEnabled: (enabled: boolean) => void
+}
