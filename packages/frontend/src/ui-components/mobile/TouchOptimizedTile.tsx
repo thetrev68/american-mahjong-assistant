@@ -43,7 +43,7 @@ export const TouchOptimizedTile: React.FC<TouchOptimizedTileProps> = ({
   onDoubleTap,
   touchFeedback = 'both',
   minTouchTarget = 44, // iOS/Android minimum
-  touchPadding,
+  touchPadding: _touchPadding,
   onSwipeLeft,
   onSwipeRight,
   onSwipeUp,

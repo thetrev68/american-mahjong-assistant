@@ -7,6 +7,8 @@ import { TurnRecommendationsSection } from './components/TurnRecommendationsSect
 import { CallOpportunitySection } from './components/CallOpportunitySection'
 import { OpponentInsightsSection } from './components/OpponentInsightsSection'
 import { DefensivePlaySection } from './components/DefensivePlaySection'
+import { GlanceModePanel } from '../strategy-advisor/components/GlanceModePanel'
+import { useStrategyAdvisor } from '../strategy-advisor/hooks/useStrategyAdvisor'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { getPatternCompletionSummary } from '../../utils/tile-display-utils'
@@ -45,6 +47,12 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const { playerHand } = useTileStore()
   const navigate = useNavigate()
 
+  // Strategy Advisor integration
+  const { expandMessage } = useStrategyAdvisor()
+
+  // Feature flag for Strategy Advisor (default enabled for Phase 1)
+  const useStrategyAdvisorInterface = true
+
   // Track the original engine recommendation ID
   const originalEngineRecommendationId = useRef<string | null>(null)
 
@@ -75,8 +83,18 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
         {isAnalyzing && <LoadingSpinner size="sm" />}
       </div>
 
-      {/* Turn-Aware Recommendations Section */}
-      {isCurrentTurn && analysis?.turnIntelligence && onActionRecommendation && (
+      {/* Strategy Advisor - Glance Mode Interface */}
+      {useStrategyAdvisorInterface && (
+        <div className="mb-4">
+          <GlanceModePanel
+            className="strategy-advisor-panel"
+            onMessageExpand={expandMessage}
+          />
+        </div>
+      )}
+
+      {/* Turn-Aware Recommendations Section - Fallback when Strategy Advisor disabled */}
+      {!useStrategyAdvisorInterface && isCurrentTurn && analysis?.turnIntelligence && onActionRecommendation && (
         <TurnRecommendationsSection
           recommendations={analysis.turnIntelligence}
           onAction={onActionRecommendation}
