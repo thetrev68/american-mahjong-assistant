@@ -91,7 +91,7 @@ export const ActionPatternCarousel: React.FC<ActionPatternCarouselProps> = ({
     }
   }, [enableHapticFeedback, hapticSupported, triggerSelectionFeedback, patterns.length])
 
-  // Carousel swipe hook
+  // Phase 4: Enhanced carousel swipe hook with long-press support
   const {
     swipeState,
     carouselState,
@@ -102,18 +102,30 @@ export const ActionPatternCarousel: React.FC<ActionPatternCarouselProps> = ({
     onMouseMove,
     onMouseUp,
     onKeyDown,
-    goToPattern
+    goToPattern,
+    longPressState,
+    isShowingHint,
+    isShowingDetails
   } = useCarouselSwipe({
     patterns,
     initialIndex: currentIndex,
     cardWidth,
     enableHapticFeedback,
+    enableLongPress: true,
     onPatternChange: handlePatternChange,
     onSwipeStart: () => {
       // Optional: Add visual feedback for swipe start
     },
     onSwipeEnd: () => {
       // Optional: Add visual feedback for swipe end
+    },
+    onPatternLongPress: (patternId: string) => {
+      // Long press detected on pattern
+      handlePatternPreview(patternId)
+    },
+    onPatternDetails: (patternId: string) => {
+      // Show detailed pattern information
+      handlePatternPreview(patternId)
     }
   })
 
@@ -267,10 +279,14 @@ export const ActionPatternCarousel: React.FC<ActionPatternCarouselProps> = ({
         </div>
       </div>
 
-      {/* Main carousel container */}
+      {/* Phase 4: Enhanced carousel container with long-press visual feedback */}
       <div
         ref={containerRef}
-        className="relative overflow-hidden"
+        className={`relative overflow-hidden ${
+          isShowingHint ? 'ring-2 ring-blue-200 ring-opacity-50' : ''
+        } ${
+          isShowingDetails ? 'ring-2 ring-blue-400' : ''
+        }`}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -280,7 +296,7 @@ export const ActionPatternCarousel: React.FC<ActionPatternCarouselProps> = ({
         onKeyDown={onKeyDown}
         tabIndex={0}
         role="listbox"
-        aria-label="Pattern selection carousel"
+        aria-label="Pattern selection carousel (tap and hold for details)"
         aria-describedby="carousel-instructions"
       >
         {/* Carousel track */}
@@ -316,26 +332,75 @@ export const ActionPatternCarousel: React.FC<ActionPatternCarouselProps> = ({
           ))}
         </div>
 
-        {/* Swipe indicators */}
+        {/* Phase 4: Enhanced swipe indicators with long-press feedback */}
         <div className="flex justify-center mt-4 gap-2">
           {patterns.map((_, index) => (
             <button
               key={index}
               onClick={() => goToPattern(index)}
-              className={`w-2 h-2 rounded-full transition-colors ${
+              className={`w-2 h-2 rounded-full transition-all duration-200 ${
                 index === carouselState.currentIndex
-                  ? 'bg-blue-600'
+                  ? isShowingDetails
+                    ? 'bg-blue-600 w-4 h-4'
+                    : isShowingHint
+                    ? 'bg-blue-500 w-3 h-3'
+                    : 'bg-blue-600'
                   : 'bg-gray-300 hover:bg-gray-400'
               }`}
               aria-label={`Go to pattern ${index + 1}`}
             />
           ))}
         </div>
+
+        {/* Phase 4: Long-press progress indicator */}
+        {longPressState.isPressed && longPressState.progress > 0 && (
+          <div className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white shadow-lg flex items-center justify-center">
+            <div className="relative w-6 h-6">
+              <svg className="w-6 h-6 transform -rotate-90" viewBox="0 0 24 24">
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  className="text-gray-200"
+                />
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  fill="none"
+                  strokeDasharray={`${longPressState.progress * 63} 63`}
+                  className={`transition-all duration-100 ${
+                    longPressState.stage === 'hint'
+                      ? 'text-blue-400'
+                      : longPressState.stage === 'details'
+                      ? 'text-blue-600'
+                      : 'text-green-500'
+                  }`}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className={`w-1 h-1 rounded-full ${
+                  longPressState.stage === 'hint'
+                    ? 'bg-blue-400'
+                    : longPressState.stage === 'details'
+                    ? 'bg-blue-600'
+                    : 'bg-green-500'
+                }`} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Keyboard instructions */}
+      {/* Phase 4: Enhanced keyboard instructions with long-press info */}
       <div id="carousel-instructions" className="sr-only">
         {getKeyboardInstructions()}
+        Tap and hold on a pattern card for detailed information.
       </div>
 
       {/* Preview Modal */}

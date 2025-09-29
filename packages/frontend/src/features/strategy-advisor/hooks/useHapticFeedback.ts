@@ -28,6 +28,57 @@ const HAPTIC_INTENSITIES: Record<HapticPattern, number> = {
   selection: 15
 }
 
+// Gesture-specific haptic patterns (Phase 4 enhancement)
+const GESTURE_HAPTIC_PATTERNS = {
+  // Pull-to-refresh gesture patterns
+  'pull-to-refresh': {
+    start: 'light' as HapticPattern,
+    progress: 'light' as HapticPattern,
+    ready: 'medium' as HapticPattern,
+    trigger: 'heavy' as HapticPattern,
+    success: 'success' as HapticPattern,
+    cancel: 'light' as HapticPattern
+  },
+
+  // Long-press gesture patterns
+  'long-press': {
+    start: 'light' as HapticPattern,
+    hint: 'light' as HapticPattern,
+    details: 'medium' as HapticPattern,
+    complete: 'heavy' as HapticPattern,
+    cancel: 'light' as HapticPattern
+  },
+
+  // Pattern carousel swipe patterns
+  'pattern-swipe': {
+    start: 'selection' as HapticPattern,
+    navigate: 'selection' as HapticPattern,
+    snap: 'medium' as HapticPattern,
+    edge: 'warning' as HapticPattern,
+    switch: 'success' as HapticPattern
+  },
+
+  // Tile interaction patterns
+  'tile-interaction': {
+    select: 'selection' as HapticPattern,
+    deselect: 'light' as HapticPattern,
+    drag: 'light' as HapticPattern,
+    drop: 'medium' as HapticPattern,
+    invalid: 'warning' as HapticPattern,
+    conflict: 'error' as HapticPattern
+  },
+
+  // Gesture conflict patterns
+  'gesture-conflict': {
+    blocked: 'warning' as HapticPattern,
+    resolved: 'light' as HapticPattern,
+    priority: 'medium' as HapticPattern
+  }
+} as const
+
+type GestureType = keyof typeof GESTURE_HAPTIC_PATTERNS
+type GestureAction = keyof typeof GESTURE_HAPTIC_PATTERNS[GestureType]
+
 // Haptic feedback duration mapping (in milliseconds)
 const HAPTIC_DURATIONS: Record<HapticPattern, number> = {
   light: 10,
@@ -206,6 +257,47 @@ export const useHapticFeedback = (): UseHapticFeedback => {
     triggerFeedback('selection')
   }, [triggerFeedback])
 
+  // Phase 4 enhancement: Gesture-specific haptic feedback
+  const triggerGestureFeedback = useCallback((
+    gestureType: GestureType,
+    action: string
+  ) => {
+    const gesturePatterns = GESTURE_HAPTIC_PATTERNS[gestureType]
+    if (!gesturePatterns) {
+      console.warn(`Unknown gesture type: ${gestureType}`)
+      return
+    }
+
+    const pattern = gesturePatterns[action as GestureAction]
+    if (!pattern) {
+      console.warn(`Unknown action '${action}' for gesture type '${gestureType}'`)
+      return
+    }
+
+    triggerFeedback(pattern)
+  }, [triggerFeedback])
+
+  // Convenient gesture-specific methods
+  const triggerPullToRefreshFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['pull-to-refresh']) => {
+    triggerGestureFeedback('pull-to-refresh', action)
+  }, [triggerGestureFeedback])
+
+  const triggerLongPressFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['long-press']) => {
+    triggerGestureFeedback('long-press', action)
+  }, [triggerGestureFeedback])
+
+  const triggerPatternSwipeFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['pattern-swipe']) => {
+    triggerGestureFeedback('pattern-swipe', action)
+  }, [triggerGestureFeedback])
+
+  const triggerTileInteractionFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['tile-interaction']) => {
+    triggerGestureFeedback('tile-interaction', action)
+  }, [triggerGestureFeedback])
+
+  const triggerGestureConflictFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['gesture-conflict']) => {
+    triggerGestureFeedback('gesture-conflict', action)
+  }, [triggerGestureFeedback])
+
   const setEnabledWithFeedback = useCallback((enabled: boolean) => {
     setIsEnabled(enabled)
 
@@ -219,7 +311,7 @@ export const useHapticFeedback = (): UseHapticFeedback => {
     // Capability detection
     isSupported,
 
-    // Feedback methods
+    // Basic feedback methods
     triggerFeedback,
     triggerLightFeedback,
     triggerMediumFeedback,
@@ -228,6 +320,14 @@ export const useHapticFeedback = (): UseHapticFeedback => {
     triggerWarningFeedback,
     triggerErrorFeedback,
     triggerSelectionFeedback,
+
+    // Phase 4: Gesture-specific feedback methods
+    triggerGestureFeedback,
+    triggerPullToRefreshFeedback,
+    triggerLongPressFeedback,
+    triggerPatternSwipeFeedback,
+    triggerTileInteractionFeedback,
+    triggerGestureConflictFeedback,
 
     // Settings
     isEnabled,

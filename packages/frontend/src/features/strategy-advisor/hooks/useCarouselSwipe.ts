@@ -9,11 +9,13 @@ import type {
   ActionPatternData
 } from '../types/strategy-advisor.types'
 import { useHapticFeedback } from './useHapticFeedback'
+import { useLongPress } from './useLongPress'
+import { useGestureConflictAvoidance } from './useGestureConflictAvoidance'
+import { gesturePerformanceUtils } from '../utils/gesture-performance'
 import {
   calculateVelocity,
   shouldSnapToNextPattern,
   calculateAnimationDuration,
-  throttle,
   cancelAnimationFrame,
   ANIMATION_CONFIG
 } from '../utils/pattern-carousel-utils'
@@ -23,9 +25,12 @@ interface UseCarouselSwipeOptions {
   initialIndex?: number
   cardWidth?: number
   enableHapticFeedback?: boolean
+  enableLongPress?: boolean
   onPatternChange?: (index: number, pattern: ActionPatternData) => void
   onSwipeStart?: () => void
   onSwipeEnd?: () => void
+  onPatternLongPress?: (patternId: string) => void
+  onPatternDetails?: (patternId: string) => void
 }
 
 /**
@@ -37,9 +42,12 @@ export const useCarouselSwipe = ({
   initialIndex = 0,
   cardWidth = 320,
   enableHapticFeedback = true,
+  enableLongPress = true,
   onPatternChange,
   onSwipeStart,
-  onSwipeEnd
+  onSwipeEnd,
+  onPatternLongPress: _onPatternLongPress,
+  onPatternDetails
 }: UseCarouselSwipeOptions): UseCarouselSwipe => {
   // State
   const [currentIndex, setCurrentIndex] = useState(initialIndex)
@@ -62,12 +70,45 @@ export const useCarouselSwipe = ({
   const animationIdRef = useRef<number | null>(null)
   const isDraggingRef = useRef<boolean>(false)
 
-  // Haptic feedback
+  // Phase 4 enhancements: Enhanced haptic feedback
   const {
-    triggerSelectionFeedback,
-    triggerLightFeedback,
+    triggerPatternSwipeFeedback,
     isSupported: hapticSupported
   } = useHapticFeedback()
+
+  // Phase 4: Gesture conflict avoidance
+  const conflictAvoidance = useGestureConflictAvoidance()
+
+  // Phase 4: Long-press for pattern details
+  const longPress = useLongPress({
+    config: {
+      hintThreshold: 300,
+      detailsThreshold: 600,
+      enableHaptics: enableHapticFeedback,
+      enableVisualFeedback: true,
+      cancelOnMove: true,
+      maxMoveDistance: 15
+    },
+    disabled: !enableLongPress,
+    onHint: () => {
+      // Visual hint that details are available
+      if (enableHapticFeedback && hapticSupported) {
+        triggerPatternSwipeFeedback('start')
+      }
+    },
+    onDetails: () => {
+      const currentPattern = patterns[currentIndex]
+      if (currentPattern) {
+        onPatternDetails?.(currentPattern.id)
+        if (enableHapticFeedback && hapticSupported) {
+          triggerPatternSwipeFeedback('switch')
+        }
+      }
+    },
+    onCancel: () => {
+      // Long press was cancelled
+    }
+  })
 
   // Constraints
   const maxIndex = patterns.length - 1
@@ -85,48 +126,61 @@ export const useCarouselSwipe = ({
     previousPattern: () => previousPattern()
   }), [currentIndex, patterns.length, isAnimating])
 
-  // Update velocity history for smooth calculations
-  const updateVelocity = useCallback((currentX: number, timestamp: number) => {
-    const timeDelta = timestamp - lastTimeRef.current
+  // Phase 4: Performance-optimized velocity update
+  const updateVelocity = gesturePerformanceUtils.optimizeForFrameRate(
+    useCallback((currentX: number, timestamp: number) => {
+      const timeDelta = timestamp - lastTimeRef.current
 
-    if (timeDelta > 0) {
-      const velocity = calculateVelocity(currentX, lastPositionRef.current, timeDelta)
-      velocityHistoryRef.current.push(velocity)
+      if (timeDelta > 0) {
+        const velocity = calculateVelocity(currentX, lastPositionRef.current, timeDelta)
+        velocityHistoryRef.current.push(velocity)
 
-      // Keep only recent velocity samples for smoothing
-      if (velocityHistoryRef.current.length > 5) {
-        velocityHistoryRef.current.shift()
+        // Keep only recent velocity samples for smoothing
+        if (velocityHistoryRef.current.length > 5) {
+          velocityHistoryRef.current.shift()
+        }
+
+        // Calculate average velocity for smoother gesture recognition
+        const avgVelocity = velocityHistoryRef.current.reduce((sum, v) => sum + v, 0) / velocityHistoryRef.current.length
+
+        setSwipeState(prev => ({
+          ...prev,
+          currentX,
+          deltaX: currentX - prev.startX,
+          velocity: avgVelocity,
+          direction: avgVelocity > 0.1 ? 'right' : avgVelocity < -0.1 ? 'left' : null
+        }))
       }
 
-      // Calculate average velocity for smoother gesture recognition
-      const avgVelocity = velocityHistoryRef.current.reduce((sum, v) => sum + v, 0) / velocityHistoryRef.current.length
+      lastPositionRef.current = currentX
+      lastTimeRef.current = timestamp
+    }, [])
+  )
 
-      setSwipeState(prev => ({
-        ...prev,
-        currentX,
-        deltaX: currentX - prev.startX,
-        velocity: avgVelocity,
-        direction: avgVelocity > 0.1 ? 'right' : avgVelocity < -0.1 ? 'left' : null
-      }))
-    }
-
-    lastPositionRef.current = currentX
-    lastTimeRef.current = timestamp
-  }, [])
-
-  // Throttled velocity update for performance
+  // Phase 4: Enhanced throttling for smooth 60fps
   const throttledVelocityUpdate = useMemo(() =>
-    throttle(updateVelocity, 16), // ~60fps
+    gesturePerformanceUtils.throttleGesture(updateVelocity, 16), // 60fps target
     [updateVelocity]
   )
 
-  // Touch event handlers
+  // Phase 4: Enhanced touch event handlers with conflict avoidance
   const onTouchStart = useCallback((event: React.TouchEvent) => {
     if (patterns.length <= 1) return
+
+    // Phase 4: Check for gesture conflicts
+    if (!conflictAvoidance.canActivateGesture('pattern-swipe', {
+      x: event.touches[0].clientX,
+      y: event.touches[0].clientY
+    })) {
+      return
+    }
 
     const touch = event.touches[0]
     const startX = touch.clientX
     const timestamp = Date.now()
+
+    // Phase 4: Register gesture start
+    conflictAvoidance.notifyGestureStart('pattern-swipe', event.currentTarget as HTMLElement)
 
     isDraggingRef.current = true
     lastPositionRef.current = startX
@@ -142,13 +196,32 @@ export const useCarouselSwipe = ({
       direction: null
     })
 
-    // Haptic feedback on touch start
+    // Phase 4: Enhanced haptic feedback
     if (enableHapticFeedback && hapticSupported) {
-      triggerLightFeedback()
+      triggerPatternSwipeFeedback('start')
+    }
+
+    // Phase 4: Start long-press detection
+    if (enableLongPress) {
+      longPress.onPointerDown({
+        ...event,
+        pointerId: 0,
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      } as React.PointerEvent)
     }
 
     onSwipeStart?.()
-  }, [patterns.length, enableHapticFeedback, hapticSupported, triggerLightFeedback, onSwipeStart])
+  }, [
+    patterns.length,
+    enableHapticFeedback,
+    enableLongPress,
+    hapticSupported,
+    triggerPatternSwipeFeedback,
+    conflictAvoidance,
+    longPress,
+    onSwipeStart
+  ])
 
   const onTouchMove = useCallback((event: React.TouchEvent) => {
     if (!isDraggingRef.current || patterns.length <= 1) return
@@ -159,23 +232,56 @@ export const useCarouselSwipe = ({
     const currentX = touch.clientX
     const timestamp = Date.now()
 
-    throttledVelocityUpdate(currentX, timestamp)
-  }, [patterns.length, throttledVelocityUpdate])
+    // Phase 4: Update long-press tracking
+    if (enableLongPress && longPress.state.isPressed) {
+      longPress.onPointerMove({
+        ...event,
+        pointerId: 0,
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      } as React.PointerEvent)
+    }
 
-  const onTouchEnd = useCallback((_event: React.TouchEvent) => {
+    throttledVelocityUpdate(currentX, timestamp)
+  }, [patterns.length, enableLongPress, longPress, throttledVelocityUpdate])
+
+  const onTouchEnd = useCallback((event: React.TouchEvent) => {
     if (!isDraggingRef.current || patterns.length <= 1) return
 
     isDraggingRef.current = false
+
+    // Phase 4: End long-press tracking
+    if (enableLongPress && longPress.state.isPressed) {
+      longPress.onPointerUp({
+        ...event,
+        pointerId: 0,
+        clientX: event.changedTouches[0].clientX,
+        clientY: event.changedTouches[0].clientY
+      } as React.PointerEvent)
+    }
+
+    // Phase 4: Notify gesture end
+    conflictAvoidance.notifyGestureEnd('pattern-swipe')
 
     const { shouldSnap, direction } = shouldSnapToNextPattern(swipeState, cardWidth)
 
     if (shouldSnap && direction) {
       if (direction === 'left' && currentIndex < maxIndex) {
+        // Phase 4: Enhanced haptic feedback for navigation
+        if (enableHapticFeedback && hapticSupported) {
+          triggerPatternSwipeFeedback('navigate')
+        }
         nextPattern()
       } else if (direction === 'right' && currentIndex > minIndex) {
+        if (enableHapticFeedback && hapticSupported) {
+          triggerPatternSwipeFeedback('navigate')
+        }
         previousPattern()
       } else {
         // Snap back to current position
+        if (enableHapticFeedback && hapticSupported) {
+          triggerPatternSwipeFeedback('edge')
+        }
         snapToCurrentPosition()
       }
     } else {
@@ -192,7 +298,20 @@ export const useCarouselSwipe = ({
     }))
 
     onSwipeEnd?.()
-  }, [swipeState, cardWidth, currentIndex, maxIndex, minIndex, onSwipeEnd])
+  }, [
+    swipeState,
+    cardWidth,
+    currentIndex,
+    maxIndex,
+    minIndex,
+    enableLongPress,
+    enableHapticFeedback,
+    hapticSupported,
+    longPress,
+    conflictAvoidance,
+    triggerPatternSwipeFeedback,
+    onSwipeEnd
+  ])
 
   // Mouse event handlers (for desktop testing)
   const onMouseDown = useCallback((event: React.MouseEvent) => {
@@ -281,7 +400,7 @@ export const useCarouselSwipe = ({
     }
   }, [patterns.length, maxIndex])
 
-  // Navigation functions
+  // Phase 4: Enhanced navigation functions with better haptic feedback
   const goToPattern = useCallback((index: number) => {
     if (index === currentIndex || isAnimating || index < 0 || index > maxIndex) {
       return
@@ -293,9 +412,9 @@ export const useCarouselSwipe = ({
     const distance = Math.abs(index - currentIndex)
     const duration = calculateAnimationDuration(distance * cardWidth, 0)
 
-    // Haptic feedback for pattern change
+    // Phase 4: Enhanced haptic feedback for pattern navigation
     if (enableHapticFeedback && hapticSupported) {
-      triggerSelectionFeedback()
+      triggerPatternSwipeFeedback('snap')
     }
 
     // Update index immediately for responsive UI
@@ -313,7 +432,7 @@ export const useCarouselSwipe = ({
     cardWidth,
     enableHapticFeedback,
     hapticSupported,
-    triggerSelectionFeedback,
+    triggerPatternSwipeFeedback,
     onPatternChange,
     patterns
   ])
@@ -385,6 +504,12 @@ export const useCarouselSwipe = ({
     // Manual control
     goToPattern,
     nextPattern,
-    previousPattern
+    previousPattern,
+
+    // Phase 4: Long-press state and controls
+    longPressState: longPress.state,
+    isShowingHint: longPress.state.stage === 'hint',
+    isShowingDetails: longPress.state.stage === 'details' || longPress.state.stage === 'holding',
+    cancelLongPress: longPress.cancel
   }
 }

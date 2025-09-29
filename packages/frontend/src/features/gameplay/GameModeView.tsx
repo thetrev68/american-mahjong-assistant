@@ -36,6 +36,7 @@ import { useHistoryStore } from '../../stores/history-store'
 import { tileService } from '../../lib/services/tile-service'
 import DevShortcuts from '../../ui-components/DevShortcuts'
 import { useNavigate } from 'react-router-dom'
+import { PullToRefreshWrapper, useResponsivePullToRefreshConfig } from '../strategy-advisor/components/PullToRefreshWrapper'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -225,6 +226,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
   const gameRound = useGameStore(state => state.currentTurn) || 1
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
+
+  // Phase 4: Pull-to-refresh configuration for hand re-analysis
+  const pullToRefreshConfig = useResponsivePullToRefreshConfig()
   const [discardPile] = useState<Array<{
     tile: Tile
     playerId: string
@@ -426,12 +430,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     detectCallOpportunity()
   }, [gameState?.discardPile, gameState?.currentPlayer, currentPlayerId, currentHand])
 
-  // Real-time hand analysis
+  // Phase 4: Enhanced hand analysis with pull-to-refresh support
   const analyzeCurrentHand = useCallback(async () => {
     if (fullHand.length === 0) return
 
     setIsAnalyzing(true)
-    
+
     const handForAnalysis = fullHand.map((tile, index) => {
       if ('instanceId' in tile) {
         return tile as Tile & { instanceId: string; isSelected: boolean }
@@ -442,13 +446,22 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         isSelected: false
       } as Tile & { instanceId: string; isSelected: boolean }
     })
-    
+
     // Hand analysis initiated - using real tiles from store
-    
+
     // Trigger intelligence analysis - errors are handled by intelligence store
     await intelligenceStore.analyzeHand(handForAnalysis, [])
     setIsAnalyzing(false)
   }, [fullHand, selectedPatterns, exposedTiles, intelligenceStore])
+
+  // Phase 4: Pull-to-refresh handler
+  const handlePullToRefresh = useCallback(async () => {
+    // Re-analyze the current hand
+    await analyzeCurrentHand()
+
+    // Add a slight delay for better UX
+    await new Promise(resolve => setTimeout(resolve, 500))
+  }, [analyzeCurrentHand])
 
   // Initialize game mode
   useEffect(() => {
@@ -1217,7 +1230,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         onSkipToGameplay={gameStore.gamePhase === 'charleston' ? handleSkipToGameplay : undefined}
         onResetGame={handleResetGame}
       />
-      <GameScreenLayout
+      {/* Phase 4: Pull-to-refresh wrapper for hand re-analysis */}
+      <PullToRefreshWrapper
+        onRefresh={handlePullToRefresh}
+        config={pullToRefreshConfig}
+        disabled={gameEnded || isAnalyzing}
+        className="min-h-screen"
+      >
+        <GameScreenLayout
         gamePhase={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         currentPlayer={currentPlayer}
         timeElapsed={elapsedTime}
@@ -1266,7 +1286,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           })
         }}
         onPatternSwitch={handlePatternSwitch}
-      />
+        />
+      </PullToRefreshWrapper>
 
       {/* Call Dialog */}
       {showCallDialog && callOpportunities.length > 0 && (

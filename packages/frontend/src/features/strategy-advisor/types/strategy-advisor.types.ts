@@ -420,3 +420,269 @@ export interface UseHapticFeedback {
   isEnabled: boolean
   setEnabled: (enabled: boolean) => void
 }
+
+// === PHASE 4: MOBILE-OPTIMIZED GESTURES TYPES ===
+
+// Pull-to-refresh gesture state
+export interface PullToRefreshState {
+  isPulling: boolean
+  pullDistance: number
+  pullProgress: number // 0-1 based on threshold
+  threshold: number
+  isReady: boolean
+  isRefreshing: boolean
+  maxDistance: number
+}
+
+// Pull-to-refresh configuration
+export interface PullToRefreshConfig {
+  threshold: number // px to trigger refresh
+  maxDistance: number // max pull distance
+  enableHaptics: boolean
+  enableAnimation: boolean
+  sensitivity: number // 0.5-2.0 gesture sensitivity multiplier
+  resistanceAfterThreshold: number // 0-1 resistance when past threshold
+}
+
+// Long-press gesture state
+export interface LongPressState {
+  isPressed: boolean
+  startTime: number
+  currentTime: number
+  progress: number // 0-1 based on duration thresholds
+  stage: 'none' | 'hint' | 'details' | 'holding'
+  position: { x: number; y: number }
+}
+
+// Long-press configuration
+export interface LongPressConfig {
+  hintThreshold: number // ms for initial hint
+  detailsThreshold: number // ms for full details
+  enableHaptics: boolean
+  enableVisualFeedback: boolean
+  cancelOnMove: boolean
+  maxMoveDistance: number // px before canceling
+}
+
+// Gesture conflict detection state
+export interface GestureConflictState {
+  activeTileInteraction: boolean
+  activeSwipeGesture: boolean
+  activePullToRefresh: boolean
+  activeLongPress: boolean
+  conflictZones: DOMRect[]
+  allowedGestures: Set<string>
+}
+
+// Orientation state for gesture adaptation
+export interface OrientationState {
+  orientation: 'portrait' | 'landscape'
+  isTransitioning: boolean
+  previousOrientation: 'portrait' | 'landscape' | null
+  dimensions: {
+    width: number
+    height: number
+    aspectRatio: number
+  }
+}
+
+// Performance metrics for gesture optimization
+export interface GesturePerformanceMetrics {
+  frameRate: number
+  gestureResponseTime: number
+  memoryUsage: number
+  cpuUsage: number
+  lastMeasurement: number
+  averageResponseTime: number
+  missedFrames: number
+}
+
+// Gesture coordination event types
+export type GestureEventType =
+  | 'tile-interaction-start'
+  | 'tile-interaction-end'
+  | 'swipe-start'
+  | 'swipe-end'
+  | 'pull-to-refresh-start'
+  | 'pull-to-refresh-end'
+  | 'long-press-start'
+  | 'long-press-end'
+  | 'gesture-conflict'
+  | 'gesture-resolved'
+
+// Gesture coordination event
+export interface GestureEvent {
+  type: GestureEventType
+  gestureId: string
+  timestamp: number
+  element?: HTMLElement
+  position?: { x: number; y: number }
+  data?: unknown
+}
+
+// Pull-to-refresh hook interface
+export interface UsePullToRefresh {
+  // State
+  state: PullToRefreshState
+  config: PullToRefreshConfig
+
+  // Event handlers
+  onTouchStart: (event: React.TouchEvent) => void
+  onTouchMove: (event: React.TouchEvent) => void
+  onTouchEnd: (event: React.TouchEvent) => void
+  onMouseDown: (event: React.MouseEvent) => void
+  onMouseMove: (event: React.MouseEvent) => void
+  onMouseUp: (event: React.MouseEvent) => void
+
+  // Actions
+  triggerRefresh: () => Promise<void>
+  cancelRefresh: () => void
+  updateConfig: (config: Partial<PullToRefreshConfig>) => void
+
+  // Visual state helpers
+  getVisualState: () => {
+    message: string
+    icon: string
+    progress: number
+    isAnimating: boolean
+  }
+}
+
+// Long-press hook interface
+export interface UseLongPress {
+  // State
+  state: LongPressState
+  config: LongPressConfig
+
+  // Event handlers
+  onPointerDown: (event: React.PointerEvent) => void
+  onPointerMove: (event: React.PointerEvent) => void
+  onPointerUp: (event: React.PointerEvent) => void
+  onPointerCancel: (event: React.PointerEvent) => void
+
+  // Actions
+  cancel: () => void
+  updateConfig: (config: Partial<LongPressConfig>) => void
+
+  // Callbacks registration
+  onHint: (callback: () => void) => void
+  onDetails: (callback: () => void) => void
+  onCancel: (callback: () => void) => void
+}
+
+// Gesture conflict avoidance hook interface
+export interface UseGestureConflictAvoidance {
+  // State
+  conflictState: GestureConflictState
+
+  // Registration
+  registerGesture: (gestureId: string, element?: HTMLElement) => void
+  unregisterGesture: (gestureId: string) => void
+  registerConflictZone: (zone: DOMRect, zoneId: string) => void
+  unregisterConflictZone: (zoneId: string) => void
+
+  // Conflict detection
+  canActivateGesture: (gestureId: string, position?: { x: number; y: number }) => boolean
+  isInConflictZone: (position: { x: number; y: number }) => boolean
+  hasActiveConflicts: () => boolean
+
+  // Event handling
+  notifyGestureStart: (gestureId: string, element?: HTMLElement) => void
+  notifyGestureEnd: (gestureId: string) => void
+}
+
+// Orientation-aware gestures hook interface
+export interface UseOrientationAwareGestures {
+  // State
+  orientation: OrientationState
+
+  // Adaptive configuration
+  getAdaptiveConfig: <T>(portraitConfig: T, landscapeConfig: T) => T
+  getOrientationMultiplier: (baseValue: number, landscapeMultiplier?: number) => number
+
+  // Event handling
+  onOrientationChange: (callback: (orientation: OrientationState) => void) => void
+  onTransitionComplete: (callback: () => void) => void
+
+  // Gesture zone calculations
+  getSafeGestureZones: () => DOMRect[]
+  getThumbReachableArea: () => DOMRect[]
+}
+
+// Gesture performance utilities interface
+export interface GesturePerformanceUtils {
+  // Monitoring
+  startPerformanceMonitoring: () => void
+  stopPerformanceMonitoring: () => void
+  getMetrics: () => GesturePerformanceMetrics
+
+  // Optimization
+  throttleGesture: <T extends unknown[]>(
+    fn: (...args: T) => void,
+    ms: number
+  ) => (...args: T) => void
+  debounceGesture: <T extends unknown[]>(
+    fn: (...args: T) => void,
+    ms: number
+  ) => (...args: T) => void
+  optimizeForFrameRate: <T extends unknown[]>(
+    fn: (...args: T) => void
+  ) => (...args: T) => void
+
+  // Memory management
+  cleanupGestureListeners: (element: HTMLElement) => void
+  batchGestureUpdates: (updates: (() => void)[]) => void
+}
+
+// Gesture coordinator service interface
+export interface GestureCoordinator {
+  // Event system
+  addEventListener: (
+    type: GestureEventType,
+    listener: (event: GestureEvent) => void
+  ) => void
+  removeEventListener: (
+    type: GestureEventType,
+    listener: (event: GestureEvent) => void
+  ) => void
+  dispatchEvent: (event: GestureEvent) => void
+
+  // Gesture management
+  registerGesture: (
+    gestureId: string,
+    config: {
+      priority: number
+      conflictsWith?: string[]
+      element?: HTMLElement
+    }
+  ) => void
+  unregisterGesture: (gestureId: string) => void
+
+  // Conflict resolution
+  resolveConflict: (gestureIds: string[]) => string | null
+  setGesturePriority: (gestureId: string, priority: number) => void
+
+  // Global state
+  getActiveGestures: () => string[]
+  isGestureAllowed: (gestureId: string) => boolean
+  pauseAllGestures: () => void
+  resumeAllGestures: () => void
+}
+
+// Component props for new gesture components
+export interface PullToRefreshWrapperProps {
+  children: React.ReactNode
+  onRefresh: () => Promise<void>
+  config?: Partial<PullToRefreshConfig>
+  className?: string
+  disabled?: boolean
+}
+
+export interface LongPressPatternDetailsProps {
+  patternId: string
+  isVisible: boolean
+  onShow: () => void
+  onHide: () => void
+  children: React.ReactNode
+  className?: string
+}
