@@ -3,6 +3,7 @@
 
 import React from 'react'
 import { Card } from '../../../ui-components/Card'
+import { useStrategyAdvisor } from '../hooks/useStrategyAdvisor'
 import type { StrategyAdvisorTypes } from '../types/strategy-advisor.types'
 
 interface StrategyMessageCardProps {
@@ -178,32 +179,36 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   onMessageExpand,
   onConfigChange
 }) => {
-  // This will be connected via the hook in the next phase
-  // For now, show a placeholder structure
+  // Connect to Strategy Advisor hook
+  const {
+    messages,
+    isLoading,
+    error,
+    config,
+    expandedMessageId,
+    expandMessage,
+    updateConfig
+  } = useStrategyAdvisor()
 
-  const mockMessages: StrategyAdvisorTypes.StrategyMessage[] = []
-  const isLoading = false
-  const error = null
-  const expandedMessageId = null
-  const config: StrategyAdvisorTypes.GlanceModeConfig = {
-    showConfidence: true,
-    showDetails: true,
-    autoRefresh: true,
-    refreshInterval: 5000,
-    maxMessages: 3,
-    prioritizeUrgent: true
-  }
-
-  const handleExpand = (messageId: string) => {
+  // Handle message expansion
+  const handleMessageExpand = (messageId: string) => {
+    expandMessage(messageId)
     onMessageExpand?.(messageId)
   }
+
+  // Handle config changes
+  const handleConfigChange = (newConfig: Partial<StrategyAdvisorTypes.GlanceModeConfig>) => {
+    updateConfig(newConfig)
+    onConfigChange?.(newConfig)
+  }
+
 
   const handleCollapse = () => {
     onMessageExpand?.(null)
   }
 
   const handleDismiss = (messageId: string) => {
-    // Will be connected via hook
+    // TODO: Implement dismiss functionality in useStrategyAdvisor hook
     console.log('Dismiss message:', messageId)
   }
 
@@ -237,15 +242,20 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     )
   }
 
-  if (mockMessages.length === 0) {
+  if (messages.length === 0) {
     return (
       <Card variant="elevated" className={`p-4 ${className}`}>
         <div className="text-center text-gray-500">
           <div className="text-lg mb-2">🧭</div>
           <p className="text-sm font-medium">Strategy Advisor</p>
           <p className="text-xs mt-1">
-            AI guidance will appear here during gameplay
+            {isLoading ? "Analyzing your hand..." : "AI guidance will appear here during gameplay"}
           </p>
+          {error && (
+            <p className="text-xs mt-1 text-red-500">
+              Error: {error}
+            </p>
+          )}
         </div>
       </Card>
     )
@@ -287,12 +297,12 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
 
       {/* Messages */}
       <div className="space-y-2">
-        {mockMessages.map((message) => (
+        {messages.map((message) => (
           <StrategyMessageCard
             key={message.id}
             message={message}
             isExpanded={expandedMessageId === message.id}
-            onExpand={() => handleExpand(message.id)}
+            onExpand={() => handleMessageExpand(message.id)}
             onCollapse={handleCollapse}
             onDismiss={() => handleDismiss(message.id)}
             showConfidence={config.showConfidence}
@@ -301,9 +311,9 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
       </div>
 
       {/* Footer */}
-      {mockMessages.length > 0 && (
+      {messages.length > 0 && (
         <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-200">
-          <span>{mockMessages.length} insight{mockMessages.length !== 1 ? 's' : ''}</span>
+          <span>{messages.length} insight{messages.length !== 1 ? 's' : ''}</span>
           <span>Updated just now</span>
         </div>
       )}
