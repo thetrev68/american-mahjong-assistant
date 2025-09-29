@@ -1,9 +1,18 @@
 // Glance Mode Panel - Main Strategy Advisor UI component
-// Shows conversational guidance with progressive disclosure
+// Shows conversational guidance with progressive disclosure and urgency-aware styling
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { Card } from '../../../ui-components/Card'
 import { useStrategyAdvisor } from '../hooks/useStrategyAdvisor'
+import { useUrgencyDetection } from '../hooks/useUrgencyDetection'
+import { UrgencyIndicator } from './UrgencyIndicator'
+import {
+  getUrgencyClasses,
+  shouldShowMessage,
+  adaptMessageContent,
+  prefersReducedMotion,
+  type MessageContent
+} from '../utils/urgency-themes'
 import type {
   StrategyMessage,
   MessageType,
@@ -19,6 +28,7 @@ interface StrategyMessageCardProps {
   onCollapse: () => void
   onDismiss: () => void
   showConfidence: boolean
+  urgencyAware?: boolean
 }
 
 const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
@@ -27,10 +37,56 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
   onExpand,
   onCollapse,
   onDismiss,
-  showConfidence
+  showConfidence,
+  urgencyAware = true
 }) => {
-  // Get urgency styling
-  const getUrgencyStyles = (urgency: UrgencyLevel) => {
+  // Get urgency context for adaptive styling
+  const {
+    uiTreatment,
+    isEmergencyMode,
+    isTransitioning
+  } = useUrgencyDetection()
+
+  // Respect user motion preferences
+  const reduceMotion = prefersReducedMotion()
+
+  // Get urgency-aware styling
+  const urgencyClasses = useMemo(() => {
+    if (!urgencyAware) {
+      return {
+        container: '',
+        text: '',
+        animation: '',
+        hover: ''
+      }
+    }
+
+    return getUrgencyClasses(uiTreatment, {
+      respectReducedMotion: reduceMotion,
+      includeHover: true,
+      includeAnimations: !reduceMotion
+    })
+  }, [urgencyAware, uiTreatment, reduceMotion])
+
+  // Adapt message content based on urgency
+  const adaptedContent = useMemo((): MessageContent => {
+    const originalContent: MessageContent = {
+      title: message.title,
+      message: message.message,
+      showDetails: true,
+      showConfidence,
+      showActions: true
+    }
+
+    if (!urgencyAware) {
+      return originalContent
+    }
+
+    return adaptMessageContent(originalContent, uiTreatment)
+  }, [message.title, message.message, showConfidence, urgencyAware, uiTreatment])
+
+  // Legacy urgency styling for fallback
+  const getLegacyUrgencyStyles = (urgency: UrgencyLevel) => {
     switch (urgency) {
       case 'critical':
         return 'border-red-500 bg-red-50'
@@ -44,6 +100,21 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
         return 'border-gray-300 bg-gray-50'
     }
   }
+
+  // Choose styling approach
+  const cardStyles = urgencyAware
+    ? urgencyClasses.container
+    : getLegacyUrgencyStyles(message.urgency)
+
+  // Emergency mode enhancements
+  const emergencyStyles = urgencyAware && isEmergencyMode
+    ? 'ring-2 ring-red-500 ring-opacity-75'
+    : ''
+
+  // Transition effects
+  const transitionStyles = urgencyAware && isTransitioning && !reduceMotion
+    ? 'transform transition-all duration-300 ease-out'
+    : ''
 
   // Get message type emoji
   const getMessageEmoji = (type: MessageType) => {
@@ -66,7 +137,13 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
   return (
     <Card
       variant="elevated"
-      className={`p-3 border-l-4 ${getUrgencyStyles(message.urgency)} transition-all duration-200`}
+      className={`
+        p-3 border-l-4
+        ${cardStyles}
+        ${emergencyStyles}
+        ${transitionStyles}
+        ${urgencyAware ? urgencyClasses.animation : 'transition-all duration-200'}
+      `}
     >
       <div className="space-y-2">
         {/* Header */}
@@ -74,10 +151,13 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
           <div className="flex items-center space-x-2">
             <span className="text-lg">{getMessageEmoji(message.type)}</span>
             <div>
-              <h4 className="font-semibold text-gray-900 text-sm">
-                {message.title}
+              <h4 className={`
+                font-semibold text-sm
+                ${urgencyAware ? urgencyClasses.text : 'text-gray-900'}
+              `}>
+                {adaptedContent.title}
               </h4>
-              {showConfidence && (
+              {adaptedContent.showConfidence && (
                 <div className="text-xs text-gray-500">
                   {message.confidence}% confidence
                 </div>
@@ -95,12 +175,15 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
         </div>
 
         {/* Main Message */}
-        <p className="text-sm text-gray-700 leading-relaxed">
-          {message.message}
+        <p className={`
+          text-sm leading-relaxed
+          ${urgencyAware ? urgencyClasses.text : 'text-gray-700'}
+        `}>
+          {adaptedContent.message}
         </p>
 
         {/* Progressive Disclosure */}
-        {message.details && (
+        {message.details && adaptedContent.showDetails && (
           <div className="space-y-2">
             {!isExpanded && (
               <button
@@ -191,6 +274,30 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     updateConfig
   } = useStrategyAdvisor()
 
+  // Get urgency context for adaptive behavior
+  const {
+    uiTreatment,
+    isEmergencyMode,
+    urgencyLevel
+  } = useUrgencyDetection()
+
+  // Respect user motion preferences
+  const reduceMotion = prefersReducedMotion()
+
+  // Filter messages based on urgency treatment
+  const filteredMessages = useMemo(() => {
+    return messages.filter(message => shouldShowMessage(message.urgency, uiTreatment))
+  }, [messages, uiTreatment])
+
+  // Get urgency-aware styling for the panel
+  const panelClasses = useMemo(() => {
+    return getUrgencyClasses(uiTreatment, {
+      respectReducedMotion: reduceMotion,
+      includeHover: false,
+      includeAnimations: !reduceMotion
+    })
+  }, [uiTreatment, reduceMotion])
+
   // Handle message expansion
   const handleMessageExpand = (messageId: string) => {
     expandMessage(messageId)
@@ -240,32 +347,65 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     )
   }
 
-  if (messages.length === 0) {
+  if (filteredMessages.length === 0) {
     return (
-      <Card variant="elevated" className={`p-4 ${className}`}>
-        <div className="text-center text-gray-500">
-          <div className="text-lg mb-2">🧭</div>
-          <p className="text-sm font-medium">Strategy Advisor</p>
-          <p className="text-xs mt-1">
-            {isLoading ? "Analyzing your hand..." : "AI guidance will appear here during gameplay"}
-          </p>
-          {error && (
-            <p className="text-xs mt-1 text-red-500">
-              Error: {error}
+      <div className={`space-y-3 ${className}`}>
+        {/* Urgency Indicator */}
+        <UrgencyIndicator
+          compact={true}
+          showPhaseDetails={false}
+          showUrgencyScore={config.showConfidence}
+        />
+
+        {/* Empty State */}
+        <Card variant="elevated" className={`p-4 ${panelClasses.container}`}>
+          <div className="text-center text-gray-500">
+            <div className="text-lg mb-2">🧭</div>
+            <p className={`text-sm font-medium ${panelClasses.text}`}>Strategy Advisor</p>
+            <p className="text-xs mt-1">
+              {isLoading ? "Analyzing your hand..." : "AI guidance will appear here during gameplay"}
             </p>
-          )}
-        </div>
-      </Card>
+            {error && (
+              <p className="text-xs mt-1 text-red-500">
+                Error: {error}
+              </p>
+            )}
+            {/* Emergency mode indicator */}
+            {isEmergencyMode && (
+              <div className="mt-2 px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
+                EMERGENCY MODE ACTIVE
+              </div>
+            )}
+          </div>
+        </Card>
+      </div>
     )
   }
 
   return (
     <div className={`space-y-3 ${className}`}>
+      {/* Urgency Indicator */}
+      <UrgencyIndicator
+        compact={uiTreatment.informationDensity === 'minimal'}
+        showPhaseDetails={uiTreatment.informationDensity === 'full'}
+        showUrgencyScore={config.showConfidence && uiTreatment.informationDensity !== 'minimal'}
+        showFactors={uiTreatment.informationDensity === 'full'}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-semibold text-gray-900 flex items-center">
+        <h3 className={`
+          text-sm font-semibold flex items-center
+          ${panelClasses.text}
+          ${isEmergencyMode ? 'animate-pulse' : ''}
+        `}>
           <span className="mr-2">🧭</span>
           Strategy Advisor
+          {isEmergencyMode && (
+            <span className="ml-2 px-1 py-0.5 bg-red-600 text-white text-xs font-bold rounded">
+              EMERGENCY
+            </span>
+          )}
         </h3>
 
         {/* Quick settings */}
@@ -295,7 +435,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
 
       {/* Messages */}
       <div className="space-y-2">
-        {messages.map((message: StrategyMessage) => (
+        {filteredMessages.map((message: StrategyMessage) => (
           <StrategyMessageCard
             key={message.id}
             message={message}
@@ -304,15 +444,38 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
             onCollapse={handleCollapse}
             onDismiss={() => handleDismiss(message.id)}
             showConfidence={config.showConfidence}
+            urgencyAware={true}
           />
         ))}
       </div>
 
       {/* Footer */}
-      {messages.length > 0 && (
-        <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-gray-200">
-          <span>{messages.length} insight{messages.length !== 1 ? 's' : ''}</span>
-          <span>Updated just now</span>
+      {filteredMessages.length > 0 && (
+        <div className={`
+          flex items-center justify-between text-xs pt-2 border-t border-gray-200
+          ${panelClasses.text || 'text-gray-500'}
+        `}>
+          <span>
+            {filteredMessages.length} insight{filteredMessages.length !== 1 ? 's' : ''}
+            {messages.length !== filteredMessages.length && (
+              <span className="text-orange-600 ml-1">
+                ({messages.length - filteredMessages.length} filtered)
+              </span>
+            )}
+          </span>
+          <div className="flex items-center space-x-2">
+            <span>Updated just now</span>
+            {urgencyLevel !== 'low' && (
+              <span className={`
+                px-1 py-0.5 rounded text-xs font-medium
+                ${urgencyLevel === 'critical' ? 'bg-red-100 text-red-700' :
+                  urgencyLevel === 'high' ? 'bg-orange-100 text-orange-700' :
+                  'bg-blue-100 text-blue-700'}
+              `}>
+                {urgencyLevel.toUpperCase()}
+              </span>
+            )}
+          </div>
         </div>
       )}
     </div>

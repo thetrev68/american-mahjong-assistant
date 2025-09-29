@@ -4,6 +4,37 @@
 // Core urgency levels for strategy guidance
 export type UrgencyLevel = 'low' | 'medium' | 'high' | 'critical'
 
+// Game phase for context-aware urgency calculation
+export type GamePhase = 'early' | 'mid' | 'late' | 'defensive' | 'endgame'
+
+// Decision urgency factors for adaptive UI
+export interface UrgencyFactors {
+  turnPressure: number // 0-1 based on turn number
+  wallPressure: number // 0-1 based on tiles remaining
+  opponentThreat: number // 0-1 based on opponent proximity to winning
+  handCompletion: number // 0-1 based on pattern completion
+  timeRemaining: number // 0-1 based on time limits (if applicable)
+}
+
+// Urgency detection context
+export interface UrgencyContext {
+  gamePhase: GamePhase
+  urgencyLevel: UrgencyLevel
+  urgencyScore: number // 0-100 overall urgency
+  factors: UrgencyFactors
+  isEmergencyMode: boolean // Critical defensive situations
+  recommendedUITreatment: UrgencyUITreatment
+}
+
+// Visual treatment recommendations based on urgency
+export interface UrgencyUITreatment {
+  colorScheme: 'calm' | 'moderate' | 'urgent' | 'emergency'
+  informationDensity: 'full' | 'essential' | 'minimal'
+  animationIntensity: 'subtle' | 'moderate' | 'pronounced'
+  messageFiltering: 'all' | 'prioritized' | 'critical-only'
+  visualEmphasis: 'normal' | 'bold' | 'prominent' | 'alert'
+}
+
 // Strategy guidance categories
 export type GuidanceCategory =
   | 'pattern-focus'      // Continue with current pattern
