@@ -1,5 +1,6 @@
 // useStrategyAdvisor Hook - Main interface for Strategy Advisor functionality
 // Orchestrates data flow between intelligence store, adapter, and Strategy Advisor store
+// Enhanced with Phase 6 performance monitoring and memory optimization
 
 import { useCallback, useEffect, useRef, useMemo } from 'react'
 import { useIntelligenceStore } from '../../../stores/intelligence-store'
@@ -10,6 +11,12 @@ import {
 } from '../stores/strategy-advisor.store'
 import { StrategyAdvisorAdapter } from '../services/strategy-advisor-adapter.service'
 import type { StrategyAdvisorTypes } from '../types/strategy-advisor.types'
+
+// Phase 6 enhancements
+import { usePerformanceMonitoring } from './usePerformanceMonitoring'
+import { useMemoryOptimization } from './useMemoryOptimization'
+import { useErrorRecovery } from './useErrorRecovery'
+import { useErrorReporting } from '../services/error-reporting.service'
 
 interface UseStrategyAdvisorOptions {
   gamePhase?: 'charleston' | 'playing' | 'endgame'
@@ -39,14 +46,54 @@ export const useStrategyAdvisor = (
     autoRefresh = true
   } = options
 
+  // Phase 6: Performance monitoring
+  const { metrics, measureRenderTime } = usePerformanceMonitoring({
+    componentName: 'useStrategyAdvisor',
+    enableMemoryTracking: true,
+    enableRenderTracking: true,
+    autoOptimize: true
+  })
+
+  // Phase 6: Memory optimization
+  const { optimizeMemory, addCleanupTask, getCacheItem, setCacheItem } = useMemoryOptimization({
+    enableAutoCleanup: true,
+    maxCacheSize: 50,
+    memoryWarningThreshold: 75
+  })
+
+  // Phase 6: Error recovery
+  const { errorState, recover } = useErrorRecovery({
+    maxRetries: 3,
+    enableDegradedMode: true,
+    autoRetry: true
+  })
+
+  // Phase 6: Error reporting
+  const { reportError, addBreadcrumb } = useErrorReporting({
+    component: 'useStrategyAdvisor',
+    feature: 'strategy-advisor',
+    action: 'hook_execution'
+  })
+
   // Store subscriptions
   const intelligenceStore = useIntelligenceStore()
   const strategyStore = useStrategyAdvisorStore()
 
-  // Adapter instance (stable reference)
+  // Adapter instance (stable reference with memory optimization)
   const adapterRef = useRef<StrategyAdvisorAdapter>()
   if (!adapterRef.current) {
     adapterRef.current = new StrategyAdvisorAdapter()
+
+    // Add adapter cleanup task
+    addCleanupTask({
+      cleanup: () => {
+        // Clean up adapter resources
+        adapterRef.current = undefined
+      },
+      priority: 1,
+      description: 'StrategyAdvisorAdapter cleanup',
+      automated: true
+    })
   }
   const adapter = adapterRef.current
 
@@ -55,16 +102,58 @@ export const useStrategyAdvisor = (
   const lastRefreshTimeRef = useRef<number>(0)
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Memoized intelligence data adaptation
+  // Memoized intelligence data adaptation with caching and performance monitoring
   const intelligenceData = useMemo(() => {
-    return adapter.adaptIntelligenceData(
-      intelligenceStore.currentAnalysis,
-      intelligenceStore.isAnalyzing
-    )
+    return measureRenderTime(() => {
+      try {
+        // Check cache first
+        const cacheKey = `intelligence_${intelligenceStore.currentAnalysis?.lastUpdated || 0}_${intelligenceStore.isAnalyzing}`
+        const cached = getCacheItem(cacheKey)
+        if (cached) {
+          addBreadcrumb({
+            type: 'user',
+            category: 'performance',
+            message: 'Used cached intelligence data',
+            level: 'info'
+          })
+          return cached
+        }
+
+        // Adapt intelligence data
+        const result = adapter.adaptIntelligenceData(
+          intelligenceStore.currentAnalysis,
+          intelligenceStore.isAnalyzing
+        )
+
+        // Cache result
+        setCacheItem(cacheKey, result, 30000) // 30 second TTL
+
+        addBreadcrumb({
+          type: 'user',
+          category: 'performance',
+          message: 'Adapted intelligence data',
+          level: 'info',
+          data: { hasAnalysis: result.hasAnalysis, isAnalyzing: result.isAnalyzing }
+        })
+
+        return result
+      } catch (error) {
+        reportError(error instanceof Error ? error : new Error(String(error)), {
+          action: 'intelligence_data_adaptation',
+          state: { hasAnalysis: !!intelligenceStore.currentAnalysis, isAnalyzing: intelligenceStore.isAnalyzing }
+        })
+        throw error
+      }
+    }, 'adaptIntelligenceData')
   }, [
     adapter,
     intelligenceStore.currentAnalysis,
-    intelligenceStore.isAnalyzing
+    intelligenceStore.isAnalyzing,
+    measureRenderTime,
+    getCacheItem,
+    setCacheItem,
+    addBreadcrumb,
+    reportError
   ])
 
   // Memoized game context
@@ -89,13 +178,29 @@ export const useStrategyAdvisor = (
     exposedTilesCount
   ])
 
-  // Strategy refresh function
+  // Strategy refresh function with enhanced error handling and performance monitoring
   const refresh = useCallback(async () => {
     if (!strategyStore.isActive) return
+
+    const refreshStartTime = performance.now()
 
     try {
       strategyStore.setLoading(true)
       strategyStore.setError(null)
+
+      addBreadcrumb({
+        type: 'user',
+        category: 'strategy',
+        message: 'Strategy refresh started',
+        level: 'info',
+        data: { gamePhase, urgencyThreshold }
+      })
+
+      // Performance check before refresh
+      if (metrics.memoryUsage > 90) {
+        console.warn('[useStrategyAdvisor] High memory usage, optimizing before refresh')
+        await optimizeMemory()
+      }
 
       // Check if refresh is needed
       const shouldRefresh = adapter.shouldRefreshStrategy(
@@ -106,16 +211,24 @@ export const useStrategyAdvisor = (
 
       if (!shouldRefresh) {
         strategyStore.setLoading(false)
+        addBreadcrumb({
+          type: 'user',
+          category: 'strategy',
+          message: 'Strategy refresh skipped - not needed',
+          level: 'info'
+        })
         return
       }
 
-      // Generate new strategy messages
-      const generationResponse = adapter.generateStrategyMessages(
-        intelligenceData,
-        gameContext,
-        strategyStore.currentMessages,
-        urgencyThreshold
-      )
+      // Measure message generation performance
+      const generationResponse = measureRenderTime(() => {
+        return adapter.generateStrategyMessages(
+          intelligenceData,
+          gameContext,
+          strategyStore.currentMessages,
+          urgencyThreshold
+        )
+      }, 'generateStrategyMessages')
 
       // Update messages based on response
       if (generationResponse.shouldReplace) {
@@ -130,18 +243,58 @@ export const useStrategyAdvisor = (
 
       strategyStore.setLoading(false)
 
+      const refreshDuration = performance.now() - refreshStartTime
+      addBreadcrumb({
+        type: 'user',
+        category: 'performance',
+        message: `Strategy refresh completed in ${refreshDuration.toFixed(2)}ms`,
+        level: 'info',
+        data: {
+          messagesCount: generationResponse.messages.length,
+          shouldReplace: generationResponse.shouldReplace,
+          duration: refreshDuration
+        }
+      })
+
     } catch (error) {
-      console.error('Strategy refresh failed:', error)
-      strategyStore.setError(
-        error instanceof Error ? error.message : 'Failed to refresh strategy'
-      )
+      const errorInstance = error instanceof Error ? error : new Error(String(error))
+
+      console.error('Strategy refresh failed:', errorInstance)
+
+      // Report error and attempt recovery
+      reportError(errorInstance, {
+        action: 'strategy_refresh',
+        state: {
+          gamePhase,
+          urgencyThreshold,
+          hasIntelligenceData: !!intelligenceData,
+          memoryUsage: metrics.memoryUsage
+        }
+      })
+
+      // Attempt error recovery
+      if (errorState.canRetry) {
+        await recover({ type: 'retry', delay: 1000 })
+      } else {
+        strategyStore.setError(errorInstance.message)
+      }
+
+      strategyStore.setLoading(false)
     }
   }, [
     adapter,
     intelligenceData,
     gameContext,
     urgencyThreshold,
-    strategyStore
+    strategyStore,
+    measureRenderTime,
+    addBreadcrumb,
+    reportError,
+    errorState,
+    recover,
+    metrics,
+    optimizeMemory,
+    gamePhase
   ])
 
   // Auto-refresh effect
@@ -175,14 +328,71 @@ export const useStrategyAdvisor = (
     refresh
   ])
 
-  // Cleanup on unmount
+  // Enhanced cleanup on unmount with memory optimization
   useEffect(() => {
+    // Add hook lifecycle breadcrumb
+    addBreadcrumb({
+      type: 'user',
+      category: 'lifecycle',
+      message: 'useStrategyAdvisor hook mounted',
+      level: 'info',
+      data: { gamePhase, autoRefresh, urgencyThreshold }
+    })
+
     return () => {
+      // Cleanup intervals
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current)
+        refreshIntervalRef.current = null
+      }
+
+      // Clear cache and optimize memory
+      optimizeMemory()
+
+      // Add cleanup breadcrumb
+      addBreadcrumb({
+        type: 'user',
+        category: 'lifecycle',
+        message: 'useStrategyAdvisor hook unmounted',
+        level: 'info'
+      })
+
+      console.log('[useStrategyAdvisor] Hook cleanup completed')
+    }
+  }, [addBreadcrumb, optimizeMemory, gamePhase, autoRefresh, urgencyThreshold])
+
+  // Performance monitoring effect
+  useEffect(() => {
+    if (metrics.memoryUsage > 80) {
+      console.warn('[useStrategyAdvisor] High memory usage detected:', metrics.memoryUsage, 'MB')
+
+      // Add warning breadcrumb
+      addBreadcrumb({
+        type: 'user',
+        category: 'performance',
+        message: `High memory usage: ${metrics.memoryUsage}MB`,
+        level: 'warning',
+        data: { threshold: 80, current: metrics.memoryUsage }
+      })
+
+      // Trigger memory optimization if critical
+      if (metrics.memoryUsage > 100) {
+        optimizeMemory()
       }
     }
-  }, [])
+
+    if (metrics.frameRate < 30) {
+      console.warn('[useStrategyAdvisor] Low frame rate detected:', metrics.frameRate, 'fps')
+
+      addBreadcrumb({
+        type: 'user',
+        category: 'performance',
+        message: `Low frame rate: ${metrics.frameRate}fps`,
+        level: 'warning',
+        data: { target: 60, current: metrics.frameRate }
+      })
+    }
+  }, [metrics.memoryUsage, metrics.frameRate, addBreadcrumb, optimizeMemory])
 
   // Manual refresh trigger when intelligence data changes significantly
   useEffect(() => {

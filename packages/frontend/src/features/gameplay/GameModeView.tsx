@@ -36,7 +36,8 @@ import { useHistoryStore } from '../../stores/history-store'
 import { tileService } from '../../lib/services/tile-service'
 import DevShortcuts from '../../ui-components/DevShortcuts'
 import { useNavigate } from 'react-router-dom'
-import { PullToRefreshWrapper, useResponsivePullToRefreshConfig } from '../strategy-advisor/components/PullToRefreshWrapper'
+import { PullToRefreshWrapper } from '../strategy-advisor/components/PullToRefreshWrapper'
+import { useResponsivePullToRefreshConfig } from '../strategy-advisor/utils/pull-to-refresh.utils'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void

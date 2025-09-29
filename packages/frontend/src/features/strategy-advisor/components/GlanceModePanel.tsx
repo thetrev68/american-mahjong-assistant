@@ -1,7 +1,7 @@
 // Glance Mode Panel - Main Strategy Advisor UI component
 // Shows conversational guidance with progressive disclosure and urgency-aware styling
 
-import React, { useMemo, useEffect, useCallback } from 'react'
+import React, { useMemo, useEffect, useCallback, useRef, useState } from 'react'
 import { Card } from '../../../ui-components/Card'
 import { useStrategyAdvisor } from '../hooks/useStrategyAdvisor'
 import { useUrgencyDetection } from '../hooks/useUrgencyDetection'
@@ -28,6 +28,16 @@ import type {
   IntelligenceData,
   GameContext
 } from '../types/strategy-advisor.types'
+
+// Enhanced imports for Phase 6
+import { ErrorBoundary, withErrorBoundary } from './ErrorBoundary'
+import { LoadingStates } from './LoadingStates'
+import { SkeletonLoader } from './SkeletonLoader'
+import { useMicroAnimations } from '../utils/micro-animations'
+import { useErrorRecovery } from '../hooks/useErrorRecovery'
+import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring'
+import { useMemoryOptimization } from '../hooks/useMemoryOptimization'
+import { useErrorReporting } from '../services/error-reporting.service'
 
 interface StrategyMessageCardProps {
   message: StrategyMessage
@@ -57,6 +67,17 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
 
   // Respect user motion preferences
   const reduceMotion = prefersReducedMotion()
+
+  // Enhanced features for Phase 6
+  const cardRef = useRef<HTMLDivElement>(null)
+  const [isVisible, setIsVisible] = useState(false)
+  const [isInteracting, setIsInteracting] = useState(false)
+  const { startAnimation, stopAnimation } = useMicroAnimations()
+  const { reportError } = useErrorReporting({
+    component: 'StrategyMessageCard',
+    feature: 'strategy-advisor',
+    action: 'display_message'
+  })
 
   // Get urgency-aware styling
   const urgencyClasses = useMemo(() => {
@@ -124,6 +145,78 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
     ? 'transform transition-all duration-300 ease-out'
     : ''
 
+  // Entrance animation on mount
+  useEffect(() => {
+    if (cardRef.current && !reduceMotion) {
+      startAnimation('card-entrance', cardRef.current, 'slideIn', 'up', 20, {
+        duration: 300,
+        delay: 50,
+        onComplete: () => setIsVisible(true)
+      })
+    } else {
+      setIsVisible(true)
+    }
+  }, [startAnimation, reduceMotion])
+
+  // Handle user interactions with micro-animations
+  const handleMouseEnter = useCallback(() => {
+    if (cardRef.current && !reduceMotion && !isInteracting) {
+      startAnimation('card-hover', cardRef.current, 'hoverScale', 1.02)
+    }
+  }, [startAnimation, reduceMotion, isInteracting])
+
+  const handleMouseLeave = useCallback(() => {
+    if (!isInteracting) {
+      stopAnimation('card-hover')
+    }
+  }, [stopAnimation, isInteracting])
+
+  const handleClick = useCallback((action: 'expand' | 'collapse' | 'dismiss') => {
+    try {
+      setIsInteracting(true)
+
+      if (cardRef.current && !reduceMotion) {
+        startAnimation('card-click', cardRef.current, 'touchFeedback', {
+          onComplete: () => {
+            setIsInteracting(false)
+            // Execute the actual action after animation
+            switch (action) {
+              case 'expand':
+                onExpand()
+                break
+              case 'collapse':
+                onCollapse()
+                break
+              case 'dismiss':
+                onDismiss()
+                break
+            }
+          }
+        })
+      } else {
+        // Execute immediately if reduced motion
+        setIsInteracting(false)
+        switch (action) {
+          case 'expand':
+            onExpand()
+            break
+          case 'collapse':
+            onCollapse()
+            break
+          case 'dismiss':
+            onDismiss()
+            break
+        }
+      }
+    } catch (error) {
+      reportError(error instanceof Error ? error : new Error(String(error)), {
+        action: `message_${action}`,
+        state: { messageId: message.id, messageType: message.type }
+      })
+      setIsInteracting(false)
+    }
+  }, [startAnimation, reduceMotion, onExpand, onCollapse, onDismiss, message.id, message.type, reportError])
+
   // Get message type emoji
   const getMessageEmoji = (type: MessageType) => {
     switch (type) {
@@ -144,14 +237,19 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
 
   return (
     <Card
+      ref={cardRef}
       variant="elevated"
       className={`
-        p-3 border-l-4
+        p-3 border-l-4 cursor-pointer
         ${cardStyles}
         ${emergencyStyles}
         ${transitionStyles}
         ${urgencyAware ? urgencyClasses.animation : 'transition-all duration-200'}
+        ${!isVisible ? 'opacity-0' : 'opacity-100'}
+        ${isInteracting ? 'pointer-events-none' : ''}
       `}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       <div className="space-y-2">
         {/* Header */}
@@ -174,9 +272,10 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
           </div>
 
           <button
-            onClick={onDismiss}
-            className="text-gray-400 hover:text-gray-600 text-sm"
+            onClick={() => handleClick('dismiss')}
+            className="text-gray-400 hover:text-gray-600 text-sm transition-colors duration-200"
             aria-label="Dismiss message"
+            disabled={isInteracting}
           >
             ✕
           </button>
@@ -195,8 +294,9 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
           <div className="space-y-2">
             {!isExpanded && (
               <button
-                onClick={onExpand}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                onClick={() => handleClick('expand')}
+                className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
+                disabled={isInteracting}
               >
                 Why? • {message.details.shortReason}
               </button>
@@ -205,8 +305,9 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
             {isExpanded && (
               <div className="space-y-3 pt-2 border-t border-gray-200">
                 <button
-                  onClick={onCollapse}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                  onClick={() => handleClick('collapse')}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200"
+                  disabled={isInteracting}
                 >
                   Hide details ↑
                 </button>
@@ -271,7 +372,50 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   onMessageExpand,
   onConfigChange
 }) => {
-  // Connect to Strategy Advisor hook
+  // Phase 6 enhancements
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+  const { startAnimation } = useMicroAnimations()
+
+  // Performance monitoring
+  const { metrics, measureRenderTime, isOptimizing } = usePerformanceMonitoring({
+    componentName: 'GlanceModePanel',
+    enableMemoryTracking: true,
+    enableRenderTracking: true
+  })
+
+  // Memory optimization
+  const { optimizeMemory, addCleanupTask } = useMemoryOptimization({
+    enableAutoCleanup: true,
+    maxCacheSize: 20
+  })
+
+  // Error recovery
+  const { errorState, recover } = useErrorRecovery({
+    maxRetries: 2,
+    enableDegradedMode: true
+  })
+
+  // Error reporting
+  const { reportError, addBreadcrumb } = useErrorReporting({
+    component: 'GlanceModePanel',
+    feature: 'strategy-advisor',
+    action: 'panel_render'
+  })
+
+  // Connect to Strategy Advisor hook with performance measurement
+  const strategyHookResult = measureRenderTime(() => {
+    try {
+      return useStrategyAdvisor()
+    } catch (error) {
+      reportError(error instanceof Error ? error : new Error(String(error)), {
+        action: 'strategy_advisor_hook',
+        state: { className, hasMessageExpand: !!onMessageExpand }
+      })
+      throw error
+    }
+  }, 'useStrategyAdvisor')
+
   const {
     messages,
     isLoading,
@@ -280,7 +424,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     expandedMessageId,
     expandMessage,
     updateConfig
-  } = useStrategyAdvisor()
+  } = strategyHookResult
 
   // Get urgency context for adaptive behavior
   const {
@@ -304,14 +448,78 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   // Respect user motion preferences
   const reduceMotion = prefersReducedMotion()
 
+  // Component initialization with entrance animation
+  useEffect(() => {
+    if (panelRef.current && !isInitialized && !reduceMotion) {
+      startAnimation('panel-entrance', panelRef.current, 'fadeScale', 'in', 0.98, {
+        duration: 400,
+        delay: 100,
+        onComplete: () => setIsInitialized(true)
+      })
+    } else {
+      setIsInitialized(true)
+    }
+
+    // Add memory cleanup task
+    const cleanupId = addCleanupTask({
+      cleanup: () => {
+        // Clean up component-specific data
+        console.log('[GlanceModePanel] Component cleanup executed')
+      },
+      priority: 2,
+      description: 'GlanceModePanel component cleanup',
+      automated: true
+    })
+
+    // Add breadcrumb for component mount
+    addBreadcrumb({
+      type: 'user',
+      category: 'component',
+      message: 'GlanceModePanel mounted',
+      level: 'info',
+      data: { urgencyLevel, messagesCount: messages.length }
+    })
+
+    return () => {
+      // Cleanup on unmount
+      if (cleanupId) {
+        // removeCleanupTask would be called here if available
+      }
+    }
+  }, [panelRef, isInitialized, reduceMotion, startAnimation, addCleanupTask, addBreadcrumb, urgencyLevel, messages.length])
+
   // Adapt disclosure levels based on urgency
   useEffect(() => {
-    const allowedLevels = urgencyLevel === 'critical' ? ['glance'] :
-                         urgencyLevel === 'high' ? ['glance', 'details'] :
-                         ['glance', 'details', 'advanced']
+    try {
+      const allowedLevels = urgencyLevel === 'critical' ? ['glance'] :
+                           urgencyLevel === 'high' ? ['glance', 'details'] :
+                           ['glance', 'details', 'advanced']
 
-    setAllowedDisclosureLevels(allowedLevels)
-  }, [urgencyLevel, setAllowedDisclosureLevels])
+      setAllowedDisclosureLevels(allowedLevels)
+
+      // Add breadcrumb for urgency changes
+      addBreadcrumb({
+        type: 'user',
+        category: 'urgency',
+        message: `Urgency level changed to ${urgencyLevel}`,
+        level: urgencyLevel === 'critical' ? 'error' : urgencyLevel === 'high' ? 'warning' : 'info',
+        data: { allowedLevels }
+      })
+    } catch (error) {
+      reportError(error instanceof Error ? error : new Error(String(error)), {
+        action: 'urgency_adaptation',
+        state: { urgencyLevel }
+      })
+    }
+  }, [urgencyLevel, setAllowedDisclosureLevels, addBreadcrumb, reportError])
+
+  // Performance optimization when memory pressure is high
+  useEffect(() => {
+    if (metrics.memoryUsage > 80) { // 80MB threshold
+      console.log('[GlanceModePanel] High memory usage detected, optimizing...')
+      optimizeMemory()
+    }
+  }, [metrics.memoryUsage, optimizeMemory])
 
   // Generate disclosure content from intelligence data
   const disclosureContent = useMemo((): DisclosureContent | null => {
@@ -396,35 +604,57 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     console.log('Dismiss message:', messageId)
   }
 
-  if (error) {
+  // Enhanced error handling with recovery options
+  if (error || errorState.hasError) {
     return (
-      <Card variant="elevated" className={`p-4 ${className}`}>
-        <div className="text-center text-red-600">
-          <div className="text-lg mb-2">⚠️</div>
-          <p className="text-sm">Strategy guidance unavailable</p>
-          <p className="text-xs text-gray-500 mt-1">{error}</p>
+      <ErrorBoundary
+        onError={(error, _errorInfo, _errorId) => {
+          reportError(error, {
+            action: 'component_error',
+            state: { className, messagesCount: messages.length }
+          }, undefined)
+        }}
+        maxRetries={3}
+        className={className}
+      >
+        <div className="space-y-3">
+          <div className="text-center text-red-600 p-4 bg-red-50 rounded-lg border border-red-200">
+            <div className="text-lg mb-2">⚠️</div>
+            <p className="text-sm font-medium">Strategy guidance temporarily unavailable</p>
+            <p className="text-xs text-gray-600 mt-1">{error || errorState.error?.message}</p>
+            {errorState.canRetry && (
+              <button
+                onClick={() => recover({ type: 'retry' })}
+                className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
+              >
+                Try Again
+              </button>
+            )}
+          </div>
         </div>
-      </Card>
+      </ErrorBoundary>
     )
   }
 
-  if (isLoading) {
+  // Enhanced loading state with skeleton loader
+  if (isLoading || isOptimizing) {
     return (
-      <Card variant="elevated" className={`p-4 ${className}`}>
-        <div className="text-center text-gray-500">
-          <div className="text-lg mb-2">🤔</div>
-          <p className="text-sm">Analyzing strategy...</p>
-          <div className="mt-2">
-            <div className="animate-pulse bg-gray-200 h-2 rounded w-3/4 mx-auto"></div>
-          </div>
-        </div>
-      </Card>
+      <div className={`space-y-3 ${className}`} ref={panelRef}>
+        <LoadingStates
+          variant="analyzing"
+          compact={uiTreatment.informationDensity === 'minimal'}
+          respectsReducedMotion={reduceMotion}
+        />
+        {messages.length > 0 && (
+          <SkeletonLoader variant="message" count={2} animate={!reduceMotion} />
+        )}
+      </div>
     )
   }
 
   if (filteredMessages.length === 0) {
     return (
-      <div className={`space-y-3 ${className}`}>
+      <div className={`space-y-3 ${className} ${!isInitialized ? 'opacity-0' : 'opacity-100'} transition-opacity duration-400`} ref={panelRef}>
         {/* Urgency Indicator */}
         <UrgencyIndicator
           compact={true}
@@ -460,7 +690,16 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   // If we have disclosure content, use the new DisclosureManager
   if (disclosureContent) {
     return (
-      <div className={`space-y-3 ${className}`}>
+      <ErrorBoundary
+        onError={(error, _errorInfo, _errorId) => {
+          reportError(error, {
+            action: 'disclosure_content_render',
+            state: { className, disclosureContentAvailable: true }
+          })
+        }}
+        maxRetries={2}
+      >
+        <div className={`space-y-3 ${className} ${!isInitialized ? 'opacity-0' : 'opacity-100'} transition-opacity duration-400`} ref={panelRef}>
         {/* Urgency Indicator - Always shown */}
         <UrgencyIndicator
           compact={uiTreatment.informationDensity === 'minimal'}
@@ -499,13 +738,23 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
             ))}
           </div>
         )}
-      </div>
+        </div>
+      </ErrorBoundary>
     )
   }
 
   // Fallback to legacy interface when no disclosure content is available
   return (
-    <div className={`space-y-3 ${className}`}>
+    <ErrorBoundary
+      onError={(error, _errorInfo, _errorId) => {
+        reportError(error, {
+          action: 'legacy_interface_render',
+          state: { className, messagesCount: messages.length }
+        })
+      }}
+      maxRetries={2}
+    >
+      <div className={`space-y-3 ${className} ${!isInitialized ? 'opacity-0' : 'opacity-100'} transition-opacity duration-400`} ref={panelRef}>
       {/* Urgency Indicator */}
       <UrgencyIndicator
         compact={uiTreatment.informationDensity === 'minimal'}
@@ -600,6 +849,20 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </ErrorBoundary>
   )
 }
+
+// Export enhanced component wrapped with error boundary
+export default withErrorBoundary(GlanceModePanel, {
+  onError: (error, errorInfo, errorId) => {
+    console.error('[GlanceModePanel] Top-level error boundary caught:', {
+      error: error.message,
+      errorId,
+      componentStack: errorInfo.componentStack
+    })
+  },
+  maxRetries: 1,
+  showErrorDetails: process.env.NODE_ENV === 'development'
+})
