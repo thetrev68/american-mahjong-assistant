@@ -41,7 +41,13 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   error,
   errorId,
   retryCount,
-In `packages/frontend/src/features/strategy-advisor/components/ErrorBoundary.tsx`, update the prop destructuring and button handler as follows:
+  maxRetries,
+  isRecovering,
+  onRetry,
+  onReport,
+  onDismiss,
+  showDetails
+}) => {
   const [detailsExpanded, setDetailsExpanded] = React.useState(false)
   const errorType = classifyError(error)
   const errorConfig = ERROR_MESSAGES[errorType]

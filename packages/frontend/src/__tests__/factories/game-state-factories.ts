@@ -326,7 +326,6 @@ export const GameStateHelpers = {
       player.hand = [...hand, tile]
     }
     return updatedState
-  }
   },
   
   // Remove a tile from a player's hand
