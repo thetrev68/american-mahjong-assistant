@@ -62,15 +62,21 @@ export const RoomSetupView: React.FC = () => {
   const currentStepNumber = steps.findIndex(s => s.title.toLowerCase().includes(currentStep.split('-')[0])) + 1
   
   const handleStartGame = async () => {
+    console.time('⏱️ Start Game Navigation')
     setIsStartingGame(true)
 
     try {
       // Starting game - first need to input tiles
       // Mark the game as started in game store for route guards
+      console.time('⏱️ setGamePhase')
       gameStore.setGamePhase('tile-input')
+      console.timeEnd('⏱️ setGamePhase')
 
       // Always go to tile input first, then Charleston, then game
+      console.time('⏱️ navigate to /tiles')
       navigate('/tiles')
+      console.timeEnd('⏱️ navigate to /tiles')
+      console.timeEnd('⏱️ Start Game Navigation')
 
     } catch (error) {
       console.error('Error starting game:', error)

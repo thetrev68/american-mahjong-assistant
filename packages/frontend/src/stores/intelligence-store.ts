@@ -221,10 +221,12 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       
       // Analysis Actions
       analyzeHand: async (tiles, patterns = [], isPatternSwitching = false) => {
+        console.log('🔍 analyzeHand called with', tiles.length, 'tiles,', patterns.length, 'patterns')
         set({ isAnalyzing: true, analysisError: null })
 
         try {
           // Create a hash of the current hand state
+          console.log('🔍 Creating hand hash...')
           const handHash = createHandHash(tiles, patterns)
 
           // Auto-detect pattern switching if not explicitly provided
@@ -236,14 +238,22 @@ export const useIntelligenceStore = create<IntelligenceState>()(
             currentAnalysis.recommendedPatterns.some(p => p.pattern.id !== patterns[0].id)
 
           const finalIsPatternSwitching = Boolean(isPatternSwitching || autoDetectedPatternSwitch)
+          console.log('🔍 Pattern switching mode:', finalIsPatternSwitching)
 
           if (!finalIsPatternSwitching) {
             // Clear cache only for full re-analysis (not pattern switches)
+            console.log('🔍 Clearing cache...')
             get().clearCache()
           }
 
-          // Use real analysis engine (lazy loaded)
-          const analysis = await lazyAnalysisEngine.analyzeHand(tiles, patterns, {}, finalIsPatternSwitching)
+          // Use real analysis engine (lazy loaded) with timeout
+          console.log('🔍 Calling lazyAnalysisEngine.analyzeHand...')
+          const analysisPromise = lazyAnalysisEngine.analyzeHand(tiles, patterns, {}, finalIsPatternSwitching)
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error('Analysis timeout after 30 seconds')), 30000)
+          )
+          const analysis = await Promise.race([analysisPromise, timeoutPromise])
+          console.log('🔍 lazyAnalysisEngine.analyzeHand completed!')
 
           // Cache the analysis
           get().setCachedAnalysis(handHash, analysis)

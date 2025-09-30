@@ -119,19 +119,37 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
   }, [currentPlayerId, gameStore.players, tileStore])
 
-  // Auto-analyze hand when entering the game for pattern recommendations
+  // Trigger initial analysis when entering game mode (triggered by clicking "Start Game")
   useEffect(() => {
     const playerHand = tileStore.playerHand
     const hasEnoughTiles = playerHand.length >= 10
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
+    const isInGameMode = gameStore.gamePhase === 'playing' || gameStore.gamePhase === 'charleston'
 
-    if (hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
+    // Only auto-analyze if we're in game mode AND haven't analyzed yet
+    // This prevents analysis during tile input phase
+    if (isInGameMode && hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
       console.log('Starting initial hand analysis with', playerHand.length, 'tiles')
-      intelligenceStore.analyzeHand(playerHand, []).catch(error => {
-        console.error('Hand analysis failed:', error)
-      })
+
+      // Defer analysis slightly to allow UI to render first
+      const timeoutId = setTimeout(() => {
+        console.time('⏱️ Initial hand analysis')
+        intelligenceStore.analyzeHand(playerHand, [])
+          .then(() => {
+            console.timeEnd('⏱️ Initial hand analysis')
+          })
+          .catch(error => {
+            console.timeEnd('⏱️ Initial hand analysis')
+            console.error('Hand analysis failed:', error)
+          })
+      }, 100)
+
+      // Cleanup: cancel analysis if component unmounts or deps change
+      return () => {
+        clearTimeout(timeoutId)
+      }
     }
-  }, [tileStore.playerHand])
+  }, [tileStore.playerHand, gameStore.gamePhase])
 
 
   // Get selected patterns properly
@@ -1224,6 +1242,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     )
   }
 
+  // Show loading overlay if initial analysis is running
+  const showLoadingOverlay = intelligenceStore.isAnalyzing && !intelligenceStore.currentAnalysis
+
   return (
     <>
       <DevShortcuts
@@ -1231,6 +1252,25 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         onSkipToGameplay={gameStore.gamePhase === 'charleston' ? handleSkipToGameplay : undefined}
         onResetGame={handleResetGame}
       />
+
+      {/* Loading overlay for initial analysis */}
+      {showLoadingOverlay && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <Card variant="elevated" className="p-8 max-w-md mx-4">
+            <div className="text-center space-y-4">
+              <div className="animate-spin rounded-full h-16 w-16 border-b-4 border-purple-600 mx-auto"></div>
+              <h3 className="text-xl font-bold text-gray-900">Analyzing Your Hand</h3>
+              <p className="text-gray-600">
+                AI is analyzing 1,002 pattern variations to find your best strategies...
+              </p>
+              <p className="text-sm text-gray-500">
+                This may take 10-30 seconds on first load
+              </p>
+            </div>
+          </Card>
+        </div>
+      )}
+
       {/* Phase 4: Pull-to-refresh wrapper for hand re-analysis */}
       <PullToRefreshWrapper
         onRefresh={handlePullToRefresh}

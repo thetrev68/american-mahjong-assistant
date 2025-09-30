@@ -13,9 +13,11 @@ import { useTileStore, useGameStore } from '../../stores'
 import DevShortcuts from '../../ui-components/DevShortcuts'
 
 export const TileInputPage = () => {
+  console.log('🎯 TileInputPage mounting')
   const navigate = useNavigate()
   const [selectorMode] = useState<'full' | 'compact'>('full')
   const [showTileSelector, setShowTileSelector] = useState(false) // Start false for lazy loading
+  const [isStartingGame, setIsStartingGame] = useState(false)
   
   const {
     playerHand,
@@ -101,6 +103,18 @@ export const TileInputPage = () => {
 
     // Import the new hand
     importTilesFromString(randomHand.join(' '))
+  }
+
+  const handleStartGame = () => {
+    console.time('⏱️ Navigate to game')
+    setIsStartingGame(true)
+    // Set game phase to 'playing' to trigger analysis after navigation
+    setGamePhase('playing')
+    // Use setTimeout to allow UI to update with spinner before heavy navigation
+    setTimeout(() => {
+      navigate('/game')
+      console.timeEnd('⏱️ Navigate to game')
+    }, 50)
   }
 
   const handleSkipToCharleston = () => {
@@ -207,9 +221,9 @@ export const TileInputPage = () => {
             </div>
           </Card>
         )}
-        
+
         {/* Hand Display */}
-        <HandDisplay 
+        <HandDisplay
           showRecommendations={true}
           allowReordering={true}
         />
@@ -249,10 +263,18 @@ export const TileInputPage = () => {
             <Button
               variant="primary"
               size="lg"
-              onClick={() => navigate('/game')}
+              onClick={handleStartGame}
+              disabled={isStartingGame}
               className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white font-semibold w-full max-w-md"
             >
-              🎯 Start Game
+              {isStartingGame ? (
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <span>Loading AI Analysis...</span>
+                </div>
+              ) : (
+                '🎯 Start Game'
+              )}
             </Button>
           ) : (
             <Button
@@ -267,7 +289,7 @@ export const TileInputPage = () => {
         </div>
       </div>
     </Container>
-    
+
     {/* Selection Area - appears when tiles are selected */}
     <SelectionArea />
     </>
