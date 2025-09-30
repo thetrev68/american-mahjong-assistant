@@ -513,7 +513,7 @@ export const useMemoryOptimization = (
     }
   }, [runCleanup, clearCache])
 
-  // Auto-add common cleanup tasks
+  // Auto-add common cleanup tasks - run only once on mount to prevent infinite loop
   useEffect(() => {
     const cacheCleanupId = addCleanupTask({
       cleanup: cleanupCache,
@@ -525,7 +525,8 @@ export const useMemoryOptimization = (
     return () => {
       removeCleanupTask(cacheCleanupId)
     }
-  }, [addCleanupTask, removeCleanupTask, cleanupCache])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
     metrics,

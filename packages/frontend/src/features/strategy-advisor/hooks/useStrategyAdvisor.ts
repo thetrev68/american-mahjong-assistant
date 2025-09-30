@@ -103,57 +103,42 @@ export const useStrategyAdvisor = (
   const refreshIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
   // Memoized intelligence data adaptation with caching and performance monitoring
+  // Only depend on actual data changes, not function references to prevent infinite loop
   const intelligenceData = useMemo(() => {
-    return measureRenderTime(() => {
-      try {
-        // Check cache first
-        const cacheKey = `intelligence_${intelligenceStore.currentAnalysis?.lastUpdated || 0}_${intelligenceStore.isAnalyzing}`
-        const cached = getCacheItem(cacheKey)
-        if (cached) {
-          addBreadcrumb({
-            type: 'user',
-            category: 'performance',
-            message: 'Used cached intelligence data',
-            level: 'info'
-          })
-          return cached
-        }
-
-        // Adapt intelligence data
-        const result = adapter.adaptIntelligenceData(
-          intelligenceStore.currentAnalysis,
-          intelligenceStore.isAnalyzing
-        )
-
-        // Cache result
-        setCacheItem(cacheKey, result, 30000) // 30 second TTL
-
-        addBreadcrumb({
-          type: 'user',
-          category: 'performance',
-          message: 'Adapted intelligence data',
-          level: 'info',
-          data: { hasAnalysis: result.hasAnalysis, isAnalyzing: result.isAnalyzing }
-        })
-
-        return result
-      } catch (error) {
-        reportError(error instanceof Error ? error : new Error(String(error)), {
-          action: 'intelligence_data_adaptation',
-          state: { hasAnalysis: !!intelligenceStore.currentAnalysis, isAnalyzing: intelligenceStore.isAnalyzing }
-        })
-        throw error
+    try {
+      // Check cache first
+      const cacheKey = `intelligence_${intelligenceStore.currentAnalysis?.lastUpdated || 0}_${intelligenceStore.isAnalyzing}`
+      const cached = getCacheItem(cacheKey)
+      if (cached) {
+        return cached
       }
-    }, 'adaptIntelligenceData')
+
+      // Adapt intelligence data
+      const result = adapter.adaptIntelligenceData(
+        intelligenceStore.currentAnalysis,
+        intelligenceStore.isAnalyzing
+      )
+
+      // Cache result
+      setCacheItem(cacheKey, result, 30000) // 30 second TTL
+
+      return result
+    } catch (error) {
+      console.error('Intelligence data adaptation failed:', error)
+      // Return default data on error to prevent crash
+      return {
+        hasAnalysis: false,
+        isAnalyzing: false,
+        patterns: [],
+        urgency: { level: 'none', factors: {} },
+        actions: []
+      }
+    }
   }, [
     adapter,
     intelligenceStore.currentAnalysis,
-    intelligenceStore.isAnalyzing,
-    measureRenderTime,
-    getCacheItem,
-    setCacheItem,
-    addBreadcrumb,
-    reportError
+    intelligenceStore.isAnalyzing
+    // Removed unstable function dependencies: measureRenderTime, getCacheItem, setCacheItem, addBreadcrumb, reportError
   ])
 
   // Memoized game context
