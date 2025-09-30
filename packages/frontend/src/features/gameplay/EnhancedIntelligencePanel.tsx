@@ -47,13 +47,10 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const { playerHand } = useTileStore()
   const navigate = useNavigate()
 
-  // Strategy Advisor integration - RE-ENABLED after fixing infinite loops
-  // Uncomment below if needed for message expansion
-  // const { expandMessage } = useStrategyAdvisor()
-  // Suppress unused import warning temporarily
-  void useStrategyAdvisor
+  // Strategy Advisor integration - REDESIGNED with simplified architecture
+  const { expandMessage } = useStrategyAdvisor()
 
-  // Feature flag for Strategy Advisor (re-enabled after fixing hooks)
+  // Feature flag for Strategy Advisor (enabled - now using simplified design)
   const useStrategyAdvisorInterface = true
 
   // Track the original engine recommendation ID

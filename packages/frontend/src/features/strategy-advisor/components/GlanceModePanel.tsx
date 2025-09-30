@@ -36,10 +36,6 @@ import { withErrorBoundary } from '../utils'
 import { LoadingStates } from './LoadingStates'
 import { SkeletonLoader } from './SkeletonLoader'
 import { useMicroAnimations } from '../utils/micro-animations'
-import { useErrorRecovery } from '../hooks/useErrorRecovery'
-import { usePerformanceMonitoring } from '../hooks/usePerformanceMonitoring'
-import { useMemoryOptimization } from '../hooks/useMemoryOptimization'
-import { useErrorReporting } from '../services/error-reporting.service'
 
 interface StrategyMessageCardProps {
   message: StrategyMessage
@@ -75,11 +71,6 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
   const [isVisible, setIsVisible] = useState(false)
   const [isInteracting, setIsInteracting] = useState(false)
   const { startAnimation, stopAnimation } = useMicroAnimations()
-  const { reportError } = useErrorReporting({
-    component: 'StrategyMessageCard',
-    feature: 'strategy-advisor',
-    action: 'display_message'
-  })
 
   // Get urgency-aware styling
   const urgencyClasses = useMemo(() => {
@@ -211,13 +202,10 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
         }
       }
     } catch (error) {
-      reportError(error instanceof Error ? error : new Error(String(error)), {
-        action: `message_${action}`,
-        state: { messageId: message.id, messageType: message.type }
-      })
+      console.error('StrategyMessageCard action error:', error)
       setIsInteracting(false)
     }
-  }, [startAnimation, reduceMotion, onExpand, onCollapse, onDismiss, message.id, message.type, reportError])
+  }, [startAnimation, reduceMotion, onExpand, onCollapse, onDismiss])
 
   // Get message type emoji
   const getMessageEmoji = (type: MessageType) => {
@@ -379,35 +367,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   const [isInitialized, setIsInitialized] = useState(false)
   const { startAnimation } = useMicroAnimations()
 
-  // Performance monitoring
-  const { metrics, isOptimizing } = usePerformanceMonitoring({
-    componentName: 'GlanceModePanel',
-    enableMemoryTracking: true,
-    enableRenderTracking: true
-  })
-
-  // Memory optimization
-  const { optimizeMemory, addCleanupTask } = useMemoryOptimization({
-    enableAutoCleanup: true,
-    maxCacheSize: 20
-  })
-
-  // Error recovery
-  const { errorState, recover } = useErrorRecovery({
-    maxRetries: 2,
-    enableDegradedMode: true
-  })
-
-  // Error reporting
-  const { reportError, addBreadcrumb } = useErrorReporting({
-    component: 'GlanceModePanel',
-    feature: 'strategy-advisor',
-    action: 'panel_render'
-  })
-
-  // Connect to Strategy Advisor hook (hooks must be called at the top level)
-  const strategyHookResult = useStrategyAdvisor()
-
+  // Connect to simplified Strategy Advisor hook
   const {
     messages,
     isLoading,
@@ -415,12 +375,11 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     config,
     expandedMessageId,
     expandMessage,
+    dismissMessage,
     updateConfig
-  } = strategyHookResult
+  } = useStrategyAdvisor()
 
-  // Removed problematic useEffect that was causing infinite re-renders
-  // The effect ran on every strategyHookResult change (which is every render)
-  // causing the mount/unmount cycle
+  console.log('🎯 GlanceModePanel: messages from useStrategyAdvisor:', messages, 'isLoading:', isLoading, 'error:', error)
 
   // Get urgency context for adaptive behavior
   const {
@@ -455,78 +414,35 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     } else {
       setIsInitialized(true)
     }
-
-    // Add memory cleanup task
-    const cleanupId = addCleanupTask({
-      cleanup: () => {
-        // Clean up component-specific data
-        console.log('[GlanceModePanel] Component cleanup executed')
-      },
-      priority: 2,
-      description: 'GlanceModePanel component cleanup',
-      automated: true
-    })
-
-    // Add breadcrumb for component mount
-    addBreadcrumb({
-      type: 'user',
-      category: 'component',
-      message: 'GlanceModePanel mounted',
-      level: 'info',
-      data: { urgencyLevel, messagesCount: messages.length }
-    })
-
-    return () => {
-      // Cleanup on unmount
-      if (cleanupId) {
-        // removeCleanupTask would be called here if available
-      }
-    }
-  }, [panelRef, isInitialized, reduceMotion, startAnimation, addCleanupTask, addBreadcrumb, urgencyLevel, messages.length])
+  }, [panelRef, isInitialized, reduceMotion, startAnimation])
 
   // Adapt disclosure levels based on urgency
   useEffect(() => {
-    try {
-      const allowedLevels: DisclosureLevel[] = urgencyLevel === 'critical' ? ['glance'] :
-                           urgencyLevel === 'high' ? ['glance', 'details'] :
-                           ['glance', 'details', 'advanced']
+    const allowedLevels: DisclosureLevel[] = urgencyLevel === 'critical' ? ['glance'] :
+                         urgencyLevel === 'high' ? ['glance', 'details'] :
+                         ['glance', 'details', 'advanced']
 
-      setAllowedDisclosureLevels(allowedLevels)
-
-      // Add breadcrumb for urgency changes
-      addBreadcrumb({
-        type: 'user',
-        category: 'urgency',
-        message: `Urgency level changed to ${urgencyLevel}`,
-        level: urgencyLevel === 'critical' ? 'error' : urgencyLevel === 'high' ? 'warning' : 'info',
-        data: { allowedLevels }
-      })
-    } catch (error) {
-      reportError(error instanceof Error ? error : new Error(String(error)), {
-        action: 'urgency_adaptation',
-        state: { urgencyLevel }
-      })
-    }
-  }, [urgencyLevel, setAllowedDisclosureLevels, addBreadcrumb, reportError])
-
-  // Performance optimization when memory pressure is high
-  useEffect(() => {
-    if (metrics.memoryUsage > 80) { // 80MB threshold
-      console.log('[GlanceModePanel] High memory usage detected, optimizing...')
-      optimizeMemory()
-    }
-  }, [metrics.memoryUsage, optimizeMemory])
+    setAllowedDisclosureLevels(allowedLevels)
+  }, [urgencyLevel, setAllowedDisclosureLevels])
 
   // Generate disclosure content from intelligence data
   const disclosureContent = useMemo((): DisclosureContent | null => {
-    if (!currentAnalysis) return null
+    console.log('🎯 GlanceModePanel: Generating disclosure content, currentAnalysis:', currentAnalysis)
+    if (!currentAnalysis) {
+      console.log('🎯 GlanceModePanel: No currentAnalysis, returning null')
+      return null
+    }
 
     // Check if we have valid analysis data
     const hasAnalysis = currentAnalysis.recommendedPatterns?.length > 0 ||
                        currentAnalysis.bestPatterns?.length > 0 ||
                        currentAnalysis.tileRecommendations?.length > 0
 
-    if (!hasAnalysis) return null
+    console.log('🎯 GlanceModePanel: hasAnalysis:', hasAnalysis)
+    if (!hasAnalysis) {
+      console.log('🎯 GlanceModePanel: No valid analysis data, returning null')
+      return null
+    }
 
     // Build intelligence data structure
     const intelligenceData: IntelligenceData = {
@@ -616,20 +532,13 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   }
 
   const handleDismiss = (messageId: string) => {
-    // TODO: Implement dismiss functionality in useStrategyAdvisor hook
-    console.log('Dismiss message:', messageId)
+    dismissMessage(messageId)
   }
 
-  // Enhanced error handling with recovery options
-  if (error || errorState.hasError) {
+  // Error handling
+  if (error) {
     return (
       <ErrorBoundary
-        onError={(error, _errorInfo, _errorId) => {
-          reportError(error, {
-            action: 'component_error',
-            state: { className, messagesCount: messages.length }
-          }, undefined)
-        }}
         maxRetries={3}
         className={className}
       >
@@ -637,23 +546,15 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
           <div className="text-center text-red-600 p-4 bg-red-50 rounded-lg border border-red-200">
             <div className="text-lg mb-2">⚠️</div>
             <p className="text-sm font-medium">Strategy guidance temporarily unavailable</p>
-            <p className="text-xs text-gray-600 mt-1">{error || errorState.error?.message}</p>
-            {errorState.canRetry && (
-              <button
-                onClick={() => recover({ type: 'retry' })}
-                className="mt-2 px-3 py-1 bg-blue-600 text-white text-xs rounded hover:bg-blue-700 transition-colors"
-              >
-                Try Again
-              </button>
-            )}
+            <p className="text-xs text-gray-600 mt-1">{error}</p>
           </div>
         </div>
       </ErrorBoundary>
     )
   }
 
-  // Enhanced loading state with skeleton loader
-  if (isLoading || isOptimizing) {
+  // Loading state
+  if (isLoading) {
     return (
       <div className={`space-y-3 ${className}`} ref={panelRef}>
         <LoadingStates
@@ -706,15 +607,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   // If we have disclosure content, use the new DisclosureManager
   if (disclosureContent) {
     return (
-      <ErrorBoundary
-        onError={(error, _errorInfo, _errorId) => {
-          reportError(error, {
-            action: 'disclosure_content_render',
-            state: { className, disclosureContentAvailable: true }
-          })
-        }}
-        maxRetries={2}
-      >
+      <ErrorBoundary maxRetries={2}>
         <div className={`space-y-3 ${className} ${!isInitialized ? 'opacity-0' : 'opacity-100'} transition-opacity duration-400`} ref={panelRef}>
         {/* Urgency Indicator - Always shown */}
         <UrgencyIndicator
@@ -761,15 +654,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
 
   // Fallback to legacy interface when no disclosure content is available
   return (
-    <ErrorBoundary
-      onError={(error, _errorInfo, _errorId) => {
-        reportError(error, {
-          action: 'legacy_interface_render',
-          state: { className, messagesCount: messages.length }
-        })
-      }}
-      maxRetries={2}
-    >
+    <ErrorBoundary maxRetries={2}>
       <div className={`space-y-3 ${className} ${!isInitialized ? 'opacity-0' : 'opacity-100'} transition-opacity duration-400`} ref={panelRef}>
       {/* Urgency Indicator */}
       <UrgencyIndicator
