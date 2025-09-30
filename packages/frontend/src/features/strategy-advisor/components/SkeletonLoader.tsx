@@ -2,11 +2,7 @@
 // Provides realistic loading placeholders with 60fps shimmer animations
 
 import React from 'react'
-
-// Simple className utility for merging classes
-const cn = (...classes: (string | undefined | null | false)[]): string => {
-  return classes.filter(Boolean).join(' ')
-}
+import { cn } from '../utils/skeleton-utils'
 
 interface SkeletonProps {
   className?: string
@@ -14,7 +10,7 @@ interface SkeletonProps {
   children?: React.ReactNode
 }
 
-interface SkeletonLoaderProps {
+export interface SkeletonLoaderProps {
   variant: 'message' | 'pattern' | 'recommendation' | 'carousel' | 'panel' | 'list'
   count?: number
   className?: string
@@ -33,6 +29,28 @@ const Skeleton: React.FC<SkeletonProps> = ({
     []
   )
 
+  // Create keyframes animation using CSS-in-JS
+  React.useEffect(() => {
+    if (animate && !prefersReducedMotion) {
+      const style = document.createElement('style')
+      style.textContent = `
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+      `
+      document.head.appendChild(style)
+
+      return () => {
+        document.head.removeChild(style)
+      }
+    }
+  }, [animate, prefersReducedMotion])
+
   return (
     <div
       className={cn(
@@ -49,18 +67,6 @@ const Skeleton: React.FC<SkeletonProps> = ({
       }}
     >
       {children}
-      {animate && !prefersReducedMotion && (
-        <style jsx>{`
-          @keyframes shimmer {
-            0% {
-              background-position: -200% 0;
-            }
-            100% {
-              background-position: 200% 0;
-            }
-          }
-        `}</style>
-      )}
     </div>
   )
 }
@@ -438,79 +444,5 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   )
 }
 
-// Convenience components for specific use cases
-export const MessageSkeleton_ = React.memo(() => (
-  <SkeletonLoader variant="message" />
-))
-
-export const PatternSkeleton_ = React.memo(() => (
-  <SkeletonLoader variant="pattern" />
-))
-
-export const RecommendationSkeleton_ = React.memo(() => (
-  <SkeletonLoader variant="recommendation" />
-))
-
-export const CarouselSkeleton_ = React.memo(() => (
-  <SkeletonLoader variant="carousel" />
-))
-
-export const PanelSkeleton_ = React.memo(() => (
-  <SkeletonLoader variant="panel" />
-))
-
-export const ListSkeleton_ = React.memo<{ count?: number }>(({ count }) => (
-  <SkeletonLoader variant="list" count={count} />
-))
-
-// Loading wrapper component that shows skeleton while loading
-interface LoadingWrapperProps {
-  isLoading: boolean
-  skeleton: React.ReactNode
-  children: React.ReactNode
-  className?: string
-  delay?: number // Delay before showing skeleton (prevents flash)
-}
-
-export const LoadingWrapper: React.FC<LoadingWrapperProps> = ({
-  isLoading,
-  skeleton,
-  children,
-  className,
-  delay = 150
-}) => {
-  const [showSkeleton, setShowSkeleton] = React.useState(false)
-
-  React.useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => setShowSkeleton(true), delay)
-      return () => clearTimeout(timer)
-    } else {
-      setShowSkeleton(false)
-    }
-  }, [isLoading, delay])
-
-  return (
-    <div className={className}>
-      {isLoading && showSkeleton ? skeleton : children}
-    </div>
-  )
-}
-
-// Hook for managing skeleton loading states
-export const useSkeletonLoading = (isLoading: boolean, delay: number = 150) => {
-  const [showSkeleton, setShowSkeleton] = React.useState(false)
-
-  React.useEffect(() => {
-    if (isLoading) {
-      const timer = setTimeout(() => setShowSkeleton(true), delay)
-      return () => clearTimeout(timer)
-    } else {
-      setShowSkeleton(false)
-    }
-  }, [isLoading, delay])
-
-  return showSkeleton
-}
 
 export default SkeletonLoader

@@ -1,12 +1,8 @@
 // ErrorBoundary - Production-ready error boundary with user-friendly fallbacks
 // Provides graceful error handling with recovery options and error reporting
 
-import React, { Component, ReactNode } from 'react'
-
-// Simple className utility for merging classes
-const cn = (...classes: (string | undefined | null | false)[]): string => {
-  return classes.filter(Boolean).join(' ')
-}
+import React, { Component, type ReactNode } from 'react'
+import { cn, ERROR_MESSAGES, classifyError, generateErrorId } from '../utils/error-boundary-utils'
 
 interface ErrorBoundaryState {
   hasError: boolean
@@ -17,7 +13,7 @@ interface ErrorBoundaryState {
   isRecovering: boolean
 }
 
-interface ErrorBoundaryProps {
+export interface ErrorBoundaryProps {
   children: ReactNode
   fallback?: ReactNode
   onError?: (error: Error, errorInfo: React.ErrorInfo, errorId: string) => void
@@ -37,95 +33,8 @@ interface ErrorDisplayProps {
   onReport: () => void
   onDismiss: () => void
   showDetails: boolean
-  onToggleDetails: () => void
 }
 
-// User-friendly error messages
-const ERROR_MESSAGES = {
-  analysisTimeout: {
-    title: "Analysis Taking Longer Than Usual",
-    message: "Strategy analysis is taking longer than expected. This might be due to a complex hand or network issues.",
-    suggestion: "Try refreshing to restart the analysis, or continue playing while we work in the background."
-  },
-  networkError: {
-    title: "Connection Issue",
-    message: "Having trouble connecting to our strategy engine right now.",
-    suggestion: "Using your last analysis for now. Check your connection and try again in a moment."
-  },
-  invalidGameState: {
-    title: "Game State Mismatch",
-    message: "Something's not quite right with your current hand configuration.",
-    suggestion: "Pull down to refresh your hand, or tap 'Reset' to start fresh."
-  },
-  patternSwitchFailed: {
-    title: "Pattern Switch Failed",
-    message: "Couldn't switch to the requested pattern right now.",
-    suggestion: "Your current selection is unchanged. Try the switch again in a moment."
-  },
-  memoryPressure: {
-    title: "Running Low on Memory",
-    message: "Your device is running low on available memory.",
-    suggestion: "Some features may be simplified to keep things running smoothly."
-  },
-  performanceDegradation: {
-    title: "Performance Optimization",
-    message: "Performance is slower than usual on your device.",
-    suggestion: "Switching to optimized mode for a better experience."
-  },
-  renderError: {
-    title: "Display Issue",
-    message: "There was a problem displaying this part of the Strategy Advisor.",
-    suggestion: "This is usually temporary. Try refreshing or restart the app if it persists."
-  },
-  dataCorruption: {
-    title: "Data Synchronization Issue",
-    message: "Strategy data got out of sync with your game state.",
-    suggestion: "Refreshing will resynchronize everything with your current hand."
-  },
-  unknown: {
-    title: "Unexpected Issue",
-    message: "Something unexpected happened in the Strategy Advisor.",
-    suggestion: "This has been logged automatically. Try refreshing to continue."
-  }
-}
-
-// Classify error type from error message or stack
-const classifyError = (error: Error): keyof typeof ERROR_MESSAGES => {
-  const message = error.message.toLowerCase()
-  const stack = error.stack?.toLowerCase() || ''
-
-  if (message.includes('timeout') || message.includes('aborted')) {
-    return 'analysisTimeout'
-  }
-  if (message.includes('network') || message.includes('fetch') || message.includes('connection')) {
-    return 'networkError'
-  }
-  if (message.includes('invalid') || message.includes('state') || message.includes('validation')) {
-    return 'invalidGameState'
-  }
-  if (message.includes('pattern') || message.includes('switch')) {
-    return 'patternSwitchFailed'
-  }
-  if (message.includes('memory') || message.includes('heap')) {
-    return 'memoryPressure'
-  }
-  if (message.includes('performance') || message.includes('slow')) {
-    return 'performanceDegradation'
-  }
-  if (stack.includes('render') || message.includes('render')) {
-    return 'renderError'
-  }
-  if (message.includes('data') || message.includes('sync')) {
-    return 'dataCorruption'
-  }
-
-  return 'unknown'
-}
-
-// Generate unique error ID for tracking
-const generateErrorId = (): string => {
-  return `err_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-}
 
 // Error display component
 const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
@@ -137,8 +46,7 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   onRetry,
   onReport,
   onDismiss,
-  showDetails,
-  _onToggleDetails
+  showDetails
 }) => {
   const [detailsExpanded, setDetailsExpanded] = React.useState(false)
   const errorType = classifyError(error)
@@ -420,7 +328,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
             onReport={this.handleReport}
             onDismiss={this.handleDismiss}
             showDetails={this.props.showErrorDetails ?? false}
-            onToggleDetails={() => {}}
           />
         </div>
       )
@@ -430,49 +337,5 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 }
 
-// HOC for wrapping components with error boundary
-export const withErrorBoundary = <P extends object>(
-  Component: React.ComponentType<P>,
-  errorBoundaryProps?: Partial<ErrorBoundaryProps>
-) => {
-  const WrappedComponent = (props: P) => (
-    <ErrorBoundary {...errorBoundaryProps}>
-      <Component {...props} />
-    </ErrorBoundary>
-  )
-
-  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`
-
-  return WrappedComponent
-}
-
-// Hook for manual error reporting
-export const useErrorReporting = () => {
-  const reportError = React.useCallback((error: Error, context?: Record<string, unknown>) => {
-    const errorId = generateErrorId()
-    const errorReport = {
-      errorId,
-      message: error.message,
-      stack: error.stack,
-      context,
-      timestamp: new Date().toISOString(),
-      userAgent: navigator.userAgent,
-      url: window.location.href
-    }
-
-    console.error('Manual Error Report:', errorReport)
-
-    // Send to error reporting service
-    try {
-      // window.errorReportingService?.captureException(error, { extra: errorReport })
-    } catch (reportingError) {
-      console.error('Failed to report error:', reportingError)
-    }
-
-    return errorId
-  }, [])
-
-  return { reportError }
-}
 
 export default ErrorBoundary

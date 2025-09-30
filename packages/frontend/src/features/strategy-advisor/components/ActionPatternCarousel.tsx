@@ -6,7 +6,8 @@ import { Card } from '../../../ui-components/Card'
 import { Button } from '../../../ui-components/Button'
 import { LoadingSpinner } from '../../../ui-components/LoadingSpinner'
 import { PatternPriorityIndicator, PatternPriorityBadge } from './PatternPriorityIndicator'
-import { PatternPreviewModal, usePreviewModalKeyboard } from './PatternPreviewModal'
+import { PatternPreviewModal } from './PatternPreviewModal'
+import { usePreviewModalKeyboard } from '../utils/pattern-preview-modal.utils'
 import type {
   ActionPatternCarouselProps,
   ActionPatternData

@@ -25,12 +25,14 @@ import type {
   GlanceModeConfig,
   GlanceModePanelProps,
   DisclosureContent,
+  DisclosureLevel,
   IntelligenceData,
   GameContext
 } from '../types/strategy-advisor.types'
 
 // Enhanced imports for Phase 6
-import { ErrorBoundary, withErrorBoundary } from './ErrorBoundary'
+import { ErrorBoundary } from './ErrorBoundary'
+import { withErrorBoundary } from '../utils'
 import { LoadingStates } from './LoadingStates'
 import { SkeletonLoader } from './SkeletonLoader'
 import { useMicroAnimations } from '../utils/micro-animations'
@@ -161,7 +163,7 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
   // Handle user interactions with micro-animations
   const handleMouseEnter = useCallback(() => {
     if (cardRef.current && !reduceMotion && !isInteracting) {
-      startAnimation('card-hover', cardRef.current, 'hoverScale', 1.02)
+      startAnimation('card-hover', cardRef.current, 'touchFeedback')
     }
   }, [startAnimation, reduceMotion, isInteracting])
 
@@ -492,7 +494,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   // Adapt disclosure levels based on urgency
   useEffect(() => {
     try {
-      const allowedLevels = urgencyLevel === 'critical' ? ['glance'] :
+      const allowedLevels: DisclosureLevel[] = urgencyLevel === 'critical' ? ['glance'] :
                            urgencyLevel === 'high' ? ['glance', 'details'] :
                            ['glance', 'details', 'advanced']
 
@@ -524,13 +526,33 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
 
   // Generate disclosure content from intelligence data
   const disclosureContent = useMemo((): DisclosureContent | null => {
-    if (!currentAnalysis || !currentAnalysis.hasAnalysis) return null
+    if (!currentAnalysis) return null
+
+    // Check if we have valid analysis data
+    const hasAnalysis = currentAnalysis.recommendedPatterns?.length > 0 ||
+                       currentAnalysis.bestPatterns?.length > 0 ||
+                       currentAnalysis.tileRecommendations?.length > 0
+
+    if (!hasAnalysis) return null
 
     // Build intelligence data structure
     const intelligenceData: IntelligenceData = {
-      hasAnalysis: currentAnalysis.hasAnalysis,
-      isAnalyzing: currentAnalysis.isAnalyzing,
-      recommendedPatterns: currentAnalysis.recommendedPatterns || [],
+      hasAnalysis,
+      isAnalyzing: false, // We'll derive this from store state if needed
+      recommendedPatterns: (currentAnalysis.recommendedPatterns || []).map(rec => ({
+        pattern: {
+          id: rec.pattern.id,
+          section: String(rec.pattern.section), // Convert to string
+          line: rec.pattern.line,
+          pattern: rec.pattern.pattern,
+          displayName: rec.pattern.displayName
+        },
+        confidence: rec.confidence,
+        completionPercentage: rec.completionPercentage,
+        difficulty: rec.difficulty,
+        reasoning: rec.reasoning,
+        isPrimary: rec.isPrimary
+      })),
       tileRecommendations: currentAnalysis.tileRecommendations || [],
       strategicAdvice: currentAnalysis.strategicAdvice || [],
       threats: currentAnalysis.threats || [],
@@ -541,7 +563,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     // Build game context
     const gameContext: GameContext = {
       gamePhase: gamePhase === 'charleston' ? 'charleston' :
-                 gamePhase === 'endgame' ? 'endgame' : 'playing',
+                 gamePhase === 'finished' ? 'endgame' : 'playing',
       turnsRemaining: Math.max(0, 20 - currentTurn),
       wallTilesRemaining,
       playerPosition: 'east', // Would come from actual game state
@@ -559,7 +581,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
 
   // Filter messages based on urgency treatment
   const filteredMessages = useMemo(() => {
-    return messages.filter(message => shouldShowMessage(message.urgency, uiTreatment))
+    return messages.filter((message: StrategyMessage) => shouldShowMessage(message.urgency, uiTreatment))
   }, [messages, uiTreatment])
 
   // Get urgency-aware styling for the panel
@@ -856,7 +878,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
 }
 
 // Export enhanced component wrapped with error boundary
-export default withErrorBoundary(GlanceModePanel, {
+const GlanceModePanelWithErrorBoundary = withErrorBoundary(GlanceModePanel, {
   onError: (error, errorInfo, errorId) => {
     console.error('[GlanceModePanel] Top-level error boundary caught:', {
       error: error.message,
@@ -867,3 +889,7 @@ export default withErrorBoundary(GlanceModePanel, {
   maxRetries: 1,
   showErrorDetails: process.env.NODE_ENV === 'development'
 })
+
+GlanceModePanelWithErrorBoundary.displayName = 'GlanceModePanelWithErrorBoundary'
+
+export default GlanceModePanelWithErrorBoundary

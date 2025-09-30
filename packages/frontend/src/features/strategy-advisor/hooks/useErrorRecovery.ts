@@ -293,7 +293,7 @@ export const useErrorRecovery = (
         recover({ type: 'retry' })
       }, 100)
     }
-  }, [config, getRecoveryStrategy])
+  }, [config, getRecoveryStrategy, recover])
 
   // Recover from error
   const recover = useCallback(async (action?: RecoveryAction): Promise<boolean> => {

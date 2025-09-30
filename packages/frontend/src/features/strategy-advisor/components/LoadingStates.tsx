@@ -31,6 +31,28 @@ const Shimmer: React.FC<ShimmerProps> = ({
   const prefersReducedMotion = respectsReducedMotion &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
+  // Create keyframes animation using CSS-in-JS
+  React.useEffect(() => {
+    if (!prefersReducedMotion) {
+      const style = document.createElement('style')
+      style.textContent = `
+        @keyframes shimmer {
+          0% {
+            background-position: -200% 0;
+          }
+          100% {
+            background-position: 200% 0;
+          }
+        }
+      `
+      document.head.appendChild(style)
+
+      return () => {
+        document.head.removeChild(style)
+      }
+    }
+  }, [prefersReducedMotion])
+
   return (
     <div
       className={cn(
@@ -46,16 +68,6 @@ const Shimmer: React.FC<ShimmerProps> = ({
       }}
     >
       {children}
-      <style jsx>{`
-        @keyframes shimmer {
-          0% {
-            background-position: -200% 0;
-          }
-          100% {
-            background-position: 200% 0;
-          }
-        }
-      `}</style>
     </div>
   )
 }

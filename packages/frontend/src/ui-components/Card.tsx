@@ -1,4 +1,5 @@
 import type { HTMLAttributes, ReactNode } from 'react'
+import { forwardRef } from 'react'
 import { useAnimationsEnabled } from '../stores'
 
 interface CardProps extends HTMLAttributes<HTMLDivElement> {
@@ -8,14 +9,14 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode
 }
 
-export const Card = ({
+export const Card = forwardRef<HTMLDivElement, CardProps>(({
   variant = 'default',
   padding = 'md',
   interactive = false,
   children,
   className = '',
   ...props
-}: CardProps) => {
+}, ref) => {
   const animationsEnabled = useAnimationsEnabled()
   
   const baseClasses = 'rounded-xl border'
@@ -43,10 +44,13 @@ export const Card = ({
   
   return (
     <div
+      ref={ref}
       className={`${baseClasses} ${variants[variant]} ${paddings[padding]} ${interactiveClasses} ${className}`}
       {...props}
     >
       {children}
     </div>
   )
-}
+})
+
+Card.displayName = 'Card'

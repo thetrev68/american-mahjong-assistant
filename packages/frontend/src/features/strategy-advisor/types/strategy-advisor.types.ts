@@ -376,6 +376,12 @@ export interface UseCarouselSwipe {
   goToPattern: (index: number) => void
   nextPattern: () => void
   previousPattern: () => void
+
+  // Long-press state and controls
+  longPressState: LongPressState
+  isShowingHint: boolean
+  isShowingDetails: boolean
+  cancelLongPress?: () => void
 }
 
 // Pattern switching hook return interface

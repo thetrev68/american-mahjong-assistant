@@ -349,7 +349,7 @@ export const useMemoryOptimization = (
         cacheRef.current.delete(key)
       }, ttl)
     }
-  }, [finalConfig.maxCacheSize])
+  }, [finalConfig.maxCacheSize, cleanupCache])
 
   const clearCache = useCallback(() => {
     const oldSize = cacheRef.current.size

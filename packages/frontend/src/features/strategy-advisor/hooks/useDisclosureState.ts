@@ -77,6 +77,19 @@ export const useDisclosureState = (
     }
   }, [])
 
+  // Cancel auto-collapse timer
+  const cancelAutoCollapse = useCallback(() => {
+    if (autoCollapseTimer.current) {
+      clearTimeout(autoCollapseTimer.current)
+      autoCollapseTimer.current = undefined
+    }
+
+    setDisclosureState(prevState => ({
+      ...prevState,
+      autoCollapseTimeout: undefined
+    }))
+  }, [])
+
   // Set disclosure level with transition management
   const setLevel = useCallback((level: DisclosureLevel) => {
     setDisclosureState(prevState => {
@@ -126,11 +139,30 @@ export const useDisclosureState = (
 
     // Restart auto-collapse timer if expanding
     if (level !== 'glance') {
-      startAutoCollapse()
+      // Use configRef to access current timer management
+      if (!configRef.current.enableAutoCollapse) return
+
+      // Clear existing timer
+      if (autoCollapseTimer.current) {
+        clearTimeout(autoCollapseTimer.current)
+        autoCollapseTimer.current = undefined
+      }
+
+      autoCollapseTimer.current = setTimeout(() => {
+        // Only auto-collapse if user hasn't interacted recently
+        if (!userInteractionRef.current) {
+          setLevel('glance')
+        }
+      }, configRef.current.autoCollapseDelay)
+
+      setDisclosureState(prevState => ({
+        ...prevState,
+        autoCollapseTimeout: Date.now() + configRef.current.autoCollapseDelay
+      }))
     } else {
       cancelAutoCollapse()
     }
-  }, [])
+  }, [cancelAutoCollapse])
 
   // Expand to details level
   const expandToDetails = useCallback(() => {
@@ -199,7 +231,7 @@ export const useDisclosureState = (
     autoCollapseTimer.current = setTimeout(() => {
       // Only auto-collapse if user hasn't interacted recently
       if (!userInteractionRef.current) {
-        collapseToGlance()
+        setLevel('glance')
       }
     }, configRef.current.autoCollapseDelay)
 
@@ -207,20 +239,7 @@ export const useDisclosureState = (
       ...prevState,
       autoCollapseTimeout: Date.now() + configRef.current.autoCollapseDelay
     }))
-  }, [collapseToGlance])
-
-  // Cancel auto-collapse timer
-  const cancelAutoCollapse = useCallback(() => {
-    if (autoCollapseTimer.current) {
-      clearTimeout(autoCollapseTimer.current)
-      autoCollapseTimer.current = undefined
-    }
-
-    setDisclosureState(prevState => ({
-      ...prevState,
-      autoCollapseTimeout: undefined
-    }))
-  }, [])
+  }, [cancelAutoCollapse, setLevel])
 
   // Adapt disclosure levels based on urgency
   const adaptToUrgency = useCallback((urgencyLevel: UrgencyLevel) => {

@@ -368,5 +368,4 @@ function getUrgencyBars(urgencyLevel: UrgencyLevel): number {
   }
 }
 
-// Export types
-export type { UrgencyIndicatorProps }
+// Types are exported above with their definitions

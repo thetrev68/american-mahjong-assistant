@@ -194,12 +194,50 @@ export const useCarouselSwipe = ({
 
     // Phase 4: Start long-press detection
     if (enableLongPress) {
-      longPress.onPointerDown({
-        ...event,
+      const pointerEvent = {
         pointerId: 0,
         clientX: touch.clientX,
-        clientY: touch.clientY
-      } as React.PointerEvent)
+        clientY: touch.clientY,
+        currentTarget: event.currentTarget,
+        preventDefault: event.preventDefault.bind(event),
+        stopPropagation: event.stopPropagation.bind(event),
+        nativeEvent: event.nativeEvent,
+        target: event.target,
+        bubbles: event.bubbles,
+        cancelable: event.cancelable,
+        defaultPrevented: event.defaultPrevented,
+        eventPhase: event.eventPhase,
+        isTrusted: event.isTrusted,
+        timeStamp: event.timeStamp,
+        type: event.type,
+        pressure: 0.5,
+        tangentialPressure: 0,
+        tiltX: 0,
+        tiltY: 0,
+        twist: 0,
+        width: 1,
+        height: 1,
+        pointerType: 'touch' as const,
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        detail: 0,
+        view: window,
+        which: 1,
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+        screenX: touch.screenX,
+        screenY: touch.screenY,
+        movementX: 0,
+        movementY: 0,
+        relatedTarget: null,
+        getModifierState: () => false
+      } as React.PointerEvent
+      longPress.onPointerDown(pointerEvent)
     }
 
     onSwipeStart?.()
@@ -225,12 +263,50 @@ export const useCarouselSwipe = ({
 
     // Phase 4: Update long-press tracking
     if (enableLongPress && longPress.state.isPressed) {
-      longPress.onPointerMove({
-        ...event,
+      const pointerEvent = {
         pointerId: 0,
         clientX: touch.clientX,
-        clientY: touch.clientY
-      } as React.PointerEvent)
+        clientY: touch.clientY,
+        currentTarget: event.currentTarget,
+        preventDefault: event.preventDefault.bind(event),
+        stopPropagation: event.stopPropagation.bind(event),
+        nativeEvent: event.nativeEvent,
+        target: event.target,
+        bubbles: event.bubbles,
+        cancelable: event.cancelable,
+        defaultPrevented: event.defaultPrevented,
+        eventPhase: event.eventPhase,
+        isTrusted: event.isTrusted,
+        timeStamp: event.timeStamp,
+        type: event.type,
+        pressure: 0.5,
+        tangentialPressure: 0,
+        tiltX: 0,
+        tiltY: 0,
+        twist: 0,
+        width: 1,
+        height: 1,
+        pointerType: 'touch' as const,
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        detail: 0,
+        view: window,
+        which: 1,
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+        screenX: touch.screenX,
+        screenY: touch.screenY,
+        movementX: 0,
+        movementY: 0,
+        relatedTarget: null,
+        getModifierState: () => false
+      } as React.PointerEvent
+      longPress.onPointerMove(pointerEvent)
     }
 
     throttledVelocityUpdate(currentX, timestamp)
@@ -243,12 +319,51 @@ export const useCarouselSwipe = ({
 
     // Phase 4: End long-press tracking
     if (enableLongPress && longPress.state.isPressed) {
-      longPress.onPointerUp({
-        ...event,
+      const touch = event.changedTouches[0]
+      const pointerEvent = {
         pointerId: 0,
-        clientX: event.changedTouches[0].clientX,
-        clientY: event.changedTouches[0].clientY
-      } as React.PointerEvent)
+        clientX: touch.clientX,
+        clientY: touch.clientY,
+        currentTarget: event.currentTarget,
+        preventDefault: event.preventDefault.bind(event),
+        stopPropagation: event.stopPropagation.bind(event),
+        nativeEvent: event.nativeEvent,
+        target: event.target,
+        bubbles: event.bubbles,
+        cancelable: event.cancelable,
+        defaultPrevented: event.defaultPrevented,
+        eventPhase: event.eventPhase,
+        isTrusted: event.isTrusted,
+        timeStamp: event.timeStamp,
+        type: event.type,
+        pressure: 0.5,
+        tangentialPressure: 0,
+        tiltX: 0,
+        tiltY: 0,
+        twist: 0,
+        width: 1,
+        height: 1,
+        pointerType: 'touch' as const,
+        isPrimary: true,
+        button: 0,
+        buttons: 1,
+        ctrlKey: false,
+        shiftKey: false,
+        altKey: false,
+        metaKey: false,
+        detail: 0,
+        view: window,
+        which: 1,
+        pageX: touch.pageX,
+        pageY: touch.pageY,
+        screenX: touch.screenX,
+        screenY: touch.screenY,
+        movementX: 0,
+        movementY: 0,
+        relatedTarget: null,
+        getModifierState: () => false
+      } as React.PointerEvent
+      longPress.onPointerUp(pointerEvent)
     }
 
     // Phase 4: Notify gesture end
@@ -443,6 +558,15 @@ export const useCarouselSwipe = ({
     patterns
   ])
 
+  const snapToCurrentPosition = useCallback(() => {
+    setIsAnimating(true)
+
+    // Brief animation to snap back
+    setTimeout(() => {
+      setIsAnimating(false)
+    }, ANIMATION_CONFIG.TRANSITION_DURATION)
+  }, [])
+
   const nextPattern = useCallback(() => {
     if (currentIndex < maxIndex) {
       goToPattern(currentIndex + 1)
@@ -454,15 +578,6 @@ export const useCarouselSwipe = ({
       goToPattern(currentIndex - 1)
     }
   }, [currentIndex, minIndex, goToPattern])
-
-  const snapToCurrentPosition = useCallback(() => {
-    setIsAnimating(true)
-
-    // Brief animation to snap back
-    setTimeout(() => {
-      setIsAnimating(false)
-    }, ANIMATION_CONFIG.TRANSITION_DURATION)
-  }, [])
 
   // Carousel state - defined after navigation functions to avoid circular deps
   const carouselState: CarouselState = useMemo(() => ({

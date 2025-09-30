@@ -243,7 +243,7 @@ export const useStrategyMode = (
   // Load preferences on mount
   useEffect(() => {
     loadPreferences()
-  }, []) // Only run on mount
+  }, [loadPreferences]) // Only run on mount
 
   return {
     // Current state
