@@ -136,7 +136,6 @@ export const useStrategyAdvisor = (
     }
     // Only depend on actual data changes, not function references
     // Functions are stable via closure: getCacheItem, setCacheItem
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     adapter,
     intelligenceStore.currentAnalysis,
@@ -349,7 +348,6 @@ export const useStrategyAdvisor = (
       console.log('[useStrategyAdvisor] Hook cleanup completed')
     }
     // Functions are stable via closure, intentionally empty to run only once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Performance monitoring effect
@@ -440,7 +438,8 @@ export const useStrategyAdvisor = (
     return strategyAdvisorSelectors.hasNewInsights(strategyStore)
   }, [strategyStore])
 
-  return {
+  // Memoize return value to ensure stable references and prevent infinite loops
+  return useMemo(() => ({
     // State
     messages: strategyStore.currentMessages,
     isActive: strategyStore.isActive,
@@ -462,7 +461,24 @@ export const useStrategyAdvisor = (
     mostUrgentMessage,
     actionableMessages,
     hasNewInsights
-  }
+  }), [
+    strategyStore.currentMessages,
+    strategyStore.isActive,
+    strategyStore.isLoading,
+    strategyStore.error,
+    strategyStore.config,
+    strategyStore.expandedMessageId,
+    refresh,
+    activate,
+    deactivate,
+    expandMessage,
+    collapseMessage,
+    dismissMessage,
+    updateConfig,
+    mostUrgentMessage,
+    actionableMessages,
+    hasNewInsights
+  ])
 }
 
 // Convenience hook for using with specific game phases

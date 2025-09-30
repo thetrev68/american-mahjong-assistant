@@ -148,7 +148,9 @@ export const useMemoryOptimization = (
   })
 
   const [isOptimizing, setIsOptimizing] = useState(false)
-  const [cleanupTasks, setCleanupTasks] = useState<CleanupTask[]>([])
+
+  // Use ref instead of state for cleanupTasks to avoid setState during render/cleanup
+  const cleanupTasksRef = useRef<CleanupTask[]>([])
 
   // Refs for tracking
   const cacheRef = useRef<Map<string, CacheEntry>>(new Map())
@@ -272,31 +274,29 @@ export const useMemoryOptimization = (
     lastMemoryCheckRef.current = now
   }, [finalConfig, getCurrentMemoryUsage, metrics.peakUsage])
 
-  // Add cleanup task
+  // Add cleanup task - uses ref instead of state to avoid setState during render/cleanup
   const addCleanupTask = useCallback((task: Omit<CleanupTask, 'id'>): string => {
     const id = generateTaskId()
     const newTask: CleanupTask = { ...task, id }
 
-    setCleanupTasks(prev => {
-      const updated = [...prev, newTask]
-      return updated.sort((a, b) => a.priority - b.priority)
-    })
+    cleanupTasksRef.current = [...cleanupTasksRef.current, newTask].sort((a, b) => a.priority - b.priority)
 
     console.log(`[MemoryOptimization] Added cleanup task: ${task.description}`)
     return id
   }, [])
 
-  // Remove cleanup task
+  // Remove cleanup task - uses ref instead of state to avoid setState during cleanup
   const removeCleanupTask = useCallback((id: string) => {
-    setCleanupTasks(prev => prev.filter(task => task.id !== id))
+    cleanupTasksRef.current = cleanupTasksRef.current.filter(task => task.id !== id)
     console.log(`[MemoryOptimization] Removed cleanup task: ${id}`)
   }, [])
 
-  // Run cleanup tasks
+  // Run cleanup tasks - uses ref to avoid setState during cleanup
   const runCleanup = useCallback((taskId?: string) => {
+    const tasks = cleanupTasksRef.current
     const tasksToRun = taskId
-      ? cleanupTasks.filter(task => task.id === taskId)
-      : cleanupTasks.filter(task => task.automated)
+      ? tasks.filter(task => task.id === taskId)
+      : tasks.filter(task => task.automated)
 
     console.log(`[MemoryOptimization] Running ${tasksToRun.length} cleanup task(s)`)
 
@@ -311,9 +311,9 @@ export const useMemoryOptimization = (
 
     // Remove completed automated tasks
     if (!taskId) {
-      setCleanupTasks(prev => prev.filter(task => !task.automated))
+      cleanupTasksRef.current = cleanupTasksRef.current.filter(task => !task.automated)
     }
-  }, [cleanupTasks])
+  }, [])
 
   // Cache management
   const getCacheItem = useCallback(<T>(key: string): T | null => {
@@ -452,7 +452,7 @@ export const useMemoryOptimization = (
     }
   }, [cleanupCache, runCleanup, forceGarbageCollection, updateMemoryMetrics])
 
-  // Generate memory report
+  // Generate memory report - uses ref for cleanup tasks
   const getMemoryReport = useCallback((): string => {
     const report = [
       '=== Memory Optimization Report ===',
@@ -460,7 +460,7 @@ export const useMemoryOptimization = (
       `Peak Usage: ${metrics.peakUsage}MB`,
       `Average Usage: ${metrics.averageUsage.toFixed(1)}MB`,
       `Cache Size: ${cacheRef.current.size} items`,
-      `Cleanup Tasks: ${cleanupTasks.length}`,
+      `Cleanup Tasks: ${cleanupTasksRef.current.length}`,
       `Growth Rate: ${memoryGrowthRateRef.current.toFixed(3)}MB/s`,
       `Is Optimal: ${metrics.isOptimal ? 'Yes' : 'No'}`,
       '',
@@ -472,7 +472,7 @@ export const useMemoryOptimization = (
     ].join('\n')
 
     return report
-  }, [metrics, cleanupTasks.length])
+  }, [metrics])
 
   // Auto-cleanup interval
   useEffect(() => {
@@ -527,14 +527,14 @@ export const useMemoryOptimization = (
       removeCleanupTask(cacheCleanupId)
     }
     // Functions are stable via closure, empty array prevents infinite loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  return {
+  // Memoize return value to ensure stable references
+  return useMemo(() => ({
     metrics,
     isOptimizing,
     cacheSize: cacheRef.current.size,
-    cleanupTasks,
+    cleanupTasks: cleanupTasksRef.current,
     addCleanupTask,
     removeCleanupTask,
     runCleanup,
@@ -544,7 +544,19 @@ export const useMemoryOptimization = (
     clearCache,
     forceGarbageCollection,
     getMemoryReport
-  }
+  }), [
+    metrics,
+    isOptimizing,
+    addCleanupTask,
+    removeCleanupTask,
+    runCleanup,
+    optimizeMemory,
+    getCacheItem,
+    setCacheItem,
+    clearCache,
+    forceGarbageCollection,
+    getMemoryReport
+  ])
 }
 
 export default useMemoryOptimization

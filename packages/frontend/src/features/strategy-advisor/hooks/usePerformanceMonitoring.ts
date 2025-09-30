@@ -485,7 +485,6 @@ export const usePerformanceMonitoring = (
       return () => clearInterval(interval)
     }
     // updateMetrics is intentionally omitted to prevent infinite re-render loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isMonitoring])
 
   // Cleanup on unmount
