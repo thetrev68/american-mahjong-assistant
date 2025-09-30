@@ -525,8 +525,7 @@ export const useMemoryOptimization = (
     }
   }, [runCleanup, clearCache])
 
-  // Auto-add common cleanup tasks - run only once on mount to prevent infinite loop
-  // Empty dependency array ensures this only runs once on mount/unmount
+  // Auto-add common cleanup tasks
   useEffect(() => {
     const cacheCleanupId = addCleanupTask({
       cleanup: cleanupCache,
@@ -538,8 +537,7 @@ export const useMemoryOptimization = (
     return () => {
       removeCleanupTask(cacheCleanupId)
     }
-    // Functions are stable via closure, empty array prevents infinite loop
-  }, [])
+  }, [addCleanupTask, cleanupCache, removeCleanupTask])
 
   // Memoize return value to ensure stable references
   return useMemo(() => ({

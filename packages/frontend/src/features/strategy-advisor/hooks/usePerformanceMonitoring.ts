@@ -478,14 +478,13 @@ export const usePerformanceMonitoring = (
     console.log(`[${componentName}] Applied optimizations:`, newOptimizations)
   }, [componentName])
 
-  // Update metrics periodically - updateMetrics removed from deps to prevent infinite loop
+  // Update metrics periodically
   useEffect(() => {
     if (state.isMonitoring) {
       const interval = setInterval(updateMetrics, 1000) // Update every second
       return () => clearInterval(interval)
     }
-    // updateMetrics is intentionally omitted to prevent infinite re-render loop
-  }, [state.isMonitoring])
+  }, [state.isMonitoring, updateMetrics])
 
   // Cleanup on unmount
   useEffect(() => {
