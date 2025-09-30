@@ -403,18 +403,8 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     action: 'panel_render'
   })
 
-  // Connect to Strategy Advisor hook with performance measurement
-  const strategyHookResult = measureRenderTime(() => {
-    try {
-      return useStrategyAdvisor()
-    } catch (error) {
-      reportError(error instanceof Error ? error : new Error(String(error)), {
-        action: 'strategy_advisor_hook',
-        state: { className, hasMessageExpand: !!onMessageExpand }
-      })
-      throw error
-    }
-  }, 'useStrategyAdvisor')
+  // Connect to Strategy Advisor hook (hooks must be called at the top level)
+  const strategyHookResult = useStrategyAdvisor()
 
   const {
     messages,
@@ -425,6 +415,17 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     expandMessage,
     updateConfig
   } = strategyHookResult
+
+  // Measure hook performance separately (after hook execution)
+  useEffect(() => {
+    if (strategyHookResult) {
+      measureRenderTime(() => {
+        // Log performance metrics for the hook result
+        console.log('[GlanceModePanel] Strategy Advisor hook result processed')
+        return strategyHookResult
+      }, 'useStrategyAdvisor_result')
+    }
+  }, [strategyHookResult, measureRenderTime])
 
   // Get urgency context for adaptive behavior
   const {

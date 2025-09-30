@@ -87,10 +87,12 @@ export const usePerformanceMonitoring = (
   metrics: PerformanceMetrics
   isMonitoring: boolean
   isDegraded: boolean
+  isOptimizing: boolean // Alias for isDegraded
   optimizations: PerformanceOptimizations
   startMonitoring: () => void
   stopMonitoring: () => void
   measureRender: (renderFunction: () => void) => number
+  measureRenderTime: <T>(renderFunction: () => T, operationName?: string) => T
   reportMetrics: () => void
   resetMetrics: () => void
   applyOptimizations: (optimizations: Partial<PerformanceOptimizations>) => void
@@ -304,7 +306,7 @@ export const usePerformanceMonitoring = (
   }, [state.config])
 
   // Auto-optimization logic
-  const autoOptimize = useCallback((performanceScore: number) => {
+  const performAutoOptimization = useCallback((performanceScore: number) => {
     if (!autoOptimize || !state.config.enableAutoOptimization) return
 
     const newOptimizations: PerformanceOptimizations = {
@@ -339,7 +341,7 @@ export const usePerformanceMonitoring = (
       }
 
       // Auto-optimize based on performance score
-      autoOptimize(updatedMetrics.performanceScore)
+      performAutoOptimization(updatedMetrics.performanceScore)
 
       // Report metrics if callback provided
       if (reportingCallback) {
@@ -351,7 +353,7 @@ export const usePerformanceMonitoring = (
         metrics: updatedMetrics
       }
     })
-  }, [calculatePerformanceScore, generateWarnings, autoOptimize, reportingCallback, state.config])
+  }, [calculatePerformanceScore, generateWarnings, performAutoOptimization, reportingCallback, state.config])
 
   // Start monitoring
   const startMonitoring = useCallback(() => {
@@ -491,15 +493,59 @@ export const usePerformanceMonitoring = (
     }
   }, [stopMonitoring])
 
+  // Measure render time wrapper for functional interface
+  const measureRenderTime = useCallback(<T>(
+    renderFunction: () => T,
+    operationName?: string
+  ): T => {
+    if (!enableRenderTracking) {
+      return renderFunction()
+    }
+
+    const startTime = performance.now()
+    const result = renderFunction()
+    const endTime = performance.now()
+    const renderTime = endTime - startTime
+
+    renderTimesRef.current.push(renderTime)
+    renderCountRef.current++
+
+    // Keep only recent render times
+    if (renderTimesRef.current.length > state.config.sampleSize) {
+      renderTimesRef.current.shift()
+    }
+
+    // Calculate average render time
+    const averageRenderTime = renderTimesRef.current.reduce((sum, time) => sum + time, 0) / renderTimesRef.current.length
+
+    setState(prev => ({
+      ...prev,
+      metrics: {
+        ...prev.metrics,
+        componentRenderTime: averageRenderTime,
+        totalRenderCount: renderCountRef.current,
+        slowRenders: prev.metrics.slowRenders + (renderTime > state.config.maxRenderTimeMs ? 1 : 0)
+      }
+    }))
+
+    if (operationName) {
+      console.log(`[${componentName}] ${operationName} completed in ${renderTime.toFixed(2)}ms`)
+    }
+
+    return result
+  }, [enableRenderTracking, state.config, componentName])
+
   // Memoized return value
   return useMemo(() => ({
     metrics: state.metrics,
     isMonitoring: state.isMonitoring,
     isDegraded: state.isDegraded,
+    isOptimizing: state.isDegraded, // Alias for backwards compatibility
     optimizations,
     startMonitoring,
     stopMonitoring,
     measureRender,
+    measureRenderTime, // New functional interface
     reportMetrics,
     resetMetrics,
     applyOptimizations
@@ -511,6 +557,7 @@ export const usePerformanceMonitoring = (
     startMonitoring,
     stopMonitoring,
     measureRender,
+    measureRenderTime,
     reportMetrics,
     resetMetrics,
     applyOptimizations

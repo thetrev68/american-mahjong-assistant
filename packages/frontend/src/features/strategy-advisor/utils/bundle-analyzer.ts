@@ -1,3 +1,5 @@
+import { useEffect, useState, useRef, useCallback } from 'react'
+
 // Bundle Analyzer - Bundle size monitoring and optimization utilities
 // Provides runtime bundle analysis, size tracking, and optimization recommendations
 
@@ -157,6 +159,10 @@ class BundleAnalyzer {
   }
 
   private setupUsageTracking(): void {
+    if (typeof window === 'undefined') {
+      return
+    }
+
     // Intercept import calls to track usage (development only)
     if (process.env.NODE_ENV === 'development') {
       const originalRequire = (window as Window & { require?: (moduleName: string) => unknown }).require
@@ -170,6 +176,11 @@ class BundleAnalyzer {
   }
 
   private setupPerformanceTracking(): void {
+    if (typeof PerformanceObserver === 'undefined') {
+      console.warn('[BundleAnalyzer] Performance tracking not supported in this environment')
+      return
+    }
+
     // Track script loading performance
     const observer = new PerformanceObserver((list) => {
       list.getEntries().forEach((entry) => {
@@ -528,23 +539,29 @@ class BundleAnalyzer {
   // Export analysis data
   exportAnalysis(): string {
     const latestAnalysis = this.analysisHistory[this.analysisHistory.length - 1]
+    if (!latestAnalysis) return '{}'
     return JSON.stringify(latestAnalysis, null, 2)
   }
 }
 
-// React hook for bundle analysis
-import { useEffect, useState, useRef } from 'react'
-
+// React Hook for bundle analysis
 export const useBundleAnalysis = (config: Partial<BundleConfig> = {}) => {
   const analyzerRef = useRef<BundleAnalyzer>()
   const [analysis, setAnalysis] = useState<BundleAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 
+  const registerModule = useCallback(
+    (name: string, content: string, isLazy: boolean = false) => {
+      analyzerRef.current?.registerModule(name, content, isLazy)
+    },
+    []
+  )
+
   useEffect(() => {
     analyzerRef.current = new BundleAnalyzer(config)
   }, [config])
 
-  const runAnalysis = async () => {
+  const runAnalysis = useCallback(async () => {
     if (!analyzerRef.current) return
 
     setIsAnalyzing(true)
@@ -556,17 +573,17 @@ export const useBundleAnalysis = (config: Partial<BundleConfig> = {}) => {
     } finally {
       setIsAnalyzing(false)
     }
-  }
+  }, [])
 
-  const generateReport = async () => {
+  const generateReport = useCallback(async () => {
     if (!analyzerRef.current) return ''
     return analyzerRef.current.generateReport()
-  }
+  }, [])
 
-  const checkBudgets = () => {
+  const checkBudgets = useCallback(() => {
     if (!analyzerRef.current) return null
     return analyzerRef.current.checkPerformanceBudgets()
-  }
+  }, [])
 
   return {
     analysis,
@@ -574,7 +591,7 @@ export const useBundleAnalysis = (config: Partial<BundleConfig> = {}) => {
     runAnalysis,
     generateReport,
     checkBudgets,
-    registerModule: analyzerRef.current?.registerModule.bind(analyzerRef.current)
+    registerModule
   }
 }
 

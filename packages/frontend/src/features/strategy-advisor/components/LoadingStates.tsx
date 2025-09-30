@@ -2,7 +2,11 @@
 // Provides delightful loading experiences with 60fps performance and accessibility
 
 import React from 'react'
-import { cn } from '../../../lib/utils'
+
+// Simple className utility for merging classes
+const cn = (...classes: (string | undefined | null | false)[]): string => {
+  return classes.filter(Boolean).join(' ')
+}
 
 interface LoadingStatesProps {
   variant: 'analyzing' | 'patterns' | 'recommendations' | 'switching'

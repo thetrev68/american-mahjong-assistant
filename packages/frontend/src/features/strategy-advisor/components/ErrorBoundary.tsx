@@ -2,7 +2,11 @@
 // Provides graceful error handling with recovery options and error reporting
 
 import React, { Component, ReactNode } from 'react'
-import { cn } from '../../../lib/utils'
+
+// Simple className utility for merging classes
+const cn = (...classes: (string | undefined | null | false)[]): string => {
+  return classes.filter(Boolean).join(' ')
+}
 
 interface ErrorBoundaryState {
   hasError: boolean

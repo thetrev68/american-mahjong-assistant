@@ -321,4 +321,4 @@ function getBasicUITreatment(urgencyLevel: UrgencyLevel, isEmergency: boolean): 
 }
 
 // Export types for external use
-export type { UrgencyDetectionOptions, PerformanceMetrics }
+export type { PerformanceMetrics }
