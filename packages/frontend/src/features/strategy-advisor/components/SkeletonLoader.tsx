@@ -24,10 +24,12 @@ const Skeleton: React.FC<SkeletonProps> = ({
   animate = true,
   children
 }) => {
-  const prefersReducedMotion = React.useMemo(
-    () => window.matchMedia('(prefers-reduced-motion: reduce)').matches,
-    []
-  )
+  const prefersReducedMotion = React.useMemo(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+      return false
+    }
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  }, [])
 
   // Create keyframes animation using CSS-in-JS
   React.useEffect(() => {

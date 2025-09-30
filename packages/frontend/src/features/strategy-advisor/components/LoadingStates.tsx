@@ -29,6 +29,7 @@ const Shimmer: React.FC<ShimmerProps> = ({
   respectsReducedMotion = true
 }) => {
   const prefersReducedMotion = respectsReducedMotion &&
+    typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   // Create keyframes animation using CSS-in-JS
@@ -79,6 +80,7 @@ const ProgressDots: React.FC<{
   respectsReducedMotion?: boolean
 }> = ({ count, activeIndex, respectsReducedMotion = true }) => {
   const prefersReducedMotion = respectsReducedMotion &&
+    typeof window !== 'undefined' &&
     window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
   return (

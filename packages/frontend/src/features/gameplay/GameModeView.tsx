@@ -1511,7 +1511,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       <SelectionArea
         onAdvanceToGameplay={handleAdvanceToGameplay}
         onCharlestonPass={gameStore.gamePhase === 'charleston' ? handleCharlestonPass : undefined}
-        onPass={undefined}
+        onPass={gameStore.gamePhase === 'charleston' ? handleCharlestonPass : undefined}
         isReadyToPass={gameStore.gamePhase === 'charleston' ? false : undefined}
         allPlayersReady={gameStore.gamePhase === 'charleston' ? false : undefined}
       />

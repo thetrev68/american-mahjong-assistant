@@ -102,7 +102,7 @@ export const usePerformanceMonitoring = (
     enableMemoryTracking = true,
     enableFrameRateTracking = true,
     enableRenderTracking = true,
-    autoOptimize = true,
+    autoOptimize: shouldAutoOptimize = true,
     reportingCallback
   } = options
 
@@ -307,7 +307,7 @@ export const usePerformanceMonitoring = (
 
   // Auto-optimization logic
   const performAutoOptimization = useCallback((performanceScore: number) => {
-    if (!autoOptimize || !state.config.enableAutoOptimization) return
+    if (!shouldAutoOptimize || !state.config.enableAutoOptimization) return
 
     const newOptimizations: PerformanceOptimizations = {
       reduceAnimations: performanceScore < 70,
@@ -326,7 +326,7 @@ export const usePerformanceMonitoring = (
       ...prev,
       isDegraded: performanceScore < state.config.degradationThreshold
     }))
-  }, [autoOptimize, state.config])
+  }, [shouldAutoOptimize, state.config])
 
   // Update metrics with calculated values
   const updateMetrics = useCallback(() => {

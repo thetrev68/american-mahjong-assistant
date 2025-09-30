@@ -164,7 +164,7 @@ export function createRankedPatternResults(options: {
         priorityScore: Math.max(0, 10 - (index * 1))
       },
       riskFactors: rec.riskFactors || (index === 0 ? [] : index === 1 ? ['Wall depletion risk'] : ['Limited tile availability', 'High joker dependency']),
-      strategicValue: rec.strategicValue ?? (0.85 - (index * 0.13)),
+      strategicValue: rec.strategicValue ?? Math.max(0, 0.85 - (index * 0.13)),
       isViable: rec.isViable ?? (rec.totalScore > 40)
     })) :
     patterns.slice(0, 3).map((pattern, index) => ({
@@ -179,7 +179,7 @@ export function createRankedPatternResults(options: {
         priorityScore: 10 - (index * 1)
       },
       riskFactors: index === 0 ? [] : index === 1 ? ['Wall depletion risk'] : ['Limited tile availability', 'High joker dependency'],
-      strategicValue: 0.85 - (index * 0.13),
+      strategicValue: Math.max(0, 0.85 - (index * 0.13)),
       isViable: true
     }))
   

@@ -321,10 +321,12 @@ export const GameStateHelpers = {
   addTileToPlayer: (gameState: TestGameState, playerId: string, tile: PlayerTile): TestGameState => {
     const updatedState = { ...gameState }
     const player = updatedState.players.find(p => p.id === playerId)
-    if (player && player.hand) {
-      player.hand = [...player.hand, tile]
+    if (player) {
+      const hand = player.hand ?? []
+      player.hand = [...hand, tile]
     }
     return updatedState
+  }
   },
   
   // Remove a tile from a player's hand

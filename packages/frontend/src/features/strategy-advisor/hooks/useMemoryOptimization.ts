@@ -364,12 +364,41 @@ export const useMemoryOptimization = (
     }
 
     // Set TTL cleanup if specified
-    if (ttl) {
-      setTimeout(() => {
-        cacheRef.current.delete(key)
-      }, ttl)
-    }
-  }, [finalConfig.maxCacheSize, cleanupCache])
+// Track outstanding TTL timers so we can reset or clear them
+const ttlTimersRef = useRef<Map<string, number>>(new Map())
+
+const setCacheItem = useCallback(<T>(key: string, value: T, ttl?: number): void => {
+  // If there's already a timer for this key, cancel it
+  const existingTimer = ttlTimersRef.current.get(key)
+  if (existingTimer) {
+    clearTimeout(existingTimer)
+    ttlTimersRef.current.delete(key)
+  }
+
+  const entry: CacheEntry<T> = {
+    value,
+    timestamp: Date.now(),
+    accessCount: 1,
+    lastAccessed: Date.now(),
+    size: estimateObjectSize(value)
+  }
+
+  cacheRef.current.set(key, entry)
+
+  // Auto-cleanup if cache is getting too large
+  if (cacheRef.current.size > finalConfig.maxCacheSize) {
+    cleanupCache()
+  }
+
+  // Set a new TTL timer, and remember its ID
+  if (ttl) {
+    const timerId = window.setTimeout(() => {
+      cacheRef.current.delete(key)
+      ttlTimersRef.current.delete(key)
+    }, ttl)
+    ttlTimersRef.current.set(key, timerId)
+  }
+}, [finalConfig.maxCacheSize, cleanupCache])  }, [finalConfig.maxCacheSize, cleanupCache])
 
   const clearCache = useCallback(() => {
     const oldSize = cacheRef.current.size

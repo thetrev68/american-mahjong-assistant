@@ -1,7 +1,7 @@
 // useStrategyAdvisor Hook - Simplified Strategy Advisor interface
 // Converts intelligence analysis to conversational messages with stable references
 
-import { useEffect, useMemo, useCallback } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useIntelligenceStore } from '../../../stores/intelligence-store'
 import { useStrategyAdvisorStore, strategyAdvisorSelectors } from '../stores/strategy-advisor.store'
 import { generateStrategyMessages } from '../services/message-generator'
@@ -40,10 +40,10 @@ export const useStrategyAdvisor = (): StrategyAdvisorHook => {
       const newMessages = generateStrategyMessages(currentAnalysis)
       console.log('🎯 Generated messages:', newMessages)
       setMessages(newMessages)
-    } else {
+    } else if (!isAnalyzing) {
       clearMessages()
     }
-  }, [currentAnalysis, isActive, setMessages, clearMessages])
+  }, [currentAnalysis, isActive, isAnalyzing, setMessages, clearMessages])
 
   // Sync loading state with intelligence store
   useEffect(() => {
@@ -84,21 +84,10 @@ export const useStrategyAdvisor = (): StrategyAdvisorHook => {
     removeMessage(messageId)
   }, [removeMessage])
 
-  // Computed values using selectors
-  const mostUrgentMessage = useMemo(() =>
-    strategyAdvisorSelectors.mostUrgentMessage(useStrategyAdvisorStore.getState()),
-    [messages]
-  )
-
-  const actionableMessages = useMemo(() =>
-    strategyAdvisorSelectors.actionableMessages(useStrategyAdvisorStore.getState()),
-    [messages]
-  )
-
-  const hasNewInsights = useMemo(() =>
-    strategyAdvisorSelectors.hasNewInsights(useStrategyAdvisorStore.getState()),
-    [messages]
-  )
+  // Computed values using selectors (subscribe directly to avoid stale closures)
+  const mostUrgentMessage = useStrategyAdvisorStore(strategyAdvisorSelectors.mostUrgentMessage)
+  const actionableMessages = useStrategyAdvisorStore(strategyAdvisorSelectors.actionableMessages)
+  const hasNewInsights = useStrategyAdvisorStore(strategyAdvisorSelectors.hasNewInsights)
 
   return {
     // State

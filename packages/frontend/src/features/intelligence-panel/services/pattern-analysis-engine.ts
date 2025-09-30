@@ -233,6 +233,9 @@ export class PatternAnalysisEngine {
    * Create fallback analysis when normal analysis fails
    */
   private static createFallbackAnalysis(patternId: string, _playerTiles: string[]): PatternAnalysisFacts {
+    const missingTilePlaceholder = 'unknown'
+    const fallbackMissingTiles = Array(14).fill(missingTilePlaceholder)
+
     const fallbackVariation: TileMatchResult = {
       variationId: `${patternId}-fallback`,
       patternId: patternId,
@@ -240,9 +243,9 @@ export class PatternAnalysisEngine {
       tilesMatched: 0,
       tilesNeeded: 14,
       completionRatio: 0,
-      missingTiles: [],
+      missingTiles: fallbackMissingTiles,
       tileContributions: [],
-      patternTiles: Array(14).fill('1B') // Safe default tiles
+      patternTiles: fallbackMissingTiles
     }
 
     return {
@@ -262,9 +265,18 @@ export class PatternAnalysisEngine {
         jokersToComplete: 14
       },
       tileAvailability: {
-        missingTileCounts: [],
+        missingTileCounts: [
+          {
+            tileId: missingTilePlaceholder,
+            inWall: 0,
+            inDiscards: 0,
+            exposedByOthers: 0,
+            totalOriginal: this.getOriginalTileCount(missingTilePlaceholder),
+            remainingAvailable: 0
+          }
+        ],
         totalMissingInWall: 0,
-        totalMissingNeeded: 14,
+        totalMissingNeeded: fallbackMissingTiles.length,
         availabilityRatio: 0
       },
       progressMetrics: {
