@@ -66,23 +66,7 @@ export const useGestureConflictAvoidance = (): UseGestureConflictAvoidance => {
     })
   }, [])
 
-  // Update allowed gestures based on current state
-  const updateAllowedGestures = useCallback(() => {
-    const allowedGestures = new Set<string>()
-
-    for (const [gestureId, registration] of registeredGesturesRef.current) {
-      if (registration.isActive || canActivateGesture(gestureId)) {
-        allowedGestures.add(gestureId)
-      }
-    }
-
-    setConflictState(prev => ({
-      ...prev,
-      allowedGestures
-    }))
-  }, [canActivateGesture])
-
-  // Define canActivateGesture before it's used
+  // Define canActivateGesture before updateAllowedGestures to avoid circular dependency
   const canActivateGesture = useCallback((
     gestureId: string,
     position?: { x: number; y: number }
@@ -112,6 +96,22 @@ export const useGestureConflictAvoidance = (): UseGestureConflictAvoidance => {
 
     return true
   }, [isInConflictZone])
+
+  // Update allowed gestures based on current state
+  const updateAllowedGestures = useCallback(() => {
+    const allowedGestures = new Set<string>()
+
+    for (const [gestureId, registration] of registeredGesturesRef.current) {
+      if (registration.isActive || canActivateGesture(gestureId)) {
+        allowedGestures.add(gestureId)
+      }
+    }
+
+    setConflictState(prev => ({
+      ...prev,
+      allowedGestures
+    }))
+  }, [canActivateGesture])
 
   // Check if position is in a conflict zone
   const isInConflictZone = useCallback((position: { x: number; y: number }): boolean => {

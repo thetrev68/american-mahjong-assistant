@@ -261,41 +261,7 @@ export const useErrorRecovery = (
     }
   }, [config, calculateRetryDelay])
 
-  // Report an error and initiate recovery
-  const reportError = useCallback((error: Error, context?: Record<string, unknown>) => {
-    const errorType = classifyError(error)
-    const recoveryStrategy = getRecoveryStrategy(errorType)
-    const errorId = generateErrorId()
-
-    console.error('[ErrorRecovery] Error reported:', {
-      error: error.message,
-      errorType,
-      recoveryStrategy,
-      errorId,
-      context
-    })
-
-    setErrorState(prev => ({
-      ...prev,
-      hasError: true,
-      error,
-      errorType,
-      errorId,
-      recoveryStrategy,
-      lastAttemptTime: Date.now(),
-      canRetry: prev.retryCount < config.maxRetries
-    }))
-
-    // Auto-retry if enabled and strategy supports it
-    if (config.autoRetry && ['retry', 'retry_with_delay', 'retry_with_backoff'].includes(recoveryStrategy)) {
-      // Delay auto-retry to prevent immediate retry loops
-      retryTimeoutRef.current = window.setTimeout(() => {
-        recover({ type: 'retry' })
-      }, 100)
-    }
-  }, [config, getRecoveryStrategy, recover])
-
-  // Recover from error
+  // Recover from error - defined before reportError to avoid circular dependency
   const recover = useCallback(async (action?: RecoveryAction): Promise<boolean> => {
     if (!errorState.hasError) return true
 
@@ -356,6 +322,40 @@ export const useErrorRecovery = (
       return false
     }
   }, [errorState, config, shouldEnterDegradedMode, shouldEnterOfflineMode, executeRecoveryStrategy])
+
+  // Report an error and initiate recovery
+  const reportError = useCallback((error: Error, context?: Record<string, unknown>) => {
+    const errorType = classifyError(error)
+    const recoveryStrategy = getRecoveryStrategy(errorType)
+    const errorId = generateErrorId()
+
+    console.error('[ErrorRecovery] Error reported:', {
+      error: error.message,
+      errorType,
+      recoveryStrategy,
+      errorId,
+      context
+    })
+
+    setErrorState(prev => ({
+      ...prev,
+      hasError: true,
+      error,
+      errorType,
+      errorId,
+      recoveryStrategy,
+      lastAttemptTime: Date.now(),
+      canRetry: prev.retryCount < config.maxRetries
+    }))
+
+    // Auto-retry if enabled and strategy supports it
+    if (config.autoRetry && ['retry', 'retry_with_delay', 'retry_with_backoff'].includes(recoveryStrategy)) {
+      // Delay auto-retry to prevent immediate retry loops
+      retryTimeoutRef.current = window.setTimeout(() => {
+        recover({ type: 'retry' })
+      }, 100)
+    }
+  }, [config, getRecoveryStrategy, recover])
 
   // Clear error state
   const clearError = useCallback(() => {

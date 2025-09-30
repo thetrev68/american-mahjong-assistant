@@ -327,6 +327,26 @@ export const useMemoryOptimization = (
     return entry.value as T
   }, [])
 
+  // Cache cleanup (LRU + size-based) - defined before setCacheItem to avoid circular dependency
+  const cleanupCache = useCallback(() => {
+    const cache = cacheRef.current
+    const entries = Array.from(cache.entries())
+
+    // Sort by last accessed time (LRU)
+    entries.sort((a, b) => a[1].lastAccessed - b[1].lastAccessed)
+
+    // Remove oldest entries to get under limit
+    const targetSize = Math.floor(finalConfig.maxCacheSize * 0.8)
+    const toRemove = entries.length - targetSize
+
+    if (toRemove > 0) {
+      entries.slice(0, toRemove).forEach(([key]) => {
+        cache.delete(key)
+      })
+      console.log(`[MemoryOptimization] Cleaned up ${toRemove} cache entries`)
+    }
+  }, [finalConfig.maxCacheSize])
+
   const setCacheItem = useCallback(<T>(key: string, value: T, ttl?: number): void => {
     const entry: CacheEntry<T> = {
       value,
@@ -356,26 +376,6 @@ export const useMemoryOptimization = (
     cacheRef.current.clear()
     console.log(`[MemoryOptimization] Cleared cache (${oldSize} items)`)
   }, [])
-
-  // Cache cleanup (LRU + size-based)
-  const cleanupCache = useCallback(() => {
-    const cache = cacheRef.current
-    const entries = Array.from(cache.entries())
-
-    // Sort by last accessed time (LRU)
-    entries.sort((a, b) => a[1].lastAccessed - b[1].lastAccessed)
-
-    // Remove oldest entries to get under limit
-    const targetSize = Math.floor(finalConfig.maxCacheSize * 0.8)
-    const toRemove = entries.length - targetSize
-
-    if (toRemove > 0) {
-      entries.slice(0, toRemove).forEach(([key]) => {
-        cache.delete(key)
-      })
-      console.log(`[MemoryOptimization] Cleaned up ${toRemove} cache entries`)
-    }
-  }, [finalConfig.maxCacheSize])
 
   // Object pooling (reserved for future use)
   // const getPooledObject = useCallback(<T>(poolName: string, factory: () => T): T => {

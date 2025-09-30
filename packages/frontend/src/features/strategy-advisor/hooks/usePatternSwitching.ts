@@ -72,6 +72,25 @@ export const usePatternSwitching = ({
     lastAnalysisTimestampRef.current = currentAnalysisTimestamp
   }
 
+  // Check if pattern switch is feasible - defined before switchToPattern to avoid circular dependency
+  const canSwitchToPattern = useCallback((patternId: string): boolean => {
+    const targetPattern = availablePatterns.find(p => p.id === patternId)
+    if (!targetPattern) return false
+
+    // Don't allow switching to dead patterns in high urgency
+    if (urgencyLevel === 'critical' && targetPattern.priorityInfo.priority === 'dead') {
+      return false
+    }
+
+    // Don't allow switching to very risky patterns in emergency
+    if (urgencyLevel === 'critical' && targetPattern.priorityInfo.priority === 'risky') {
+      return false
+    }
+
+    // Allow all other switches
+    return true
+  }, [availablePatterns, urgencyLevel])
+
   // Core pattern switching logic
   const switchToPattern = useCallback(async (patternId: string): Promise<void> => {
     if (isLoading || patternId === selectedPatternId) {
@@ -241,25 +260,6 @@ export const usePatternSwitching = ({
 
     await switchToPattern(previewData.toPattern.id)
   }, [previewData, switchToPattern])
-
-  // Check if pattern switch is feasible
-  const canSwitchToPattern = useCallback((patternId: string): boolean => {
-    const targetPattern = availablePatterns.find(p => p.id === patternId)
-    if (!targetPattern) return false
-
-    // Don't allow switching to dead patterns in high urgency
-    if (urgencyLevel === 'critical' && targetPattern.priorityInfo.priority === 'dead') {
-      return false
-    }
-
-    // Don't allow switching to very risky patterns in emergency
-    if (urgencyLevel === 'critical' && targetPattern.priorityInfo.priority === 'risky') {
-      return false
-    }
-
-    // Allow all other switches
-    return true
-  }, [availablePatterns, urgencyLevel])
 
   // Get best pattern recommendation
   const getBestPatternRecommendation = useCallback((): string | null => {
