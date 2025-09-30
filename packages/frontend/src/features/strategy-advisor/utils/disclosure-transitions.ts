@@ -7,6 +7,29 @@ import type {
   UrgencyLevel
 } from '../types/strategy-advisor.types'
 
+// Animation state type with optional filter property
+interface AnimationState {
+  transform: string
+  opacity: number
+  filter?: string
+}
+
+// Animation definition with all states
+interface AnimationDefinition {
+  initial: AnimationState
+  animate: AnimationState
+  exit: AnimationState
+}
+
+// Navigator with connection property (for browser compatibility)
+interface ExtendedNavigator extends Navigator {
+  connection?: {
+    effectiveType?: string
+    downlink?: number
+    rtt?: number
+  }
+}
+
 // Easing functions optimized for 60fps performance
 export const easingFunctions = {
   // Smooth spring-like easing for organic feel
@@ -151,7 +174,7 @@ export const getStaggeredDelay = (
 // Performance-optimized transform animations
 export const transformAnimations = {
   // Slide animations for level transitions
-  slideDown: (distance: number = 20) => ({
+  slideDown: (distance: number = 20): AnimationDefinition => ({
     initial: {
       transform: `translateY(-${distance}px)`,
       opacity: 0
@@ -166,7 +189,7 @@ export const transformAnimations = {
     }
   }),
 
-  slideUp: (distance: number = 20) => ({
+  slideUp: (distance: number = 20): AnimationDefinition => ({
     initial: {
       transform: `translateY(${distance}px)`,
       opacity: 0
@@ -182,7 +205,7 @@ export const transformAnimations = {
   }),
 
   // Scale animations for emphasis
-  scaleIn: (scale: number = 0.95) => ({
+  scaleIn: (scale: number = 0.95): AnimationDefinition => ({
     initial: {
       transform: `scale(${scale})`,
       opacity: 0
@@ -198,7 +221,7 @@ export const transformAnimations = {
   }),
 
   // Fade with subtle scale for advanced content
-  fadeScale: (scale: number = 0.98) => ({
+  fadeScale: (scale: number = 0.98): AnimationDefinition => ({
     initial: {
       transform: `scale(${scale})`,
       opacity: 0,
@@ -220,7 +243,7 @@ export const transformAnimations = {
 // Generate CSS animation keyframes
 export const generateKeyframes = (
   name: string,
-  animation: ReturnType<typeof transformAnimations.slideDown>
+  animation: AnimationDefinition
 ): string => {
   const { initial, animate } = animation
 
@@ -369,7 +392,8 @@ export const performanceMonitor = {
   optimizeForDevice: (transition: DisclosureTransition): DisclosureTransition => {
     // Check if device can handle smooth animations
     const isHighPerformanceDevice = navigator.hardwareConcurrency >= 4
-    const hasGoodConnection = navigator.connection?.effectiveType === '4g'
+    const extendedNavigator = navigator as ExtendedNavigator
+    const hasGoodConnection = extendedNavigator.connection?.effectiveType === '4g'
 
     if (!isHighPerformanceDevice || !hasGoodConnection) {
       return {

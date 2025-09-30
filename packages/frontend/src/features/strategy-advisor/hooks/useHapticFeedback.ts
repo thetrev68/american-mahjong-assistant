@@ -2,7 +2,16 @@
 // Provides consistent haptic feedback across mobile devices and browsers
 
 import { useState, useCallback, useEffect, useRef } from 'react'
-import type { HapticPattern, UseHapticFeedback } from '../types/strategy-advisor.types'
+import type {
+  HapticPattern,
+  UseHapticFeedback,
+  GestureType,
+  PullToRefreshAction,
+  LongPressAction,
+  PatternSwipeAction,
+  TileInteractionAction,
+  GestureConflictAction
+} from '../types/strategy-advisor.types'
 
 // Extended window interface for haptic feedback capabilities
 interface WindowWithHaptics extends Window {
@@ -76,9 +85,6 @@ const GESTURE_HAPTIC_PATTERNS = {
   }
 } as const
 
-type GestureType = keyof typeof GESTURE_HAPTIC_PATTERNS
-type GestureAction = keyof typeof GESTURE_HAPTIC_PATTERNS[GestureType]
-
 // Haptic feedback duration mapping (in milliseconds)
 const HAPTIC_DURATIONS: Record<HapticPattern, number> = {
   light: 10,
@@ -126,27 +132,7 @@ export const useHapticFeedback = (): UseHapticFeedback => {
     localStorage.setItem('haptic-feedback-enabled', JSON.stringify(isEnabled))
   }, [isEnabled])
 
-  // Process feedback queue to prevent overlapping haptics
-  const processQueue = useCallback(async () => {
-    if (isProcessingQueueRef.current || feedbackQueueRef.current.length === 0) {
-      return
-    }
-
-    isProcessingQueueRef.current = true
-
-    while (feedbackQueueRef.current.length > 0) {
-      const pattern = feedbackQueueRef.current.shift()
-      if (pattern) {
-        await performHapticFeedback(pattern)
-        // Small delay between haptic events
-        await new Promise(resolve => setTimeout(resolve, 50))
-      }
-    }
-
-    isProcessingQueueRef.current = false
-  }, [performHapticFeedback])
-
-  // Core haptic feedback implementation
+  // Core haptic feedback implementation (declare before processQueue to avoid circular dependency)
   const performHapticFeedback = useCallback(async (pattern: HapticPattern): Promise<void> => {
     if (!isEnabled || !isSupported) {
       return
@@ -213,6 +199,26 @@ export const useHapticFeedback = (): UseHapticFeedback => {
     }
   }, [isEnabled, isSupported])
 
+  // Process feedback queue to prevent overlapping haptics
+  const processQueue = useCallback(async () => {
+    if (isProcessingQueueRef.current || feedbackQueueRef.current.length === 0) {
+      return
+    }
+
+    isProcessingQueueRef.current = true
+
+    while (feedbackQueueRef.current.length > 0) {
+      const pattern = feedbackQueueRef.current.shift()
+      if (pattern) {
+        await performHapticFeedback(pattern)
+        // Small delay between haptic events
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
+    }
+
+    isProcessingQueueRef.current = false
+  }, [performHapticFeedback])
+
   // Main trigger function with queuing support
   const triggerFeedback = useCallback((pattern: HapticPattern) => {
     if (!isEnabled || !isSupported) {
@@ -268,7 +274,7 @@ export const useHapticFeedback = (): UseHapticFeedback => {
       return
     }
 
-    const pattern = gesturePatterns[action as GestureAction]
+    const pattern = gesturePatterns[action as keyof typeof gesturePatterns]
     if (!pattern) {
       console.warn(`Unknown action '${action}' for gesture type '${gestureType}'`)
       return
@@ -278,23 +284,23 @@ export const useHapticFeedback = (): UseHapticFeedback => {
   }, [triggerFeedback])
 
   // Convenient gesture-specific methods
-  const triggerPullToRefreshFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['pull-to-refresh']) => {
+  const triggerPullToRefreshFeedback = useCallback((action: PullToRefreshAction) => {
     triggerGestureFeedback('pull-to-refresh', action)
   }, [triggerGestureFeedback])
 
-  const triggerLongPressFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['long-press']) => {
+  const triggerLongPressFeedback = useCallback((action: LongPressAction) => {
     triggerGestureFeedback('long-press', action)
   }, [triggerGestureFeedback])
 
-  const triggerPatternSwipeFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['pattern-swipe']) => {
+  const triggerPatternSwipeFeedback = useCallback((action: PatternSwipeAction) => {
     triggerGestureFeedback('pattern-swipe', action)
   }, [triggerGestureFeedback])
 
-  const triggerTileInteractionFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['tile-interaction']) => {
+  const triggerTileInteractionFeedback = useCallback((action: TileInteractionAction) => {
     triggerGestureFeedback('tile-interaction', action)
   }, [triggerGestureFeedback])
 
-  const triggerGestureConflictFeedback = useCallback((action: keyof typeof GESTURE_HAPTIC_PATTERNS['gesture-conflict']) => {
+  const triggerGestureConflictFeedback = useCallback((action: GestureConflictAction) => {
     triggerGestureFeedback('gesture-conflict', action)
   }, [triggerGestureFeedback])
 

@@ -114,6 +114,64 @@ export const useCarouselSwipe = ({
   const maxIndex = patterns.length - 1
   const minIndex = 0
 
+  // Phase 4: Enhanced navigation functions with better haptic feedback
+  const goToPattern = useCallback((index: number) => {
+    if (index === currentIndex || isAnimating || index < 0 || index > maxIndex) {
+      return
+    }
+
+    setIsAnimating(true)
+
+    // Calculate animation duration based on distance
+    const distance = Math.abs(index - currentIndex)
+    const duration = calculateAnimationDuration(distance * cardWidth, 0)
+
+    // Phase 4: Enhanced haptic feedback for pattern navigation
+    if (enableHapticFeedback && hapticSupported) {
+      triggerPatternSwipeFeedback('snap')
+    }
+
+    // Update index immediately for responsive UI
+    setCurrentIndex(index)
+    onPatternChange?.(index, patterns[index])
+
+    // End animation after duration
+    setTimeout(() => {
+      setIsAnimating(false)
+    }, duration)
+  }, [
+    currentIndex,
+    isAnimating,
+    maxIndex,
+    cardWidth,
+    enableHapticFeedback,
+    hapticSupported,
+    triggerPatternSwipeFeedback,
+    onPatternChange,
+    patterns
+  ])
+
+  const snapToCurrentPosition = useCallback(() => {
+    setIsAnimating(true)
+
+    // Brief animation to snap back
+    setTimeout(() => {
+      setIsAnimating(false)
+    }, ANIMATION_CONFIG.TRANSITION_DURATION)
+  }, [])
+
+  const nextPattern = useCallback(() => {
+    if (currentIndex < maxIndex) {
+      goToPattern(currentIndex + 1)
+    }
+  }, [currentIndex, maxIndex, goToPattern])
+
+  const previousPattern = useCallback(() => {
+    if (currentIndex > minIndex) {
+      goToPattern(currentIndex - 1)
+    }
+  }, [currentIndex, minIndex, goToPattern])
+
   // Phase 4: Performance-optimized velocity update
   const updateVelocity = useCallback((currentX: number, timestamp: number) => {
     const timeDelta = timestamp - lastTimeRef.current
@@ -226,7 +284,7 @@ export const useCarouselSwipe = ({
         altKey: false,
         metaKey: false,
         detail: 0,
-        view: window,
+        view: window as any,
         which: 1,
         pageX: touch.pageX,
         pageY: touch.pageY,
@@ -235,8 +293,11 @@ export const useCarouselSwipe = ({
         movementX: 0,
         movementY: 0,
         relatedTarget: null,
-        getModifierState: () => false
-      } as React.PointerEvent
+        getModifierState: () => false,
+        isDefaultPrevented: () => event.defaultPrevented,
+        isPropagationStopped: () => false,
+        persist: () => {}
+      } as unknown as React.PointerEvent
       longPress.onPointerDown(pointerEvent)
     }
 
@@ -295,7 +356,7 @@ export const useCarouselSwipe = ({
         altKey: false,
         metaKey: false,
         detail: 0,
-        view: window,
+        view: window as any,
         which: 1,
         pageX: touch.pageX,
         pageY: touch.pageY,
@@ -304,8 +365,11 @@ export const useCarouselSwipe = ({
         movementX: 0,
         movementY: 0,
         relatedTarget: null,
-        getModifierState: () => false
-      } as React.PointerEvent
+        getModifierState: () => false,
+        isDefaultPrevented: () => event.defaultPrevented,
+        isPropagationStopped: () => false,
+        persist: () => {}
+      } as unknown as React.PointerEvent
       longPress.onPointerMove(pointerEvent)
     }
 
@@ -352,7 +416,7 @@ export const useCarouselSwipe = ({
         altKey: false,
         metaKey: false,
         detail: 0,
-        view: window,
+        view: window as any,
         which: 1,
         pageX: touch.pageX,
         pageY: touch.pageY,
@@ -361,8 +425,11 @@ export const useCarouselSwipe = ({
         movementX: 0,
         movementY: 0,
         relatedTarget: null,
-        getModifierState: () => false
-      } as React.PointerEvent
+        getModifierState: () => false,
+        isDefaultPrevented: () => event.defaultPrevented,
+        isPropagationStopped: () => false,
+        persist: () => {}
+      } as unknown as React.PointerEvent
       longPress.onPointerUp(pointerEvent)
     }
 
@@ -520,64 +587,6 @@ export const useCarouselSwipe = ({
         break
     }
   }, [patterns.length, maxIndex, goToPattern, nextPattern, previousPattern])
-
-  // Phase 4: Enhanced navigation functions with better haptic feedback
-  const goToPattern = useCallback((index: number) => {
-    if (index === currentIndex || isAnimating || index < 0 || index > maxIndex) {
-      return
-    }
-
-    setIsAnimating(true)
-
-    // Calculate animation duration based on distance
-    const distance = Math.abs(index - currentIndex)
-    const duration = calculateAnimationDuration(distance * cardWidth, 0)
-
-    // Phase 4: Enhanced haptic feedback for pattern navigation
-    if (enableHapticFeedback && hapticSupported) {
-      triggerPatternSwipeFeedback('snap')
-    }
-
-    // Update index immediately for responsive UI
-    setCurrentIndex(index)
-    onPatternChange?.(index, patterns[index])
-
-    // End animation after duration
-    setTimeout(() => {
-      setIsAnimating(false)
-    }, duration)
-  }, [
-    currentIndex,
-    isAnimating,
-    maxIndex,
-    cardWidth,
-    enableHapticFeedback,
-    hapticSupported,
-    triggerPatternSwipeFeedback,
-    onPatternChange,
-    patterns
-  ])
-
-  const snapToCurrentPosition = useCallback(() => {
-    setIsAnimating(true)
-
-    // Brief animation to snap back
-    setTimeout(() => {
-      setIsAnimating(false)
-    }, ANIMATION_CONFIG.TRANSITION_DURATION)
-  }, [])
-
-  const nextPattern = useCallback(() => {
-    if (currentIndex < maxIndex) {
-      goToPattern(currentIndex + 1)
-    }
-  }, [currentIndex, maxIndex, goToPattern])
-
-  const previousPattern = useCallback(() => {
-    if (currentIndex > minIndex) {
-      goToPattern(currentIndex - 1)
-    }
-  }, [currentIndex, minIndex, goToPattern])
 
   // Carousel state - defined after navigation functions to avoid circular deps
   const carouselState: CarouselState = useMemo(() => ({

@@ -407,6 +407,16 @@ export interface UsePatternSwitching {
   getBestPatternRecommendation: () => string | null
 }
 
+// Gesture types for haptic feedback
+export type GestureType = 'pull-to-refresh' | 'long-press' | 'pattern-swipe' | 'tile-interaction' | 'gesture-conflict'
+
+// Gesture action types
+export type PullToRefreshAction = 'start' | 'progress' | 'ready' | 'trigger' | 'success' | 'cancel'
+export type LongPressAction = 'start' | 'hint' | 'details' | 'complete' | 'cancel'
+export type PatternSwipeAction = 'start' | 'navigate' | 'snap' | 'edge' | 'switch'
+export type TileInteractionAction = 'select' | 'deselect' | 'drag' | 'drop' | 'invalid' | 'conflict'
+export type GestureConflictAction = 'blocked' | 'resolved' | 'priority'
+
 // Haptic feedback hook return interface
 export interface UseHapticFeedback {
   // Capability detection
@@ -421,6 +431,14 @@ export interface UseHapticFeedback {
   triggerWarningFeedback: () => void
   triggerErrorFeedback: () => void
   triggerSelectionFeedback: () => void
+
+  // Gesture-specific feedback methods
+  triggerGestureFeedback: (gestureType: GestureType, action: string) => void
+  triggerPullToRefreshFeedback: (action: PullToRefreshAction) => void
+  triggerLongPressFeedback: (action: LongPressAction) => void
+  triggerPatternSwipeFeedback: (action: PatternSwipeAction) => void
+  triggerTileInteractionFeedback: (action: TileInteractionAction) => void
+  triggerGestureConflictFeedback: (action: GestureConflictAction) => void
 
   // Settings
   isEnabled: boolean

@@ -87,7 +87,7 @@ export const getModeMessageFilter = (
       // Prioritize defensive and blocking messages
       filtered = filtered.filter(msg =>
         msg.category === 'defensive' ||
-        msg.category === 'warning'
+        msg.type === 'warning'
       )
       break
 
@@ -95,7 +95,7 @@ export const getModeMessageFilter = (
       // Prioritize complex pattern and strategic messages
       filtered = filtered.filter(msg =>
         msg.category === 'pattern-switch' ||
-        msg.category === 'insight' ||
+        msg.type === 'insight' ||
         msg.category === 'opportunity'
       )
       break
@@ -120,7 +120,7 @@ export const generateModeDisclosureContent = (
   // Base content that all modes share
   const baseGlance = {
     title: primaryPattern?.pattern.displayName || 'Continue current strategy',
-    message: getGlanceMessage(mode, intelligenceData, gameContext),
+    message: getGlanceMessage(mode, intelligenceData, _gameContext),
     confidence: primaryPattern?.confidence || intelligenceData.overallScore,
     emoji: getModeEmoji(mode)
   }
@@ -128,17 +128,17 @@ export const generateModeDisclosureContent = (
   // Generate mode-specific content
   switch (mode) {
     case 'quickWin':
-      return generateQuickWinContent(baseGlance, intelligenceData, gameContext)
+      return generateQuickWinContent(baseGlance, intelligenceData, _gameContext)
 
     case 'defensive':
-      return generateDefensiveContent(baseGlance, intelligenceData, gameContext)
+      return generateDefensiveContent(baseGlance, intelligenceData, _gameContext)
 
     case 'highScore':
-      return generateHighScoreContent(baseGlance, intelligenceData, gameContext)
+      return generateHighScoreContent(baseGlance, intelligenceData, _gameContext)
 
     case 'flexible':
     default:
-      return generateFlexibleContent(baseGlance, intelligenceData, gameContext)
+      return generateFlexibleContent(baseGlance, intelligenceData, _gameContext)
   }
 }
 
@@ -223,7 +223,7 @@ const generateQuickWinContent = (
           riskLevel: 'low'
         }
       ],
-      wallDepletionRisk: gameContext.wallTilesRemaining < 40 ? 'High - Act quickly' : 'Moderate'
+      wallDepletionRisk: _gameContext.wallTilesRemaining < 40 ? 'High - Act quickly' : 'Moderate'
     }
   }
 }
@@ -471,13 +471,13 @@ export const suggestOptimalMode = (
   }
 
   // Late game considerations
-  if (gameContext.gamePhase === 'endgame' || gameContext.wallTilesRemaining < 30) {
+  if (_gameContext.gamePhase === 'endgame' || _gameContext.wallTilesRemaining < 30) {
     const completionPercentage = intelligenceData.recommendedPatterns[0]?.completionPercentage || 0
     return completionPercentage > 70 ? 'quickWin' : 'defensive'
   }
 
   // Early game with good patterns
-  if (gameContext.gamePhase === 'charleston' || gameContext.turnsRemaining > 15) {
+  if (_gameContext.gamePhase === 'charleston' || _gameContext.turnsRemaining > 15) {
     const hasComplexPatterns = intelligenceData.recommendedPatterns.some(p => p.difficulty === 'hard')
     return hasComplexPatterns ? 'highScore' : 'flexible'
   }

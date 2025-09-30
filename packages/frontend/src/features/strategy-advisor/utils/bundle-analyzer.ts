@@ -546,7 +546,7 @@ class BundleAnalyzer {
 
 // React Hook for bundle analysis
 export const useBundleAnalysis = (config: Partial<BundleConfig> = {}) => {
-  const analyzerRef = useRef<BundleAnalyzer>()
+  const analyzerRef = useRef<BundleAnalyzer | null>(null)
   const [analysis, setAnalysis] = useState<BundleAnalysis | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 

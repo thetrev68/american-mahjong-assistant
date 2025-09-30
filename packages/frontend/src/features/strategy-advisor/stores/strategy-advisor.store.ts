@@ -4,7 +4,19 @@
 import { create } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { devtools } from 'zustand/middleware'
-import type { StrategyAdvisorTypes } from '../types/strategy-advisor.types'
+import type {
+  UrgencyLevel,
+  GuidanceCategory,
+  StrategyMessage,
+  GlanceModeConfig,
+  StrategyAdvisorState,
+  DisclosureLevel,
+  StrategyMode,
+  DisclosureState,
+  StrategyModeState,
+  DisclosureConfig,
+  StrategyModeConfig
+} from '../types/strategy-advisor.types'
 
 // Type extension for window to avoid any usage
 declare global {
@@ -12,16 +24,9 @@ declare global {
     __strategyAdvisorAutoCollapseTimer?: NodeJS.Timeout
   }
 }
-import type {
-  DisclosureLevel,
-  StrategyMode,
-  DisclosureState,
-  StrategyModeState,
-  DisclosureConfig
-} from '../types/strategy-advisor.types'
 
 // Default configuration for Glance Mode
-const DEFAULT_CONFIG: StrategyAdvisorTypes.GlanceModeConfig = {
+const DEFAULT_CONFIG: GlanceModeConfig = {
   showConfidence: true,
   showDetails: false,
   autoRefresh: true,
@@ -61,7 +66,7 @@ const DEFAULT_STRATEGY_MODE_STATE: StrategyModeState = {
 }
 
 // Extended state interface with disclosure and strategy mode state
-interface ExtendedStrategyAdvisorState extends StrategyAdvisorTypes.StrategyAdvisorState {
+interface ExtendedStrategyAdvisorState extends StrategyAdvisorState {
   // Progressive disclosure state
   disclosureState: DisclosureState
   disclosureConfig: DisclosureConfig
@@ -79,7 +84,7 @@ interface ExtendedStrategyAdvisorState extends StrategyAdvisorTypes.StrategyAdvi
 
   // Strategy mode actions
   setStrategyMode: (mode: StrategyMode) => void
-  setCustomStrategyConfig: (config: Partial<StrategyAdvisorTypes.GlanceModeConfig>) => void
+  setCustomStrategyConfig: (config: Partial<StrategyModeConfig>) => void
   clearCustomStrategyConfig: () => void
   addModeToHistory: (mode: StrategyMode) => void
 }
@@ -105,7 +110,7 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
         strategyModeState: DEFAULT_STRATEGY_MODE_STATE,
 
         // Core Actions
-        addMessage: (message: StrategyAdvisorTypes.StrategyMessage) => {
+        addMessage: (message: StrategyMessage) => {
           set((state) => {
             const updatedMessages = [...state.currentMessages, message]
 
@@ -144,7 +149,7 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
           set({ expandedMessageId: messageId })
         },
 
-        updateConfig: (configUpdate: Partial<StrategyAdvisorTypes.GlanceModeConfig>) => {
+        updateConfig: (configUpdate: Partial<GlanceModeConfig>) => {
           set((state) => ({
             config: { ...state.config, ...configUpdate }
           }))
@@ -169,12 +174,12 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
         },
 
         // Getters
-        getMessagesByUrgency: (urgency: StrategyAdvisorTypes.UrgencyLevel) => {
+        getMessagesByUrgency: (urgency: UrgencyLevel) => {
           const { currentMessages } = get()
           return currentMessages.filter(msg => msg.urgency === urgency)
         },
 
-        getMessagesByCategory: (category: StrategyAdvisorTypes.GuidanceCategory) => {
+        getMessagesByCategory: (category: GuidanceCategory) => {
           const { currentMessages } = get()
           return currentMessages.filter(msg => msg.category === category)
         },
@@ -186,7 +191,7 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
 
           // Sort by urgency priority if configured
           if (config.prioritizeUrgent) {
-            const urgencyOrder: Record<StrategyAdvisorTypes.UrgencyLevel, number> = {
+            const urgencyOrder: Record<UrgencyLevel, number> = {
               'critical': 4,
               'high': 3,
               'medium': 2,
@@ -347,7 +352,7 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
           })
         },
 
-        setCustomStrategyConfig: (config: Partial<StrategyAdvisorTypes.GlanceModeConfig>) => {
+        setCustomStrategyConfig: (config: Partial<StrategyModeConfig>) => {
           set((state) => ({
             strategyModeState: {
               ...state.strategyModeState,
@@ -381,7 +386,7 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
     ),
     {
       name: 'strategy-advisor-store',
-      partialize: (state) => ({
+      partialize: (state: ExtendedStrategyAdvisorState) => ({
         // Persist configuration and disclosure preferences
         config: state.config,
         isActive: state.isActive,
@@ -464,7 +469,7 @@ export const strategyAdvisorSelectors = {
 // Action creators for common operations
 export const strategyAdvisorActions = {
   // Bulk replace all messages (for complete refresh)
-  replaceAllMessages: (messages: StrategyAdvisorTypes.StrategyMessage[]) => {
+  replaceAllMessages: (messages: StrategyMessage[]) => {
     const { clearMessages, addMessage, config } = useStrategyAdvisorStore.getState()
 
     clearMessages()
@@ -478,7 +483,7 @@ export const strategyAdvisorActions = {
   },
 
   // Smart message update (remove duplicates, add new ones)
-  smartUpdateMessages: (newMessages: StrategyAdvisorTypes.StrategyMessage[]) => {
+  smartUpdateMessages: (newMessages: StrategyMessage[]) => {
     const { currentMessages, removeMessage, addMessage } = useStrategyAdvisorStore.getState()
 
     // Remove messages that are no longer relevant (same category but different content)
@@ -501,7 +506,7 @@ export const strategyAdvisorActions = {
   },
 
   // Dismiss messages by category
-  dismissCategory: (category: StrategyAdvisorTypes.GuidanceCategory) => {
+  dismissCategory: (category: GuidanceCategory) => {
     const { currentMessages, removeMessage } = useStrategyAdvisorStore.getState()
 
     currentMessages

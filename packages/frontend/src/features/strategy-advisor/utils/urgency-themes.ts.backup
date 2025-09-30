@@ -416,4 +416,11 @@ export const URGENCY_THEME_CONSTANTS = {
 } as const
 
 // Export types
-// Note: Types are already exported inline above with their interface definitions
+export type {
+  UrgencyColorScheme,
+  UrgencyAnimationConfig,
+  UrgencyTypographyConfig,
+  UrgencyLayoutConfig,
+  UrgencyTheme,
+  MessageContent
+}
