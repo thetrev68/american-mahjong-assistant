@@ -514,6 +514,7 @@ export const useMemoryOptimization = (
   }, [runCleanup, clearCache])
 
   // Auto-add common cleanup tasks - run only once on mount to prevent infinite loop
+  // Empty dependency array ensures this only runs once on mount/unmount
   useEffect(() => {
     const cacheCleanupId = addCleanupTask({
       cleanup: cleanupCache,
@@ -525,6 +526,7 @@ export const useMemoryOptimization = (
     return () => {
       removeCleanupTask(cacheCleanupId)
     }
+    // Functions are stable via closure, empty array prevents infinite loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 

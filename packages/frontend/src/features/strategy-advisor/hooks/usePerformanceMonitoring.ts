@@ -484,6 +484,8 @@ export const usePerformanceMonitoring = (
       const interval = setInterval(updateMetrics, 1000) // Update every second
       return () => clearInterval(interval)
     }
+    // updateMetrics is intentionally omitted to prevent infinite re-render loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.isMonitoring])
 
   // Cleanup on unmount

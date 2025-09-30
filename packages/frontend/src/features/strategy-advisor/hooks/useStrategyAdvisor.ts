@@ -134,11 +134,13 @@ export const useStrategyAdvisor = (
         actions: []
       }
     }
+    // Only depend on actual data changes, not function references
+    // Functions are stable via closure: getCacheItem, setCacheItem
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     adapter,
     intelligenceStore.currentAnalysis,
     intelligenceStore.isAnalyzing
-    // Removed unstable function dependencies: measureRenderTime, getCacheItem, setCacheItem, addBreadcrumb, reportError
   ])
 
   // Memoized game context
@@ -314,8 +316,10 @@ export const useStrategyAdvisor = (
   ])
 
   // Enhanced cleanup on unmount with memory optimization
+  // Empty dependency array ensures this only runs once on mount/unmount
+  // to prevent infinite re-render cycles from unstable function references
   useEffect(() => {
-    // Add hook lifecycle breadcrumb
+    // Add hook lifecycle breadcrumb on mount only
     addBreadcrumb({
       type: 'user',
       category: 'lifecycle',
@@ -344,7 +348,9 @@ export const useStrategyAdvisor = (
 
       console.log('[useStrategyAdvisor] Hook cleanup completed')
     }
-  }, [addBreadcrumb, optimizeMemory, gamePhase, autoRefresh, urgencyThreshold])
+    // Functions are stable via closure, intentionally empty to run only once
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Performance monitoring effect
   useEffect(() => {

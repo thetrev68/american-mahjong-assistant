@@ -380,7 +380,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   const { startAnimation } = useMicroAnimations()
 
   // Performance monitoring
-  const { metrics, measureRenderTime, isOptimizing } = usePerformanceMonitoring({
+  const { metrics, isOptimizing } = usePerformanceMonitoring({
     componentName: 'GlanceModePanel',
     enableMemoryTracking: true,
     enableRenderTracking: true
@@ -418,16 +418,9 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     updateConfig
   } = strategyHookResult
 
-  // Measure hook performance separately (after hook execution)
-  useEffect(() => {
-    if (strategyHookResult) {
-      measureRenderTime(() => {
-        // Log performance metrics for the hook result
-        console.log('[GlanceModePanel] Strategy Advisor hook result processed')
-        return strategyHookResult
-      }, 'useStrategyAdvisor_result')
-    }
-  }, [strategyHookResult, measureRenderTime])
+  // Removed problematic useEffect that was causing infinite re-renders
+  // The effect ran on every strategyHookResult change (which is every render)
+  // causing the mount/unmount cycle
 
   // Get urgency context for adaptive behavior
   const {
