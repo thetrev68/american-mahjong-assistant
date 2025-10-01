@@ -193,13 +193,26 @@ export class AnalysisEngine {
       console.log('✅ Tile IDs:', tileIds)
 
       // Get all available patterns if none selected
+      console.log('🔄 Getting patterns to analyze...')
       let patternsToAnalyze: PatternSelectionOption[]
       if (selectedPatterns.length > 0) {
         patternsToAnalyze = selectedPatterns
+        console.log('✅ Using', selectedPatterns.length, 'provided patterns')
       } else {
-        patternsToAnalyze = await nmjlService.getSelectionOptions()
+        console.log('🔄 Calling getSelectionOptions...')
+        const result = nmjlService.getSelectionOptions()
+        console.log('🔄 getSelectionOptions returned, type:', typeof result, 'isArray:', Array.isArray(result))
+        // Handle both sync array and async Promise
+        if (Array.isArray(result)) {
+          patternsToAnalyze = result
+          console.log('✅ Got', patternsToAnalyze.length, 'patterns SYNCHRONOUSLY')
+        } else {
+          patternsToAnalyze = await result
+          console.log('✅ Got', patternsToAnalyze.length, 'patterns ASYNCHRONOUSLY')
+        }
       }
-      
+
+      console.log('🔄 Creating game context...')
       // Create game context with defaults
       const fullGameContext: GameContext = {
         jokersInHand: tileIds.filter(id => id.includes('joker')).length,
@@ -209,10 +222,11 @@ export class AnalysisEngine {
         currentPhase: gameContext?.currentPhase || 'charleston',
         ...gameContext
       }
-      
+      console.log('✅ Game context created')
+
       // console.error('🔍 ENGINE 1 STARTING - ANALYZING PATTERN FACTS')
       // const engine1Start = performance.now()
-      
+
       // Engine 1: Get mathematical facts for all patterns (with caching)
       console.log('🔄 Extracting pattern IDs...')
       const patternIds = patternsToAnalyze.map(p => p.id)

@@ -169,9 +169,26 @@ class NMJLService {
     return this.patterns.filter(p => p.Hand_Points === points)
   }
 
-  async getSelectionOptions(): Promise<PatternSelectionOption[]> {
-    await this.loadPatterns()
+  getSelectionOptions(): PatternSelectionOption[] | Promise<PatternSelectionOption[]> {
+    console.log('📋 getSelectionOptions called, loaded:', this.loaded)
 
+    // If already loaded, return synchronously (NO PROMISE!)
+    if (this.loaded) {
+      console.log('📋 Patterns cached, returning synchronously')
+      const result = this.mapPatternsToSelectionOptions()
+      console.log('📋 Returning', result.length, 'selection options SYNC')
+      return result  // Return plain array, not wrapped in Promise
+    }
+
+    // Not loaded yet - return Promise
+    console.log('📋 Patterns not loaded, returning Promise')
+    return this.loadPatterns().then(() => {
+      console.log('📋 loadPatterns completed, patterns:', this.patterns.length)
+      return this.mapPatternsToSelectionOptions()
+    })
+  }
+
+  private mapPatternsToSelectionOptions(): PatternSelectionOption[] {
     return this.patterns.map(pattern => ({
       id: pattern.Hands_Key, // Use unique Hands_Key instead of duplicate Pattern ID
       patternId: pattern['Pattern ID'], // Keep original ID for reference

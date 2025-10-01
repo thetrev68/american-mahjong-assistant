@@ -145,7 +145,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           hasTriggeredAnalysisRef.current = false // Reset on error so user can retry
         })
     }
-  }, [gameStore.gamePhase, tileStore.playerHand.length, intelligenceStore.currentAnalysis, intelligenceStore.isAnalyzing, tileStore, intelligenceStore, gameStore])
+  }, [gameStore.gamePhase, tileStore.playerHand.length, intelligenceStore.currentAnalysis, tileStore, intelligenceStore, gameStore])
 
 
   // Get selected patterns properly

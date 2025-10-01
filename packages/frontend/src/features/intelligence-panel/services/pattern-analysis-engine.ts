@@ -124,21 +124,46 @@ export class PatternAnalysisEngine {
     )
 
     try {
-      await PatternVariationLoader.loadVariations()
-    } catch {
+      console.log('🔄 Loading pattern variations...')
+      const loadResult = PatternVariationLoader.loadVariations()
+      console.log('🔄 loadVariations returned:', typeof loadResult)
+      // Handle both sync void and async Promise<void>
+      if (loadResult !== undefined) {
+        console.log('🔄 Awaiting variations promise...')
+        await loadResult
+      } else {
+        console.log('✅ Variations loaded synchronously (void)')
+      }
+      console.log('✅ Pattern variations loaded')
+    } catch (error) {
+      console.error('❌ Pattern variations load failed:', error)
       // If loader fails, return safe fallback for each pattern
       return targetPatternIds.map(patternId => this.createFallbackAnalysis(patternId, validPlayerTiles))
     }
 
     const results: PatternAnalysisFacts[] = []
 
+    console.log('🔄 Starting pattern loop for', targetPatternIds.length, 'patterns...')
+    let processedCount = 0
+
     for (const patternId of targetPatternIds) {
+      processedCount++
+      if (processedCount % 10 === 0) {
+        console.log(`🔄 Processing pattern ${processedCount}/${targetPatternIds.length}...`)
+      }
+
       if (!patternId || typeof patternId !== 'string') {
+        console.log('⚠️ Skipping invalid pattern ID:', patternId)
         continue
       }
 
       try {
-        const variations = await PatternVariationLoader.getPatternVariations(patternId)
+        console.log(`🔄 Getting variations for pattern ${patternId}...`)
+        const variationsResult = PatternVariationLoader.getPatternVariations(patternId)
+        console.log(`🔄 getPatternVariations returned, type: ${typeof variationsResult}, isArray: ${Array.isArray(variationsResult)}`)
+        // Handle both sync array and async Promise
+        const variations = Array.isArray(variationsResult) ? variationsResult : await variationsResult
+        console.log(`✅ Got ${variations.length} variations for pattern ${patternId}`)
 
         // Filter out invalid variations
         const validVariations = this.filterValidVariations(variations)

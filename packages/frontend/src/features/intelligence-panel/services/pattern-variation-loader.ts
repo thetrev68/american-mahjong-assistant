@@ -39,12 +39,23 @@ export class PatternVariationLoader {
    * Load all pattern variations and create indexes
    * Returns cached data after first load
    */
-  static async loadVariations(): Promise<void> {
-    if (this.isLoaded) return
-    if (this.loadPromise) return this.loadPromise
+  static loadVariations(): void | Promise<void> {
+    // If already loaded, return synchronously (no Promise!)
+    if (this.isLoaded) {
+      console.log('📋 Variations already loaded, returning void synchronously')
+      return  // Return void directly, not Promise<void>
+    }
 
+    // If loading in progress, return existing promise
+    if (this.loadPromise) {
+      console.log('📋 Variations loading in progress, returning existing promise')
+      return this.loadPromise
+    }
+
+    // Start new load
+    console.log('📋 Starting new variation load...')
     this.loadPromise = this._performLoad()
-    await this.loadPromise
+    return this.loadPromise
   }
 
   private static async _performLoad(): Promise<void> {
@@ -82,9 +93,16 @@ export class PatternVariationLoader {
   /**
    * Get all variations for a specific pattern
    */
-  static async getPatternVariations(patternId: string): Promise<PatternVariation[]> {
-    await this.loadVariations()
-    return this.index?.byPattern?.[patternId] || []
+  static getPatternVariations(patternId: string): PatternVariation[] | Promise<PatternVariation[]> {
+    // If already loaded, return synchronously
+    if (this.isLoaded) {
+      return this.index?.byPattern?.[patternId] || []
+    }
+
+    // Not loaded yet, load then return
+    return this.loadVariations().then(() => {
+      return this.index?.byPattern?.[patternId] || []
+    }) as Promise<PatternVariation[]>
   }
 
   /**
