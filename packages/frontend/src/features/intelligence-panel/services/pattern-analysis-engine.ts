@@ -126,11 +126,12 @@ export class PatternAnalysisEngine {
     try {
       console.log('🔄 Loading pattern variations...')
       const loadResult = PatternVariationLoader.loadVariations()
-      console.log('🔄 loadVariations returned:', typeof loadResult)
       // Handle both sync void and async Promise<void>
-      if (loadResult !== undefined) {
+      // Check if result is a Promise (thenable) rather than checking for undefined
+      if (loadResult && typeof loadResult.then === 'function') {
         console.log('🔄 Awaiting variations promise...')
         await loadResult
+        console.log('✅ Variations loaded asynchronously')
       } else {
         console.log('✅ Variations loaded synchronously (void)')
       }
