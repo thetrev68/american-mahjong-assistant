@@ -10,7 +10,6 @@ import { useGameStore } from '../../../stores/game-store'
 import { UrgencyIndicator } from './UrgencyIndicator'
 import { DisclosureManager } from './DisclosureManager'
 import { strategyModeService } from '../services/strategy-mode.service'
-import { useStrategyAdvisorStore, strategyAdvisorSelectors } from '../stores/strategy-advisor.store'
 import {
   getUrgencyClasses,
   shouldShowMessage,
@@ -25,7 +24,6 @@ import type {
   GlanceModeConfig,
   GlanceModePanelProps,
   DisclosureContent,
-  DisclosureLevel,
   IntelligenceData,
   GameContext
 } from '../types/strategy-advisor.types'
@@ -394,11 +392,8 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   const currentTurn = useGameStore(state => state.currentTurn)
   const wallTilesRemaining = useGameStore(state => state.wallTilesRemaining)
 
-  // Get disclosure and strategy mode state from store
-  const currentStrategyMode = useStrategyAdvisorStore(strategyAdvisorSelectors.currentStrategyMode)
-  const setDisclosureLevel = useStrategyAdvisorStore(state => state.setDisclosureLevel)
-  const setStrategyMode = useStrategyAdvisorStore(state => state.setStrategyMode)
-  const setAllowedDisclosureLevels = useStrategyAdvisorStore(state => state.setAllowedDisclosureLevels)
+  // Note: Disclosure and strategy mode features removed in simplified design
+  // Using simple message display only
 
   // Respect user motion preferences
   const reduceMotion = prefersReducedMotion()
@@ -416,14 +411,8 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     }
   }, [panelRef, isInitialized, reduceMotion, startAnimation])
 
-  // Adapt disclosure levels based on urgency
-  useEffect(() => {
-    const allowedLevels: DisclosureLevel[] = urgencyLevel === 'critical' ? ['glance'] :
-                         urgencyLevel === 'high' ? ['glance', 'details'] :
-                         ['glance', 'details', 'advanced']
-
-    setAllowedDisclosureLevels(allowedLevels)
-  }, [urgencyLevel, setAllowedDisclosureLevels])
+  // Note: Disclosure level adaptation removed in simplified design
+  // The simplified Strategy Advisor always shows messages at glance level
 
   // Generate disclosure content from intelligence data
   const disclosureContent = useMemo((): DisclosureContent | null => {

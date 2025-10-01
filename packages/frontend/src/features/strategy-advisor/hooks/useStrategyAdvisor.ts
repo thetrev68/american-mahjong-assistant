@@ -2,6 +2,7 @@
 // Converts intelligence analysis to conversational messages with stable references
 
 import { useEffect, useCallback } from 'react'
+import { shallow } from 'zustand/shallow'
 import { useIntelligenceStore } from '../../../stores/intelligence-store'
 import { useStrategyAdvisorStore, strategyAdvisorSelectors } from '../stores/strategy-advisor.store'
 import { generateStrategyMessages } from '../services/message-generator'
@@ -84,9 +85,9 @@ export const useStrategyAdvisor = (): StrategyAdvisorHook => {
     removeMessage(messageId)
   }, [removeMessage])
 
-  // Computed values using selectors (subscribe directly to avoid stale closures)
-  const mostUrgentMessage = useStrategyAdvisorStore(strategyAdvisorSelectors.mostUrgentMessage)
-  const actionableMessages = useStrategyAdvisorStore(strategyAdvisorSelectors.actionableMessages)
+  // Computed values using selectors with shallow comparison to prevent infinite loops
+  const mostUrgentMessage = useStrategyAdvisorStore(strategyAdvisorSelectors.mostUrgentMessage, shallow)
+  const actionableMessages = useStrategyAdvisorStore(strategyAdvisorSelectors.actionableMessages, shallow)
   const hasNewInsights = useStrategyAdvisorStore(strategyAdvisorSelectors.hasNewInsights)
 
   return {
