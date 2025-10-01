@@ -47,10 +47,10 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const { playerHand } = useTileStore()
   const navigate = useNavigate()
 
-  // Strategy Advisor integration - REDESIGNED with simplified architecture
+  // Strategy Advisor integration
   const { expandMessage } = useStrategyAdvisor()
 
-  // Feature flag for Strategy Advisor (enabled - now using simplified design)
+  // Feature flag for Strategy Advisor
   const useStrategyAdvisorInterface = true
 
   // Track the original engine recommendation ID
