@@ -1,7 +1,7 @@
 // Game Mode View - Core gameplay interface with real-time co-pilot assistance
 // Handles draw/discard mechanics, call evaluation, and continuous pattern analysis
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useGameStore } from '../../stores/game-store'
 import { useRoomStore } from '../../stores/room.store'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
@@ -120,36 +120,32 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   }, [currentPlayerId, gameStore.players, tileStore])
 
   // Trigger initial analysis when entering game mode (triggered by clicking "Start Game")
+  const hasTriggeredAnalysisRef = useRef(false)
+
   useEffect(() => {
     const playerHand = tileStore.playerHand
     const hasEnoughTiles = playerHand.length >= 10
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
     const isInGameMode = gameStore.gamePhase === 'playing' || gameStore.gamePhase === 'charleston'
 
-    // Only auto-analyze if we're in game mode AND haven't analyzed yet
-    // This prevents analysis during tile input phase
-    if (isInGameMode && hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing) {
+    // Only auto-analyze if we're in game mode AND haven't analyzed yet AND haven't already triggered
+    if (isInGameMode && hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing && !hasTriggeredAnalysisRef.current) {
+      hasTriggeredAnalysisRef.current = true
       console.log('Starting initial hand analysis with', playerHand.length, 'tiles')
 
-      // Defer analysis slightly to allow UI to render first
-      const timeoutId = setTimeout(() => {
-        console.time('⏱️ Initial hand analysis')
-        intelligenceStore.analyzeHand(playerHand, [])
-          .then(() => {
-            console.timeEnd('⏱️ Initial hand analysis')
-          })
-          .catch(error => {
-            console.timeEnd('⏱️ Initial hand analysis')
-            console.error('Hand analysis failed:', error)
-          })
-      }, 100)
-
-      // Cleanup: cancel analysis if component unmounts or deps change
-      return () => {
-        clearTimeout(timeoutId)
-      }
+      // Call directly without timeout - the ref prevents duplicate calls
+      console.time('⏱️ Initial hand analysis')
+      intelligenceStore.analyzeHand(playerHand, [])
+        .then(() => {
+          console.timeEnd('⏱️ Initial hand analysis')
+        })
+        .catch(error => {
+          console.timeEnd('⏱️ Initial hand analysis')
+          console.error('Hand analysis failed:', error)
+          hasTriggeredAnalysisRef.current = false // Reset on error so user can retry
+        })
     }
-  }, [tileStore.playerHand, gameStore.gamePhase])
+  }, []) // Only run once on mount - all checks happen inside the effect body
 
 
   // Get selected patterns properly

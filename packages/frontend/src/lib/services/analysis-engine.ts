@@ -53,6 +53,7 @@ export class AnalysisEngine {
     patternIds: string[],
     gameContext: GameContext
   ): Promise<PatternAnalysisFacts[]> {
+    console.log('🏭 getEngine1Facts called')
     const cacheKey = this.generateCacheKey(tileIds, patternIds, gameContext)
     const handHash = [...tileIds].sort().join(',')
 
@@ -61,6 +62,7 @@ export class AnalysisEngine {
     const now = Date.now()
 
     if (cached && (now - cached.timestamp) < this.CACHE_TTL_MS) {
+      console.log('✅ Cache hit! Returning cached facts')
       // Cache hit - using cached analysis
       return cached.facts
     }
@@ -68,16 +70,19 @@ export class AnalysisEngine {
     // Check if there's already a pending computation for this key
     const pending = this.pendingPromises.get(cacheKey)
     if (pending) {
+      console.log('⏳ Computation already pending, waiting for it...')
       // Return the existing promise to prevent duplicate computation
       return pending
     }
 
     // Cache miss - computing fresh analysis
+    console.log('🔄 Cache miss, calling PatternAnalysisEngine.analyzePatterns...')
     const computationPromise = PatternAnalysisEngine.analyzePatterns(
       tileIds,
       patternIds,
       gameContext
     ).then(facts => {
+      console.log('✅ PatternAnalysisEngine.analyzePatterns completed with', facts.length, 'facts')
       // Store in cache
       this.engine1Cache.set(cacheKey, {
         facts,
@@ -176,18 +181,31 @@ export class AnalysisEngine {
     gameContext?: Partial<GameContext>,
     isPatternSwitching: boolean = false
   ): Promise<HandAnalysis> {
+    console.log('🎯 AnalysisEngine.analyzeHand called with', playerTiles.length, 'tiles,', selectedPatterns.length, 'patterns')
     // const startTime = performance.now()
-    
+
     // Starting 3-Engine Intelligence System analysis
-    
+
     try {
       // Convert PlayerTile[] to string[] for engine compatibility
+      console.log('🔄 Converting tiles to IDs...')
       const tileIds = playerTiles.map(tile => tile.id)
-      
+      console.log('✅ Tile IDs:', tileIds)
+
       // Get all available patterns if none selected
-      const patternsToAnalyze = selectedPatterns.length > 0 
-        ? selectedPatterns 
-        : await nmjlService.getSelectionOptions()
+      console.log('🔄 Getting patterns to analyze...')
+      let patternsToAnalyze: PatternSelectionOption[]
+      if (selectedPatterns.length > 0) {
+        patternsToAnalyze = selectedPatterns
+        console.log('✅ Using provided patterns:', patternsToAnalyze.length)
+      } else {
+        console.log('🔄 Calling getSelectionOptions...')
+        const result = nmjlService.getSelectionOptions()
+        console.log('✅ getSelectionOptions returned, type:', typeof result, 'isArray:', Array.isArray(result))
+        // Handle both sync array and async Promise
+        patternsToAnalyze = Array.isArray(result) ? result : await result
+        console.log('✅ Patterns to analyze:', patternsToAnalyze.length)
+      }
       
       // Create game context with defaults
       const fullGameContext: GameContext = {
@@ -203,12 +221,17 @@ export class AnalysisEngine {
       // const engine1Start = performance.now()
       
       // Engine 1: Get mathematical facts for all patterns (with caching)
+      console.log('🔄 Extracting pattern IDs...')
       const patternIds = patternsToAnalyze.map(p => p.id)
+      console.log('✅ Pattern IDs extracted:', patternIds.length)
+
+      console.log('🔄 Calling getEngine1Facts with', tileIds.length, 'tiles and', patternIds.length, 'patterns...')
       const analysisFacts = await this.getEngine1Facts(
         tileIds,
         patternIds,
         fullGameContext
       )
+      console.log('✅ getEngine1Facts returned:', analysisFacts.length, 'facts')
       
       // console.error('🔍 ENGINE 1 ANALYSIS FACTS:', analysisFacts.length, 'patterns')
       // analysisFacts.forEach(fact => {

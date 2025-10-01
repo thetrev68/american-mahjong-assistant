@@ -6,27 +6,62 @@ import type { NMJL2025Pattern, PatternSelectionOption, PatternGroup, SuitRole, C
 class NMJLService {
   private patterns: NMJL2025Pattern[] = []
   private loaded = false
+  private loadPromise: Promise<NMJL2025Pattern[]> | null = null
 
   async loadPatterns(): Promise<NMJL2025Pattern[]> {
-    if (this.loaded) return this.patterns
+    console.log('🎴 loadPatterns called - loaded:', this.loaded, 'loadPromise:', !!this.loadPromise, 'patterns:', this.patterns.length)
 
-    try {
-      // Load from the intelligence folder
-      const response = await fetch('/intelligence/nmjl-patterns/nmjl-card-2025.json')
-      if (!response.ok) {
-        throw new Error(`Failed to load patterns: ${response.statusText}`)
-      }
-
-      const rawData = await response.json()
-      this.patterns = this.validatePatterns(rawData)
-      this.loaded = true
-      
-      // NMJL patterns loaded successfully
-      return this.patterns
-    } catch (error) {
-      console.error('Error loading NMJL patterns:', error)
-      return []
+    // Return cached if already loaded
+    if (this.loaded) {
+      console.log('✅ Patterns already loaded, returning cached via resolved promise')
+      return Promise.resolve(this.patterns)
     }
+
+    // If already loading, wait for that promise (prevents React Strict Mode double-load)
+    if (this.loadPromise) {
+      console.log('⏳ Load already in progress, waiting for existing promise...')
+      return this.loadPromise
+    }
+
+    // Start new load
+    console.log('🆕 Starting new pattern load...')
+    this.loadPromise = (async () => {
+      try {
+        // Back to fetch, but let's test if fetch() itself returns
+        console.log('🔄 About to call fetch()...')
+        const fetchResult = fetch('/intelligence/nmjl-patterns/nmjl-card-2025.json')
+        console.log('✅ fetch() returned a promise:', fetchResult)
+
+        console.log('🔄 About to await fetch promise...')
+        const response = await fetchResult
+        console.log('✅ Fetch promise resolved! Status:', response.status)
+
+        if (!response.ok) {
+          throw new Error(`Failed to load patterns: ${response.statusText}`)
+        }
+
+        console.log('🔄 About to call response.json()...')
+        const jsonResult = response.json()
+        console.log('✅ response.json() returned promise:', jsonResult)
+
+        console.log('🔄 About to await json promise...')
+        const rawData = await jsonResult
+        console.log('✅ JSON parsed! Type:', typeof rawData, 'length:', Array.isArray(rawData) ? rawData.length : 'N/A')
+        this.patterns = this.validatePatterns(rawData)
+        this.loaded = true
+        this.loadPromise = null // Clear promise after success
+        console.log('✅ NMJL patterns loaded successfully:', this.patterns.length, 'patterns')
+
+        // NMJL patterns loaded successfully
+        return this.patterns
+      } catch (error) {
+        console.error('Error loading NMJL patterns:', error)
+        this.loadPromise = null // Clear promise on error so next call can retry
+        return []
+      }
+    })()
+
+    return this.loadPromise
   }
 
   private validatePatterns(rawData: unknown[]): NMJL2025Pattern[] {
@@ -134,10 +169,13 @@ class NMJLService {
     return this.patterns.filter(p => p.Hand_Points === points)
   }
 
-  async getSelectionOptions(): Promise<PatternSelectionOption[]> {
-    await this.loadPatterns()
-    
-    return this.patterns.map(pattern => ({
+  getSelectionOptions(): PatternSelectionOption[] | Promise<PatternSelectionOption[]> {
+    console.log('📋 📋 📋 getSelectionOptions called - VERSION 3 SYNC')
+
+    // If already loaded, return synchronously (no await!)
+    if (this.loaded) {
+      console.log('📋 Patterns cached, returning synchronously')
+      const result = this.patterns.map(pattern => ({
       id: pattern.Hands_Key, // Use unique Hands_Key instead of duplicate Pattern ID
       patternId: pattern['Pattern ID'], // Keep original ID for reference
       displayName: `${pattern.Section} #${pattern.Line}: ${pattern.Hand_Description.toUpperCase()}`,
@@ -151,6 +189,29 @@ class NMJLService {
       concealed: pattern.Hand_Conceiled, // Add concealed field
       groups: pattern.Groups // Include groups for color display
     }))
+      console.log('📋 Returning', result.length, 'selection options synchronously')
+      return result
+    }
+
+    // Not loaded yet, need async load
+    console.log('📋 Patterns not cached, loading asynchronously')
+    return this.loadPatterns().then(() => {
+      console.log('📋 Async load complete, mapping patterns')
+      return this.patterns.map(pattern => ({
+        id: pattern.Hands_Key,
+        patternId: pattern['Pattern ID'],
+        displayName: `${pattern.Section} #${pattern.Line}: ${pattern.Hand_Description.toUpperCase()}`,
+        pattern: pattern.Hand_Pattern,
+        points: pattern.Hand_Points,
+        difficulty: pattern.Hand_Difficulty,
+        description: pattern.Hand_Description,
+        section: String(pattern.Section),
+        line: pattern.Line,
+        allowsJokers: pattern.Groups.some(group => group.Jokers_Allowed),
+        concealed: pattern.Hand_Conceiled,
+        groups: pattern.Groups
+      }))
+    })
   }
 
   async getStats() {

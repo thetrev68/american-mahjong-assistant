@@ -57,13 +57,13 @@ The backend is primarily responsible for multiplayer functionality, managing gam
 
 *   **Frontend:**
     ```bash
-    npm run dev --workspace=frontend
+    npm run dev:frontend
     ```
     The frontend will be available at `http://localhost:5173`.
 
 *   **Backend:**
     ```bash
-    npm run dev --workspace=backend
+    npm run dev:backend
     ```
     The backend server will start on port 5000.
 
