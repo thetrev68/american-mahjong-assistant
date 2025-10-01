@@ -471,11 +471,11 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     }
 
     return strategyModeService.generateDisclosureContent(
-      currentStrategyMode,
+      'flexible', // Default strategy mode in simplified design
       intelligenceData,
       gameContext
     )
-  }, [currentAnalysis, currentStrategyMode, gamePhase, currentTurn, wallTilesRemaining])
+  }, [currentAnalysis, gamePhase, currentTurn, wallTilesRemaining])
 
   // Filter messages based on urgency treatment
   const filteredMessages = useMemo(() => {

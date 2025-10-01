@@ -72,7 +72,11 @@ export const useStrategyAdvisorStore = create<StrategyAdvisorState>()(
   )
 )
 
-// Selectors
+// Memoized selectors to prevent infinite loops
+// Cache the filtered results and only recompute when messages array changes
+let cachedMessages: StrategyMessage[] | null = null
+let cachedActionableMessages: StrategyMessage[] | null = null
+
 export const strategyAdvisorSelectors = {
   messages: (state: StrategyAdvisorState) => state.messages,
 
@@ -90,8 +94,14 @@ export const strategyAdvisorSelectors = {
     return sorted[0]
   },
 
-  actionableMessages: (state: StrategyAdvisorState) =>
-    state.messages.filter(m => m.isActionable),
+  actionableMessages: (state: StrategyAdvisorState) => {
+    // Only recompute if messages array changed
+    if (state.messages !== cachedMessages) {
+      cachedMessages = state.messages
+      cachedActionableMessages = state.messages.filter(m => m.isActionable)
+    }
+    return cachedActionableMessages || []
+  },
 
   hasNewInsights: (state: StrategyAdvisorState) => {
     const thirtySecondsAgo = Date.now() - 30000
