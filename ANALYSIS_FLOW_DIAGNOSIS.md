@@ -65,10 +65,13 @@ setTimeout(() => {
 - When setTimeout schedules the resolution, the async context is abandoned
 - React component unmount/remount interferes with Promise resolution
 
-### Theory 4: Promise Microtask Queue Stalled
-- `Promise.resolve()` schedules callbacks on microtask queue
-- Microtask queue is not being processed before next render
-- React's concurrent features might be deferring microtasks
+### Theory 4: Event Loop Queues Blocked
+- `Promise.resolve()` schedules callbacks on **microtask queue** (high priority)
+- `setTimeout()` schedules callbacks on **macrotask queue** (lower priority)
+- **Microtasks run BEFORE macrotasks** in normal JavaScript execution
+- Both failed to execute, suggesting React is blocking the entire event loop
+- React's rendering cycle prevents BOTH queues from processing until render completes
+- But render is waiting for async operations → **circular deadlock**
 
 ## Key Files Involved
 
