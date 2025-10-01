@@ -18,7 +18,7 @@ interface SelectionAreaProps {
   onCharlestonPass?: () => void
 }
 
-export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady, onCharlestonPass }: SelectionAreaProps = {}) => {
+export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersReady, onCharlestonPass: _onCharlestonPass }: SelectionAreaProps = {}) => {
   const {
     selectedForAction,
     returnFromSelection,
@@ -188,18 +188,19 @@ export const SelectionArea = ({ onPass, onDiscard, isReadyToPass, allPlayersRead
                 data-testid="charleston-pass"
                 onClick={() => {
                   console.log('🔧 Charleston Pass button clicked:', { selectedCount: selectedForAction.length })
-                  if (selectedForAction.length === 3 && onCharlestonPass) {
-                    onCharlestonPass()
-                  } else if (selectedForAction.length !== 3) {
+                  if (selectedForAction.length === 3) {
+                    // Use handleAction to ensure confirmation dialog shows for protected tiles
+                    handleAction('pass')
+                  } else {
                     console.warn('Must select exactly 3 tiles for Charleston')
                   }
                 }}
                 disabled={actionType !== null || isReadyToPass || selectedForAction.length !== 3}
                 className={allPlayersReady ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
               >
-                {actionType === 'pass' ? 'Passing...' : 
+                {actionType === 'pass' ? 'Passing...' :
                  allPlayersReady ? 'All Ready!' :
-                 isReadyToPass ? 'Ready - Waiting...' : 
+                 isReadyToPass ? 'Ready - Waiting...' :
                  selectedForAction.length === 3 ? 'Pass 3 Tiles' : `Select ${3 - selectedForAction.length} more tiles`}
               </Button>
             )}

@@ -68,7 +68,7 @@ export interface GameState {
   
   // Game Statistics Management
   incrementTurn: () => void
-  recordAction: (playerId: string, actionType: string) => void
+  recordAction: (playerId: string, _actionType: string) => void
   recordTurnTiming: (durationMs: number) => void
   recordCallAttempt: (playerId: string) => void
   recordDiscard: () => void

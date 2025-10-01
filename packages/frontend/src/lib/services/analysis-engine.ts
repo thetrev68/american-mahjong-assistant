@@ -193,18 +193,11 @@ export class AnalysisEngine {
       console.log('✅ Tile IDs:', tileIds)
 
       // Get all available patterns if none selected
-      console.log('🔄 Getting patterns to analyze...')
       let patternsToAnalyze: PatternSelectionOption[]
       if (selectedPatterns.length > 0) {
         patternsToAnalyze = selectedPatterns
-        console.log('✅ Using provided patterns:', patternsToAnalyze.length)
       } else {
-        console.log('🔄 Calling getSelectionOptions...')
-        const result = nmjlService.getSelectionOptions()
-        console.log('✅ getSelectionOptions returned, type:', typeof result, 'isArray:', Array.isArray(result))
-        // Handle both sync array and async Promise
-        patternsToAnalyze = Array.isArray(result) ? result : await result
-        console.log('✅ Patterns to analyze:', patternsToAnalyze.length)
+        patternsToAnalyze = await nmjlService.getSelectionOptions()
       }
       
       // Create game context with defaults

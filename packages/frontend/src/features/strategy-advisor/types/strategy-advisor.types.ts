@@ -209,10 +209,11 @@ export interface StrategyAdvisorHook {
 
 // Component props interfaces
 export interface GlanceModePanelProps {
-    className?: string
-    onMessageExpand?: (messageId: string) => void
-    onConfigChange?: (config: Partial<GlanceModeConfig>) => void
-  }
+  className?: string
+  onMessageExpand?: (messageId: string) => void
+  onMessageCollapse?: () => void
+  onConfigChange?: (config: Partial<GlanceModeConfig>) => void
+}
 
 export interface StrategyMessageCardProps {
     message: StrategyMessage

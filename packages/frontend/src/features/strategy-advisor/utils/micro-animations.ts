@@ -132,10 +132,21 @@ const applyAnimation = (
     const transitionProperties = Object.keys(properties)
     element.style.transition = createTransition(transitionProperties, config)
 
-    const handleTransitionEnd = () => {
+    let completed = false
+
+    const finalize = () => {
+      if (completed) return
+      completed = true
       element.removeEventListener('transitionend', handleTransitionEnd)
+      if (fallbackTimeout) {
+        clearTimeout(fallbackTimeout)
+      }
       options.onComplete?.()
       resolve()
+    }
+
+    const handleTransitionEnd = () => {
+      finalize()
     }
 
     element.addEventListener('transitionend', handleTransitionEnd)
@@ -156,10 +167,8 @@ const applyAnimation = (
     }
 
     // Fallback timeout
-    setTimeout(() => {
-      element.removeEventListener('transitionend', handleTransitionEnd)
-      options.onComplete?.()
-      resolve()
+    const fallbackTimeout = setTimeout(() => {
+      finalize()
     }, config.duration + (config.delay || 0) + 50)
   })
 }
@@ -168,7 +177,15 @@ const applyAnimation = (
 export const microAnimations = {
   // Touch feedback - subtle scale on interaction
   touchFeedback: async (element: HTMLElement, options: MicroAnimationOptions = {}) => {
-    const originalTransform = element.style.transform
+    const inlineTransform = element.style.transform
+    const computedTransform =
+      typeof window !== 'undefined'
+        ? window.getComputedStyle(element).transform
+        : ''
+    const finalTransform =
+      inlineTransform || (computedTransform && computedTransform !== 'none'
+        ? computedTransform
+        : 'scale(1)')
 
     // Scale down
     await applyAnimation(element, {
@@ -181,12 +198,16 @@ export const microAnimations = {
 
     // Scale back
     await applyAnimation(element, {
-      transform: originalTransform || 'scale(1)'
+      transform: finalTransform
     }, {
       duration: 200,
       easing: easingFunctions.spring,
       ...options
     })
+
+    if (!inlineTransform) {
+      element.style.removeProperty('transform')
+    }
   },
 
   // Gentle pulse for attention
@@ -236,14 +257,22 @@ export const microAnimations = {
 
   // Gentle shake for errors
   shake: async (element: HTMLElement, options: MicroAnimationOptions = {}) => {
-    const originalTransform = element.style.transform
+    const inlineTransform = element.style.transform
+    const computedTransform =
+      typeof window !== 'undefined'
+        ? window.getComputedStyle(element).transform
+        : ''
+    const finalTransform =
+      inlineTransform || (computedTransform && computedTransform !== 'none'
+        ? computedTransform
+        : 'translateX(0)')
 
     const shakeSequence = [
       { transform: 'translateX(-5px)' },
       { transform: 'translateX(5px)' },
       { transform: 'translateX(-3px)' },
       { transform: 'translateX(3px)' },
-      { transform: originalTransform || 'translateX(0)' }
+      { transform: finalTransform }
     ]
 
     for (const step of shakeSequence) {
@@ -252,6 +281,10 @@ export const microAnimations = {
         easing: easingFunctions.quickSpring,
         ...options
       })
+    }
+
+    if (!inlineTransform) {
+      element.style.removeProperty('transform')
     }
   },
 

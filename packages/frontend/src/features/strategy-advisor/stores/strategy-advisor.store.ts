@@ -25,6 +25,9 @@ declare global {
   }
 }
 
+// Module-level timer tracking for cleanup
+let transitionTimerId: ReturnType<typeof setTimeout> | undefined
+
 // Default configuration for Glance Mode
 const DEFAULT_CONFIG: GlanceModeConfig = {
   showConfidence: true,
@@ -62,7 +65,7 @@ const DEFAULT_STRATEGY_MODE_STATE: StrategyModeState = {
   isCustomizing: false,
   customConfig: undefined,
   modeHistory: ['flexible'],
-  lastChanged: Date.now()
+  lastChanged: 0
 }
 
 // Extended state interface with disclosure and strategy mode state
@@ -106,8 +109,11 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
         disclosureState: DEFAULT_DISCLOSURE_STATE,
         disclosureConfig: DEFAULT_DISCLOSURE_CONFIG,
 
-        // Strategy mode state
-        strategyModeState: DEFAULT_STRATEGY_MODE_STATE,
+        // Strategy mode state - initialize lastChanged at store creation time
+        strategyModeState: {
+          ...DEFAULT_STRATEGY_MODE_STATE,
+          lastChanged: Date.now()
+        },
 
         // Core Actions
         addMessage: (message: StrategyMessage) => {
@@ -224,6 +230,11 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
 
         // Disclosure Actions
         setDisclosureLevel: (level: DisclosureLevel) => {
+          // Clear any pending transition timer
+          if (transitionTimerId) {
+            clearTimeout(transitionTimerId)
+          }
+
           set((state) => ({
             disclosureState: {
               ...state.disclosureState,
@@ -235,13 +246,14 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
           }))
 
           // Clear transition state after animation duration
-          setTimeout(() => {
+          transitionTimerId = setTimeout(() => {
             set((state) => ({
               disclosureState: {
                 ...state.disclosureState,
                 isTransitioning: false
               }
             }))
+            transitionTimerId = undefined
           }, get().disclosureConfig.animationDuration)
         },
 
@@ -298,6 +310,8 @@ export const useStrategyAdvisorStore = create<ExtendedStrategyAdvisorState>()(
           get().clearAutoCollapseTimer()
 
           const timerId = setTimeout(() => {
+            // Check current level at execution time (not when timer was set)
+            // This is intentional - only collapse if still expanded when timer fires
             const currentState = get()
             if (currentState.disclosureState.currentLevel !== 'glance') {
               currentState.setDisclosureLevel('glance')

@@ -57,7 +57,7 @@ class NMJLService {
       } catch (error) {
         console.error('Error loading NMJL patterns:', error)
         this.loadPromise = null // Clear promise on error so next call can retry
-        return []
+        throw error // Re-throw so callers can handle the error appropriately
       }
     })()
 
@@ -169,13 +169,10 @@ class NMJLService {
     return this.patterns.filter(p => p.Hand_Points === points)
   }
 
-  getSelectionOptions(): PatternSelectionOption[] | Promise<PatternSelectionOption[]> {
-    console.log('📋 📋 📋 getSelectionOptions called - VERSION 3 SYNC')
+  async getSelectionOptions(): Promise<PatternSelectionOption[]> {
+    await this.loadPatterns()
 
-    // If already loaded, return synchronously (no await!)
-    if (this.loaded) {
-      console.log('📋 Patterns cached, returning synchronously')
-      const result = this.patterns.map(pattern => ({
+    return this.patterns.map(pattern => ({
       id: pattern.Hands_Key, // Use unique Hands_Key instead of duplicate Pattern ID
       patternId: pattern['Pattern ID'], // Keep original ID for reference
       displayName: `${pattern.Section} #${pattern.Line}: ${pattern.Hand_Description.toUpperCase()}`,
@@ -189,29 +186,6 @@ class NMJLService {
       concealed: pattern.Hand_Conceiled, // Add concealed field
       groups: pattern.Groups // Include groups for color display
     }))
-      console.log('📋 Returning', result.length, 'selection options synchronously')
-      return result
-    }
-
-    // Not loaded yet, need async load
-    console.log('📋 Patterns not cached, loading asynchronously')
-    return this.loadPatterns().then(() => {
-      console.log('📋 Async load complete, mapping patterns')
-      return this.patterns.map(pattern => ({
-        id: pattern.Hands_Key,
-        patternId: pattern['Pattern ID'],
-        displayName: `${pattern.Section} #${pattern.Line}: ${pattern.Hand_Description.toUpperCase()}`,
-        pattern: pattern.Hand_Pattern,
-        points: pattern.Hand_Points,
-        difficulty: pattern.Hand_Difficulty,
-        description: pattern.Hand_Description,
-        section: String(pattern.Section),
-        line: pattern.Line,
-        allowsJokers: pattern.Groups.some(group => group.Jokers_Allowed),
-        concealed: pattern.Hand_Conceiled,
-        groups: pattern.Groups
-      }))
-    })
   }
 
   async getStats() {

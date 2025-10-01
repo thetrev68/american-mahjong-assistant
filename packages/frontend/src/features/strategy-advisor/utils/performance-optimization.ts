@@ -448,14 +448,14 @@ Memory: ${this.deviceCapabilities.memoryLimit}MB
 Connection: ${this.deviceCapabilities.connectionSpeed}
 
 Current Metrics:
-- LCP: ${latest?.lcp.toFixed(0)}ms
-- FCP: ${latest?.fcp.toFixed(0)}ms
-- Memory: ${latest?.memoryUsage.toFixed(1)}MB
+- LCP: ${latest?.lcp != null ? latest.lcp.toFixed(0) : 'n/a'}ms
+- FCP: ${latest?.fcp != null ? latest.fcp.toFixed(0) : 'n/a'}ms
+- Memory: ${latest?.memoryUsage != null ? latest.memoryUsage.toFixed(1) : 'n/a'}MB
 
 Average Metrics:
-- LCP: ${avgMetrics.lcp.toFixed(0)}ms
-- FCP: ${avgMetrics.fcp.toFixed(0)}ms
-- Memory: ${avgMetrics.memoryUsage.toFixed(1)}MB
+- LCP: ${avgMetrics.lcp != null ? avgMetrics.lcp.toFixed(0) : 'n/a'}ms
+- FCP: ${avgMetrics.fcp != null ? avgMetrics.fcp.toFixed(0) : 'n/a'}ms
+- Memory: ${avgMetrics.memoryUsage != null ? avgMetrics.memoryUsage.toFixed(1) : 'n/a'}MB
 
 Active Optimizations:
 ${Object.entries(this.currentOptimizations)

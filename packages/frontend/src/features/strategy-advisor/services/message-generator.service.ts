@@ -1,7 +1,7 @@
 // Message Generator Service - Generates conversational strategy messages
 // Transforms technical analysis into user-friendly, conversational guidance
 
-import type { StrategyAdvisorTypes } from '../types/strategy-advisor.types'
+import type * as StrategyAdvisorTypes from '../types/strategy-advisor.types'
 
 export class MessageGeneratorService {
   private messageIdCounter = 0

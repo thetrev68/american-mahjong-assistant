@@ -48,7 +48,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const navigate = useNavigate()
 
   // Strategy Advisor integration
-  const { expandMessage } = useStrategyAdvisor()
+  const { expandMessage, collapseMessage } = useStrategyAdvisor()
 
   // Feature flag for Strategy Advisor
   const useStrategyAdvisorInterface = true
@@ -89,6 +89,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
           <GlanceModePanel
             className="strategy-advisor-panel"
             onMessageExpand={expandMessage}
+            onMessageCollapse={collapseMessage}
           />
         </div>
       )}

@@ -98,6 +98,9 @@ export class PatternAnalysisEngine {
     targetPatternIds: string[],
     gameContext: GameContext
   ): Promise<PatternAnalysisFacts[]> {
+    console.log('🎯 PatternAnalysisEngine.analyzePatterns called with', playerTiles.length, 'tiles and', targetPatternIds.length, 'patterns')
+    console.time('⏱️ PatternAnalysisEngine.analyzePatterns')
+
     // Defensive input validation
     if (!Array.isArray(playerTiles)) {
       playerTiles = []
@@ -159,6 +162,8 @@ export class PatternAnalysisEngine {
       }
     }
 
+    console.timeEnd('⏱️ PatternAnalysisEngine.analyzePatterns')
+    console.log('✅ PatternAnalysisEngine.analyzePatterns returning', results.length, 'results')
     return results
   }
 

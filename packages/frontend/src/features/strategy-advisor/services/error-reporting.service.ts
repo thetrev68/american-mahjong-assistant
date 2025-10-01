@@ -383,7 +383,7 @@ class ErrorReportingService {
     }
   }
 
-  private categorizeError(error: Error, _context?: ErrorContext): ErrorCategory {
+  private categorizeError(error: Error, context?: ErrorContext): ErrorCategory {
     const message = error.message.toLowerCase()
     // Note: stack trace analysis could be added here if needed
 
@@ -395,7 +395,7 @@ class ErrorReportingService {
       return 'performance'
     }
 
-    if (message.includes('click') || message.includes('user') || context?.action.includes('user')) {
+    if (message.includes('click') || message.includes('user') || context?.action?.includes('user')) {
       return 'user_interaction'
     }
 
