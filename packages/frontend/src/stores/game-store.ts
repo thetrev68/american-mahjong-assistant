@@ -84,7 +84,11 @@ const initialState = {
   roomCode: null,
   players: [],
   currentPlayerId: null,
-  gamePhase: 'lobby' as const,
+  gamePhase: (() => {
+    const initial = 'lobby' as const
+    console.log('🎮 Game store initialized with gamePhase:', initial)
+    return initial
+  })(),
   coPilotMode: null,
   turnStartTime: null,
   gameStartTime: null,
@@ -131,8 +135,10 @@ export const useGameStore = create<GameState>()(
       setCurrentPlayer: (playerId) =>
         set({ currentPlayerId: playerId }, false, 'setCurrentPlayer'),
       
-      setGamePhase: (phase) =>
-        set({ gamePhase: phase }, false, 'setGamePhase'),
+      setGamePhase: (phase) => {
+        console.log('🎮 setGamePhase called:', phase, 'from:', new Error().stack?.split('\n')[2])
+        set({ gamePhase: phase }, false, 'setGamePhase')
+      },
         
       setCoPilotMode: (mode) =>
         set({ coPilotMode: mode }, false, 'setCoPilotMode'),

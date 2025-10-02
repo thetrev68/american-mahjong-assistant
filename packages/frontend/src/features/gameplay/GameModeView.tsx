@@ -128,6 +128,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
     const isInGameMode = gameStore.gamePhase === 'playing' || gameStore.gamePhase === 'charleston'
 
+    console.log('🎮 Analysis trigger check:', {
+      gamePhase: gameStore.gamePhase,
+      isInGameMode,
+      hasEnoughTiles,
+      playerHandLength: playerHand.length,
+      hasNoAnalysis,
+      isAnalyzing: intelligenceStore.isAnalyzing,
+      hasTriggered: hasTriggeredAnalysisRef.current
+    })
+
     // Only auto-analyze if we're in game mode AND haven't analyzed yet AND haven't already triggered
     if (isInGameMode && hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing && !hasTriggeredAnalysisRef.current) {
       hasTriggeredAnalysisRef.current = true

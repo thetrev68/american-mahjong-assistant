@@ -679,6 +679,7 @@ export const useTileStore = create<TileState>()(
           selectedCount: state.playerHand.filter(tile => tile.isSelected).length
         }),
         onRehydrateStorage: () => (state) => {
+          console.log('🔄 Tile store rehydrated from localStorage:', state?.playerHand?.length || 0, 'tiles')
           // Fix any state inconsistencies after rehydration
           if (state) {
             console.log('🔧 Rehydrating tile store with:', state.playerHand?.length || 0, 'tiles')

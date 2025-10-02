@@ -20,9 +20,10 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
   onResetGame,
   variant = 'setup'
 }) => {
-  const [position, setPosition] = useState({ x: 8, y: 8 })
+  const [position, setPosition] = useState({ x: window.innerWidth - 320, y: 8 })
   const [isDragging, setIsDragging] = useState(false)
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 })
+  const [isMinimized, setIsMinimized] = useState(true)
   const panelRef = useRef<HTMLDivElement>(null)
 
   React.useEffect(() => {
@@ -212,13 +213,21 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
       onMouseDown={handleMouseDown}
     >
       <div className="flex flex-col gap-1">
-        <div className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1">
+        <div
+          className="text-xs font-semibold text-gray-500 mb-1 flex items-center gap-1 cursor-pointer"
+          onClick={(e) => {
+            e.stopPropagation()
+            setIsMinimized(!isMinimized)
+          }}
+        >
           <span>🔧 DEV SHORTCUTS</span>
-          <span className="text-gray-400 ml-1">↕↔</span>
+          <span className="text-gray-400 ml-1">{isMinimized ? '▼' : '▲'}</span>
         </div>
-        <div className="flex flex-wrap gap-1">
-          {getShortcuts()}
-        </div>
+        {!isMinimized && (
+          <div className="flex flex-wrap gap-1">
+            {getShortcuts()}
+          </div>
+        )}
       </div>
     </div>
   )
