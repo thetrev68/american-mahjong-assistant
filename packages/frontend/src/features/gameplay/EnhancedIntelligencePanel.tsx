@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react'
+import React, { useRef, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '../../ui-components/Button'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
@@ -48,10 +48,12 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const navigate = useNavigate()
 
   // Strategy Advisor integration
-  const { expandMessage, collapseMessage } = useStrategyAdvisor()
+  // const { expandMessage, collapseMessage } = useStrategyAdvisor()
+  const expandMessage = () => {}
+  const collapseMessage = () => {}
 
   // Feature flag for Strategy Advisor
-  const useStrategyAdvisorInterface = true
+  const useStrategyAdvisorInterface = false
 
   // Track the original engine recommendation ID
   const originalEngineRecommendationId = useRef<string | null>(null)
@@ -65,6 +67,32 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
 
   const selectedPatterns = getTargetPatterns()
   const hasPatternSelected = selectedPatterns.length > 0
+
+  // Memoize primary pattern completion calculation to avoid expensive re-renders
+  const primaryPatternCompletion = useMemo(() => {
+    const pattern = analysis?.recommendedPatterns?.[0]?.pattern
+    if (!pattern) return { matchedTiles: 0, totalTiles: 14, percentage: 0 }
+
+    const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
+    let normalizedTiles: string[]
+
+    if (expandedTiles && expandedTiles.length === 14) {
+      normalizedTiles = expandedTiles
+    } else {
+      const patternTiles = pattern.pattern.split(' ')
+      normalizedTiles = patternTiles.length < 14
+        ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')]
+        : patternTiles.slice(0, 14)
+    }
+
+    const completion = getPatternCompletionSummary(normalizedTiles, playerHand.map(t => t.id))
+    return {
+      matchedTiles: completion.matchedTiles,
+      totalTiles: 14,
+      percentage: (completion.matchedTiles / 14) * 100
+    }
+  }, [analysis?.recommendedPatterns, playerHand])
+
   return (
     <div className="enhanced-intelligence-panel bg-white/90 backdrop-blur-sm rounded-2xl p-3 sm:p-6 shadow-xl border border-purple-200/50 w-full">
       {/* Header */}
@@ -212,58 +240,10 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
                     <div className="text-2xl font-bold text-green-600">
-                      {(() => {
-                        const pattern = analysis.recommendedPatterns[0]?.pattern
-                        if (pattern) {
-                          // Use expanded tiles if available, otherwise fall back to generic pattern
-                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
-                          let normalizedTiles: string[]
-                          
-                          if (expandedTiles && expandedTiles.length === 14) {
-                            normalizedTiles = expandedTiles
-                          } else {
-                            // Fallback to generic pattern parsing
-                            const patternTiles = pattern.pattern.split(' ')
-                            normalizedTiles = patternTiles.length < 14 
-                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                              : patternTiles.slice(0, 14)
-                          }
-                          
-                          const completion = getPatternCompletionSummary(
-                            normalizedTiles, 
-                            playerHand.map(t => t.id)
-                          )
-                          return `${completion.matchedTiles}/14`
-                        }
-                        return '0/14'
-                      })()}
+                      {primaryPatternCompletion.matchedTiles}/{primaryPatternCompletion.totalTiles}
                     </div>
                     <div className="text-sm text-gray-600">
-                      tiles ({Math.round((() => {
-                        const pattern = analysis.recommendedPatterns[0]?.pattern
-                        if (pattern) {
-                          // Use expanded tiles if available, otherwise fall back to generic pattern
-                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
-                          let normalizedTiles: string[]
-                          
-                          if (expandedTiles && expandedTiles.length === 14) {
-                            normalizedTiles = expandedTiles
-                          } else {
-                            // Fallback to generic pattern parsing
-                            const patternTiles = pattern.pattern.split(' ')
-                            normalizedTiles = patternTiles.length < 14 
-                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                              : patternTiles.slice(0, 14)
-                          }
-                          
-                          const completion = getPatternCompletionSummary(
-                            normalizedTiles, 
-                            playerHand.map(t => t.id)
-                          )
-                          return (completion.matchedTiles / 14) * 100
-                        }
-                        return 0
-                      })() || 0)}% complete)
+                      tiles ({Math.round(primaryPatternCompletion.percentage)}% complete)
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -276,33 +256,9 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-gray-700">Progress:</span>
                   <div className="flex-1 bg-gray-200 rounded-full h-3">
-                    <div 
+                    <div
                       className="bg-green-500 h-3 rounded-full transition-all duration-300"
-                      style={{ width: `${Math.min((() => {
-                        const pattern = analysis.recommendedPatterns[0]?.pattern
-                        if (pattern) {
-                          // Use expanded tiles if available, otherwise fall back to generic pattern
-                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
-                          let normalizedTiles: string[]
-                          
-                          if (expandedTiles && expandedTiles.length === 14) {
-                            normalizedTiles = expandedTiles
-                          } else {
-                            // Fallback to generic pattern parsing
-                            const patternTiles = pattern.pattern.split(' ')
-                            normalizedTiles = patternTiles.length < 14 
-                              ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')] 
-                              : patternTiles.slice(0, 14)
-                          }
-                          
-                          const completion = getPatternCompletionSummary(
-                            normalizedTiles, 
-                            playerHand.map(t => t.id)
-                          )
-                          return (completion.matchedTiles / 14) * 100
-                        }
-                        return 0
-                      })() || 0, 100)}%` }}
+                      style={{ width: `${Math.min(primaryPatternCompletion.percentage, 100)}%` }}
                     />
                   </div>
                 </div>

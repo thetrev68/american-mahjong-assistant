@@ -14,13 +14,10 @@ import DevShortcuts from '../../ui-components/DevShortcuts'
 
 export const TileInputPage = () => {
   const location = useLocation()
-  console.log('🎯 TileInputPage mounting, location:', location.pathname)
+  const navigate = useNavigate()
 
-  // Safety check - don't render if we're not on /tiles route
-  if (location.pathname !== '/tiles') {
-    console.warn('🎯 TileInputPage rendering on wrong route:', location.pathname, '- returning null')
-    return null
-  }
+  console.log('🎯 TileInputPage render called, location:', location.pathname)
+  console.log('🎯 TileInputPage - URL in browser:', window.location.pathname)
 
   useEffect(() => {
     console.log('🎯 TileInputPage mounted (useEffect)')
@@ -28,8 +25,6 @@ export const TileInputPage = () => {
       console.log('🎯 TileInputPage UNMOUNTING')
     }
   }, [])
-
-  const navigate = useNavigate()
   const [selectorMode] = useState<'full' | 'compact'>('full')
   const [showTileSelector, setShowTileSelector] = useState(false) // Start false for lazy loading
   const [isStartingGame, setIsStartingGame] = useState(false)
@@ -121,12 +116,17 @@ export const TileInputPage = () => {
   }
 
   const handleStartGame = () => {
+    console.log('🚀 START GAME CLICKED - Beginning navigation...')
     console.time('⏱️ Navigate to game')
     setIsStartingGame(true)
+    console.log('🚀 Set isStartingGame to true')
     // Set game phase to 'playing' to trigger analysis after navigation
     setGamePhase('playing')
+    console.log('🚀 Set game phase to playing')
     // Navigate immediately - analysis is now synchronous so no delay needed
+    console.log('🚀 About to call navigate("/game")')
     navigate('/game')
+    console.log('🚀 navigate() called, waiting for route change...')
     console.timeEnd('⏱️ Navigate to game')
   }
 
@@ -146,7 +146,7 @@ export const TileInputPage = () => {
   }
   
 
-  console.log('🎯 TileInputPage RENDERING - isStartingGame:', isStartingGame)
+  console.log('🎯 TileInputPage RENDERING - isStartingGame:', isStartingGame, 'pathname:', location.pathname)
 
   return (
     <>

@@ -55,6 +55,12 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   currentAnalysis,
   playingPatternIds = []
 }) => {
+  console.log('🎴 YourHandZone render - currentHand:', currentHand.length, 'tiles')
+  console.log('🎴 YourHandZone - currentHand:', currentHand)
+  if (currentHand.length > 0) {
+    console.log('🎴 First tile full details:', JSON.stringify(currentHand[0], null, 2))
+  }
+
   const { selectedForAction, tileStates } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
   const { handleTileClick } = useTileInteraction(isCharleston ? 'charleston' : 'gameplay')
@@ -78,9 +84,10 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
     .flatMap(pattern => getMatchingTiles(pattern))
     .filter((tile, index, array) => array.indexOf(tile) === index) // Remove duplicates
 
-  
+
   // Sort hand tiles using same logic as tile input page
   const sortedCurrentHand = tileService.sortTiles([...currentHand])
+  console.log('🎴 YourHandZone - sortedCurrentHand:', sortedCurrentHand.length, 'tiles')
   
   // Get tile recommendations for highlighting
   const getTileRecommendation = (tileId: string) => {

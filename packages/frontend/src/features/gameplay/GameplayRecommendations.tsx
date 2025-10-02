@@ -29,11 +29,17 @@ export function GameplayRecommendations({
   }, [analysis?.turnIntelligence?.confidence])
 
   const recommendations = useMemo(() => {
+    console.log('🎯 GameplayRecommendations - analysis:', !!analysis)
+    console.log('🎯 GameplayRecommendations - tileRecommendations:', analysis?.tileRecommendations?.length)
+    console.log('🎯 GameplayRecommendations - tileRecommendations:', analysis?.tileRecommendations)
+
     if (!analysis?.tileRecommendations) return { keep: [], discard: [], pass: [] }
 
     const keep = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'keep')
     const discard = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'discard')
     const pass = analysis.tileRecommendations.filter((rec: TileRecommendation) => rec.action === 'pass')
+
+    console.log('🎯 Filtered recommendations:', { keep: keep.length, discard: discard.length, pass: pass.length })
 
     return { keep, discard, pass }
   }, [analysis?.tileRecommendations])

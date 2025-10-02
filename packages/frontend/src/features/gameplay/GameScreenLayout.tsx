@@ -87,6 +87,9 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   onPlayingPatternChange,
   onPatternSwitch,
 }) => {
+  console.log('🏗️ GameScreenLayout render - currentHand:', currentHand.length, 'tiles')
+  console.log('🏗️ GameScreenLayout - currentHand:', currentHand)
+
   return (
     <div className="max-w-full mx-auto p-1 sm:p-4 md:p-6 md:max-w-4xl pb-20 sm:pb-24">
       {/* TOP ZONE: Game phase, elapsed timer, current player, action buttons */}

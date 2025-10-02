@@ -62,6 +62,7 @@ export const useStrategyAdvisor = (
   const lastProcessedAnalysisIdRef = useRef<number>(0)
   const intelligenceDataCacheRef = useRef<StrategyAdvisorTypes.IntelligenceData | null>(null)
   const isRefreshingRef = useRef<boolean>(false)
+  const intelligenceDataRef = useRef<StrategyAdvisorTypes.IntelligenceData | null>(null)
 
   // Stable intelligence data with ref-based caching to prevent infinite loops
   // Only creates new object if analysis ID actually changes
@@ -83,6 +84,7 @@ export const useStrategyAdvisor = (
       // Cache result and update ID
       intelligenceDataCacheRef.current = result
       lastProcessedAnalysisIdRef.current = currentAnalysisId
+      intelligenceDataRef.current = result
 
       return result
     } catch (error) {
@@ -143,10 +145,17 @@ export const useStrategyAdvisor = (
       currentState.setLoading(true)
       currentState.setError(null)
 
-      // Check if refresh is needed
+      // Check if refresh is needed - use ref to avoid dependency
+      const currentIntelligenceData = intelligenceDataRef.current
+      if (!currentIntelligenceData) {
+        currentState.setLoading(false)
+        isRefreshingRef.current = false
+        return
+      }
+
       const shouldRefresh = adapter.shouldRefreshStrategy(
         previousIntelligenceDataRef.current,
-        intelligenceData,
+        currentIntelligenceData,
         lastRefreshTimeRef.current
       )
 
@@ -158,7 +167,7 @@ export const useStrategyAdvisor = (
 
       // Generate strategy messages
       const generationResponse = adapter.generateStrategyMessages(
-        intelligenceData,
+        currentIntelligenceData,
         gameContext,
         currentState.currentMessages,
         urgencyThreshold
@@ -172,7 +181,7 @@ export const useStrategyAdvisor = (
       }
 
       // Update tracking refs
-      previousIntelligenceDataRef.current = intelligenceData
+      previousIntelligenceDataRef.current = currentIntelligenceData
       lastRefreshTimeRef.current = Date.now()
 
       currentState.setLoading(false)
@@ -188,7 +197,7 @@ export const useStrategyAdvisor = (
     }
   }, [
     adapter,
-    intelligenceData,
+    // intelligenceData removed - using ref instead to prevent infinite loop
     gameContext,
     urgencyThreshold
   ])
@@ -196,6 +205,10 @@ export const useStrategyAdvisor = (
   // Extract stable primitive values from config
   const refreshInterval = strategyStore.config.refreshInterval
   const isActive = strategyStore.isActive
+
+  // Use ref to avoid refresh in useEffect dependencies (prevents infinite loop)
+  const refreshRef = useRef(refresh)
+  refreshRef.current = refresh
 
   // Auto-refresh effect with stable dependencies
   useEffect(() => {
@@ -209,11 +222,11 @@ export const useStrategyAdvisor = (
 
     // Initial refresh - delayed to prevent immediate loop
     const timeoutId = setTimeout(() => {
-      refresh()
+      refreshRef.current()
     }, 100)
 
     // Set up interval for subsequent refreshes
-    refreshIntervalRef.current = setInterval(refresh, refreshInterval)
+    refreshIntervalRef.current = setInterval(() => refreshRef.current(), refreshInterval)
 
     return () => {
       clearTimeout(timeoutId)
@@ -225,8 +238,8 @@ export const useStrategyAdvisor = (
   }, [
     isActive,
     autoRefresh,
-    refreshInterval,
-    refresh
+    refreshInterval
+    // refresh removed - using refreshRef instead to prevent infinite loop
   ])
 
   // Auto-activate on mount and cleanup on unmount

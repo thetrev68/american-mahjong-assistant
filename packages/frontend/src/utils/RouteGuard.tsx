@@ -61,6 +61,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
     console.log('🛡️ RouteGuard: Game IS ready, allowing access')
   }
 
-  console.log('🛡️ RouteGuard: Rendering children')
+  console.log('🛡️ RouteGuard: Rendering children', children)
+  console.log('🛡️ RouteGuard: Children type:', typeof children, children?.type?.name)
   return <>{children}</>
 }

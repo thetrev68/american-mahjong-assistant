@@ -7,7 +7,7 @@ import tilesData from '../assets/tiles.json'
 interface TileFrame {
   filename: string
   description: string // Added description field
-  unicodeSymbol: string 
+  unicodeSymbol: string
   frame: { x: number; y: number; w: number; h: number }
   rotated: boolean
   trimmed: boolean
@@ -29,18 +29,43 @@ interface TileSpriteMap {
   [tileId: string]: TileSprite
 }
 
+// Global singleton state for sprite loading - prevents race conditions
+let globalIsLoaded = false
+let globalError: string | null = null
+const loadListeners: Set<(loaded: boolean) => void> = new Set()
+
+// Preload sprites immediately when module loads (before any component mounts)
+const preloadImage = new Image()
+preloadImage.onload = () => {
+  console.log('✅ Tile sprites loaded successfully (global singleton)!')
+  globalIsLoaded = true
+  globalError = null
+  // Notify all waiting listeners
+  loadListeners.forEach(listener => listener(true))
+  loadListeners.clear()
+}
+preloadImage.onerror = (e) => {
+  console.error('❌ Failed to load tile sprites from /tiles.png (global):', e)
+  globalError = 'Failed to load tile sprites'
+  globalIsLoaded = false
+  loadListeners.forEach(listener => listener(false))
+  loadListeners.clear()
+}
+console.log('🎴 Starting global sprite preload from /tiles.png')
+preloadImage.src = '/tiles.png'
+
 export const useTileSprites = () => {
-  const [isLoaded, setIsLoaded] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  
+  const [isLoaded, setIsLoaded] = useState(globalIsLoaded)
+  const [error, setError] = useState<string | null>(globalError)
+
   // Parse the sprite data once
   const spriteMap: TileSpriteMap = useMemo(() => {
     const map: TileSpriteMap = {}
-    
+
     tilesData.frames.forEach((frame: TileFrame) => {
       // Convert filename to tile ID (remove .png extension)
       const tileId = frame.filename.replace('.png', '')
-      
+
       map[tileId] = {
         id: tileId,
         description: frame.description, // Store the description
@@ -51,25 +76,34 @@ export const useTileSprites = () => {
         height: frame.frame.h
       }
     })
-    
+
     return map
   }, [])
-  
-  // Preload the sprite image
+
+  // Subscribe to global sprite loading state
   useEffect(() => {
-    const img = new Image()
-    
-    img.onload = () => {
+    if (globalIsLoaded) {
       setIsLoaded(true)
       setError(null)
+      return
     }
-    
-    img.onerror = () => {
-      setError('Failed to load tile sprites')
+
+    if (globalError) {
+      setError(globalError)
       setIsLoaded(false)
+      return
     }
-    
-    img.src = '/tiles.png'
+
+    // Still loading - subscribe to completion
+    const listener = (loaded: boolean) => {
+      setIsLoaded(loaded)
+      setError(loaded ? null : globalError)
+    }
+
+    loadListeners.add(listener)
+    return () => {
+      loadListeners.delete(listener)
+    }
   }, [])
   
   // Get sprite data for a specific tile

@@ -1309,13 +1309,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         </div>
       )}
 
-      {/* Phase 4: Pull-to-refresh wrapper for hand re-analysis */}
-      <PullToRefreshWrapper
-        onRefresh={handlePullToRefresh}
-        config={pullToRefreshConfig}
-        disabled={gameEnded || isAnalyzing}
-        className="min-h-screen"
-      >
+      {/* Phase 4: Pull-to-refresh DISABLED - was blocking render */}
+      <div className="min-h-screen">
         <GameScreenLayout
         gamePhase={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         currentPlayer={currentPlayer}
@@ -1366,7 +1361,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         }}
         onPatternSwitch={handlePatternSwitch}
         />
-      </PullToRefreshWrapper>
+      </div>
 
       {/* Call Dialog */}
       {showCallDialog && callOpportunities.length > 0 && (
