@@ -10,14 +10,16 @@ interface RouteGuardProps {
   requiresGameStart?: boolean
 }
 
-export const RouteGuard: React.FC<RouteGuardProps> = ({ 
-  children, 
+export const RouteGuard: React.FC<RouteGuardProps> = ({
+  children,
   requiresRoomSetup = false,
-  requiresGameStart = false 
+  requiresGameStart = false
 }) => {
   const roomSetupStore = useRoomSetupStore()
   const roomStore = useRoomStore()
   const playerStore = usePlayerStore()
+
+  console.log('🛡️ RouteGuard check:', { requiresRoomSetup, requiresGameStart })
 
   // Check if room setup is required and completed
   if (requiresRoomSetup) {
@@ -46,7 +48,7 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
     
     // If not ready for game AND we don't have indicators of completed setup, redirect to room setup
     if ((progress.currentStep !== 'ready' || !isRoomReady) && !canStayOnCurrentScreen) {
-      console.warn('RouteGuard: Game not ready, redirecting to room setup', {
+      console.warn('🛡️ RouteGuard: Game not ready, REDIRECTING to room setup', {
         step: progress.currentStep,
         roomReady: isRoomReady,
         coPilotMode: roomSetupStore.coPilotMode,
@@ -55,7 +57,10 @@ export const RouteGuard: React.FC<RouteGuardProps> = ({
       })
       return <Navigate to="/room-setup" replace />
     }
+
+    console.log('🛡️ RouteGuard: Game IS ready, allowing access')
   }
 
+  console.log('🛡️ RouteGuard: Rendering children')
   return <>{children}</>
 }

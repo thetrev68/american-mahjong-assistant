@@ -28,11 +28,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/tiles',
-    element: <AppLayout key="tiles"><TileInputPage /></AppLayout>,
+    element: <AppLayout><TileInputPage /></AppLayout>,
   },
   {
     path: '/game',
-    element: <AppLayout key="game"><RouteGuard requiresGameStart><GameModeView /></RouteGuard></AppLayout>,
+    element: <AppLayout><RouteGuard requiresGameStart><GameModeView /></RouteGuard></AppLayout>,
   },
   {
     path: '/room-setup',

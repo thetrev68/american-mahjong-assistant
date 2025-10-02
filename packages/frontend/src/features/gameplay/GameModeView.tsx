@@ -1258,8 +1258,33 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Show loading overlay if initial analysis is running
   const showLoadingOverlay = intelligenceStore.isAnalyzing && !intelligenceStore.currentAnalysis
 
+  console.log('🎮 Render state:', {
+    showLoadingOverlay,
+    isAnalyzing: intelligenceStore.isAnalyzing,
+    hasAnalysis: !!intelligenceStore.currentAnalysis,
+    currentHandLength: currentHand.length,
+    patternsCount: currentAnalysis?.recommendedPatterns?.length
+  })
+
   return (
     <>
+      {/* Debug indicator - should show at highest z-index */}
+      <div style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 99999,
+        background: 'lime',
+        color: 'black',
+        padding: '20px',
+        fontSize: '24px',
+        fontWeight: 'bold',
+        textAlign: 'center'
+      }}>
+        ✅ GAME MODE VIEW IS RENDERING - {currentHand.length} tiles, {currentAnalysis?.recommendedPatterns?.length || 0} patterns
+      </div>
+
       <DevShortcuts
         variant={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         onSkipToGameplay={gameStore.gamePhase === 'charleston' ? handleSkipToGameplay : undefined}

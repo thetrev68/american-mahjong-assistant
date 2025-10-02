@@ -2,7 +2,7 @@
 // Complete interface for inputting and managing player tiles
 
 import { useEffect, useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { Container } from '../../ui-components/layout/Container'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
@@ -13,7 +13,14 @@ import { useTileStore, useGameStore } from '../../stores'
 import DevShortcuts from '../../ui-components/DevShortcuts'
 
 export const TileInputPage = () => {
-  console.log('🎯 TileInputPage mounting')
+  const location = useLocation()
+  console.log('🎯 TileInputPage mounting, location:', location.pathname)
+
+  // Safety check - don't render if we're not on /tiles route
+  if (location.pathname !== '/tiles') {
+    console.warn('🎯 TileInputPage rendering on wrong route:', location.pathname, '- returning null')
+    return null
+  }
 
   useEffect(() => {
     console.log('🎯 TileInputPage mounted (useEffect)')
@@ -118,11 +125,9 @@ export const TileInputPage = () => {
     setIsStartingGame(true)
     // Set game phase to 'playing' to trigger analysis after navigation
     setGamePhase('playing')
-    // Use setTimeout to allow UI to update with spinner before heavy navigation
-    setTimeout(() => {
-      navigate('/game')
-      console.timeEnd('⏱️ Navigate to game')
-    }, 50)
+    // Navigate immediately - analysis is now synchronous so no delay needed
+    navigate('/game')
+    console.timeEnd('⏱️ Navigate to game')
   }
 
   const handleSkipToCharleston = () => {
