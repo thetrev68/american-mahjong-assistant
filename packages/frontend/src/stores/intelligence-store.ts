@@ -220,7 +220,7 @@ export const useIntelligenceStore = create<IntelligenceState>()(
       cacheTimeout: 5 * 60 * 1000, // 5 minutes
       
       // Analysis Actions
-      analyzeHand: async (tiles, patterns = [], isPatternSwitching = false) => {
+      analyzeHand: (tiles, patterns = [], isPatternSwitching = false) => {
         console.log('🔍 analyzeHand called with', tiles.length, 'tiles,', patterns.length, 'patterns')
         set({ isAnalyzing: true, analysisError: null })
 
@@ -246,13 +246,9 @@ export const useIntelligenceStore = create<IntelligenceState>()(
             get().clearCache()
           }
 
-          // Use real analysis engine (lazy loaded) with timeout
+          // Use real analysis engine (lazy loaded) - runs synchronously with preloaded data
           console.log('🔍 Calling lazyAnalysisEngine.analyzeHand...')
-          const analysisPromise = lazyAnalysisEngine.analyzeHand(tiles, patterns, {}, finalIsPatternSwitching)
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error('Analysis timeout after 30 seconds')), 30000)
-          )
-          const analysis = await Promise.race([analysisPromise, timeoutPromise])
+          const analysis = lazyAnalysisEngine.analyzeHand(tiles, patterns, {}, finalIsPatternSwitching)
           console.log('🔍 lazyAnalysisEngine.analyzeHand completed!')
 
           // Cache the analysis

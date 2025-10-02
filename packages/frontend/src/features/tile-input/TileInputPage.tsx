@@ -14,6 +14,14 @@ import DevShortcuts from '../../ui-components/DevShortcuts'
 
 export const TileInputPage = () => {
   console.log('🎯 TileInputPage mounting')
+
+  useEffect(() => {
+    console.log('🎯 TileInputPage mounted (useEffect)')
+    return () => {
+      console.log('🎯 TileInputPage UNMOUNTING')
+    }
+  }, [])
+
   const navigate = useNavigate()
   const [selectorMode] = useState<'full' | 'compact'>('full')
   const [showTileSelector, setShowTileSelector] = useState(false) // Start false for lazy loading
@@ -132,8 +140,9 @@ export const TileInputPage = () => {
     navigate('/')
   }
   
-  
-  
+
+  console.log('🎯 TileInputPage RENDERING - isStartingGame:', isStartingGame)
+
   return (
     <>
     <DevShortcuts

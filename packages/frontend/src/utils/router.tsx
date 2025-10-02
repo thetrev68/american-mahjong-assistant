@@ -12,34 +12,34 @@ import { RouteGuard } from './RouteGuard'
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <AppLayout><LandingPage /></AppLayout>,
+    element: <AppLayout key="landing"><LandingPage /></AppLayout>,
   },
   {
     path: '/tutorial',
-    element: <AppLayout><TutorialView initialSection="welcome" onComplete={() => {/* Tutorial completed */}} /></AppLayout>,
+    element: <AppLayout key="tutorial"><TutorialView initialSection="welcome" onComplete={() => {/* Tutorial completed */}} /></AppLayout>,
   },
   {
     path: '/patterns',
-    element: <AppLayout><PatternSelectionPage /></AppLayout>,
+    element: <AppLayout key="patterns"><PatternSelectionPage /></AppLayout>,
   },
   {
     path: '/pattern-selection',
-    element: <AppLayout><PatternSelectionPage /></AppLayout>,
+    element: <AppLayout key="pattern-selection"><PatternSelectionPage /></AppLayout>,
   },
   {
     path: '/tiles',
-    element: <AppLayout><TileInputPage /></AppLayout>,
+    element: <AppLayout key="tiles"><TileInputPage /></AppLayout>,
   },
   {
     path: '/game',
-    element: <AppLayout><RouteGuard requiresGameStart><GameModeView /></RouteGuard></AppLayout>,
+    element: <AppLayout key="game"><RouteGuard requiresGameStart><GameModeView /></RouteGuard></AppLayout>,
   },
   {
     path: '/room-setup',
-    element: <AppLayout><RoomSetupView /></AppLayout>,
+    element: <AppLayout key="room-setup"><RoomSetupView /></AppLayout>,
   },
   {
     path: '/post-game',
-    element: <AppLayout><PostGameView /></AppLayout>,
+    element: <AppLayout key="post-game"><PostGameView /></AppLayout>,
   },
 ])

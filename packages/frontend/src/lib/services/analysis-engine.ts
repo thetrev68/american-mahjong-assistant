@@ -165,12 +165,12 @@ export class AnalysisEngine {
   /**
    * Main analysis function - coordinates 3-engine intelligence system
    */
-  static async analyzeHand(
+  static analyzeHand(
     playerTiles: PlayerTile[],
     selectedPatterns: PatternSelectionOption[] = [],
     gameContext?: Partial<GameContext>,
     isPatternSwitching: boolean = false
-  ): Promise<HandAnalysis> {
+  ): HandAnalysis {
     console.log('🎯 AnalysisEngine.analyzeHand called with', playerTiles.length, 'tiles,', selectedPatterns.length, 'patterns')
     // const startTime = performance.now()
 
@@ -190,16 +190,9 @@ export class AnalysisEngine {
         console.log('✅ Using', selectedPatterns.length, 'provided patterns')
       } else {
         console.log('🔄 Calling getSelectionOptions...')
-        const result = nmjlService.getSelectionOptions()
-        console.log('🔄 getSelectionOptions returned, type:', typeof result, 'isArray:', Array.isArray(result))
-        // Handle both sync array and async Promise
-        if (Array.isArray(result)) {
-          patternsToAnalyze = result
-          console.log('✅ Got', patternsToAnalyze.length, 'patterns SYNCHRONOUSLY')
-        } else {
-          patternsToAnalyze = await result
-          console.log('✅ Got', patternsToAnalyze.length, 'patterns ASYNCHRONOUSLY')
-        }
+        // Data is preloaded in main.tsx, so this returns array directly (no await)
+        patternsToAnalyze = nmjlService.getSelectionOptions() as PatternSelectionOption[]
+        console.log('✅ Got', patternsToAnalyze.length, 'patterns')
       }
 
       console.log('🔄 Creating game context...')
@@ -284,10 +277,12 @@ export class AnalysisEngine {
         analysisFacts,
         isPatternSwitching
       )
-      
+
+      console.log('✅ Analysis complete, returning result:', !!result, 'patterns:', result?.recommendedPatterns?.length)
+
       // const totalTime = performance.now() - startTime
       // Total analysis completed
-      
+
       return result
       
     } catch (error) {

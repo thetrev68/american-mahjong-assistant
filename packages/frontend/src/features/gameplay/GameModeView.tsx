@@ -133,17 +133,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       hasTriggeredAnalysisRef.current = true
       console.log('Starting initial hand analysis with', playerHand.length, 'tiles')
 
-      // Call directly without timeout - the ref prevents duplicate calls
+      // Call directly - synchronous execution with preloaded data
       console.time('⏱️ Initial hand analysis')
-      intelligenceStore.analyzeHand(playerHand, [])
-        .then(() => {
-          console.timeEnd('⏱️ Initial hand analysis')
-        })
-        .catch(error => {
-          console.timeEnd('⏱️ Initial hand analysis')
-          console.error('Hand analysis failed:', error)
-          hasTriggeredAnalysisRef.current = false // Reset on error so user can retry
-        })
+      try {
+        intelligenceStore.analyzeHand(playerHand, [])
+        console.timeEnd('⏱️ Initial hand analysis')
+      } catch (error) {
+        console.timeEnd('⏱️ Initial hand analysis')
+        console.error('Hand analysis failed:', error)
+        hasTriggeredAnalysisRef.current = false // Reset on error so user can retry
+      }
     }
   }, [gameStore.gamePhase, tileStore.playerHand.length, intelligenceStore.currentAnalysis, tileStore, intelligenceStore, gameStore])
 
@@ -272,14 +271,21 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [callOpportunityEnhanced, setCallOpportunityEnhanced] = useState<CallOpportunityType | null>(null)
 
   // Current hand with drawn tile - get real player hand from tile store
-  const currentHand = useMemo(() => (tileStore.playerHand || []) as Tile[], [tileStore.playerHand])
-  const fullHand = useMemo(() => 
-    lastDrawnTile ? [...currentHand, lastDrawnTile] : currentHand, 
-    [currentHand, lastDrawnTile]
-  )
+  const currentHand = useMemo(() => {
+    const hand = (tileStore.playerHand || []) as Tile[]
+    console.log('🎮 currentHand updated:', hand.length, 'tiles')
+    return hand
+  }, [tileStore.playerHand])
+
+  const fullHand = useMemo(() => {
+    const hand = lastDrawnTile ? [...currentHand, lastDrawnTile] : currentHand
+    console.log('🎮 fullHand updated:', hand.length, 'tiles')
+    return hand
+  }, [currentHand, lastDrawnTile])
 
   // Real-time analysis - get actual analysis from intelligence store
   const baseAnalysis = intelligenceStore.currentAnalysis
+  console.log('🎮 baseAnalysis:', !!baseAnalysis, 'patterns:', baseAnalysis?.recommendedPatterns?.length)
 
   // Charleston-specific analysis adaptation
   const currentAnalysis = useMemo(() => {
@@ -465,7 +471,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     // Hand analysis initiated - using real tiles from store
 
     // Trigger intelligence analysis - errors are handled by intelligence store
-    await intelligenceStore.analyzeHand(handForAnalysis, [])
+    intelligenceStore.analyzeHand(handForAnalysis, [])
     setIsAnalyzing(false)
   }, [fullHand, selectedPatterns, exposedTiles, intelligenceStore])
 
@@ -480,8 +486,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Initialize game mode
   useEffect(() => {
-    // GameModeView initialized
-    console.log('GameModeView initialized')
+    return () => {
+      // Cleanup on unmount
+    }
   }, [])
 
   // Timer effect

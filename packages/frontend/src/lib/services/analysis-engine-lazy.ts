@@ -34,15 +34,16 @@ export const getAnalysisEngine = async () => {
  * Lightweight wrapper that provides the same interface but loads the engine lazily
  */
 export class LazyAnalysisEngine {
-  async analyzeHand(hand: PlayerTile[], availablePatterns?: PatternSelectionOption[], gameContext?: Partial<import('../../features/intelligence-panel/services/pattern-analysis-engine').GameContext>, isPatternSwitching?: boolean) {
-    // Check if already cached - if so, use synchronously to avoid async deadlock
-    if (analysisEngineClass) {
-      return analysisEngineClass.analyzeHand(hand, availablePatterns, gameContext, isPatternSwitching)
+  analyzeHand(hand: PlayerTile[], availablePatterns?: PatternSelectionOption[], gameContext?: Partial<import('../../features/intelligence-panel/services/pattern-analysis-engine').GameContext>, isPatternSwitching?: boolean) {
+    // Engine is preloaded in main.tsx, so it's always cached - use synchronously to avoid async deadlock
+    if (!analysisEngineClass) {
+      throw new Error('Analysis engine not preloaded - this should never happen')
     }
 
-    // Not cached, need to load asynchronously
-    const EngineClass = await getAnalysisEngine()
-    return EngineClass.analyzeHand(hand, availablePatterns, gameContext, isPatternSwitching)
+    console.log('🔄 LazyAnalysisEngine: Using cached engine class')
+    const result = analysisEngineClass.analyzeHand(hand, availablePatterns, gameContext, isPatternSwitching)
+    console.log('🔄 LazyAnalysisEngine: Result from cached engine:', typeof result, 'isPromise:', result instanceof Promise)
+    return result
   }
 
   async clearCacheForHandChange(oldTileIds: string[], newTileIds: string[]) {

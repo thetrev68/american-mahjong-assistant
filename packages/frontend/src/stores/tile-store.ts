@@ -222,13 +222,14 @@ export const useTileStore = create<TileState>()(
         },
         
         clearHand: () => {
+          console.log('🧹 clearHand called - stack trace:', new Error().stack)
           set((state) => {
             const oldTileIds = state.playerHand.map(tile => tile.id)
             const newTileIds: string[] = []
-            
+
             // Clear Engine 1 cache when hand cleared (async, don't block)
             lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
-            
+
             return {
               playerHand: [],
               handSize: 0,
