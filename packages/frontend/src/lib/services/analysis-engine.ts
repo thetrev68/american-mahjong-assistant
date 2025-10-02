@@ -48,11 +48,11 @@ export class AnalysisEngine {
   /**
    * Get Engine 1 results from cache or compute fresh
    */
-  private static async getEngine1Facts(
+  private static getEngine1Facts(
     tileIds: string[],
     patternIds: string[],
     gameContext: GameContext
-  ): Promise<PatternAnalysisFacts[]> {
+  ): PatternAnalysisFacts[] {
     console.log('🏭 getEngine1Facts called')
     const cacheKey = this.generateCacheKey(tileIds, patternIds, gameContext)
     const handHash = [...tileIds].sort().join(',')
@@ -77,37 +77,27 @@ export class AnalysisEngine {
 
     // Cache miss - computing fresh analysis
     console.log('🔄 Cache miss, calling PatternAnalysisEngine.analyzePatterns...')
-    const computationPromise = PatternAnalysisEngine.analyzePatterns(
+    // analyzePatterns is synchronous (data preloaded), returns plain array
+    const facts = PatternAnalysisEngine.analyzePatterns(
       tileIds,
       patternIds,
       gameContext
-    ).then(facts => {
-      console.log('✅ PatternAnalysisEngine.analyzePatterns completed with', facts.length, 'facts')
-      // Store in cache
-      this.engine1Cache.set(cacheKey, {
-        facts,
-        timestamp: now,
-        handHash,
-        patternIds: [...patternIds]
-      })
+    )
 
-      // Remove from pending promises
-      this.pendingPromises.delete(cacheKey)
+    console.log('✅ PatternAnalysisEngine.analyzePatterns completed with', facts.length, 'facts')
 
-      // Manage cache size
-      this.manageCacheSize()
-
-      return facts
-    }).catch(error => {
-      // Remove from pending promises on error
-      this.pendingPromises.delete(cacheKey)
-      throw error
+    // Store in cache
+    this.engine1Cache.set(cacheKey, {
+      facts,
+      timestamp: now,
+      handHash,
+      patternIds: [...patternIds]
     })
 
-    // Store the promise to prevent race conditions
-    this.pendingPromises.set(cacheKey, computationPromise)
+    // Manage cache size
+    this.manageCacheSize()
 
-    return computationPromise
+    return facts
   }
 
   /**
@@ -233,7 +223,7 @@ export class AnalysisEngine {
       console.log('✅ Pattern IDs extracted:', patternIds.length)
 
       console.log('🔄 Calling getEngine1Facts with', tileIds.length, 'tiles and', patternIds.length, 'patterns...')
-      const analysisFacts = await this.getEngine1Facts(
+      const analysisFacts = this.getEngine1Facts(
         tileIds,
         patternIds,
         fullGameContext
@@ -256,7 +246,8 @@ export class AnalysisEngine {
       // const engine2Start = performance.now()
       
       // Engine 2: Apply strategic ranking and scoring
-      const patternRankings = await PatternRankingEngine.rankPatterns(
+      console.log('🔄 Calling Engine 2: PatternRankingEngine.rankPatterns...')
+      const patternRankings = PatternRankingEngine.rankPatterns(
         analysisFacts,
         patternsToAnalyze,
         {
@@ -264,15 +255,11 @@ export class AnalysisEngine {
           wallTilesRemaining: fullGameContext.wallTilesRemaining
         }
       )
-      
-      // const engine2Time = performance.now() - engine2Start
-      // Engine 2 completed
-      
-      // console.error('💡 ENGINE 3 STARTING - GENERATING TILE RECOMMENDATIONS')
-      // const engine3Start = performance.now()
-      
+      console.log('✅ Engine 2 complete:', patternRankings.topRecommendations?.length, 'top patterns')
+
       // Engine 3: Generate tile recommendations
-      const tileRecommendations = await TileRecommendationEngine.generateRecommendations(
+      console.log('🔄 Calling Engine 3: TileRecommendationEngine.generateRecommendations...')
+      const tileRecommendations = TileRecommendationEngine.generateRecommendations(
         tileIds,
         patternRankings,
         {
@@ -283,6 +270,7 @@ export class AnalysisEngine {
         },
         analysisFacts // Pass Engine 1 facts so Engine 3 can see actual tile matching
       )
+      console.log('✅ Engine 3 complete:', tileRecommendations.tileActions?.length, 'tile actions')
 
 
       // const engine3Time = performance.now() - engine3Start

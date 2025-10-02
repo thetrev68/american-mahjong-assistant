@@ -93,11 +93,11 @@ export class PatternAnalysisEngine {
   /**
    * Analyze a player's hand against all variations of specific patterns
    */
-  static async analyzePatterns(
+  static analyzePatterns(
     playerTiles: string[],
     targetPatternIds: string[],
     gameContext: GameContext
-  ): Promise<PatternAnalysisFacts[]> {
+  ): PatternAnalysisFacts[] {
     console.log('🎯 PatternAnalysisEngine.analyzePatterns called with', playerTiles.length, 'tiles and', targetPatternIds.length, 'patterns')
     console.time('⏱️ PatternAnalysisEngine.analyzePatterns')
 
@@ -125,16 +125,8 @@ export class PatternAnalysisEngine {
 
     try {
       console.log('🔄 Loading pattern variations...')
-      const loadResult = PatternVariationLoader.loadVariations()
-      // Handle both sync void and async Promise<void>
-      // Check if result is a Promise (thenable) rather than checking for undefined
-      if (loadResult && typeof loadResult.then === 'function') {
-        console.log('🔄 Awaiting variations promise...')
-        await loadResult
-        console.log('✅ Variations loaded asynchronously')
-      } else {
-        console.log('✅ Variations loaded synchronously (void)')
-      }
+      // Data is preloaded in main.tsx, so this returns void (no await needed)
+      PatternVariationLoader.loadVariations()
       console.log('✅ Pattern variations loaded')
     } catch (error) {
       console.error('❌ Pattern variations load failed:', error)
@@ -160,10 +152,8 @@ export class PatternAnalysisEngine {
 
       try {
         console.log(`🔄 Getting variations for pattern ${patternId}...`)
-        const variationsResult = PatternVariationLoader.getPatternVariations(patternId)
-        console.log(`🔄 getPatternVariations returned, type: ${typeof variationsResult}, isArray: ${Array.isArray(variationsResult)}`)
-        // Handle both sync array and async Promise
-        const variations = Array.isArray(variationsResult) ? variationsResult : await variationsResult
+        // Data is preloaded, so this returns array directly (no await)
+        const variations = PatternVariationLoader.getPatternVariations(patternId) as PatternVariation[]
         console.log(`✅ Got ${variations.length} variations for pattern ${patternId}`)
 
         // Filter out invalid variations
@@ -175,13 +165,16 @@ export class PatternAnalysisEngine {
           continue
         }
 
-        const analysisFacts = await this.analyzePatternVariations(
+        console.log(`🔄 Calling analyzePatternVariations for pattern ${processedCount}/${targetPatternIds.length}...`)
+        const analysisFacts = this.analyzePatternVariations(
           validPlayerTiles,
           validVariations,
           gameContext
         )
+        console.log(`✅ analyzePatternVariations returned for pattern ${processedCount}, pushing to results...`)
 
         results.push(analysisFacts)
+        console.log(`✅ Pattern ${processedCount} complete, results array now has ${results.length} items`)
       } catch {
         // On any error with this pattern, provide fallback
         results.push(this.createFallbackAnalysis(patternId, validPlayerTiles))
@@ -215,7 +208,7 @@ export class PatternAnalysisEngine {
     const results: PatternAnalysisFacts[] = []
     
     for (const [, variations] of variationsByPattern) {
-      const analysisFacts = await this.analyzePatternVariations(
+      const analysisFacts = this.analyzePatternVariations(
         playerTiles,
         variations,
         gameContext
@@ -322,31 +315,46 @@ export class PatternAnalysisEngine {
 
   /**
    * Analyze all variations of a single pattern
+   * NOTE: This method is synchronous (no async) to avoid Promise wrapping and microtask deadlocks
    */
-  private static async analyzePatternVariations(
+  private static analyzePatternVariations(
     playerTiles: string[],
     variations: PatternVariation[],
     gameContext: GameContext
-  ): Promise<PatternAnalysisFacts> {
+  ): PatternAnalysisFacts {
+    console.log('🎯 analyzePatternVariations called with', playerTiles.length, 'tiles and', variations.length, 'variations')
+    console.time('⏱️ analyzePatternVariations')
+
+    console.log('🔄 Counting player tiles...')
     const playerTileCounts = PatternVariationLoader.countTiles(playerTiles)
+    console.log('✅ Player tile counts:', Object.keys(playerTileCounts).length, 'unique tiles')
 
     // Analyze each variation
+    console.log('🔄 Starting variation loop...')
     const variationResults: TileMatchResult[] = []
-    for (const variation of variations) {
+    for (let i = 0; i < variations.length; i++) {
+      const variation = variations[i]
+      console.log(`🔄 Processing variation ${i + 1}/${variations.length} (seq ${variation.sequence})...`)
       try {
         const result = this.analyzeVariationMatch(playerTiles, variation, playerTileCounts)
         variationResults.push(result)
-      } catch {
+        console.log(`✅ Variation ${i + 1} analyzed: ${result.tilesMatched}/14 matched`)
+      } catch (error) {
+        console.log(`⚠️ Variation ${i + 1} skipped due to error:`, error)
         // Skip invalid variations rather than crashing
         continue
       }
     }
+    console.log('✅ Variation loop completed, analyzed', variationResults.length, 'variations')
     
     // Handle case where no valid variations were processed
     if (variationResults.length === 0) {
+      console.log('⚠️ No valid variations processed, returning fallback')
+      console.timeEnd('⏱️ analyzePatternVariations')
       return this.createFallbackAnalysis(variations[0]?.handKey || 'unknown', playerTiles)
     }
 
+    console.log('🔄 Finding best and worst variations...')
     // Find best and worst variations
     const bestVariation = variationResults.reduce((best, current) =>
       current.completionRatio > best.completionRatio ? current : best
@@ -355,13 +363,16 @@ export class PatternAnalysisEngine {
     const worstVariation = variationResults.reduce((worst, current) =>
       current.completionRatio < worst.completionRatio ? current : worst
     )
-    
-    
+    console.log('✅ Best:', bestVariation.completionRatio, 'Worst:', worstVariation.completionRatio)
+
+    console.log('🔄 Calculating average completion...')
     // Calculate average completion
-    const averageCompletion = variationResults.reduce((sum, result) => 
+    const averageCompletion = variationResults.reduce((sum, result) =>
       sum + result.completionRatio, 0
     ) / variationResults.length
-    
+    console.log('✅ Average completion:', averageCompletion)
+
+    console.log('🔄 Analyzing jokers...')
     // Analyze jokers using best variation (with safe fallback)
     const bestVariationData = variations.find(v => v.sequence === bestVariation.sequence)
     const jokerAnalysis = bestVariationData
@@ -377,16 +388,24 @@ export class PatternAnalysisEngine {
           withJokersCompletion: bestVariation.completionRatio,
           jokersToComplete: bestVariation.tilesNeeded
         }
-    
+    console.log('✅ Joker analysis complete')
+
+    console.log('🔄 Analyzing tile availability...')
     // Analyze tile availability
     const tileAvailability = this.analyzeTileAvailability(
       bestVariation.missingTiles,
       gameContext
     )
-    
+    console.log('✅ Tile availability complete')
+
+    console.log('🔄 Calculating progress metrics...')
     // Calculate progress metrics
     const progressMetrics = this.calculateProgressMetrics(playerTiles, bestVariation)
-    
+    console.log('✅ Progress metrics complete')
+
+    console.log('✅ analyzePatternVariations complete, returning results')
+    console.timeEnd('⏱️ analyzePatternVariations')
+
     return {
       patternId: variations[0].handKey,
       tileMatching: {

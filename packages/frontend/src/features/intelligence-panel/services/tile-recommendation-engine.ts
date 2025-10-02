@@ -74,7 +74,7 @@ export class TileRecommendationEngine {
   /**
    * Generate comprehensive tile recommendations
    */
-  static async generateRecommendations(
+  static generateRecommendations(
     playerTiles: string[],
     patternRankings: RankedPatternResults,
     gameContext: {
@@ -85,7 +85,7 @@ export class TileRecommendationEngine {
       wallTilesRemaining: number
     },
     analysisFacts?: PatternAnalysisFacts[] // Engine 1 pattern analysis facts with actual tile matching data
-  ): Promise<TileRecommendationResults> {
+  ): TileRecommendationResults {
     
     try {
     

@@ -59,7 +59,7 @@ export class PatternRankingEngine {
   /**
    * Rank all pattern analysis results using 4-component scoring
    */
-  static async rankPatterns(
+  static rankPatterns(
     analysisFacts: PatternAnalysisFacts[],
     selectedPatterns: PatternSelectionOption[],
     gameContext: {
@@ -68,7 +68,7 @@ export class PatternRankingEngine {
       turnsElapsed?: number
       wallTilesRemaining?: number
     }
-  ): Promise<RankedPatternResults> {
+  ): RankedPatternResults {
     // Defensive input validation
     const validAnalysisFacts = this.filterValidAnalysisFacts(analysisFacts)
     const validSelectedPatterns = this.filterValidPatterns(selectedPatterns)
