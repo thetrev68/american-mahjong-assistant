@@ -147,9 +147,9 @@ export const useGameStore = create<GameState>()(
         set({ turnStartTime: new Date() }, false, 'startTurn'),
       
       startGame: () =>
-        set({ 
+        set({
           gameStartTime: new Date(),
-          gamePhase: 'playing',
+          gamePhase: 'charleston',
           wallTilesRemaining: 144,
           passedOutPlayers: new Set<string>()
         }, false, 'startGame'),

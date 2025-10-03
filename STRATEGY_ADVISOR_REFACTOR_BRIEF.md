@@ -1,6 +1,6 @@
 # Strategy Advisor Refactor Task Brief
 
-## Context
+## Context 
 The Strategy Advisor feature in the American Mahjong Assistant app has infinite render loop issues caused by improper Zustand store subscription patterns. We've partially fixed the main hook, but the UI components still have issues.
 
 ## Problem Statement

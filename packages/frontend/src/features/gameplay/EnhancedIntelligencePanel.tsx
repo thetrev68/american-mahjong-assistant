@@ -8,7 +8,7 @@ import { CallOpportunitySection } from './components/CallOpportunitySection'
 import { OpponentInsightsSection } from './components/OpponentInsightsSection'
 import { DefensivePlaySection } from './components/DefensivePlaySection'
 import { GlanceModePanel } from '../strategy-advisor/components/GlanceModePanel'
-import { useStrategyAdvisor } from '../strategy-advisor/hooks/useStrategyAdvisor'
+// import { useStrategyAdvisor } from '../strategy-advisor/hooks/useStrategyAdvisor' // Not needed - GlanceModePanel has its own hook
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { getPatternCompletionSummary } from '../../utils/tile-display-utils'
@@ -47,16 +47,17 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const { playerHand } = useTileStore()
   const navigate = useNavigate()
 
-  // Strategy Advisor integration - DISABLED: Still has render loop issues
+  // Strategy Advisor integration - GlanceModePanel has its own useStrategyAdvisor hook
+  // Removed duplicate hook call here to prevent cascading re-renders
   // Fixed: useStrategyAdvisor infinite loop (granular selectors)
   // Fixed: DisclosureManager infinite loop (dependency array)
-  // Remaining: GlanceModePanel or nested hooks still causing constant re-renders
+  // Fixed: GlanceModePanel selector usage (direct property access)
   // const { expandMessage, collapseMessage } = useStrategyAdvisor()
   const expandMessage = () => {}
   const collapseMessage = () => {}
 
   // Feature flag for Strategy Advisor
-  const useStrategyAdvisorInterface = false
+  const useStrategyAdvisorInterface = true
 
   // Track the original engine recommendation ID
   const originalEngineRecommendationId = useRef<string | null>(null)
@@ -116,12 +117,20 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
 
       {/* Strategy Advisor - Glance Mode Interface */}
       {useStrategyAdvisorInterface && (
-        <div className="mb-4">
+        <div className="mb-4 space-y-4">
           <GlanceModePanel
             className="strategy-advisor-panel"
             onMessageExpand={expandMessage}
             onMessageCollapse={collapseMessage}
           />
+
+          {/* Defensive Analysis within AI Co-Pilot */}
+          {analysis?.defensiveAnalysis && (
+            <DefensivePlaySection
+              defensiveAnalysis={analysis.defensiveAnalysis}
+              patternSwitchSuggestions={analysis.patternSwitchSuggestions}
+            />
+          )}
         </div>
       )}
 
@@ -149,15 +158,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
           dangerousTiles={analysis.dangerousTiles}
         />
       )}
-      
-      {/* Defensive Analysis Section */}
-      {analysis?.defensiveAnalysis && (
-        <DefensivePlaySection
-          defensiveAnalysis={analysis.defensiveAnalysis}
-          patternSwitchSuggestions={analysis.patternSwitchSuggestions}
-        />
-      )}
-      
+
       {/* Enhanced Pattern Analysis */}
       {analysis ? (
         <div className="pattern-analysis space-y-4">

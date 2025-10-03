@@ -36,8 +36,9 @@ import { useHistoryStore } from '../../stores/history-store'
 import { tileService } from '../../lib/services/tile-service'
 import DevShortcuts from '../../ui-components/DevShortcuts'
 import { useNavigate } from 'react-router-dom'
-import { PullToRefreshWrapper } from '../strategy-advisor/components/PullToRefreshWrapper'
-import { useResponsivePullToRefreshConfig } from '../strategy-advisor/utils/pull-to-refresh.utils'
+// Pull to refresh imports - reserved for future use
+// import { PullToRefreshWrapper } from '../strategy-advisor/components/PullToRefreshWrapper'
+// import { useResponsivePullToRefreshConfig } from '../strategy-advisor/utils/pull-to-refresh.utils'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
@@ -127,16 +128,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const hasEnoughTiles = playerHand.length >= 10
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
     const isInGameMode = gameStore.gamePhase === 'playing' || gameStore.gamePhase === 'charleston'
-
-    console.log('🎮 Analysis trigger check:', {
-      gamePhase: gameStore.gamePhase,
-      isInGameMode,
-      hasEnoughTiles,
-      playerHandLength: playerHand.length,
-      hasNoAnalysis,
-      isAnalyzing: intelligenceStore.isAnalyzing,
-      hasTriggered: hasTriggeredAnalysisRef.current
-    })
 
     // Only auto-analyze if we're in game mode AND haven't analyzed yet AND haven't already triggered
     if (isInGameMode && hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing && !hasTriggeredAnalysisRef.current) {
@@ -251,8 +242,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const gameRound = useGameStore(state => state.currentTurn) || 1
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
 
-  // Phase 4: Pull-to-refresh configuration for hand re-analysis
-  const pullToRefreshConfig = useResponsivePullToRefreshConfig()
+  // Phase 4: Pull-to-refresh configuration - reserved for future use
+  // const pullToRefreshConfig = useResponsivePullToRefreshConfig()
   const [discardPile] = useState<Array<{
     tile: Tile
     playerId: string
@@ -283,19 +274,16 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Current hand with drawn tile - get real player hand from tile store
   const currentHand = useMemo(() => {
     const hand = (tileStore.playerHand || []) as Tile[]
-    console.log('🎮 currentHand updated:', hand.length, 'tiles')
     return hand
   }, [tileStore.playerHand])
 
   const fullHand = useMemo(() => {
     const hand = lastDrawnTile ? [...currentHand, lastDrawnTile] : currentHand
-    console.log('🎮 fullHand updated:', hand.length, 'tiles')
     return hand
   }, [currentHand, lastDrawnTile])
 
   // Real-time analysis - get actual analysis from intelligence store
   const baseAnalysis = intelligenceStore.currentAnalysis
-  console.log('🎮 baseAnalysis:', !!baseAnalysis, 'patterns:', baseAnalysis?.recommendedPatterns?.length)
 
   // Charleston-specific analysis adaptation
   const currentAnalysis = useMemo(() => {
@@ -485,14 +473,14 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     setIsAnalyzing(false)
   }, [fullHand, selectedPatterns, exposedTiles, intelligenceStore])
 
-  // Phase 4: Pull-to-refresh handler
-  const handlePullToRefresh = useCallback(async () => {
-    // Re-analyze the current hand
-    await analyzeCurrentHand()
-
-    // Add a slight delay for better UX
-    await new Promise(resolve => setTimeout(resolve, 500))
-  }, [analyzeCurrentHand])
+  // Phase 4: Pull-to-refresh handler - reserved for future use
+  // const handlePullToRefresh = useCallback(async () => {
+  //   // Re-analyze the current hand
+  //   await analyzeCurrentHand()
+  //
+  //   // Add a slight delay for better UX
+  //   await new Promise(resolve => setTimeout(resolve, 500))
+  // }, [analyzeCurrentHand])
 
   // Initialize game mode
   useEffect(() => {
@@ -1258,33 +1246,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Show loading overlay if initial analysis is running
   const showLoadingOverlay = intelligenceStore.isAnalyzing && !intelligenceStore.currentAnalysis
 
-  console.log('🎮 Render state:', {
-    showLoadingOverlay,
-    isAnalyzing: intelligenceStore.isAnalyzing,
-    hasAnalysis: !!intelligenceStore.currentAnalysis,
-    currentHandLength: currentHand.length,
-    patternsCount: currentAnalysis?.recommendedPatterns?.length
-  })
-
   return (
     <>
-      {/* Debug indicator - should show at highest z-index */}
-      <div style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 99999,
-        background: 'lime',
-        color: 'black',
-        padding: '20px',
-        fontSize: '24px',
-        fontWeight: 'bold',
-        textAlign: 'center'
-      }}>
-        ✅ GAME MODE VIEW IS RENDERING - {currentHand.length} tiles, {currentAnalysis?.recommendedPatterns?.length || 0} patterns
-      </div>
-
       <DevShortcuts
         variant={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         onSkipToGameplay={gameStore.gamePhase === 'charleston' ? handleSkipToGameplay : undefined}

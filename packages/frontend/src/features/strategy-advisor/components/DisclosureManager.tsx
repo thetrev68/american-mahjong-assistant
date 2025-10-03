@@ -1,7 +1,7 @@
 // DisclosureManager - Central component for progressive information layering
 // Orchestrates disclosure levels, strategy modes, and smooth transitions
 
-import React, { useEffect, useCallback, useMemo } from 'react'
+import React, { useEffect, useCallback, useMemo, useRef } from 'react'
 import { Card } from '../../../ui-components/Card'
 import { useDisclosureState } from '../hooks/useDisclosureState'
 import { useStrategyMode } from '../hooks/useStrategyMode'
@@ -47,10 +47,14 @@ export const DisclosureManager: React.FC<DisclosureManagerProps> = ({
   // Urgency detection for adaptive behavior
   const { isEmergencyMode } = useUrgencyDetection()
 
+  // Store adaptToUrgency in ref to avoid dependency issues
+  const adaptToUrgencyRef = useRef(disclosure.adaptToUrgency)
+  adaptToUrgencyRef.current = disclosure.adaptToUrgency
+
   // Adapt disclosure to urgency changes
   useEffect(() => {
-    disclosure.adaptToUrgency(urgencyLevel)
-  }, [urgencyLevel, disclosure.adaptToUrgency])
+    adaptToUrgencyRef.current(urgencyLevel)
+  }, [urgencyLevel])
 
   // Handle level changes with callback
   const handleLevelChange = useCallback((level: DisclosureLevel) => {

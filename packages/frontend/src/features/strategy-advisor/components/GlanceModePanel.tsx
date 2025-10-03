@@ -10,7 +10,7 @@ import { useGameStore } from '../../../stores/game-store'
 import { UrgencyIndicator } from './UrgencyIndicator'
 import { DisclosureManager } from './DisclosureManager'
 import { strategyModeService } from '../services/strategy-mode.service'
-import { useStrategyAdvisorStore, strategyAdvisorSelectors } from '../stores/strategy-advisor.store'
+import { useStrategyAdvisorStore } from '../stores/strategy-advisor.store'
 import {
   getUrgencyClasses,
   shouldShowMessage,
@@ -415,12 +415,21 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     config,
     expandedMessageId,
     expandMessage,
-    updateConfig
+    updateConfig,
+    activate,
+    refresh
   } = strategyHookResult
 
-  // Removed problematic useEffect that was causing infinite re-renders
-  // The effect ran on every strategyHookResult change (which is every render)
-  // causing the mount/unmount cycle
+  // Activate Strategy Advisor and trigger initial refresh on mount
+  useEffect(() => {
+    activate()
+    // Delay refresh slightly to allow intelligence data to load
+    const timeoutId = setTimeout(() => {
+      refresh()
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [activate, refresh])
 
   // Get urgency context for adaptive behavior
   const {
@@ -435,8 +444,8 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   const currentTurn = useGameStore(state => state.currentTurn)
   const wallTilesRemaining = useGameStore(state => state.wallTilesRemaining)
 
-  // Get disclosure and strategy mode state from store
-  const currentStrategyMode = useStrategyAdvisorStore(strategyAdvisorSelectors.currentStrategyMode)
+  // Get disclosure and strategy mode state from store - using direct property access to avoid selector instability
+  const currentStrategyMode = useStrategyAdvisorStore(state => state.strategyModeState.currentMode)
   const setDisclosureLevel = useStrategyAdvisorStore(state => state.setDisclosureLevel)
   const setStrategyMode = useStrategyAdvisorStore(state => state.setStrategyMode)
   const setAllowedDisclosureLevels = useStrategyAdvisorStore(state => state.setAllowedDisclosureLevels)

@@ -2,7 +2,6 @@ import React from 'react'
 import TopZone from './TopZone'
 import YourHandZone from './YourHandZone'
 import DiscardPileZone from './DiscardPileZone'
-import OpponentExposedZone from './OpponentExposedZone'
 import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
 import { GameplayRecommendations } from './GameplayRecommendations'
 import { GameControlPanel } from './GameControlPanel'
@@ -77,7 +76,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   onAdvanceToGameplay,
   discardPile,
   currentPlayerIndex,
-  playerExposedCount,
+  playerExposedCount: _playerExposedCount,
   gameHistory,
   currentAnalysis,
   wallCount,
@@ -87,9 +86,6 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
   onPlayingPatternChange,
   onPatternSwitch,
 }) => {
-  console.log('🏗️ GameScreenLayout render - currentHand:', currentHand.length, 'tiles')
-  console.log('🏗️ GameScreenLayout - currentHand:', currentHand)
-
   return (
     <div className="max-w-full mx-auto p-1 sm:p-4 md:p-6 md:max-w-4xl pb-20 sm:pb-24">
       {/* TOP ZONE: Game phase, elapsed timer, current player, action buttons */}
@@ -109,6 +105,7 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         wallCount={wallCount}
         onSwapJoker={onSwapJoker}
         onDeadHand={onDeadHand}
+        currentPlayerIndex={currentPlayerIndex}
       />
 
       {/* GAME CONTROL PANEL: Solo mode controls */}
@@ -139,19 +136,14 @@ const GameScreenLayout: React.FC<GameScreenLayoutProps> = ({
         />
       </div>
 
-      {/* ZONE 2: DISCARD PILE - Hidden during Charleston */}
+      {/* ZONE 2: DISCARD PILE & OPPONENT EXPOSED - Hidden during Charleston */}
       {gamePhase !== 'charleston' && (
-        <DiscardPileZone discardPile={discardPile} />
+        <DiscardPileZone
+          discardPile={discardPile}
+          playerNames={playerNames}
+          playerExposedCount={_playerExposedCount}
+        />
       )}
-
-      {/* ZONE 3: OPPONENT EXPOSED TILES */}
-      <OpponentExposedZone
-        playerNames={playerNames}
-        currentPlayerIndex={currentPlayerIndex}
-        playerExposedCount={playerExposedCount}
-        gameHistory={gameHistory}
-        gameRound={gameRound}
-      />
 
       {/* ZONES 4-5: AI INTELLIGENCE PANEL */}
       <EnhancedIntelligencePanel

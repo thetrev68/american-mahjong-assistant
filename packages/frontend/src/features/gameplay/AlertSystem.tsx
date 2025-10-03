@@ -96,7 +96,7 @@ const AlertSystem: React.FC<AlertSystemProps> = ({
       case 'success':
         return `${baseStyles} bg-green-50/90 border-l-green-400 text-green-800`
       case 'call':
-        return `${baseStyles} bg-purple-50/90 border-l-purple-400 text-purple-800 animate-pulse`
+        return `${baseStyles} bg-purple-50/90 border-l-purple-400 text-purple-800`
       default:
         return `${baseStyles} bg-gray-50/90 border-l-gray-400 text-gray-800`
     }

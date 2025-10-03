@@ -9,9 +9,15 @@ interface DiscardPileZoneProps {
     playerId: string
     timestamp: Date
   }>
+  playerNames?: string[]
+  playerExposedCount?: Record<string, number>
 }
 
-const DiscardPileZone: React.FC<DiscardPileZoneProps> = ({ discardPile }) => {
+const DiscardPileZone: React.FC<DiscardPileZoneProps> = ({
+  discardPile,
+  playerNames = [],
+  playerExposedCount = {}
+}) => {
   
   const recentDiscards = discardPile.slice(-8) // Show last 8 discards
 
@@ -52,6 +58,30 @@ const DiscardPileZone: React.FC<DiscardPileZoneProps> = ({ discardPile }) => {
         <div className="text-xs text-gray-500 mt-2 text-center">
           Showing most recent 8 of {discardPile.length} discards
         </div>
+      )}
+
+      {/* Opponent Exposed Tiles Section */}
+      {playerNames.length > 0 && (
+        <>
+          <div className="border-t border-gray-200 my-4"></div>
+          <div>
+            <h4 className="text-sm font-semibold text-gray-700 mb-2">Opponent Exposed Tiles</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {playerNames.slice(1).map((name, index) => {
+                const playerId = `player-${index + 2}`
+                const exposedCount = playerExposedCount[playerId] || 0
+                return (
+                  <div key={playerId} className="p-2 bg-gray-50 rounded">
+                    <div className="text-xs font-medium text-gray-600">{name}</div>
+                    <div className="text-sm text-gray-500">
+                      {exposedCount > 0 ? `${exposedCount} sets exposed` : 'No exposed tiles'}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </>
       )}
     </Card>
   )

@@ -55,12 +55,6 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
   currentAnalysis,
   playingPatternIds = []
 }) => {
-  console.log('🎴 YourHandZone render - currentHand:', currentHand.length, 'tiles')
-  console.log('🎴 YourHandZone - currentHand:', currentHand)
-  if (currentHand.length > 0) {
-    console.log('🎴 First tile full details:', JSON.stringify(currentHand[0], null, 2))
-  }
-
   const { selectedForAction, tileStates } = useTileStore()
   const isCharleston = gamePhase === 'charleston'
   const { handleTileClick } = useTileInteraction(isCharleston ? 'charleston' : 'gameplay')
@@ -87,8 +81,7 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
 
   // Sort hand tiles using same logic as tile input page
   const sortedCurrentHand = tileService.sortTiles([...currentHand])
-  console.log('🎴 YourHandZone - sortedCurrentHand:', sortedCurrentHand.length, 'tiles')
-  
+
   // Get tile recommendations for highlighting
   const getTileRecommendation = (tileId: string) => {
     if (!currentAnalysis?.tileRecommendations) return null
@@ -135,13 +128,13 @@ const YourHandZone: React.FC<YourHandZoneProps> = ({
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-800">Your Hand</h3>
         <div className="flex gap-2">
-          <Button 
-            size="sm" 
+          <Button
+            size="sm"
             onClick={handleDrawTile}
             disabled={gamePhase === 'charleston' || !isMyTurn || !!lastDrawnTile}
             className="bg-green-600 hover:bg-green-700"
           >
-            🎲 Draw Tile
+            Draw Tile
           </Button>
           {isAnalyzing && <LoadingSpinner size="sm" />}
         </div>

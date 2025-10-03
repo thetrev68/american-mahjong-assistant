@@ -42,7 +42,7 @@ export function GameplayRecommendations({
     console.log('🎯 Filtered recommendations:', { keep: keep.length, discard: discard.length, pass: pass.length })
 
     return { keep, discard, pass }
-  }, [analysis?.tileRecommendations])
+  }, [analysis])
 
   if (isLoading) {
     return (

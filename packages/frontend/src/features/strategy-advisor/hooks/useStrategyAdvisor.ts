@@ -6,7 +6,6 @@ import { useCallback, useEffect, useRef, useMemo } from 'react'
 import { useIntelligenceStore } from '../../../stores/intelligence-store'
 import {
   useStrategyAdvisorStore,
-  strategyAdvisorSelectors,
   strategyAdvisorActions
 } from '../stores/strategy-advisor.store'
 import { StrategyAdvisorAdapter } from '../services/strategy-advisor-adapter.service'
@@ -74,7 +73,8 @@ export const useStrategyAdvisor = (
 
   // Stable intelligence data with ref-based caching to prevent infinite loops
   // Only creates new object if analysis ID actually changes
-  const intelligenceData = useMemo(() => {
+  // Note: Updates intelligenceDataRef.current which is used elsewhere
+  useMemo(() => {
     const currentAnalysisId = currentAnalysis?.lastUpdated || 0
 
     // Return cached reference if same analysis to prevent re-render cascade
@@ -111,7 +111,7 @@ export const useStrategyAdvisor = (
     }
   }, [
     adapter,
-    currentAnalysis?.lastUpdated,
+    currentAnalysis,
     isIntelligenceAnalyzing
   ])
 
@@ -356,7 +356,7 @@ export const useStrategyAdvisor = (
     error,
     config,
     expandedMessageId,
-    // refresh removed from deps - prevents infinite loop when gameContext changes
+    refresh,
     activate,
     deactivate,
     expandMessage,

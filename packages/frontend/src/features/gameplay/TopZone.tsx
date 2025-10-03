@@ -18,6 +18,7 @@ interface TopZoneProps {
   wallCount?: number
   onSwapJoker?: () => void
   onDeadHand?: () => void
+  currentPlayerIndex?: number
 }
 
 
@@ -48,14 +49,7 @@ const DramaticTimer: React.FC<{
         }
       `}
     >
-      <div className="flex items-center gap-2">
-        <span className="text-xl">
-          {isUrgent ? '🔥' : '⏱️'}
-        </span>
-        <span>
-          {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
-        </span>
-      </div>
+      {minutes.toString().padStart(2, '0')}:{seconds.toString().padStart(2, '0')}
     </div>
   )
 }
@@ -135,14 +129,15 @@ const TopZone: React.FC<TopZoneProps> = ({
   windRound,
   gameRound,
   selectedPatternsCount,
-  findAlternativePatterns,
-  onNavigateToCharleston,
+  findAlternativePatterns: _findAlternativePatterns,
+  onNavigateToCharleston: _onNavigateToCharleston,
   onPauseGame,
   isPaused,
   nextPlayer: providedNextPlayer,
   wallCount = 0,
   onSwapJoker,
   onDeadHand,
+  currentPlayerIndex = 0,
 }) => {
 
   const { currentPhase } = useCharlestonStore()
@@ -173,17 +168,17 @@ const TopZone: React.FC<TopZoneProps> = ({
             {gamePhase === 'charleston' ? (
               <div className="text-sm md:text-base text-gray-600 space-y-1">
                 <div className="flex flex-wrap items-center gap-4">
-                  <span>📤 Passing to: <span className="font-semibold text-blue-600">{passingToPlayer}</span></span>
-                  <span>📥 Receiving from: <span className="font-semibold text-green-600">{receivingFromPlayer}</span></span>
+                  <span>Passing to: <span className="font-semibold text-blue-600">{passingToPlayer}</span></span>
+                  <span>Receiving from: <span className="font-semibold text-green-600">{receivingFromPlayer}</span></span>
                 </div>
                 <div className="text-xs text-gray-500">
-                  All players select 3 tiles simultaneously
+                  Waiting on: {playerNames.join(', ')}
                 </div>
               </div>
             ) : (
               <>
                 <p className="text-sm md:text-base text-gray-600">
-                  🟢 {currentPlayer}{currentPlayer.endsWith('s') ? "'" : "'s"} turn
+                  {currentPlayer}{currentPlayer.endsWith('s') ? "'" : "'s"} turn
                   • Playing {selectedPatternsCount} pattern{selectedPatternsCount !== 1 ? 's' : ''}
                 </p>
                 <div className="text-xs md:text-sm text-gray-500">
@@ -195,27 +190,11 @@ const TopZone: React.FC<TopZoneProps> = ({
           </div>
         </div>
         <div className="flex flex-wrap gap-1 sm:gap-2">
-          {gamePhase === 'gameplay' && (
-            <>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={findAlternativePatterns}
-                disabled={selectedPatternsCount === 0}
-                className="text-purple-600 border-purple-300 hover:bg-purple-50"
-              >
-                🔄 Switch Strategy
-              </Button>
-              <Button variant="outline" size="sm" onClick={onNavigateToCharleston}>
-                Back to Charleston
-              </Button>
-            </>
-          )}
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
             onClick={onPauseGame}
-            className={isPaused ? "bg-yellow-100 text-yellow-700" : ""}
+            className={isPaused ? "bg-yellow-100 text-yellow-700 border-yellow-300" : "text-gray-600 border-gray-300 hover:bg-gray-50"}
           >
             {isPaused ? 'Resume Game' : 'Pause Game'}
           </Button>
@@ -227,7 +206,7 @@ const TopZone: React.FC<TopZoneProps> = ({
                 onClick={onSwapJoker}
                 className="text-purple-600 border-purple-300 hover:bg-purple-50"
               >
-                🃏 Swap Joker
+                Swap Joker
               </Button>
               <Button
                 variant="outline"
@@ -235,10 +214,34 @@ const TopZone: React.FC<TopZoneProps> = ({
                 onClick={onDeadHand}
                 className="text-red-600 border-red-300 hover:bg-red-50"
               >
-                🚫 Dead Hand
+                Dead Hand
               </Button>
             </>
           )}
+        </div>
+      </div>
+
+      {/* Player Order */}
+      <div className="mt-4 p-3 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-medium text-gray-700">Player Order</h3>
+          <div className="text-xs text-gray-500">Turn {gameRound}</div>
+        </div>
+        <div className="flex items-center justify-center gap-2 sm:gap-4">
+          {playerNames.map((name, index) => (
+            <div key={index} className="flex items-center gap-2">
+              <div className={`w-3 h-3 rounded-full ${
+                currentPlayerIndex === index ? 'bg-green-500' :
+                index === 0 ? 'bg-blue-500' : 'bg-gray-300'
+              }`} />
+              <span className={`text-xs sm:text-sm font-medium ${
+                currentPlayerIndex === index ? 'text-green-600' :
+                index === 0 ? 'text-blue-600' : 'text-gray-500'
+              }`}>
+                {name}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
       </div>
