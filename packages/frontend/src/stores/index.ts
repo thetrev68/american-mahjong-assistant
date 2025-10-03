@@ -21,6 +21,9 @@ export { useConnectionStore } from './connection.store'
 export { useRoomSetupStore, type CoPilotMode, type RoomStatus } from './room-setup.store'
 export { useTurnStore, useTurnSelectors, type TurnPlayer } from './turn-store'
 
+// Dev-only stores
+export { useDevPerspectiveStore } from './dev-perspective.store'
+
 // Store Selectors (commonly used combinations)
 import { useGameStore } from './game-store'
 import { useUIStore } from './ui-store'

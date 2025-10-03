@@ -8,7 +8,11 @@ interface DevShortcutsProps {
   onSkipToCharleston?: () => void
   onSkipToGameplay?: () => void
   onResetGame?: () => void
-  variant?: 'setup' | 'gameplay' | 'charleston' | 'tile-input'
+  onSwitchPlayer?: (playerId: string) => void
+  currentDevPlayerId?: string | null
+  availablePlayerIds?: string[]
+  realPlayerId?: string | null
+  variant?: 'setup' | 'gameplay' | 'charleston' | 'tile-input' | 'multiplayer'
 }
 
 const DevShortcuts: React.FC<DevShortcutsProps> = ({
@@ -18,6 +22,10 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
   onSkipToCharleston,
   onSkipToGameplay,
   onResetGame,
+  onSwitchPlayer,
+  currentDevPlayerId,
+  availablePlayerIds = [],
+  realPlayerId,
   variant = 'setup'
 }) => {
   const [position, setPosition] = useState({ x: window.innerWidth - 320, y: 8 })
@@ -189,6 +197,47 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
                 className="bg-purple-50 border-purple-300 text-purple-700 hover:bg-purple-100"
               >
                 ⏭️ Skip to Gameplay
+              </Button>
+            )}
+          </>
+        )
+      case 'multiplayer':
+        return (
+          <>
+            <div className="w-full">
+              <div className="text-xs text-gray-600 mb-1 font-medium">
+                View As: {currentDevPlayerId ? `Player ${availablePlayerIds.indexOf(currentDevPlayerId) + 1}` : 'None'}
+                {realPlayerId && currentDevPlayerId === realPlayerId && (
+                  <span className="ml-1 text-green-600">← You</span>
+                )}
+              </div>
+              <div className="grid grid-cols-2 gap-1">
+                {availablePlayerIds.map((playerId, index) => (
+                  <Button
+                    key={playerId}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onSwitchPlayer?.(playerId)}
+                    className={`${
+                      currentDevPlayerId === playerId
+                        ? 'bg-blue-100 border-blue-400 text-blue-800 font-semibold'
+                        : 'bg-gray-50 border-gray-300 text-gray-700 hover:bg-gray-100'
+                    } ${realPlayerId === playerId ? 'ring-2 ring-green-400' : ''}`}
+                  >
+                    Player {index + 1}
+                    {realPlayerId === playerId && ' 👤'}
+                  </Button>
+                ))}
+              </div>
+            </div>
+            {onResetGame && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onResetGame}
+                className="bg-red-50 border-red-300 text-red-700 hover:bg-red-100 w-full mt-1"
+              >
+                🔄 Reset Game
               </Button>
             )}
           </>

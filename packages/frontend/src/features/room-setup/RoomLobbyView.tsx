@@ -4,10 +4,12 @@
 import React, { useState } from 'react'
 import { useRoomStore } from '../../stores/room.store'
 import { usePlayerStore } from '../../stores/player.store'
+import { useDevPerspectiveStore } from '../../stores/dev-perspective.store'
 import { getRoomMultiplayerService } from '../../lib/services/room-multiplayer'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import HostControls from '../../ui-components/HostControls'
+import DevShortcuts from '../../ui-components/DevShortcuts'
 
 interface RoomLobbyViewProps {
   onStartGame?: () => void
@@ -20,6 +22,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
 }) => {
   const roomStore = useRoomStore()
   const playerStore = usePlayerStore()
+  const devPerspective = useDevPerspectiveStore()
   const [copySuccess, setCopySuccess] = useState(false)
 
   // Copy room code to clipboard
@@ -89,8 +92,37 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
     )
   }
 
+  // Handle dev perspective switching
+  const handleSwitchPlayer = (playerId: string) => {
+    devPerspective.setActiveDevPlayer(playerId)
+  }
+
+  // Register all players in dev mode
+  React.useEffect(() => {
+    if (import.meta.env.DEV && allPlayers.length > 0) {
+      allPlayers.forEach(player => {
+        devPerspective.registerPlayer(player.id)
+      })
+    }
+  }, [allPlayers, devPerspective])
+
   return (
     <div className="space-y-6">
+      {/* Dev Shortcuts - Multiplayer Mode */}
+      {import.meta.env.DEV && allPlayers.length > 0 && (
+        <DevShortcuts
+          variant="multiplayer"
+          onSwitchPlayer={handleSwitchPlayer}
+          currentDevPlayerId={devPerspective.activeDevPlayerId}
+          availablePlayerIds={devPerspective.allPlayerIds}
+          realPlayerId={playerStore.currentPlayerId}
+          onResetGame={() => {
+            roomStore.clearRoomData()
+            onLeaveRoom?.()
+          }}
+        />
+      )}
+
       {/* Room Information */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-4">
