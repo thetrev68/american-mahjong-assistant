@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
 import type { Room, Player, GameState, PlayerGameState, SharedState } from 'shared-types'
+import { useDevPerspectiveStore } from './dev-perspective.store'
 
 interface MultiplayerState {
   // Connection state
@@ -55,6 +56,9 @@ interface MultiplayerState {
     isFull: boolean
     isEmpty: boolean
   }
+
+  // Dev perspective helpers
+  getEffectivePlayerId: () => string | null
 }
 
 export const useMultiplayerStore = create<MultiplayerState>()(
@@ -214,14 +218,26 @@ export const useMultiplayerStore = create<MultiplayerState>()(
         // Computed getters
         getCurrentPlayer: () => {
           const state = get()
-          if (!state.currentRoom || !state.currentPlayerId) return null
-          return state.currentRoom.players.find(p => p.id === state.currentPlayerId) || null
+          // Use dev perspective if active, otherwise real player
+          const effectivePlayerId = state.currentPlayerId
+            ? useDevPerspectiveStore.getState().getEffectivePlayerId(state.currentPlayerId)
+            : null
+
+          if (!state.currentRoom || !effectivePlayerId) return null
+          return state.currentRoom.players.find(p => p.id === effectivePlayerId) || null
         },
 
         getPlayerGameState: (playerId) => {
           const state = get()
           if (!state.gameState) return null
           return state.gameState.playerStates[playerId] || null
+        },
+
+        // Dev perspective helpers
+        getEffectivePlayerId: () => {
+          const state = get()
+          const devStore = useDevPerspectiveStore.getState()
+          return devStore.getEffectivePlayerId(state.currentPlayerId)
         },
 
         getPublicRooms: () => {

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { useRoomStore } from './room.store';
+import { useDevPerspectiveStore } from './dev-perspective.store';
 
 export type PlayerPosition = 'north' | 'east' | 'south' | 'west';
 
@@ -85,16 +86,25 @@ export const usePlayerStore = create<PlayerStore>()(
 
         getCurrentPlayerPosition: () => {
           const { currentPlayerId, playerPositions } = get();
-          return currentPlayerId ? playerPositions[currentPlayerId] || null : null;
+          // Use dev perspective if active
+          const devStore = useDevPerspectiveStore.getState();
+          const effectivePlayerId = devStore.getEffectivePlayerId(currentPlayerId);
+
+          return effectivePlayerId ? playerPositions[effectivePlayerId] || null : null;
         },
 
         isCurrentPlayerHost: () => {
           const { currentPlayerId } = get();
           if (!currentPlayerId) return false;
-          
+
+          // Use dev perspective if active
+          const devStore = useDevPerspectiveStore.getState();
+          const effectivePlayerId = devStore.getEffectivePlayerId(currentPlayerId);
+          if (!effectivePlayerId) return false;
+
           // Use getState() to avoid circular dependencies
           const { hostPlayerId } = useRoomStore.getState();
-          return currentPlayerId === hostPlayerId;
+          return effectivePlayerId === hostPlayerId;
         },
       }),
       {
