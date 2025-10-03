@@ -1660,13 +1660,11 @@ export class SocketHandlers {
       for (let i = 0; i < 3; i++) {
         const aiPlayer: Player = {
           id: `ai-player-${i + 1}-${Date.now()}`,
-          socketId: `ai-socket-${i + 1}`,
           name: `Test Player ${i + 2}`,
           position: positions[i + 1] as 'east' | 'north' | 'west' | 'south',
           isHost: false,
           isReady: false,
-          isConnected: true,
-          roomReadiness: false
+          isConnected: true
         }
         aiPlayers.push(aiPlayer)
       }
@@ -1708,7 +1706,7 @@ export class SocketHandlers {
         return
       }
 
-      const gameState = this.roomManager.getGameState(roomId)
+      const gameState = this.stateSyncManager.getGameState(roomId)
       if (!gameState) {
         socket.emit('dev:hand-set', {
           success: false,
@@ -1720,14 +1718,12 @@ export class SocketHandlers {
       // Set the player's hand
       if (!gameState.playerStates[playerId]) {
         gameState.playerStates[playerId] = {
-          tiles: [],
-          selectedPattern: null,
-          isReady: false,
-          hasDiscarded: false
+          selectedTiles: [],
+          isReady: false
         }
       }
 
-      gameState.playerStates[playerId].tiles = tiles
+      gameState.playerStates[playerId].selectedTiles = tiles
 
       // Broadcast state update
       this.io.to(roomId).emit('game-state-changed', { gameState })
@@ -1752,7 +1748,7 @@ export class SocketHandlers {
         return
       }
 
-      const gameState = this.roomManager.getGameState(roomId)
+      const gameState = this.stateSyncManager.getGameState(roomId)
       const playerState = gameState?.playerStates[playerId]
 
       socket.emit('dev:player-state', {
