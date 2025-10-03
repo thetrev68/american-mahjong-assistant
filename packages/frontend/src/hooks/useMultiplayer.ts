@@ -314,8 +314,6 @@ export function useMultiplayer() {
 
   // Event listeners for real-time updates
   useEffect(() => {
-    if (!socket.isConnected) return
-
     const handlePlayerJoined = (...args: unknown[]) => {
       const data = args[0] as { player: Player; room: Room }
       addPlayerToRoom(data.player)
@@ -343,11 +341,13 @@ export function useMultiplayer() {
       updateAvailableRooms(data.rooms)
     }
 
-    socket.on('player-joined', handlePlayerJoined)
-    socket.on('player-left', handlePlayerLeft)
-    socket.on('game-state-changed', handleGameStateChanged)
-    socket.on('room-deleted', handleRoomDeleted)
-    socket.on('room-list-updated', handleRoomListUpdated)
+    if (socket.isConnected) {
+      socket.on('player-joined', handlePlayerJoined)
+      socket.on('player-left', handlePlayerLeft)
+      socket.on('game-state-changed', handleGameStateChanged)
+      socket.on('room-deleted', handleRoomDeleted)
+      socket.on('room-list-updated', handleRoomListUpdated)
+    }
 
     return () => {
       socket.off('player-joined', handlePlayerJoined)

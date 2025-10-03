@@ -225,7 +225,6 @@ export const DisclosureManager: React.FC<DisclosureManagerProps> = ({
       {/* Header with Mode Selector */}
       <div className="flex items-center justify-between p-3 border-b border-gray-200">
         <div className="flex items-center space-x-2">
-          <span className="text-lg">{content.glance.emoji || '🧭'}</span>
           <h3 className="font-semibold text-sm">
             {content.glance.title}
           </h3>
@@ -370,7 +369,7 @@ export const SimplifiedDisclosureManager: React.FC<Omit<DisclosureManagerProps, 
       title,
       message,
       actionNeeded,
-      emoji: '⚡'
+      emoji: ''
     },
     details: {
       technicalAnalysis: message,

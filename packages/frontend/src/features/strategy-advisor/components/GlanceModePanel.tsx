@@ -20,7 +20,6 @@ import {
 } from '../utils/urgency-themes'
 import type {
   StrategyMessage,
-  MessageType,
   UrgencyLevel,
   GlanceModeConfig,
   GlanceModePanelProps,
@@ -219,24 +218,6 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
     }
   }, [startAnimation, reduceMotion, onExpand, onCollapse, onDismiss, message.id, message.type, reportError])
 
-  // Get message type emoji
-  const getMessageEmoji = (type: MessageType) => {
-    switch (type) {
-      case 'encouragement':
-        return '💪'
-      case 'warning':
-        return '⚠️'
-      case 'suggestion':
-        return '💡'
-      case 'insight':
-        return '🔍'
-      case 'celebration':
-        return '🎉'
-      default:
-        return '📋'
-    }
-  }
-
   return (
     <Card
       ref={cardRef}
@@ -256,21 +237,18 @@ const StrategyMessageCard: React.FC<StrategyMessageCardProps> = ({
       <div className="space-y-2">
         {/* Header */}
         <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">{getMessageEmoji(message.type)}</span>
-            <div>
-              <h4 className={`
-                font-semibold text-sm
-                ${urgencyAware ? urgencyClasses.text : 'text-gray-900'}
-              `}>
-                {adaptedContent.title}
-              </h4>
-              {adaptedContent.showConfidence && (
-                <div className="text-xs text-gray-500">
-                  {message.confidence}% confidence
-                </div>
-              )}
-            </div>
+          <div>
+            <h4 className={`
+              font-semibold text-sm
+              ${urgencyAware ? urgencyClasses.text : 'text-gray-900'}
+            `}>
+              {adaptedContent.title}
+            </h4>
+            {adaptedContent.showConfidence && (
+              <div className="text-xs text-gray-500">
+                {message.confidence}% confidence
+              </div>
+            )}
           </div>
 
           <button
@@ -690,7 +668,6 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
         {/* Empty State */}
         <Card variant="elevated" className={`p-4 ${panelClasses.container}`}>
           <div className="text-center text-gray-500">
-            <div className="text-lg mb-2">🧭</div>
             <p className={`text-sm font-medium ${panelClasses.text}`}>Strategy Advisor</p>
             <p className="text-xs mt-1">
               {isLoading ? "Analyzing your hand..." : "AI guidance will appear here during gameplay"}
@@ -795,7 +772,6 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
           ${panelClasses.text}
           ${isEmergencyMode ? 'animate-pulse' : ''}
         `}>
-          <span className="mr-2">🧭</span>
           Strategy Advisor
           {isEmergencyMode && (
             <span className="ml-2 px-1 py-0.5 bg-red-600 text-white text-xs font-bold rounded">

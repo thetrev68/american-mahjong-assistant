@@ -9,7 +9,6 @@ import { OpponentInsightsSection } from './components/OpponentInsightsSection'
 import { DefensivePlaySection } from './components/DefensivePlaySection'
 import { GlanceModePanel } from '../strategy-advisor/components/GlanceModePanel'
 // import { useStrategyAdvisor } from '../strategy-advisor/hooks/useStrategyAdvisor' // Not needed - GlanceModePanel has its own hook
-import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { getPatternCompletionSummary } from '../../utils/tile-display-utils'
 import type { HandAnalysis } from '../../stores/intelligence-store'
@@ -40,10 +39,8 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   onPatternSwitch,
   playingPatternIds = [],
   onPlayingPatternChange,
-  gamePhase = 'gameplay',
   isAnalyzing = false
 }) => {
-  const { getTargetPatterns } = usePatternStore()
   const { playerHand } = useTileStore()
   const navigate = useNavigate()
 
@@ -68,9 +65,6 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
       originalEngineRecommendationId.current = analysis.recommendedPatterns[0].pattern.id
     }
   }, [analysis?.recommendedPatterns])
-
-  const selectedPatterns = getTargetPatterns()
-  const hasPatternSelected = selectedPatterns.length > 0
 
   // Memoize primary pattern completion calculation to avoid expensive re-renders
   const primaryPatternCompletion = useMemo(() => {
@@ -102,10 +96,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
       {/* Header */}
       <div className="flex items-center justify-between mb-3 sm:mb-6">
         <h2 className="text-xl font-bold text-purple-800">
-          {gamePhase === 'charleston' 
-            ? (hasPatternSelected ? 'Charleston Strategy' : 'Choose Your Target Pattern')
-            : 'AI Co-Pilot'
-          }
+          AI Co-Pilot
         </h2>
         {onClose && (
           <Button variant="ghost" size="sm" onClick={onClose}>
@@ -162,26 +153,6 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
       {/* Enhanced Pattern Analysis */}
       {analysis ? (
         <div className="pattern-analysis space-y-4">
-          {/* Charleston/Gameplay Recommendations */}
-          {gamePhase === 'charleston' && (
-            <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-2">Charleston Strategy</div>
-              <div className="text-sm text-gray-700">
-                {analysis?.recommendedPatterns?.[0]?.pattern
-                  ? `Focus on collecting tiles for ${analysis.recommendedPatterns[0].pattern.displayName || `${analysis.recommendedPatterns[0].pattern.section} #${analysis.recommendedPatterns[0].pattern.line}`}. Keep tiles that advance this pattern and pass tiles that don't contribute.`
-                  : 'Analyzing your hand to determine the best Charleston passing strategy...'}
-              </div>
-            </div>
-          )}
-          
-          {gamePhase === 'gameplay' && analysis.turnIntelligence?.discardRecommendations?.[0] && (
-            <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg">
-              <div className="text-sm font-medium text-blue-800 mb-2">💡 Gameplay Recommendation</div>
-              <div className="text-sm text-gray-700">
-                {analysis.turnIntelligence.discardRecommendations[0].reasoning}
-              </div>
-            </div>
-          )}
 
           {/* PRIMARY PATTERN DETAILS */}
           {analysis.recommendedPatterns && analysis.recommendedPatterns.length > 0 && (
@@ -211,30 +182,29 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                   {/* Pattern representation - ensure exactly 14 digits */}
                   <div className="text-xl font-bold text-gray-900 mb-2">
                     {analysis.recommendedPatterns[0]?.pattern ? (
-                      <PatternVariationDisplay
-                        size="sm"
-                        patternTiles={(() => {
-                          // Use expanded tiles if available, otherwise fall back to generic pattern
-                          const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
-                          if (expandedTiles && expandedTiles.length === 14) {
-                            return expandedTiles
-                          }
-
-                          // Fallback to generic pattern parsing (should be rare now)
-                          const tiles = analysis.recommendedPatterns[0].pattern.pattern.split(' ')
-                          if (tiles.length < 14) {
-                            return [...tiles, ...Array(14 - tiles.length).fill('?')]
-                          }
-                          return tiles.slice(0, 14)
-                        })()}
-                        playerTiles={playerHand.map(t => t.id)}
-                        showMatches={true}
-                        invertMatches={true}
-                        showCompletion={false}
-                        spacing={true}
-                        patternGroups={analysis.recommendedPatterns[0].pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
-                        handPattern={analysis.recommendedPatterns[0].pattern.pattern}
-                      />
+                      (() => {
+                        const expandedTiles = analysis.recommendedPatterns[0].expandedTiles
+                        if (!expandedTiles || expandedTiles.length !== 14) {
+                          return (
+                            <div className="text-sm text-red-600 bg-red-50 p-3 rounded border border-red-200">
+                              Error: Pattern expansion data unavailable. Please refresh the analysis.
+                            </div>
+                          )
+                        }
+                        return (
+                          <PatternVariationDisplay
+                            size="sm"
+                            patternTiles={expandedTiles}
+                            playerTiles={playerHand.map(t => t.id)}
+                            showMatches={true}
+                            invertMatches={true}
+                            showCompletion={false}
+                            spacing={true}
+                            patternGroups={analysis.recommendedPatterns[0].pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
+                            handPattern={analysis.recommendedPatterns[0].pattern.pattern}
+                          />
+                        )
+                      })()
                     ) : (
                       'Selected Pattern'
                     )}
@@ -294,12 +264,20 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
               <div className="space-y-3">
                 {analysis.recommendedPatterns.slice(1, 6).map((pattern, index) => {
                   const expandedTiles = pattern.expandedTiles
-                  const patternTiles = expandedTiles && expandedTiles.length === 14 
-                    ? expandedTiles 
-                    : pattern.pattern.pattern.split(' ')
+
+                  // Skip patterns without expanded tiles
+                  if (!expandedTiles || expandedTiles.length !== 14) {
+                    return (
+                      <div key={index + 1} className="p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div className="text-sm text-red-600">
+                          Error: Pattern #{index + 2} expansion data unavailable
+                        </div>
+                      </div>
+                    )
+                  }
 
                   const completion = getPatternCompletionSummary(
-                    patternTiles,
+                    expandedTiles,
                     playerHand.map(t => t.id)
                   )
 
@@ -362,7 +340,7 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                       {/* Pattern visualizer - larger size */}
                       <div className="text-base">
                         <PatternVariationDisplay
-                          patternTiles={patternTiles}
+                          patternTiles={expandedTiles}
                           playerTiles={playerHand.map(t => t.id)}
                           showMatches={true}
                           invertMatches={true}
@@ -391,17 +369,16 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                 }}
                 className="text-purple-600 border-purple-300 hover:bg-purple-50"
               >
-                View All Patterns (3+ tiles)
+                View All Patterns
               </Button>
               <p className="text-xs text-gray-500 mt-1">
-                Explore patterns with at least 3 matching tiles
+                Explore all available patterns
               </p>
             </div>
           )}
         </div>
       ) : (
         <div className="text-center text-gray-500 py-8">
-          <div className="text-2xl mb-2">🤔</div>
           <p className="text-sm">Draw tiles to see AI recommendations</p>
         </div>
       )}

@@ -29,35 +29,35 @@ interface PhaseDisplayConfig {
 
 const PHASE_CONFIGS: Record<GamePhase, PhaseDisplayConfig> = {
   early: {
-    emoji: '🌱',
+    emoji: '',
     label: 'Early Game',
     description: 'Pattern exploration and tile gathering',
     color: 'text-green-600',
     bgColor: 'bg-green-50'
   },
   mid: {
-    emoji: '⚡',
+    emoji: '',
     label: 'Mid Game',
     description: 'Pattern commitment and strategic decisions',
     color: 'text-blue-600',
     bgColor: 'bg-blue-50'
   },
   late: {
-    emoji: '🎯',
+    emoji: '',
     label: 'Late Game',
     description: 'Pattern completion and risk management',
     color: 'text-orange-600',
     bgColor: 'bg-orange-50'
   },
   defensive: {
-    emoji: '🛡️',
+    emoji: '',
     label: 'Defensive',
     description: 'Opponent threat - prioritizing blocking',
     color: 'text-red-600',
     bgColor: 'bg-red-50'
   },
   endgame: {
-    emoji: '🏁',
+    emoji: '',
     label: 'Endgame',
     description: 'Final turns with limited options',
     color: 'text-purple-600',
@@ -67,22 +67,22 @@ const PHASE_CONFIGS: Record<GamePhase, PhaseDisplayConfig> = {
 
 const URGENCY_CONFIGS: Record<UrgencyLevel, { emoji: string; label: string; color: string }> = {
   low: {
-    emoji: '😌',
+    emoji: '',
     label: 'Relaxed',
     color: 'text-green-600'
   },
   medium: {
-    emoji: '🤔',
+    emoji: '',
     label: 'Focused',
     color: 'text-blue-600'
   },
   high: {
-    emoji: '😤',
+    emoji: '',
     label: 'Urgent',
     color: 'text-orange-600'
   },
   critical: {
-    emoji: '🚨',
+    emoji: '',
     label: 'Critical',
     color: 'text-red-600'
   }
@@ -153,7 +153,6 @@ export const UrgencyIndicator: React.FC<UrgencyIndicatorProps> = ({
           `}
           onClick={handlePhaseClick}
         >
-          <span>{phaseConfig.emoji}</span>
           <span>{phaseConfig.label}</span>
         </div>
 
@@ -165,7 +164,7 @@ export const UrgencyIndicator: React.FC<UrgencyIndicatorProps> = ({
             ${transitionClasses}
           `}
         >
-          <span>{urgencyConfig.emoji}</span>
+          <span>{urgencyConfig.label}</span>
           {showUrgencyScore && <span>{urgencyScore}</span>}
         </div>
 
@@ -205,14 +204,13 @@ export const UrgencyIndicator: React.FC<UrgencyIndicatorProps> = ({
         {/* Phase Information */}
         <div
           className={`
-            flex items-start space-x-3 p-3 rounded-lg
+            flex items-start p-3 rounded-lg
             ${phaseConfig.bgColor}
             ${onPhaseClick ? 'cursor-pointer hover:opacity-90' : ''}
             ${transitionClasses}
           `}
           onClick={handlePhaseClick}
         >
-          <div className="text-2xl">{phaseConfig.emoji}</div>
           <div className="flex-1 min-w-0">
             <div className={`font-medium text-sm ${phaseConfig.color}`}>
               {phaseConfig.label}
@@ -247,8 +245,7 @@ export const UrgencyIndicator: React.FC<UrgencyIndicatorProps> = ({
           ${urgencyClasses.background}
           ${transitionClasses}
         `}>
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">{urgencyConfig.emoji}</span>
+          <div className="flex items-center">
             <div>
               <div className={`font-medium text-sm ${urgencyConfig.color}`}>
                 {urgencyConfig.label}

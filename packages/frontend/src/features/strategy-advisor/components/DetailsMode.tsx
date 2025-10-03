@@ -12,21 +12,21 @@ const FLEXIBILITY_CONFIG = {
     label: 'Limited',
     color: 'text-red-600',
     bgColor: 'bg-red-50',
-    icon: '⚠️',
+    icon: '',
     description: 'Few alternatives available'
   },
   medium: {
     label: 'Moderate',
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50',
-    icon: '⚖️',
+    icon: '',
     description: 'Some backup options'
   },
   high: {
     label: 'Flexible',
     color: 'text-green-600',
     bgColor: 'bg-green-50',
-    icon: '✨',
+    icon: '',
     description: 'Multiple viable paths'
   }
 } as const
@@ -93,12 +93,12 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
   // Get risk level styling
   const getRiskStyling = useCallback((risk: string) => {
     if (risk.toLowerCase().includes('high') || risk.toLowerCase().includes('dangerous')) {
-      return { color: 'text-red-600', icon: '🚨' }
+      return { color: 'text-red-600', icon: '' }
     }
     if (risk.toLowerCase().includes('moderate') || risk.toLowerCase().includes('medium')) {
-      return { color: 'text-yellow-600', icon: '⚠️' }
+      return { color: 'text-yellow-600', icon: '' }
     }
-    return { color: 'text-blue-600', icon: 'ℹ️' }
+    return { color: 'text-blue-600', icon: '' }
   }, [])
 
   // Generate mode-specific insights
@@ -143,7 +143,7 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
             Technical Analysis
           </h4>
           <div className={`px-2 py-1 rounded text-xs font-medium ${flexibilityConfig.bgColor} ${flexibilityConfig.color}`}>
-            {flexibilityConfig.icon} {flexibilityConfig.label}
+            {flexibilityConfig.label}
           </div>
         </div>
 
@@ -167,8 +167,7 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
       {/* Pattern Requirements */}
       {content.patternRequirements.length > 0 && (
         <div className="space-y-2">
-          <h5 className="font-medium text-sm text-gray-800 flex items-center">
-            <span className="mr-2">📋</span>
+          <h5 className="font-medium text-sm text-gray-800">
             Pattern Requirements
           </h5>
           <div className="space-y-1">
@@ -202,8 +201,7 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
 
       {/* Timing Information */}
       <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-        <div className="flex items-center space-x-2">
-          <span className="text-gray-500">⏱️</span>
+        <div className="flex items-center">
           <span className="text-sm font-medium text-gray-700">Estimated completion:</span>
         </div>
         <div className="text-sm font-semibold text-gray-900">
@@ -229,8 +227,7 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
       {/* Alternative Paths */}
       {content.alternativePaths && content.alternativePaths.length > 0 && (
         <div className="space-y-2">
-          <h5 className="font-medium text-sm text-gray-800 flex items-center">
-            <span className="mr-2">🔄</span>
+          <h5 className="font-medium text-sm text-gray-800">
             Alternative Paths
           </h5>
           <div className="grid grid-cols-1 gap-2">
@@ -255,8 +252,7 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
       {/* Risk Factors */}
       {content.riskFactors.length > 0 && (
         <div className="space-y-2">
-          <h5 className="font-medium text-sm text-gray-800 flex items-center">
-            <span className="mr-2">⚠️</span>
+          <h5 className="font-medium text-sm text-gray-800">
             Risk Factors
           </h5>
           <div className="space-y-1">
@@ -265,9 +261,8 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
               return (
                 <div
                   key={index}
-                  className="flex items-start space-x-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm"
+                  className="flex items-start p-2 bg-yellow-50 border border-yellow-200 rounded text-sm"
                 >
-                  <span>{riskStyling.icon}</span>
                   <span className={`flex-1 ${riskStyling.color}`}>{risk}</span>
                 </div>
               )
