@@ -74,11 +74,8 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
       return
     }
 
-    // Only check server connection for multiplayer mode
-    if (roomSetupStore.coPilotMode !== 'solo' && !multiplayer.isConnected) {
-      roomSetupStore.handleRoomCreationError('Not connected to server. Please check your connection.')
-      return
-    }
+    // Note: Connection check removed - socket will auto-connect on first use
+    // If connection fails, the createRoom promise will reject with an error
 
     try {
       roomSetupStore.setRoomCreationStatus('creating')
@@ -200,10 +197,8 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
       return
     }
 
-    if (!multiplayer.isConnected) {
-      roomSetupStore.handleRoomJoinError('Not connected to server. Please check your connection.')
-      return
-    }
+    // Note: Connection check removed - socket will auto-connect on first use
+    // If connection fails, the joinRoom promise will reject with an error
 
     try {
       roomSetupStore.setJoinRoomStatus('joining')
