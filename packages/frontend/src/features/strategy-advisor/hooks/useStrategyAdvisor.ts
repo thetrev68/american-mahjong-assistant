@@ -44,9 +44,17 @@ export const useStrategyAdvisor = (
 
   // Monitoring hooks completely removed to prevent unstable dependency chains
 
-  // Store subscriptions
-  const intelligenceStore = useIntelligenceStore()
-  const strategyStore = useStrategyAdvisorStore()
+  // Granular store subscriptions (prevents infinite loops by only subscribing to needed properties)
+  const currentAnalysis = useIntelligenceStore(state => state.currentAnalysis)
+  const isIntelligenceAnalyzing = useIntelligenceStore(state => state.isAnalyzing)
+
+  const currentMessages = useStrategyAdvisorStore(state => state.currentMessages)
+  const isActive = useStrategyAdvisorStore(state => state.isActive)
+  const isLoading = useStrategyAdvisorStore(state => state.isLoading)
+  const error = useStrategyAdvisorStore(state => state.error)
+  const config = useStrategyAdvisorStore(state => state.config)
+  const expandedMessageId = useStrategyAdvisorStore(state => state.expandedMessageId)
+  const refreshInterval = useStrategyAdvisorStore(state => state.config.refreshInterval)
 
   // Adapter instance (stable reference)
   const adapterRef = useRef<StrategyAdvisorAdapter>()
@@ -67,7 +75,7 @@ export const useStrategyAdvisor = (
   // Stable intelligence data with ref-based caching to prevent infinite loops
   // Only creates new object if analysis ID actually changes
   const intelligenceData = useMemo(() => {
-    const currentAnalysisId = intelligenceStore.currentAnalysis?.lastUpdated || 0
+    const currentAnalysisId = currentAnalysis?.lastUpdated || 0
 
     // Return cached reference if same analysis to prevent re-render cascade
     if (currentAnalysisId === lastProcessedAnalysisIdRef.current && intelligenceDataCacheRef.current) {
@@ -77,8 +85,8 @@ export const useStrategyAdvisor = (
     try {
       // Adapt intelligence data
       const result = adapter.adaptIntelligenceData(
-        intelligenceStore.currentAnalysis,
-        intelligenceStore.isAnalyzing
+        currentAnalysis,
+        isIntelligenceAnalyzing
       )
 
       // Cache result and update ID
@@ -103,8 +111,8 @@ export const useStrategyAdvisor = (
     }
   }, [
     adapter,
-    intelligenceStore.currentAnalysis?.lastUpdated,
-    intelligenceStore.isAnalyzing
+    currentAnalysis?.lastUpdated,
+    isIntelligenceAnalyzing
   ])
 
   // Memoized game context
@@ -165,11 +173,11 @@ export const useStrategyAdvisor = (
         return
       }
 
-      // Generate strategy messages
+      // Generate strategy messages (use fresh state, not stale closure)
       const generationResponse = adapter.generateStrategyMessages(
         currentIntelligenceData,
         gameContext,
-        currentState.currentMessages,
+        useStrategyAdvisorStore.getState().currentMessages,
         urgencyThreshold
       )
 
@@ -202,9 +210,7 @@ export const useStrategyAdvisor = (
     urgencyThreshold
   ])
 
-  // Extract stable primitive values from config
-  const refreshInterval = strategyStore.config.refreshInterval
-  const isActive = strategyStore.isActive
+  // refreshInterval and isActive already extracted above via selectors
 
   // Use ref to avoid refresh in useEffect dependencies (prevents infinite loop)
   const refreshRef = useRef(refresh)
@@ -212,6 +218,7 @@ export const useStrategyAdvisor = (
 
   // Auto-refresh effect with stable dependencies
   useEffect(() => {
+    // Don't start auto-refresh if not active or autoRefresh disabled
     if (!isActive || !autoRefresh) {
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current)
@@ -220,16 +227,11 @@ export const useStrategyAdvisor = (
       return
     }
 
-    // Initial refresh - delayed to prevent immediate loop
-    const timeoutId = setTimeout(() => {
-      refreshRef.current()
-    }, 100)
-
-    // Set up interval for subsequent refreshes
+    // Prevent immediate refresh on mount - only set up interval
+    // Components should call refresh() manually if they want immediate update
     refreshIntervalRef.current = setInterval(() => refreshRef.current(), refreshInterval)
 
     return () => {
-      clearTimeout(timeoutId)
       if (refreshIntervalRef.current) {
         clearInterval(refreshIntervalRef.current)
         refreshIntervalRef.current = null
@@ -244,9 +246,9 @@ export const useStrategyAdvisor = (
 
   // Auto-activate on mount and cleanup on unmount
   useEffect(() => {
-    // Activate Strategy Advisor when hook is used
-    const currentState = useStrategyAdvisorStore.getState()
-    currentState.setActive(true)
+    // Don't auto-activate - let components activate explicitly to prevent render blocking
+    // const currentState = useStrategyAdvisorStore.getState()
+    // currentState.setActive(true)
 
     return () => {
       // Cleanup intervals on unmount
@@ -282,28 +284,57 @@ export const useStrategyAdvisor = (
     useStrategyAdvisorStore.getState().updateConfig(configUpdate)
   }, [])
 
-  // Computed values
+  // Computed values - compute in useMemo to avoid infinite loops from unstable selector references
+  // DO NOT use these selectors directly with useStrategyAdvisorStore - they return new arrays/objects each time
   const mostUrgentMessage = useMemo(() => {
-    return strategyAdvisorSelectors.mostUrgentMessage(strategyStore)
-  }, [strategyStore])
+    if (currentMessages.length === 0) return null
+
+    // Sort by urgency priority if configured
+    if (config.prioritizeUrgent) {
+      const urgencyOrder: Record<StrategyAdvisorTypes.UrgencyLevel, number> = {
+        'critical': 4,
+        'high': 3,
+        'medium': 2,
+        'low': 1
+      }
+
+      const sorted = [...currentMessages].sort((a, b) => {
+        const aUrgency = urgencyOrder[a.urgency] || 0
+        const bUrgency = urgencyOrder[b.urgency] || 0
+
+        if (aUrgency !== bUrgency) {
+          return bUrgency - aUrgency // Higher urgency first
+        }
+
+        // If same urgency, sort by confidence (higher first)
+        return b.confidence - a.confidence
+      })
+
+      return sorted[0]
+    }
+
+    // Return most recent if not prioritizing by urgency
+    return currentMessages[currentMessages.length - 1]
+  }, [currentMessages, config.prioritizeUrgent])
 
   const actionableMessages = useMemo(() => {
-    return strategyAdvisorSelectors.actionableMessages(strategyStore)
-  }, [strategyStore])
+    return currentMessages.filter(msg => msg.isActionable)
+  }, [currentMessages])
 
   const hasNewInsights = useMemo(() => {
-    return strategyAdvisorSelectors.hasNewInsights(strategyStore)
-  }, [strategyStore])
+    const thirtySecondsAgo = Date.now() - (30 * 1000)
+    return currentMessages.some(msg => msg.timestamp > thirtySecondsAgo)
+  }, [currentMessages])
 
   // Memoize return value to ensure stable references and prevent infinite loops
   return useMemo(() => ({
     // State
-    messages: strategyStore.currentMessages,
-    isActive: strategyStore.isActive,
-    isLoading: strategyStore.isLoading,
-    error: strategyStore.error,
-    config: strategyStore.config,
-    expandedMessageId: strategyStore.expandedMessageId,
+    messages: currentMessages,
+    isActive: isActive,
+    isLoading: isLoading,
+    error: error,
+    config: config,
+    expandedMessageId: expandedMessageId,
 
     // Actions
     refresh,
@@ -319,13 +350,13 @@ export const useStrategyAdvisor = (
     actionableMessages,
     hasNewInsights
   }), [
-    strategyStore.currentMessages,
-    strategyStore.isActive,
-    strategyStore.isLoading,
-    strategyStore.error,
-    strategyStore.config,
-    strategyStore.expandedMessageId,
-    refresh,
+    currentMessages,
+    isActive,
+    isLoading,
+    error,
+    config,
+    expandedMessageId,
+    // refresh removed from deps - prevents infinite loop when gameContext changes
     activate,
     deactivate,
     expandMessage,

@@ -47,7 +47,10 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   const { playerHand } = useTileStore()
   const navigate = useNavigate()
 
-  // Strategy Advisor integration
+  // Strategy Advisor integration - DISABLED: Still has render loop issues
+  // Fixed: useStrategyAdvisor infinite loop (granular selectors)
+  // Fixed: DisclosureManager infinite loop (dependency array)
+  // Remaining: GlanceModePanel or nested hooks still causing constant re-renders
   // const { expandMessage, collapseMessage } = useStrategyAdvisor()
   const expandMessage = () => {}
   const collapseMessage = () => {}

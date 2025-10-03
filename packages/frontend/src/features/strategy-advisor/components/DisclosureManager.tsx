@@ -50,7 +50,7 @@ export const DisclosureManager: React.FC<DisclosureManagerProps> = ({
   // Adapt disclosure to urgency changes
   useEffect(() => {
     disclosure.adaptToUrgency(urgencyLevel)
-  }, [urgencyLevel, disclosure])
+  }, [urgencyLevel, disclosure.adaptToUrgency])
 
   // Handle level changes with callback
   const handleLevelChange = useCallback((level: DisclosureLevel) => {
