@@ -287,14 +287,18 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Charleston-specific analysis adaptation
   const currentAnalysis = useMemo(() => {
+    console.log('🎯 currentAnalysis memo - baseAnalysis:', !!baseAnalysis, 'gamePhase:', gameStore.gamePhase)
 
     if (!baseAnalysis || gameStore.gamePhase !== 'charleston') {
+      console.log('🎯 currentAnalysis - returning baseAnalysis (not Charleston or no analysis)')
       return baseAnalysis
     }
 
+    console.log('🎯 Charleston analysis adaptation - base recommendations:', baseAnalysis.tileRecommendations?.length)
 
     // During Charleston, keep all recommendations but ensure we have exactly 3 pass recommendations
     const keepRecommendations = baseAnalysis.tileRecommendations?.filter(rec => rec.action === 'keep') || []
+    console.log('🎯 Keep recommendations:', keepRecommendations.length)
 
     const passRecommendations = baseAnalysis.tileRecommendations
       ?.filter(rec => rec.action === 'discard' || rec.action === 'pass') // Both discard and pass recommendations (Engine 3 generates 'pass' in Charleston phase)
@@ -305,9 +309,12 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         action: 'pass' as const // Ensure all are marked as pass
       })) || []
 
+    console.log('🎯 Pass recommendations (adapted from discard/pass):', passRecommendations.length, passRecommendations.map(r => r.tileId))
+
     // Combine keep and pass recommendations for Charleston
     const charlestonRecommendations = [...keepRecommendations, ...passRecommendations]
 
+    console.log('🎯 Final Charleston recommendations:', charlestonRecommendations.length, 'keep:', keepRecommendations.length, 'pass:', passRecommendations.length)
 
     return {
       ...baseAnalysis,
@@ -507,7 +514,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Hand changed - triggering analysis
       analyzeCurrentHand()
     }
-  }, [fullHand, selectedPatterns, analyzeCurrentHand])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fullHand.length, selectedPatterns.length])
 
   // Initialize game end coordinator
   useEffect(() => {

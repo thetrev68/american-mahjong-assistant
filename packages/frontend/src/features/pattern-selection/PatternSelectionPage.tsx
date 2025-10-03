@@ -8,7 +8,7 @@ import { Button } from '../../ui-components/Button'
 import { PatternFilters } from './PatternFilters'
 import { PatternGrid } from './PatternGrid'
 import { SelectedPatternsPanel } from './SelectedPatternsPanel'
-import { usePatternStore, useTileStore } from '../../stores'
+import { usePatternStore, useTileStore, useGameStore } from '../../stores'
 
 export const PatternSelectionPage = () => {
   const {
@@ -20,9 +20,11 @@ export const PatternSelectionPage = () => {
   } = usePatternStore()
   
   const { playerHand } = useTileStore()
+  const { gamePhase } = useGameStore()
   const selectedPattern = getSelectedPattern()
   const navigate = useNavigate()
   const hasHand = playerHand.length > 0
+  const isInGame = gamePhase === 'charleston' || gamePhase === 'playing'
   
   useEffect(() => {
     loadPatterns()
@@ -105,16 +107,27 @@ export const PatternSelectionPage = () => {
               
               {/* Action Buttons */}
               <div className="mt-6 space-y-3">
-                <Button
-                  variant="primary"
-                  size="lg"
-                  className="w-full"
-                  disabled={!selectedPattern}
-                  onClick={() => navigate('/tiles')}
-                >
-                  Continue with {selectedPattern ? `${selectedPattern.section} #${selectedPattern.line}` : 'Selection'}
-                </Button>
-                
+                {isInGame ? (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    onClick={() => navigate('/game')}
+                  >
+                    Return to Game
+                  </Button>
+                ) : (
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    className="w-full"
+                    disabled={!selectedPattern}
+                    onClick={() => navigate('/tiles')}
+                  >
+                    Continue with {selectedPattern ? `${selectedPattern.section} #${selectedPattern.line}` : 'Selection'}
+                  </Button>
+                )}
+
                 {hasHand ? (
                   <Button
                     variant="outline"

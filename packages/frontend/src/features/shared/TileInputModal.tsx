@@ -47,7 +47,8 @@ export const TileInputModal = ({
         setModalHand([])
       }
     }
-  }, [isOpen, initialTiles])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen])
 
   // Get current hand as colored single characters
   const getCurrentHandDisplay = () => {

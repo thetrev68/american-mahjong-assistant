@@ -120,9 +120,9 @@ export const TileInputPage = () => {
     console.time('⏱️ Navigate to game')
     setIsStartingGame(true)
     console.log('🚀 Set isStartingGame to true')
-    // Set game phase to 'playing' to trigger analysis after navigation
-    setGamePhase('playing')
-    console.log('🚀 Set game phase to playing')
+    // Set game phase to 'charleston' first - players must go through Charleston before gameplay
+    setGamePhase('charleston')
+    console.log('🚀 Set game phase to charleston')
     // Navigate immediately - analysis is now synchronous so no delay needed
     console.log('🚀 About to call navigate("/game")')
     navigate('/game')
