@@ -84,6 +84,11 @@ export class SocketHandlers {
     this.registerTurnHandlers(socket)
     this.registerGameEndHandlers(socket)
     this.registerConnectionHandlers(socket)
+
+    // Dev-only handlers for testing
+    if (process.env.NODE_ENV !== 'production') {
+      this.registerDevHandlers(socket)
+    }
   }
 
   private registerRoomHandlers(socket: Socket): void {
@@ -1629,5 +1634,132 @@ export class SocketHandlers {
     this.cleanupGameLogic(roomId)
     this.io.to(roomId).emit('room-deleted', { roomId })
     this.broadcastRoomListUpdate()
+  }
+
+  // Dev-only handlers for multiplayer testing
+  private registerDevHandlers(socket: Socket): void {
+    // Populate room with test players
+    socket.on('dev:populate-players', withSocketErrorHandling(socket, 'dev:players-populated', async (data) => {
+      const { roomId } = data as { roomId: string }
+
+      const validation = validateRoomAccess(this.roomManager, roomId, socket.id)
+      if (!validation.isValid || !validation.room) {
+        socket.emit('dev:players-populated', {
+          success: false,
+          error: validation.error || 'Invalid room access'
+        })
+        return
+      }
+
+      const room = validation.room
+
+      // Create 3 AI test players (total 4 including host)
+      const positions = ['east', 'north', 'west', 'south'] as const
+      const aiPlayers: Player[] = []
+
+      for (let i = 0; i < 3; i++) {
+        const aiPlayer: Player = {
+          id: `ai-player-${i + 1}-${Date.now()}`,
+          socketId: `ai-socket-${i + 1}`,
+          name: `Test Player ${i + 2}`,
+          position: positions[i + 1] as 'east' | 'north' | 'west' | 'south',
+          isHost: false,
+          isReady: false,
+          isConnected: true,
+          roomReadiness: false
+        }
+        aiPlayers.push(aiPlayer)
+      }
+
+      // Add AI players to the room
+      aiPlayers.forEach(player => {
+        room.players.push(player)
+      })
+
+      // Set host position
+      const hostPlayer = room.players.find(p => p.id === socket.id)
+      if (hostPlayer && !hostPlayer.position) {
+        hostPlayer.position = positions[0]
+      }
+
+      // Broadcast player updates
+      this.io.to(roomId).emit('dev:players-populated', {
+        success: true,
+        room,
+        players: aiPlayers
+      })
+
+      // Broadcast individual player-joined events
+      aiPlayers.forEach(player => {
+        this.io.to(roomId).emit('player-joined', { player, room })
+      })
+    }))
+
+    // Set specific player's hand for testing
+    socket.on('dev:set-player-hand', withSocketErrorHandling(socket, 'dev:hand-set', async (data) => {
+      const { roomId, playerId, tiles } = data as { roomId: string, playerId: string, tiles: Tile[] }
+
+      const validation = validateRoomAccess(this.roomManager, roomId, socket.id)
+      if (!validation.isValid || !validation.room) {
+        socket.emit('dev:hand-set', {
+          success: false,
+          error: validation.error || 'Invalid room access'
+        })
+        return
+      }
+
+      const gameState = this.roomManager.getGameState(roomId)
+      if (!gameState) {
+        socket.emit('dev:hand-set', {
+          success: false,
+          error: 'No game state found'
+        })
+        return
+      }
+
+      // Set the player's hand
+      if (!gameState.playerStates[playerId]) {
+        gameState.playerStates[playerId] = {
+          tiles: [],
+          selectedPattern: null,
+          isReady: false,
+          hasDiscarded: false
+        }
+      }
+
+      gameState.playerStates[playerId].tiles = tiles
+
+      // Broadcast state update
+      this.io.to(roomId).emit('game-state-changed', { gameState })
+
+      socket.emit('dev:hand-set', {
+        success: true,
+        playerId,
+        tileCount: tiles.length
+      })
+    }))
+
+    // Get effective player ID for dev perspective
+    socket.on('dev:get-player-state', withSocketErrorHandling(socket, 'dev:player-state', async (data) => {
+      const { roomId, playerId } = data as { roomId: string, playerId: string }
+
+      const validation = validateRoomAccess(this.roomManager, roomId, socket.id)
+      if (!validation.isValid || !validation.room) {
+        socket.emit('dev:player-state', {
+          success: false,
+          error: validation.error || 'Invalid room access'
+        })
+        return
+      }
+
+      const gameState = this.roomManager.getGameState(roomId)
+      const playerState = gameState?.playerStates[playerId]
+
+      socket.emit('dev:player-state', {
+        success: true,
+        playerId,
+        playerState: playerState || null
+      })
+    }))
   }
 }

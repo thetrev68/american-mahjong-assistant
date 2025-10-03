@@ -6,6 +6,7 @@ import { useRoomStore } from '../../stores/room.store'
 import { usePlayerStore } from '../../stores/player.store'
 import { useDevPerspectiveStore } from '../../stores/dev-perspective.store'
 import { getRoomMultiplayerService } from '../../lib/services/room-multiplayer'
+import { useSocket } from '../../hooks/useSocket'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import HostControls from '../../ui-components/HostControls'
@@ -23,6 +24,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
   const roomStore = useRoomStore()
   const playerStore = usePlayerStore()
   const devPerspective = useDevPerspectiveStore()
+  const socket = useSocket()
   const [copySuccess, setCopySuccess] = useState(false)
 
   // Copy room code to clipboard
@@ -97,6 +99,20 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
     devPerspective.setActiveDevPlayer(playerId)
   }
 
+  // Handle populate test players
+  const handlePopulatePlayers = () => {
+    if (!roomStore.room?.id || !socket.rawSocket) return
+
+    socket.rawSocket.emit('dev:populate-players', { roomId: roomStore.room.id })
+
+    // Listen for response
+    socket.rawSocket.once('dev:players-populated', (response: { success: boolean; error?: string }) => {
+      if (!response.success) {
+        console.error('Failed to populate players:', response.error)
+      }
+    })
+  }
+
   // Register all players in dev mode
   React.useEffect(() => {
     if (import.meta.env.DEV && allPlayers.length > 0) {
@@ -109,10 +125,11 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Dev Shortcuts - Multiplayer Mode */}
-      {import.meta.env.DEV && allPlayers.length > 0 && (
+      {import.meta.env.DEV && (
         <DevShortcuts
           variant="multiplayer"
           onSwitchPlayer={handleSwitchPlayer}
+          onPopulatePlayers={handlePopulatePlayers}
           currentDevPlayerId={devPerspective.activeDevPlayerId}
           availablePlayerIds={devPerspective.allPlayerIds}
           realPlayerId={playerStore.currentPlayerId}

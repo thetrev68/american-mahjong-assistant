@@ -9,6 +9,7 @@ interface DevShortcutsProps {
   onSkipToGameplay?: () => void
   onResetGame?: () => void
   onSwitchPlayer?: (playerId: string) => void
+  onPopulatePlayers?: () => void
   currentDevPlayerId?: string | null
   availablePlayerIds?: string[]
   realPlayerId?: string | null
@@ -23,6 +24,7 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
   onSkipToGameplay,
   onResetGame,
   onSwitchPlayer,
+  onPopulatePlayers,
   currentDevPlayerId,
   availablePlayerIds = [],
   realPlayerId,
@@ -204,6 +206,16 @@ const DevShortcuts: React.FC<DevShortcutsProps> = ({
       case 'multiplayer':
         return (
           <>
+            {onPopulatePlayers && availablePlayerIds.length < 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={onPopulatePlayers}
+                className="bg-cyan-50 border-cyan-300 text-cyan-700 hover:bg-cyan-100 w-full mb-2"
+              >
+                🎲 Populate Test Players
+              </Button>
+            )}
             <div className="w-full">
               <div className="text-xs text-gray-600 mb-1 font-medium">
                 View As: {currentDevPlayerId ? `Player ${availablePlayerIds.indexOf(currentDevPlayerId) + 1}` : 'None'}
