@@ -228,6 +228,9 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
     }
   }, [roomSetupStore, multiplayer])
 
+  // Use selector to make setupProgress reactive
+  const setupProgress = useRoomSetupStore(state => state.getRoomSetupProgress())
+
   return {
     // State
     coPilotMode: roomSetupStore.coPilotMode,
@@ -236,7 +239,7 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
     isCreatingRoom: roomSetupStore.roomCreationStatus === 'creating',
     isJoiningRoom: roomSetupStore.joinRoomStatus === 'joining',
     error: roomSetupStore.error,
-    setupProgress: roomSetupStore.getRoomSetupProgress(),
+    setupProgress,
 
     // Actions
     setCoPilotMode: roomSetupStore.setCoPilotMode,
