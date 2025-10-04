@@ -35,13 +35,6 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   const multiplayerStore = useMultiplayerStore()
   const multiplayer = useMultiplayer()
 
-  // Subscribe to individual state values to trigger recalculation
-  const roomCreationStatus = useRoomSetupStore(state => state.roomCreationStatus)
-  const joinRoomStatus = useRoomSetupStore(state => state.joinRoomStatus)
-  const coPilotModeSelected = useRoomSetupStore(state => state.coPilotModeSelected)
-  const currentRoomCode = roomStore.currentRoomCode
-  const isRoomReady = roomStore.isRoomReadyForGame()
-
   const generateRoomCode = useCallback((): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     let result = ''
@@ -233,7 +226,7 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   // Compute setupProgress using useMemo based on actual state dependencies
   const setupProgress = useMemo(() => {
     return roomSetupStore.getRoomSetupProgress()
-  }, [roomCreationStatus, joinRoomStatus, coPilotModeSelected, currentRoomCode, isRoomReady, roomSetupStore])
+  }, [roomSetupStore])
 
   return {
     // State

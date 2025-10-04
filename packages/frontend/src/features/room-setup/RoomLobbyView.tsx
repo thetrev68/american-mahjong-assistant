@@ -1,7 +1,7 @@
 // Room Lobby View Component
 // Pre-game lobby with complete player management and host controls
 
-import React, { useState } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { useRoomStore } from '../../stores/room.store'
 import { usePlayerStore } from '../../stores/player.store'
 import { useDevPerspectiveStore } from '../../stores/dev-perspective.store'
@@ -79,9 +79,18 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
   }
 
   const isHost = playerStore.isCurrentPlayerHost()
-  const allPlayers = roomStore.players || []
+  const allPlayers = useMemo(() => roomStore.players || [], [roomStore.players])
   const readyPlayers = allPlayers.filter(p => p.roomReadiness && p.isConnected)
   const notReadyPlayers = allPlayers.filter(p => !p.roomReadiness && p.isConnected)
+
+  // Register all players in dev mode
+  useEffect(() => {
+    if (import.meta.env.DEV && allPlayers.length > 0) {
+      allPlayers.forEach(player => {
+        devPerspective.registerPlayer(player.id)
+      })
+    }
+  }, [allPlayers, devPerspective])
 
   if (!roomStore.room) {
     return (
@@ -113,15 +122,6 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
     })
   }
 
-  // Register all players in dev mode
-  React.useEffect(() => {
-    if (import.meta.env.DEV && allPlayers.length > 0) {
-      allPlayers.forEach(player => {
-        devPerspective.registerPlayer(player.id)
-      })
-    }
-  }, [allPlayers, devPerspective])
-
   return (
     <div className="space-y-6">
       {/* Dev Shortcuts - Multiplayer Mode */}
@@ -134,7 +134,8 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
           availablePlayerIds={devPerspective.allPlayerIds}
           realPlayerId={playerStore.currentPlayerId}
           onResetGame={() => {
-            roomStore.clearRoomData()
+            roomStore.updateRoom({ id: '', phase: 'waiting', players: [], maxPlayers: 4 })
+            roomStore.updatePlayers([])
             onLeaveRoom?.()
           }}
         />
