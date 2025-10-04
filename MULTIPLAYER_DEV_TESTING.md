@@ -1,5 +1,26 @@
 # Multiplayer Dev Testing Feature - Implementation Plan
 
+## 🚀 Implementation Status
+
+**Last Updated:** 2025-10-04
+**Current Phase:** Phase 5 (Testing & Polish)
+**Commit:** `6d5309f` - feat: Add multiplayer dev perspective switching (Phase 2-4)
+
+### Completed Phases
+- ✅ **Phase 1: Foundation** - dev-perspective.store.ts created, DevShortcuts multiplayer variant added
+- ✅ **Phase 2: Store Integration** - multiplayer-store, player-store, tile-store all updated
+- ✅ **Phase 3: Backend Support** - dev helper events implemented in backend
+- ✅ **Phase 4: Component Integration** - GameModeView with dev banner, YourHandZone auto-works
+
+### Next Steps (Phase 5)
+- ⏳ Test full game flow with perspective switching
+- ⏳ Verify Charleston passes work per-player
+- ⏳ Verify turn order respects perspectives
+- ⏳ Add keyboard shortcuts (1/2/3/4 to switch players?)
+- ⏳ Final polish and edge case handling
+
+---
+
 ## Overview
 Add a dev-only player perspective switcher to test multiplayer mode on a single device. This allows switching between Player 1-4 perspectives to see different hands, patterns, and Charleston states without needing 4 physical devices.
 
@@ -158,36 +179,36 @@ socket.on('dev:set-player-hand', ({ roomId, playerId, tiles }) => {
 
 ## Implementation Flow
 
-### Phase 1: Foundation (Session 1)
-1. Create `dev-perspective.store.ts`
-2. Add multiplayer variant to `DevShortcuts.tsx`
-3. Add player switcher UI dropdown
-4. Wire up basic perspective switching (no backend yet)
+### ✅ Phase 1: Foundation (COMPLETE)
+1. ✅ Create `dev-perspective.store.ts`
+2. ✅ Add multiplayer variant to `DevShortcuts.tsx`
+3. ✅ Add player switcher UI dropdown
+4. ✅ Wire up basic perspective switching (no backend yet)
 
-### Phase 2: Store Integration (Session 2)
-1. Update `multiplayer-store.ts` with dev perspective
-2. Update `player.store.ts` with dev perspective
-3. Update `tile-store.ts` to be multi-player aware
-4. Test perspective switching updates UI correctly
+### ✅ Phase 2: Store Integration (COMPLETE)
+1. ✅ Update `multiplayer-store.ts` with dev perspective
+2. ✅ Update `player.store.ts` with dev perspective
+3. ✅ Update `tile-store.ts` to be multi-player aware (24 methods updated!)
+4. ✅ Test perspective switching updates UI correctly
 
-### Phase 3: Backend Support (Session 3)
-1. Add dev helper events to backend
-2. Add `dev:populate-players` auto-creation
-3. Add `dev:set-player-hand` for testing
-4. Test with real socket connection
+### ✅ Phase 3: Backend Support (COMPLETE)
+1. ✅ Add dev helper events to backend
+2. ✅ Add `dev:populate-players` auto-creation
+3. ✅ Add `dev:set-player-hand` for testing
+4. ✅ Test with real socket connection
 
-### Phase 4: Component Integration (Session 4)
-1. Update `GameModeView.tsx` to show dev banner
-2. Update `YourHandZone.tsx` to display correct player's hand
-3. Update Charleston components (if applicable)
-4. Add visual indicators for active perspective
+### ✅ Phase 4: Component Integration (COMPLETE)
+1. ✅ Update `GameModeView.tsx` to show dev banner
+2. ✅ Update `YourHandZone.tsx` to display correct player's hand (no changes needed!)
+3. ✅ Update Charleston components (if applicable)
+4. ✅ Add visual indicators for active perspective
 
-### Phase 5: Testing & Polish (Session 5)
-1. Test full game flow with perspective switching
-2. Verify Charleston passes work per-player
-3. Verify turn order respects perspectives
-4. Add keyboard shortcuts (1/2/3/4 to switch players?)
-5. Documentation updates
+### ⏳ Phase 5: Testing & Polish (IN PROGRESS - Next Session)
+1. ⏳ Test full game flow with perspective switching
+2. ⏳ Verify Charleston passes work per-player
+3. ⏳ Verify turn order respects perspectives
+4. ⏳ Add keyboard shortcuts (1/2/3/4 to switch players?)
+5. ⏳ Documentation updates
 
 ## Technical Considerations
 
@@ -263,15 +284,15 @@ socket.on('dev:set-player-hand', ({ roomId, playerId, tiles }) => {
 
 ## File Checklist
 
-- [ ] `packages/frontend/src/stores/dev-perspective.store.ts` (NEW)
-- [ ] `packages/frontend/src/ui-components/DevShortcuts.tsx` (EDIT)
-- [ ] `packages/frontend/src/stores/multiplayer-store.ts` (EDIT)
-- [ ] `packages/frontend/src/stores/player.store.ts` (EDIT)
-- [ ] `packages/frontend/src/stores/tile-store.ts` (EDIT)
-- [ ] `packages/frontend/src/hooks/useMultiplayer.ts` (EDIT)
-- [ ] `packages/frontend/src/features/gameplay/GameModeView.tsx` (EDIT)
-- [ ] `packages/frontend/src/features/gameplay/YourHandZone.tsx` (EDIT)
-- [ ] `packages/backend/src/services/room-multiplayer.ts` (EDIT)
+- ✅ `packages/frontend/src/stores/dev-perspective.store.ts` (NEW) - Phase 1
+- ✅ `packages/frontend/src/ui-components/DevShortcuts.tsx` (EDIT) - Phase 1
+- ✅ `packages/frontend/src/stores/multiplayer-store.ts` (EDIT) - Phase 2
+- ✅ `packages/frontend/src/stores/player.store.ts` (EDIT) - Phase 2
+- ✅ `packages/frontend/src/stores/tile-store.ts` (EDIT) - Phase 2 (Commit: 6d5309f)
+- ⚠️ `packages/frontend/src/hooks/useMultiplayer.ts` (EDIT) - Not needed (store handles it)
+- ✅ `packages/frontend/src/features/gameplay/GameModeView.tsx` (EDIT) - Phase 4 (Commit: 6d5309f)
+- ✅ `packages/frontend/src/features/gameplay/YourHandZone.tsx` (NO CHANGES NEEDED) - Phase 4
+- ✅ `packages/backend/src/services/room-multiplayer.ts` (EDIT) - Phase 3
 
 ## Success Criteria
 
@@ -294,4 +315,62 @@ socket.on('dev:set-player-hand', ({ roomId, playerId, tiles }) => {
 
 ---
 
-**Ready to implement when approved!**
+## 📝 Implementation Notes (Session: 2025-10-04)
+
+### Key Architectural Decisions Made
+
+**1. Tile Store Multiplayer Architecture**
+- Decided to use **computed getters** instead of selector functions
+- `playerHand`, `handSize`, `dealerHand`, etc. are now `get` accessors
+- This provides automatic reactivity without breaking existing components
+- YourHandZone didn't need ANY changes because it already uses `tileStore.playerHand`
+
+**2. Player ID Management**
+- Helper function: `getEffectivePlayerId()` calls both stores in correct order
+- Returns `devPerspective.getEffectivePlayerId(multiplayer.currentPlayerId)`
+- Falls back to `'single-player'` for non-multiplayer mode
+- All 24 tile-store methods now call this at the start
+
+**3. Dev Banner Implementation**
+- Only shows when `activeDevPlayerId !== realPlayerId`
+- Fixed positioning at top of screen with `z-40`
+- Adds 40px margin to GameModeView content when visible
+- Shows player numbers (Player 1-4) calculated from allPlayerIds array index
+
+**4. DevShortcuts Integration**
+- Always shows `multiplayer` variant in dev mode
+- "Populate Test Players" button creates 4 test players (player-1 through player-4)
+- Player buttons have green ring indicator for real player
+- Current perspective highlighted with blue background
+
+### What Works Out of the Box
+- ✅ Pattern recommendations (uses tile-store computed getters)
+- ✅ Intelligence panel (respects current player's hand)
+- ✅ Tile selection/locking (per-player via tileStatesMap)
+- ✅ Charleston selection area (per-player via selectedForActionMap)
+- ✅ Exposed tiles tracking (per-player via exposedTilesMap)
+
+### Known Gaps for Phase 5
+- ⚠️ Need to test actual Charleston tile passing between perspectives
+- ⚠️ Need to verify turn order in gameplay respects perspectives
+- ⚠️ Keyboard shortcuts (1/2/3/4) not yet implemented
+- ⚠️ Edge case: What happens if you switch perspectives mid-action?
+- ⚠️ Need to test pattern selection persists per-player
+
+### Files Changed This Session
+1. `packages/frontend/src/stores/tile-store.ts` (451 insertions, 164 deletions)
+   - Added 6 multiplayer maps
+   - Converted 6 properties to computed getters
+   - Updated 24 action methods
+
+2. `packages/frontend/src/features/gameplay/GameModeView.tsx`
+   - Added dev perspective imports and state
+   - Added handleSwitchPlayer and handlePopulatePlayers
+   - Added dev mode banner
+   - Updated DevShortcuts props
+
+**Commit:** `6d5309f` - feat: Add multiplayer dev perspective switching (Phase 2-4)
+
+---
+
+**Ready for Phase 5 Testing tomorrow!**
