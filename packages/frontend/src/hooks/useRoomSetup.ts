@@ -68,6 +68,12 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   }, [])
 
   const createRoom = useCallback(async (hostName: string, otherPlayerNames?: string[]) => {
+    // Prevent duplicate calls while already creating
+    if (roomSetupStore.isCreatingRoom) {
+      console.warn('⚠️ Room creation already in progress, ignoring duplicate call')
+      return
+    }
+
     // Validation
     if (!hostName.trim()) {
       roomSetupStore.handleRoomCreationError('Please enter your name')
