@@ -161,6 +161,8 @@ export const RoomSetupView: React.FC = () => {
   }
 
   const handleContinueFromModeSelection = () => {
+    // Confirm the mode selection when continuing
+    roomSetupStore.setCoPilotMode(roomSetup.coPilotMode)
     setForceStep('room-creation')
   }
 
@@ -227,7 +229,7 @@ export const RoomSetupView: React.FC = () => {
         return (
           <CoPilotModeSelector
             selectedMode={roomSetup.coPilotMode}
-            onModeChange={roomSetup.setCoPilotMode}
+            onModeChange={roomSetupStore.updateCoPilotMode}
             onContinue={handleContinueFromModeSelection}
             disabled={roomSetup.isCreatingRoom || roomSetup.isJoiningRoom}
           />

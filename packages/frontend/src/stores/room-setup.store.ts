@@ -22,7 +22,8 @@ interface RoomSetupStore {
   error: string | null;
   
   // Actions - Co-pilot mode
-  setCoPilotMode: (mode: CoPilotMode) => void;
+  updateCoPilotMode: (mode: CoPilotMode) => void; // Just update mode without confirming
+  setCoPilotMode: (mode: CoPilotMode) => void; // Update mode AND mark as confirmed
   resetCoPilotModeSelection: () => void;
   getCoPilotModeDescription: (mode: CoPilotMode) => string;
   
@@ -62,15 +63,24 @@ export const useRoomSetupStore = create<RoomSetupStore>()(
         error: null,
 
         // Actions - Co-pilot mode
-        setCoPilotMode: (mode) => set({ 
-          coPilotMode: mode, 
-          coPilotModeSelected: true,
-          error: null
-        }),
+        updateCoPilotMode: (mode) => {
+          set({
+            coPilotMode: mode,
+            error: null
+          })
+        },
 
-        resetCoPilotModeSelection: () => set({ 
+        setCoPilotMode: (mode) => {
+          set({
+            coPilotMode: mode,
+            coPilotModeSelected: true,
+            error: null
+          })
+        },
+
+        resetCoPilotModeSelection: () => set({
           coPilotModeSelected: false,
-          error: null 
+          error: null
         }),
 
         getCoPilotModeDescription: (mode) => {
@@ -88,15 +98,16 @@ export const useRoomSetupStore = create<RoomSetupStore>()(
         }),
 
         handleRoomCreated: (roomCode, hostPlayerId, otherPlayerNames) => {
-          set({ 
+          set({
             roomCreationStatus: 'success',
-            error: null 
+            error: null
           });
-          
-          // Update room store through actions
+
+          // Update room store - set both room.id and currentRoomCode
+          useRoomStore.setState({ currentRoomCode: roomCode });
           useRoomStore.getState().updateRoom({ id: roomCode });
           usePlayerStore.getState().setCurrentPlayerId(hostPlayerId);
-          
+
           if (otherPlayerNames) {
             usePlayerStore.getState().setOtherPlayerNames(otherPlayerNames);
           }

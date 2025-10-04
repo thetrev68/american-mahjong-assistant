@@ -8,13 +8,11 @@ interface ShareButtonProps {
   className?: string
 }
 
-export const ShareButton: React.FC<ShareButtonProps> = ({ 
-  roomCode, 
+export const ShareButton: React.FC<ShareButtonProps> = ({
+  roomCode,
   disabled = false,
   className = ''
 }) => {
-  // Debug: log when component renders
-  console.log('ShareButton rendering with roomCode:', roomCode)
   const { share, copyToClipboard, isSharing, canShare, error, clearError } = useShare()
   const [showSuccess, setShowSuccess] = useState(false)
   

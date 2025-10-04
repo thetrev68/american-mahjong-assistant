@@ -91,14 +91,14 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
   }, [])
 
   // Get risk level styling
-  const getRiskStyling = useCallback((risk: string) => {
+  const getRiskStyling = useCallback((risk: string): string => {
     if (risk.toLowerCase().includes('high') || risk.toLowerCase().includes('dangerous')) {
-      return { color: 'text-red-600', icon: '' }
+      return 'text-red-600'
     }
     if (risk.toLowerCase().includes('moderate') || risk.toLowerCase().includes('medium')) {
-      return { color: 'text-yellow-600', icon: '' }
+      return 'text-yellow-600'
     }
-    return { color: 'text-blue-600', icon: '' }
+    return 'text-blue-600'
   }, [])
 
   // Generate mode-specific insights
@@ -263,7 +263,7 @@ export const DetailsMode: React.FC<DetailsModeProps> = ({
                   key={index}
                   className="flex items-start p-2 bg-yellow-50 border border-yellow-200 rounded text-sm"
                 >
-                  <span className={`flex-1 ${riskStyling.color}`}>{risk}</span>
+                  <span className={`flex-1 ${riskStyling}`}>{risk}</span>
                 </div>
               )
             })}

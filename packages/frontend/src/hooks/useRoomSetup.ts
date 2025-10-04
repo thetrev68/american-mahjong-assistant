@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useRoomSetupStore, type CoPilotMode } from '../stores/room-setup.store'
 import { useRoomStore } from '../stores/room.store'
 import { usePlayerStore } from '../stores/player.store'
@@ -35,9 +35,11 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   const multiplayerStore = useMultiplayerStore()
   const multiplayer = useMultiplayer()
 
-  // Subscribe to room creation status changes to recompute progress
+  // Subscribe to individual state values to trigger recalculation
   const roomCreationStatus = useRoomSetupStore(state => state.roomCreationStatus)
   const joinRoomStatus = useRoomSetupStore(state => state.joinRoomStatus)
+  const coPilotModeSelected = useRoomSetupStore(state => state.coPilotModeSelected)
+  const currentRoomCode = roomStore.currentRoomCode
   const isRoomReady = roomStore.isRoomReadyForGame()
 
   const generateRoomCode = useCallback((): string => {
@@ -228,11 +230,10 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
     }
   }, [roomSetupStore, multiplayer])
 
-  // Use selector with shallow comparison to prevent infinite loops
-  const setupProgress = useRoomSetupStore(
-    state => state.getRoomSetupProgress(),
-    (a, b) => a.currentStep === b.currentStep && a.completedSteps === b.completedSteps
-  )
+  // Compute setupProgress using useMemo based on actual state dependencies
+  const setupProgress = useMemo(() => {
+    return roomSetupStore.getRoomSetupProgress()
+  }, [roomCreationStatus, joinRoomStatus, coPilotModeSelected, currentRoomCode, isRoomReady, roomSetupStore])
 
   return {
     // State
