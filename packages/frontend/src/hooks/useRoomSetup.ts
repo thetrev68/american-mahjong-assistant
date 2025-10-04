@@ -157,12 +157,14 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
         
       } else {
         // Everyone mode - create actual multiplayer room
+        console.log('🏠 Creating multiplayer room...')
         const roomData = await multiplayer.createRoom({
           hostName: hostName.trim(),
           maxPlayers: 4,
           gameMode: 'nmjl-2025',
           isPrivate: false
         })
+        console.log('✅ Room created:', roomData)
 
         // Generate a user-friendly room code from the room ID  
         const roomCode = generateRoomCodeFromId(roomData.id)
@@ -177,9 +179,11 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
         }
 
         roomSetupStore.handleRoomCreated(roomCode, hostPlayerId)
+        console.log('🎉 Room setup complete, code:', roomCode)
       }
 
     } catch (error) {
+      console.error('❌ Room creation error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to create room'
       roomSetupStore.handleRoomCreationError(errorMessage)
     }
