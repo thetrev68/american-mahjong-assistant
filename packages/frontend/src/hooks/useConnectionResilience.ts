@@ -80,11 +80,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
   useEffect(() => {
     const resilienceService = getConnectionResilienceService()
     if (!resilienceService) {
-      // Only warn if we're actually in multiplayer mode (not solo or landing page)
-      const roomStore = useRoomStore.getState()
-      if ((roomStore.room?.id || roomStore.hostPlayerId) && roomSetupStore.coPilotMode !== 'solo') {
-        console.warn('Connection resilience service not initialized in multiplayer context.')
-      }
+      // Silently skip - service will be initialized when room is created
       return
     }
 
