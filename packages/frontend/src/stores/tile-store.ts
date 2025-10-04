@@ -6,6 +6,8 @@ import { devtools, persist } from 'zustand/middleware'
 import type { PlayerTile } from 'shared-types'
 import { tileService } from '../lib/services/tile-service'
 import { lazyAnalysisEngine } from '../lib/services/analysis-engine-lazy'
+import { useDevPerspectiveStore } from './dev-perspective.store'
+import { useMultiplayerStore } from './multiplayer-store'
 
 // Local type definitions for tile store functionality
 type TileInputMode = 'select' | 'input' | 'edit'
@@ -46,15 +48,23 @@ interface TileInputState {
 }
 
 interface TileState extends TileInputState {
-  // Hand Management
+  // Multiplayer Support - Store hands per player
+  playerHands: Record<string, AnimatedPlayerTile[]> // playerId -> tiles
+  handSizes: Record<string, number> // playerId -> hand size
+  dealerHands: Record<string, boolean> // playerId -> is dealer
+
+  // Exposed tiles from calls (pung, kong, etc.) - per player
+  exposedTilesMap: Record<string, AnimatedPlayerTile[]> // playerId -> exposed tiles
+
+  // Selection Area State - per player
+  selectedForActionMap: Record<string, AnimatedPlayerTile[]> // playerId -> selected tiles
+  tileStatesMap: Record<string, Record<string, string>> // playerId -> (instanceId -> state)
+
+  // Legacy single-player accessors (computed from current effective player)
   playerHand: AnimatedPlayerTile[]
   handSize: number
-  dealerHand: boolean // True if dealer (14 tiles), false if player (13)
-  
-  // Exposed tiles from calls (pung, kong, etc.)
+  dealerHand: boolean
   exposedTiles: AnimatedPlayerTile[]
-
-  // Selection Area State
   selectedForAction: AnimatedPlayerTile[]
   tileStates: Record<string, string>
   
@@ -121,16 +131,55 @@ interface TileState extends TileInputState {
   getHandSummary: () => { total: number, selected: number, valid: boolean }
 }
 
+// Helper to get effective player ID (respects dev perspective)
+const getEffectivePlayerId = (): string => {
+  const multiplayerStore = useMultiplayerStore.getState()
+  const devStore = useDevPerspectiveStore.getState()
+  const effectiveId = devStore.getEffectivePlayerId(multiplayerStore.currentPlayerId)
+  // Use a default fallback for single-player mode
+  return effectiveId || 'single-player'
+}
+
 export const useTileStore = create<TileState>()(
   devtools(
     persist(
       (set, get) => ({
-        // Initial State
+        // Initial State - Multiplayer maps
+        playerHands: {},
+        handSizes: {},
+        dealerHands: {},
+        exposedTilesMap: {},
+        selectedForActionMap: {},
+        tileStatesMap: {},
+
+        // Legacy computed properties (dynamically computed from effective player)
+        get playerHand() {
+          const playerId = getEffectivePlayerId()
+          return get().playerHands[playerId] || []
+        },
+        get handSize() {
+          const playerId = getEffectivePlayerId()
+          return get().handSizes[playerId] || 0
+        },
+        get dealerHand() {
+          const playerId = getEffectivePlayerId()
+          return get().dealerHands[playerId] || false
+        },
+        get exposedTiles() {
+          const playerId = getEffectivePlayerId()
+          return get().exposedTilesMap[playerId] || []
+        },
+        get selectedForAction() {
+          const playerId = getEffectivePlayerId()
+          return get().selectedForActionMap[playerId] || []
+        },
+        get tileStates() {
+          const playerId = getEffectivePlayerId()
+          return get().tileStatesMap[playerId] || {}
+        },
+
+        // Shared state (not player-specific)
         selectedTiles: [],
-        playerHand: [],
-        handSize: 0,
-        dealerHand: false,
-        exposedTiles: [],
         inputMode: 'select',
         isValidating: false,
         validation: {
@@ -149,31 +198,38 @@ export const useTileStore = create<TileState>()(
         analysisInProgress: false,
         lastAnalysis: null,
         
-        // Selection Area State
-        selectedForAction: [],
-        tileStates: {},
-        
         // Hand Management Actions
         addTile: (tileId: string) => {
           const playerTile = tileService.createPlayerTile(tileId)
-          
+
           if (!playerTile) {
             return
           }
-          
+
+          const playerId = getEffectivePlayerId()
+
           set((state) => {
-            const oldTileIds = state.playerHand.map(tile => tile.id)
-            const newHand = [...state.playerHand, playerTile]
+            const currentHand = state.playerHands[playerId] || []
+            const currentDealer = state.dealerHands[playerId] || false
+
+            const oldTileIds = currentHand.map(tile => tile.id)
+            const newHand = [...currentHand, playerTile]
             const newTileIds = newHand.map(tile => tile.id)
-            
+
             // Clear Engine 1 cache when hand changes (async, don't block)
             lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
-            
-            const validation = tileService.validateHand(newHand, state.dealerHand ? 14 : 13)
-            
+
+            const validation = tileService.validateHand(newHand, currentDealer ? 14 : 13)
+
             return {
-              playerHand: newHand,
-              handSize: newHand.length,
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: newHand
+              },
+              handSizes: {
+                ...state.handSizes,
+                [playerId]: newHand.length
+              },
               validation,
               lastAnalysis: null // Clear analysis timestamp when hand changes
             }
@@ -181,23 +237,34 @@ export const useTileStore = create<TileState>()(
         },
         
         removeTile: (instanceId: string) => {
+          const playerId = getEffectivePlayerId()
+
           set((state) => {
-            const oldTileIds = state.playerHand.map(tile => tile.id)
-            const newHand = state.playerHand.filter(tile => tile.instanceId !== instanceId)
+            const currentHand = state.playerHands[playerId] || []
+            const currentDealer = state.dealerHands[playerId] || false
+
+            const oldTileIds = currentHand.map(tile => tile.id)
+            const newHand = currentHand.filter(tile => tile.instanceId !== instanceId)
             const newTileIds = newHand.map(tile => tile.id)
-            
+
             // Clear Engine 1 cache when hand changes (async, don't block)
             lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
-            
-            const validation = tileService.validateHand(newHand, state.dealerHand ? 14 : 13)
-            
+
+            const validation = tileService.validateHand(newHand, currentDealer ? 14 : 13)
+
             // Remove from recommendations
             const newRecommendations = { ...state.recommendations }
             delete newRecommendations[instanceId]
-            
+
             return {
-              playerHand: newHand,
-              handSize: newHand.length,
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: newHand
+              },
+              handSizes: {
+                ...state.handSizes,
+                [playerId]: newHand.length
+              },
               validation,
               recommendations: newRecommendations,
               lastAnalysis: null // Clear analysis timestamp when hand changes
@@ -207,45 +274,86 @@ export const useTileStore = create<TileState>()(
         
         // Exposed Tiles Management Actions
         addExposedTiles: (tiles: PlayerTile[], callType: string) => {
-          set((state) => ({
-            exposedTiles: [...state.exposedTiles, ...tiles]
-          }))
+          const playerId = getEffectivePlayerId()
+          set((state) => {
+            const currentExposed = state.exposedTilesMap[playerId] || []
+            return {
+              exposedTilesMap: {
+                ...state.exposedTilesMap,
+                [playerId]: [...currentExposed, ...tiles]
+              }
+            }
+          })
           console.log(`Added exposed tiles for ${callType}:`, tiles.map(t => t.displayName))
         },
-        
+
         setExposedTiles: (tiles: PlayerTile[]) => {
-          set({ exposedTiles: tiles })
+          const playerId = getEffectivePlayerId()
+          set((state) => ({
+            exposedTilesMap: {
+              ...state.exposedTilesMap,
+              [playerId]: tiles
+            }
+          }))
         },
-        
+
         clearExposedTiles: () => {
-          set({ exposedTiles: [] })
+          const playerId = getEffectivePlayerId()
+          set((state) => ({
+            exposedTilesMap: {
+              ...state.exposedTilesMap,
+              [playerId]: []
+            }
+          }))
         },
         
         clearHand: () => {
+          const playerId = getEffectivePlayerId()
           console.log('🧹 clearHand called - stack trace:', new Error().stack)
           set((state) => {
-            const oldTileIds = state.playerHand.map(tile => tile.id)
+            const currentHand = state.playerHands[playerId] || []
+            const currentDealer = state.dealerHands[playerId] || false
+            const oldTileIds = currentHand.map(tile => tile.id)
             const newTileIds: string[] = []
 
             // Clear Engine 1 cache when hand cleared (async, don't block)
             lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
 
             return {
-              playerHand: [],
-              handSize: 0,
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: []
+              },
+              handSizes: {
+                ...state.handSizes,
+                [playerId]: 0
+              },
+              dealerHands: {
+                ...state.dealerHands,
+                [playerId]: currentDealer
+              },
+              exposedTilesMap: {
+                ...state.exposedTilesMap,
+                [playerId]: []
+              },
+              selectedForActionMap: {
+                ...state.selectedForActionMap,
+                [playerId]: []
+              },
+              tileStatesMap: {
+                ...state.tileStatesMap,
+                [playerId]: {}
+              },
               selectedTiles: [],
               selectedCount: 0,
               recommendations: {},
-              lastAnalysis: null, // Clear analysis timestamp
-              selectedForAction: [],
-              tileStates: {},
-              exposedTiles: [],
+              lastAnalysis: null,
               validation: {
                 isValid: false,
                 errors: [],
                 warnings: [],
                 tileCount: 0,
-                expectedCount: state.dealerHand ? 14 : 13,
+                expectedCount: currentDealer ? 14 : 13,
                 duplicateErrors: []
               }
             }
@@ -253,12 +361,17 @@ export const useTileStore = create<TileState>()(
         },
         
         setDealerHand: (isDealer: boolean) => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
+            const currentHand = state.playerHands[playerId] || []
             const expectedCount = isDealer ? 14 : 13
-            const validation = tileService.validateHand(state.playerHand, expectedCount)
-            
+            const validation = tileService.validateHand(currentHand, expectedCount)
+
             return {
-              dealerHand: isDealer,
+              dealerHands: {
+                ...state.dealerHands,
+                [playerId]: isDealer
+              },
               validation: {
                 ...validation,
                 expectedCount
@@ -269,11 +382,13 @@ export const useTileStore = create<TileState>()(
         
         // Selection Actions
         toggleTileSelection: (instanceId: string) => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
-            const newHand = state.playerHand.map(tile => {
+            const currentHand = state.playerHands[playerId] || []
+            const newHand = currentHand.map(tile => {
               if (tile.instanceId === instanceId) {
                 const newSelected = !tile.isSelected
-                
+
                 // Trigger animation
                 if (get().showAnimations) {
                   tile.animation = {
@@ -281,16 +396,19 @@ export const useTileStore = create<TileState>()(
                     duration: 200
                   }
                 }
-                
+
                 return { ...tile, isSelected: newSelected }
               }
               return tile
             })
-            
+
             const selectedTiles = newHand.filter(tile => tile.isSelected)
-            
+
             return {
-              playerHand: newHand,
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: newHand
+              },
               selectedTiles,
               selectedCount: selectedTiles.length
             }
@@ -298,35 +416,49 @@ export const useTileStore = create<TileState>()(
         },
         
         selectTile: (instanceId: string) => {
-          const tile = get().playerHand.find(t => t.instanceId === instanceId)
+          const playerId = getEffectivePlayerId()
+          const currentHand = get().playerHands[playerId] || []
+          const tile = currentHand.find(t => t.instanceId === instanceId)
           if (tile && !tile.isSelected) {
             get().toggleTileSelection(instanceId)
           }
         },
-        
+
         deselectTile: (instanceId: string) => {
-          const tile = get().playerHand.find(t => t.instanceId === instanceId)
+          const playerId = getEffectivePlayerId()
+          const currentHand = get().playerHands[playerId] || []
+          const tile = currentHand.find(t => t.instanceId === instanceId)
           if (tile && tile.isSelected) {
             get().toggleTileSelection(instanceId)
           }
         },
         
         selectAll: () => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
-            const newHand = state.playerHand.map(tile => ({ ...tile, isSelected: true }))
+            const currentHand = state.playerHands[playerId] || []
+            const newHand = currentHand.map(tile => ({ ...tile, isSelected: true }))
             return {
-              playerHand: newHand,
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: newHand
+              },
               selectedTiles: newHand,
               selectedCount: newHand.length
             }
           })
         },
-        
+
         deselectAll: () => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
-            const newHand = state.playerHand.map(tile => ({ ...tile, isSelected: false }))
+            const currentHand = state.playerHands[playerId] || []
+            const newHand = currentHand.map(tile => ({ ...tile, isSelected: false }))
             return {
-              playerHand: newHand,
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: newHand
+              },
               selectedTiles: [],
               selectedCount: 0
             }
@@ -353,53 +485,79 @@ export const useTileStore = create<TileState>()(
         
         // Animation Actions
         triggerTileAnimation: (instanceId: string, animation: TileAnimation) => {
-          set((state) => ({
-            playerHand: state.playerHand.map(tile =>
-              tile.instanceId === instanceId
-                ? { ...tile, animation }
-                : tile
-            )
-          }))
-          
+          const playerId = getEffectivePlayerId()
+          set((state) => {
+            const currentHand = state.playerHands[playerId] || []
+            return {
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: currentHand.map(tile =>
+                  tile.instanceId === instanceId
+                    ? { ...tile, animation }
+                    : tile
+                )
+              }
+            }
+          })
+
           // Clear animation after duration
           setTimeout(() => {
-            set((state) => ({
-              playerHand: state.playerHand.map(tile =>
-                tile.instanceId === instanceId
-                  ? { ...tile, animation: undefined }
-                  : tile
-              )
-            }))
+            const playerId = getEffectivePlayerId()
+            set((state) => {
+              const currentHand = state.playerHands[playerId] || []
+              return {
+                playerHands: {
+                  ...state.playerHands,
+                  [playerId]: currentHand.map(tile =>
+                    tile.instanceId === instanceId
+                      ? { ...tile, animation: undefined }
+                      : tile
+                  )
+                }
+              }
+            })
           }, animation.duration + (animation.delay || 0))
         },
-        
+
         clearAnimations: () => {
-          set((state) => ({
-            playerHand: state.playerHand.map(tile => ({ ...tile, animation: undefined }))
-          }))
+          const playerId = getEffectivePlayerId()
+          set((state) => {
+            const currentHand = state.playerHands[playerId] || []
+            return {
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: currentHand.map(tile => ({ ...tile, animation: undefined }))
+              }
+            }
+          })
         },
-        
+
         // Validation & Analysis
         validateHand: () => {
-          const { playerHand, dealerHand } = get()
-          const validation = tileService.validateHand(playerHand, dealerHand ? 14 : 13)
-          
+          const playerId = getEffectivePlayerId()
+          const state = get()
+          const currentHand = state.playerHands[playerId] || []
+          const currentDealer = state.dealerHands[playerId] || false
+          const validation = tileService.validateHand(currentHand, currentDealer ? 14 : 13)
+
           set({ validation })
           return validation
         },
         
         analyzeHand: async () => {
+          const playerId = getEffectivePlayerId()
           const state = get()
+          const currentHand = state.playerHands[playerId] || []
           set({ analysisInProgress: true })
-          
+
           try {
             // Import real-time analysis service
             const { RealTimeAnalysisService } = await import('../features/intelligence-panel/services/real-time-analysis-service')
             const { nmjlService } = await import('../lib/services/nmjl-service')
-            
+
             // Get available patterns
             const patterns = await nmjlService.loadPatterns()
-            
+
             // Create analysis context
             const context = {
               playerId: 'current-player',
@@ -410,10 +568,10 @@ export const useTileStore = create<TileState>()(
               exposedTiles: {},
               currentRound: 1
             }
-            
+
             // Perform real-time analysis
             const analysisResult = await RealTimeAnalysisService.analyzeAllPatterns(
-              state.playerHand,
+              currentHand,
               patterns,
               context
             )
@@ -427,9 +585,9 @@ export const useTileStore = create<TileState>()(
             analysisResult.topRecommendations.forEach((rec) => {
               const displayText = RealTimeAnalysisService.formatRecommendationDisplay(rec)
               console.log(displayText)
-              
+
               // Create recommendations for relevant tiles
-              state.playerHand.forEach(tile => {
+              currentHand.forEach(tile => {
                 if (rec.tilesNeeded > 0) {
                   newRecommendations[tile.instanceId] = {
                     action: rec.completionPercentage > 50 ? 'keep' : 'neutral',
@@ -468,12 +626,13 @@ export const useTileStore = create<TileState>()(
         
         // Bulk Operations
         importTilesFromString: (tileString: string) => {
+          const playerId = getEffectivePlayerId()
           console.log('🔧 importTilesFromString called with:', tileString)
           const tileIds = tileString.trim().split(/\s+/)
           console.log('🔧 Parsed tile IDs:', tileIds)
-          
+
           const validTiles: PlayerTile[] = []
-          
+
           tileIds.forEach(tileId => {
             const tile = tileService.createPlayerTile(tileId)
             if (tile) {
@@ -482,57 +641,79 @@ export const useTileStore = create<TileState>()(
               console.log('🔧 Failed to create tile for ID:', tileId)
             }
           })
-          
+
           console.log('🔧 Valid tiles created:', validTiles.length)
-          
+
           set((state) => {
-            const oldTileIds = state.playerHand.map(tile => tile.id)
+            const currentHand = state.playerHands[playerId] || []
+            const currentDealer = state.dealerHands[playerId] || false
+            const oldTileIds = currentHand.map(tile => tile.id)
             const newTileIds = validTiles.map(tile => tile.id)
-            
+
             // Clear Engine 1 cache when hand changes (async, don't block)
             lazyAnalysisEngine.clearCacheForHandChange(oldTileIds, newTileIds)
-            
-            const validation = tileService.validateHand(validTiles, state.dealerHand ? 14 : 13)
-            
+
+            const validation = tileService.validateHand(validTiles, currentDealer ? 14 : 13)
+
             const newState = {
-              playerHand: validTiles,
-              handSize: validTiles.length,
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: validTiles
+              },
+              handSizes: {
+                ...state.handSizes,
+                [playerId]: validTiles.length
+              },
+              dealerHands: {
+                ...state.dealerHands,
+                [playerId]: currentDealer
+              },
+              selectedForActionMap: {
+                ...state.selectedForActionMap,
+                [playerId]: []
+              },
+              tileStatesMap: {
+                ...state.tileStatesMap,
+                [playerId]: {}
+              },
               validation,
               selectedTiles: [],
               selectedCount: 0,
-              lastAnalysis: null,
-              selectedForAction: [],
-              tileStates: {}
+              lastAnalysis: null
             }
-            
-            console.log('🔧 importTilesFromString: New hand size:', newState.handSize)
+
+            console.log('🔧 importTilesFromString: New hand size:', newState.handSizes[playerId])
             return newState
           })
         },
         
         exportTilesToString: () => {
-          const { playerHand } = get()
-          return playerHand.map(tile => tile.id).join(' ')
+          const playerId = getEffectivePlayerId()
+          const state = get()
+          const currentHand = state.playerHands[playerId] || []
+          return currentHand.map(tile => tile.id).join(' ')
         },
         
         sortHand: () => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
+            const currentHand = state.playerHands[playerId] || []
             let sortedHand: PlayerTile[]
-            
+
             switch (state.sortBy) {
               case 'suit':
-                sortedHand = tileService.sortTiles(state.playerHand)
+                sortedHand = tileService.sortTiles(currentHand)
                 break
-                
+
               case 'recommendation':
-                sortedHand = [...state.playerHand].sort((a, b) => {
+                sortedHand = [...currentHand].sort((a, b) => {
                   const recA = state.recommendations[a.instanceId]
                   const recB = state.recommendations[b.instanceId]
-                  
+
                   if (!recA && !recB) return 0
                   if (!recA) return 1
                   if (!recB) return -1
-                  
+
                   // Sort by priority, then by confidence
                   if ((recA.priority || 0) !== (recB.priority || 0)) {
                     return (recB.priority || 0) - (recA.priority || 0)
@@ -540,69 +721,96 @@ export const useTileStore = create<TileState>()(
                   return recB.confidence - recA.confidence
                 })
                 break
-                
+
               case 'manual':
                 // Keep current order
-                sortedHand = state.playerHand
+                sortedHand = currentHand
                 break
-                
+
               default:
-                sortedHand = tileService.sortTiles(state.playerHand)
+                sortedHand = tileService.sortTiles(currentHand)
             }
-            
-            return { playerHand: sortedHand }
+
+            return {
+              playerHands: {
+                ...state.playerHands,
+                [playerId]: sortedHand
+              }
+            }
           })
         },
         
         // Getters
         getSelectedTiles: () => {
-          return get().playerHand.filter(tile => tile.isSelected)
+          const playerId = getEffectivePlayerId()
+          const state = get()
+          const currentHand = state.playerHands[playerId] || []
+          return currentHand.filter(tile => tile.isSelected)
         },
-        
+
         getTileGroups: () => {
-          const { playerHand } = get()
-          return tileService.getTilesGroupedBySuit(playerHand)
+          const playerId = getEffectivePlayerId()
+          const state = get()
+          const currentHand = state.playerHands[playerId] || []
+          return tileService.getTilesGroupedBySuit(currentHand)
         },
-        
+
         getHandSummary: () => {
-          const { playerHand, validation, selectedCount } = get()
+          const playerId = getEffectivePlayerId()
+          const state = get()
+          const currentHand = state.playerHands[playerId] || []
           return {
-            total: playerHand.length,
-            selected: selectedCount,
-            valid: validation.isValid
+            total: currentHand.length,
+            selected: state.selectedCount,
+            valid: state.validation.isValid
           }
         },
         
         // Selection Area Actions
         moveToSelection: (instanceId: string) => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
-            const tile = state.playerHand.find(t => t.instanceId === instanceId)
+            const currentHand = state.playerHands[playerId] || []
+            const currentSelected = state.selectedForActionMap[playerId] || []
+            const currentTileStates = state.tileStatesMap[playerId] || {}
+
+            const tile = currentHand.find(t => t.instanceId === instanceId)
             if (!tile) return state
 
             // Preserve locked state when moving to selection
-            const currentState = state.tileStates[instanceId]
+            const currentState = currentTileStates[instanceId]
             const newTileStates = {
-              ...state.tileStates,
+              ...currentTileStates,
               [instanceId]: currentState === 'locked' ? 'locked-placeholder' : 'placeholder'
             }
 
             // Add to selection area if not already there
-            const isAlreadyInSelection = state.selectedForAction.some(t => t.instanceId === instanceId)
+            const isAlreadyInSelection = currentSelected.some(t => t.instanceId === instanceId)
             const newSelectedForAction = isAlreadyInSelection
-              ? state.selectedForAction
-              : [...state.selectedForAction, tile]
+              ? currentSelected
+              : [...currentSelected, tile]
 
             return {
-              selectedForAction: newSelectedForAction,
-              tileStates: newTileStates
+              selectedForActionMap: {
+                ...state.selectedForActionMap,
+                [playerId]: newSelectedForAction
+              },
+              tileStatesMap: {
+                ...state.tileStatesMap,
+                [playerId]: newTileStates
+              }
             }
           })
         },
-        
+
         returnFromSelection: (instanceId: string) => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
-            const newSelectedForAction = state.selectedForAction.filter(t => t.instanceId !== instanceId)
-            const newTileStates = { ...state.tileStates }
+            const currentSelected = state.selectedForActionMap[playerId] || []
+            const currentTileStates = state.tileStatesMap[playerId] || {}
+
+            const newSelectedForAction = currentSelected.filter(t => t.instanceId !== instanceId)
+            const newTileStates = { ...currentTileStates }
 
             // Handle different placeholder states
             const currentState = newTileStates[instanceId]
@@ -613,46 +821,68 @@ export const useTileStore = create<TileState>()(
             }
 
             return {
-              selectedForAction: newSelectedForAction,
-              tileStates: newTileStates
+              selectedForActionMap: {
+                ...state.selectedForActionMap,
+                [playerId]: newSelectedForAction
+              },
+              tileStatesMap: {
+                ...state.tileStatesMap,
+                [playerId]: newTileStates
+              }
             }
           })
         },
-        
+
         lockTile: (instanceId: string) => {
-          set((state) => ({
-            tileStates: {
-              ...state.tileStates,
-              [instanceId]: 'locked'
+          const playerId = getEffectivePlayerId()
+          set((state) => {
+            const currentTileStates = state.tileStatesMap[playerId] || {}
+            return {
+              tileStatesMap: {
+                ...state.tileStatesMap,
+                [playerId]: {
+                  ...currentTileStates,
+                  [instanceId]: 'locked'
+                }
+              }
             }
-          }))
+          })
         },
 
         unlockTile: (instanceId: string) => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
-            const newTileStates = { ...state.tileStates }
+            const currentTileStates = state.tileStatesMap[playerId] || {}
+            const newTileStates = { ...currentTileStates }
             delete newTileStates[instanceId]
             return {
-              tileStates: newTileStates
+              tileStatesMap: {
+                ...state.tileStatesMap,
+                [playerId]: newTileStates
+              }
             }
           })
         },
 
         toggleTileLock: (instanceId: string) => {
+          const playerId = getEffectivePlayerId()
           const state = get()
-          const isLocked = state.tileStates[instanceId] === 'locked'
+          const currentTileStates = state.tileStatesMap[playerId] || {}
+          const isLocked = currentTileStates[instanceId] === 'locked'
           if (isLocked) {
             state.unlockTile(instanceId)
           } else {
             state.lockTile(instanceId)
           }
         },
-        
+
         clearSelection: () => {
+          const playerId = getEffectivePlayerId()
           set((state) => {
+            const currentTileStates = state.tileStatesMap[playerId] || {}
             // Preserve locked states and placeholder states, clear only selection-related states
             const preservedStates: Record<string, string> = {}
-            for (const [instanceId, tileState] of Object.entries(state.tileStates)) {
+            for (const [instanceId, tileState] of Object.entries(currentTileStates)) {
               if (tileState === 'locked') {
                 preservedStates[instanceId] = tileState
               }
@@ -660,8 +890,14 @@ export const useTileStore = create<TileState>()(
 
             return {
               ...state,
-              selectedForAction: [],
-              tileStates: preservedStates
+              selectedForActionMap: {
+                ...state.selectedForActionMap,
+                [playerId]: []
+              },
+              tileStatesMap: {
+                ...state.tileStatesMap,
+                [playerId]: preservedStates
+              }
             }
           })
         }

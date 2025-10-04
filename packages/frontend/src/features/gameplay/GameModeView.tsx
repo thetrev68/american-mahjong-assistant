@@ -36,6 +36,8 @@ import { useHistoryStore } from '../../stores/history-store'
 import { tileService } from '../../lib/services/tile-service'
 import DevShortcuts from '../../ui-components/DevShortcuts'
 import { useNavigate } from 'react-router-dom'
+import { useDevPerspectiveStore } from '../../stores/dev-perspective.store'
+import { useMultiplayerStore } from '../../stores/multiplayer-store'
 // Pull to refresh imports - reserved for future use
 // import { PullToRefreshWrapper } from '../strategy-advisor/components/PullToRefreshWrapper'
 // import { useResponsivePullToRefreshConfig } from '../strategy-advisor/utils/pull-to-refresh.utils'
@@ -80,7 +82,15 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const charlestonStore = useCharlestonStore()
   const turnSelectors = useTurnSelectors()
   const historyStore = useHistoryStore()
-  
+  const devPerspectiveStore = useDevPerspectiveStore()
+  const multiplayerStore = useMultiplayerStore()
+
+  // Dev perspective state
+  const isDevMode = import.meta.env.DEV
+  const activeDevPlayerId = devPerspectiveStore.activeDevPlayerId
+  const allPlayerIds = devPerspectiveStore.allPlayerIds
+  const realPlayerId = multiplayerStore.currentPlayerId
+
   // Initialize game phase - start with Charleston when first entering from tile input
   useEffect(() => {
     if (gameStore.gamePhase === 'tile-input') {
@@ -1059,6 +1069,25 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     navigate('/room-setup')
   }, [roomSetupStore, gameStore, tileStore, patternStore, intelligenceStore, charlestonStore, navigate])
 
+  // Dev perspective handlers
+  const handleSwitchPlayer = useCallback((playerId: string) => {
+    devPerspectiveStore.setActiveDevPlayer(playerId)
+  }, [devPerspectiveStore])
+
+  const handlePopulatePlayers = useCallback(() => {
+    // Register 4 test players in dev mode
+    const playerIds = ['player-1', 'player-2', 'player-3', 'player-4']
+    playerIds.forEach(id => {
+      devPerspectiveStore.registerPlayer(id)
+    })
+    // Set current player to first player if not already set
+    if (!realPlayerId) {
+      multiplayerStore.setCurrentPlayerId('player-1')
+    }
+    // Set active dev player to current player
+    devPerspectiveStore.setActiveDevPlayer(realPlayerId || 'player-1')
+  }, [devPerspectiveStore, multiplayerStore, realPlayerId])
+
   // Advance from Charleston to Gameplay phase
   const handleAdvanceToGameplay = useCallback(() => {
     gameStore.setGamePhase('playing')
@@ -1254,13 +1283,35 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Show loading overlay if initial analysis is running
   const showLoadingOverlay = intelligenceStore.isAnalyzing && !intelligenceStore.currentAnalysis
 
+  // Determine if we should show multiplayer variant (dev mode with multiple players)
+  const showMultiplayerDevShortcuts = isDevMode && (allPlayerIds.length > 0 || true) // Always show in dev mode
+
   return (
     <>
       <DevShortcuts
-        variant={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
+        variant={showMultiplayerDevShortcuts ? 'multiplayer' : (gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay')}
         onSkipToGameplay={gameStore.gamePhase === 'charleston' ? handleSkipToGameplay : undefined}
         onResetGame={handleResetGame}
+        onSwitchPlayer={handleSwitchPlayer}
+        onPopulatePlayers={handlePopulatePlayers}
+        currentDevPlayerId={activeDevPlayerId}
+        availablePlayerIds={allPlayerIds}
+        realPlayerId={realPlayerId}
       />
+
+      {/* Dev Mode Banner */}
+      {isDevMode && activeDevPlayerId && activeDevPlayerId !== realPlayerId && (
+        <div className="fixed top-0 left-0 right-0 z-40 bg-gradient-to-r from-cyan-500 to-blue-500 text-white px-4 py-2 shadow-lg">
+          <div className="flex items-center justify-center gap-2 text-sm font-medium">
+            <span>🔧 DEV MODE: Viewing as Player {allPlayerIds.indexOf(activeDevPlayerId) + 1}</span>
+            {realPlayerId && (
+              <span className="opacity-75">
+                (Real player: Player {allPlayerIds.indexOf(realPlayerId) + 1})
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Loading overlay for initial analysis */}
       {showLoadingOverlay && (
@@ -1281,7 +1332,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       )}
 
       {/* Phase 4: Pull-to-refresh DISABLED - was blocking render */}
-      <div className="min-h-screen">
+      <div className="min-h-screen" style={isDevMode && activeDevPlayerId !== realPlayerId ? { marginTop: '40px' } : undefined}>
         <GameScreenLayout
         gamePhase={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         currentPlayer={currentPlayer}
