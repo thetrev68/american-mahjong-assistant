@@ -35,6 +35,11 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   const multiplayerStore = useMultiplayerStore()
   const multiplayer = useMultiplayer()
 
+  // Subscribe to room creation status changes to recompute progress
+  const roomCreationStatus = useRoomSetupStore(state => state.roomCreationStatus)
+  const joinRoomStatus = useRoomSetupStore(state => state.joinRoomStatus)
+  const isRoomReady = roomStore.isRoomReadyForGame()
+
   const generateRoomCode = useCallback((): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     let result = ''
