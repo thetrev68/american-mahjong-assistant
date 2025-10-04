@@ -228,8 +228,11 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
     }
   }, [roomSetupStore, multiplayer])
 
-  // Use selector to make setupProgress reactive
-  const setupProgress = useRoomSetupStore(state => state.getRoomSetupProgress())
+  // Use selector with shallow comparison to prevent infinite loops
+  const setupProgress = useRoomSetupStore(
+    state => state.getRoomSetupProgress(),
+    (a, b) => a.currentStep === b.currentStep && a.completedSteps === b.completedSteps
+  )
 
   return {
     // State
