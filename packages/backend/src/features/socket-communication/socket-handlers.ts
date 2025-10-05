@@ -1638,32 +1638,39 @@ export class SocketHandlers {
 
   // Dev-only handlers for multiplayer testing
   private registerDevHandlers(socket: Socket): void {
+    console.log('🔧 Registering dev handlers for socket:', socket.id)
+
     // Populate room with test players
     socket.on('dev:populate-players', withSocketErrorHandling(socket, 'dev:players-populated', async (data) => {
       const { roomId } = data as { roomId: string }
+      console.log('🎲 dev:populate-players called - roomId:', roomId, 'socket.id:', socket.id)
+      console.log('📋 All rooms:', Array.from(this.roomManager.getAllRooms()).map(r => ({ id: r.id, players: r.players.map(p => p.id) })))
 
-      const validation = validateRoomAccess(this.roomManager, roomId, socket.id)
-      if (!validation.isValid || !validation.room) {
+      // For dev mode, just check if room exists (don't validate socket.id since connections may reconnect)
+      const room = this.roomManager.getRoom(roomId)
+      if (!room) {
+        console.error('❌ Room not found:', roomId)
         socket.emit('dev:players-populated', {
           success: false,
-          error: validation.error || 'Invalid room access'
+          error: 'Room not found'
         })
         return
       }
 
-      const room = validation.room
+      console.log('✅ Room found:', room.id, 'with', room.players.length, 'players')
 
-      // Create 3 AI test players (total 4 including host)
-      const positions = ['east', 'north', 'west', 'south'] as const
+      // Create 3 test players with specific names (total 4 including host Trevor)
+      const testPlayerNames = ['Kim', 'Jordan', 'Emilie']
+      const positions = ['east', 'south', 'west', 'north'] as const
       const aiPlayers: Player[] = []
 
       for (let i = 0; i < 3; i++) {
         const aiPlayer: Player = {
-          id: `ai-player-${i + 1}-${Date.now()}`,
-          name: `Test Player ${i + 2}`,
+          id: `player-${i + 2}-${Date.now()}`,
+          name: testPlayerNames[i],
           position: positions[i + 1] as 'east' | 'north' | 'west' | 'south',
           isHost: false,
-          isReady: false,
+          isReady: true,
           isConnected: true
         }
         aiPlayers.push(aiPlayer)
@@ -1674,14 +1681,21 @@ export class SocketHandlers {
         room.players.push(player)
       })
 
-      // Set host position
-      const hostPlayer = room.players.find(p => p.id === socket.id)
-      if (hostPlayer && !hostPlayer.position) {
-        hostPlayer.position = positions[0]
+      // Set host position to East and name to Trevor
+      const hostPlayer = room.players.find(p => p.isHost)
+      if (hostPlayer) {
+        if (!hostPlayer.position) {
+          hostPlayer.position = positions[0] // East
+        }
+        hostPlayer.name = 'Trevor'
+        hostPlayer.isReady = true
+        console.log('✅ Updated host player:', hostPlayer.name, 'at position:', hostPlayer.position)
+      } else {
+        console.error('❌ Could not find host player in room')
       }
 
-      // Broadcast player updates
-      this.io.to(roomId).emit('dev:players-populated', {
+      // Send response directly to the requesting socket
+      socket.emit('dev:players-populated', {
         success: true,
         room,
         players: aiPlayers
@@ -1691,6 +1705,10 @@ export class SocketHandlers {
       aiPlayers.forEach(player => {
         this.io.to(roomId).emit('player-joined', { player, room })
       })
+
+      // Broadcast room-updated event with all players and positions
+      this.io.to(roomId).emit('room-updated', { room })
+      console.log('✅ Test players populated and room updated. Total players:', room.players.length)
     }))
 
     // Set specific player's hand for testing

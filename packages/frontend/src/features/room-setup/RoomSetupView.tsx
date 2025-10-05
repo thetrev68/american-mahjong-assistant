@@ -5,6 +5,8 @@ import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import { useGameStore } from '../../stores/game-store'
 import { usePlayerStore } from '../../stores/player.store'
+import { useRoomStore } from '../../stores/room.store'
+import { useSocket } from '../../hooks/useSocket'
 import { CoPilotModeSelector } from './CoPilotModeSelector'
 import { RoomCreation } from './RoomCreation'
 import { RoomJoining } from './RoomJoining'
@@ -36,7 +38,8 @@ export const RoomSetupView: React.FC = () => {
   const multiplayerStore = useMultiplayerStore()
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
-  
+  const socket = useSocket()
+
   const [roomMode, setRoomMode] = useState<RoomMode>('create')
   const [hostName, setHostName] = useState('')
   const [playerName, setPlayerName] = useState('')
@@ -86,14 +89,29 @@ export const RoomSetupView: React.FC = () => {
 
   // Dev shortcut functions
   const handleFillTestData = async () => {
-    if (roomMode === 'create') {
-      setHostName('Trevor')
-      // Auto-trigger room creation with test data - only pass other players, host is added automatically
-      const otherPlayers = ['Kim', 'Jordan', 'Emilie']
-      await roomSetup.createRoom('Trevor', otherPlayers)
+    const isSoloMode = roomSetupStore.coPilotMode === 'solo'
+
+    if (isSoloMode) {
+      // Solo mode: create room with all 4 players immediately
+      if (roomMode === 'create') {
+        setHostName('Trevor')
+        // Auto-trigger room creation with test data - only pass other players, host is added automatically
+        const otherPlayers = ['Kim', 'Jordan', 'Emilie']
+        await roomSetup.createRoom('Trevor', otherPlayers)
+      } else {
+        setPlayerName('Trevor')
+        setRoomCodeInput('TEST')
+      }
     } else {
-      setPlayerName('Trevor')
-      setRoomCodeInput('TEST')
+      // Multiplayer mode: Just create room with Trevor as host
+      if (roomMode === 'create') {
+        console.log('🎲 Creating room as Trevor')
+        setHostName('Trevor')
+        await roomSetup.createRoom('Trevor')
+      } else {
+        setPlayerName('Trevor')
+        setRoomCodeInput('TEST')
+      }
     }
   }
 
@@ -111,36 +129,101 @@ export const RoomSetupView: React.FC = () => {
 
   const handleResetGame = () => {
     // Reset all stores and navigate back to setup
+    console.log('🔄 Resetting all stores...')
     roomSetupStore.resetToStart()
     gameStore.resetGame()
+    multiplayerStore.clearAll()
+    playerStore.clearPlayerData()
+    // Note: tileStore reset is handled by gameStore.resetGame()
+
+    // Clear sessionStorage to remove any persisted state
+    sessionStorage.clear()
+
+    console.log('✅ All stores reset')
     navigate('/')
   }
 
   const handleAutoPosition = () => {
-    // Auto-position all players in the current room
+    const isSoloMode = roomSetupStore.coPilotMode === 'solo'
     const players = multiplayerStore.currentRoom?.players || []
     console.log('Auto-positioning players:', players)
 
-    const trevorPlayer = players.find(p => p.name === 'Trevor')
-    const kimPlayer = players.find(p => p.name === 'Kim')
-    const jordanPlayer = players.find(p => p.name === 'Jordan')
-    const emiliePlayer = players.find(p => p.name === 'Emilie')
+    if (isSoloMode) {
+      // Solo mode: position named players (Trevor, Kim, Jordan, Emilie)
+      const trevorPlayer = players.find(p => p.name === 'Trevor')
+      const kimPlayer = players.find(p => p.name === 'Kim')
+      const jordanPlayer = players.find(p => p.name === 'Jordan')
+      const emiliePlayer = players.find(p => p.name === 'Emilie')
 
-    if (trevorPlayer) {
-      console.log('Positioning Trevor at east')
-      playerStore.setPlayerPosition(trevorPlayer.id, 'east')
-    }
-    if (kimPlayer) {
-      console.log('Positioning Kim at north')
-      playerStore.setPlayerPosition(kimPlayer.id, 'north')
-    }
-    if (jordanPlayer) {
-      console.log('Positioning Jordan at west')
-      playerStore.setPlayerPosition(jordanPlayer.id, 'west')
-    }
-    if (emiliePlayer) {
-      console.log('Positioning Emilie at south')
-      playerStore.setPlayerPosition(emiliePlayer.id, 'south')
+      if (trevorPlayer) {
+        console.log('Positioning Trevor at east')
+        playerStore.setPlayerPosition(trevorPlayer.id, 'east')
+      }
+      if (kimPlayer) {
+        console.log('Positioning Kim at south')
+        playerStore.setPlayerPosition(kimPlayer.id, 'south')
+      }
+      if (jordanPlayer) {
+        console.log('Positioning Jordan at west')
+        playerStore.setPlayerPosition(jordanPlayer.id, 'west')
+      }
+      if (emiliePlayer) {
+        console.log('Positioning Emilie at north')
+        playerStore.setPlayerPosition(emiliePlayer.id, 'north')
+      }
+    } else {
+      // Multiplayer mode: Use backend to add Kim/Jordan/Emilie, then position everyone
+      const roomId = multiplayerStore.currentRoom?.id
+      if (!roomId || !socket.rawSocket) {
+        console.error('❌ No room or socket available')
+        return
+      }
+
+      console.log('🎲 Populating players via backend')
+      socket.rawSocket.emit('dev:populate-players', { roomId })
+
+      socket.rawSocket.once('dev:players-populated', (response: any) => {
+        console.log('🎯 Received response:', response)
+
+        if (response.success && response.room) {
+          console.log('✅ Players added. Positioning all', response.room.players.length, 'players')
+
+          // Update multiplayerStore with new room
+          multiplayerStore.setCurrentRoom(response.room)
+
+          // Convert backend players to CrossPhasePlayerState format for roomStore
+          const crossPhasePlayerStates = response.room.players.map((player: any) => ({
+            id: player.id,
+            name: player.name,
+            isHost: player.isHost,
+            isConnected: player.isConnected,
+            lastSeen: new Date(),
+            roomReadiness: true,  // Mark as ready
+            charlestonReadiness: false,
+            gameplayReadiness: false,
+            position: undefined,  // Will be set below
+            isCurrentTurn: false
+          }))
+
+          // Update roomStore with all players
+          useRoomStore.getState().updatePlayers(crossPhasePlayerStates)
+
+          // Position all players in playerStore
+          response.room.players.forEach((player: any) => {
+            const position = player.name === 'Trevor' ? 'east' :
+                            player.name === 'Kim' ? 'south' :
+                            player.name === 'Jordan' ? 'west' :
+                            player.name === 'Emilie' ? 'north' : null
+
+            if (position) {
+              playerStore.setPlayerPosition(player.id, position)
+              console.log('📍 Positioned', player.name, 'at', position)
+            }
+          })
+
+          console.log('✅ All players positioned and marked ready')
+        }
+      })
     }
   }
 
@@ -312,10 +395,10 @@ export const RoomSetupView: React.FC = () => {
                 <div className="text-primary-900 font-medium flex items-center justify-center space-x-3">
                   <span>Room Code: <span className="font-mono text-lg">{roomSetup.roomCode}</span></span>
                   {/* Show share button for host (multiple fallback conditions for reliability) */}
-                  {(roomSetup.isHost || 
-                    roomSetupStore.roomCreationStatus === 'success' || 
+                  {(roomSetup.isHost ||
+                    roomSetupStore.roomCreationStatus === 'success' ||
                     multiplayerStore.currentRoom?.hostId === multiplayerStore.currentPlayerId) && roomSetup.roomCode && (
-                    <ShareButton 
+                    <ShareButton
                       roomCode={roomSetup.roomCode}
                       disabled={roomSetup.isCreatingRoom || roomSetup.isJoiningRoom}
                     />
