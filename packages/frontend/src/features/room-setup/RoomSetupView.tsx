@@ -51,7 +51,7 @@ export const RoomSetupView: React.FC = () => {
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const joinCode = urlParams.get('join')
-    
+
     if (joinCode && joinCode.length === 4) {
       setRoomCodeInput(joinCode.toUpperCase())
       setRoomMode('join')
@@ -63,7 +63,7 @@ export const RoomSetupView: React.FC = () => {
 
   const currentStep = forceStep || roomSetup.setupProgress.currentStep
   const currentStepNumber = steps.findIndex(s => s.title.toLowerCase().includes(currentStep.split('-')[0])) + 1
-  
+
   const handleStartGame = async () => {
     console.time('⏱️ Start Game Navigation')
     setIsStartingGame(true)
@@ -191,6 +191,12 @@ export const RoomSetupView: React.FC = () => {
           // Update multiplayerStore with new room
           multiplayerStore.setCurrentRoom(response.room)
 
+          // Find the host player and update roomStore with hostPlayerId
+          const hostPlayer = response.room.players.find((p: any) => p.isHost)
+          if (hostPlayer) {
+            useRoomStore.setState({ hostPlayerId: hostPlayer.id })
+          }
+
           // Convert backend players to CrossPhasePlayerState format for roomStore
           const crossPhasePlayerStates = response.room.players.map((player: any) => ({
             id: player.id,
@@ -208,7 +214,7 @@ export const RoomSetupView: React.FC = () => {
           // Update roomStore with all players
           useRoomStore.getState().updatePlayers(crossPhasePlayerStates)
 
-          // Position all players in playerStore
+          // Position all players in playerStore and mark them as ready
           response.room.players.forEach((player: any) => {
             const position = player.name === 'Trevor' ? 'east' :
                             player.name === 'Kim' ? 'south' :
@@ -217,7 +223,9 @@ export const RoomSetupView: React.FC = () => {
 
             if (position) {
               playerStore.setPlayerPosition(player.id, position)
-              console.log('📍 Positioned', player.name, 'at', position)
+              // Mark player as ready for the room phase (multiplayer mode doesn't auto-mark)
+              useRoomStore.getState().setPlayerReadiness(player.id, 'room', true)
+              console.log('📍 Positioned', player.name, 'at', position, '(ready)')
             }
           })
 

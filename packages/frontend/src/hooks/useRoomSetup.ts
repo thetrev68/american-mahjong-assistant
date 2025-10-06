@@ -35,6 +35,12 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   const multiplayerStore = useMultiplayerStore()
   const multiplayer = useMultiplayer()
 
+  // Subscribe to specific room store values to avoid infinite loops
+  const playersCount = useRoomStore((state) => state.players.length)
+  const playersReadiness = useRoomStore((state) =>
+    state.players.map(p => p.roomReadiness).join(',')
+  )
+
   const generateRoomCode = useCallback((): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
     let result = ''
@@ -172,17 +178,13 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
         })
         console.log('✅ Room created:', roomData)
 
-        // Generate a user-friendly room code from the room ID  
+        // Generate a user-friendly room code from the room ID
         const roomCode = generateRoomCodeFromId(roomData.id)
-        let hostPlayerId = multiplayerStore.currentPlayerId
-        
-        // Ensure we have a consistent player ID
-        if (!hostPlayerId) {
-          hostPlayerId = generatePlayerId()
-          // Update the player store with the generated player ID
-          playerStore.setCurrentPlayerId(hostPlayerId)
-          multiplayerStore.setCurrentPlayerId(hostPlayerId)
-        }
+
+        // Use the hostId from the backend as our currentPlayerId
+        const hostPlayerId = roomData.hostId
+        playerStore.setCurrentPlayerId(hostPlayerId)
+        multiplayerStore.setCurrentPlayerId(hostPlayerId)
 
         roomSetupStore.handleRoomCreated(roomCode, hostPlayerId)
         console.log('🎉 Room setup complete, code:', roomCode)
@@ -224,15 +226,21 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   }, [roomSetupStore, multiplayer])
 
   // Compute setupProgress using useMemo based on actual state dependencies
+  // Only depend on primitive values to avoid infinite loops
   const setupProgress = useMemo(() => {
-    return roomSetupStore.getRoomSetupProgress()
-  }, [roomSetupStore])
+    return useRoomSetupStore.getState().getRoomSetupProgress()
+  }, [playersCount, playersReadiness])
+
+  // Compute isHost directly using current values
+  const isHost = roomSetupStore.coPilotMode === 'solo'
+    ? true
+    : roomStore.hostPlayerId === playerStore.currentPlayerId
 
   return {
     // State
     coPilotMode: roomSetupStore.coPilotMode,
     roomCode: roomStore.currentRoomCode,
-    isHost: roomSetupStore.coPilotMode === 'solo' ? true : roomStore.hostPlayerId === playerStore.currentPlayerId,
+    isHost,
     isCreatingRoom: roomSetupStore.roomCreationStatus === 'creating',
     isJoiningRoom: roomSetupStore.joinRoomStatus === 'joining',
     error: roomSetupStore.error,
