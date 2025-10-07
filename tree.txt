@@ -18,7 +18,7 @@ american-mahjong-assistant/
 │   │   │   │   │   ├── player-coordination-manager.ts (265 lines)
 │   │   │   │   │   └── room-lifecycle-manager.ts (310 lines)
 │   │   │   │   ├── socket-communication/
-│   │   │   │   │   └── socket-handlers.ts (1489 lines)
+│   │   │   │   │   └── socket-handlers.ts (1524 lines)
 │   │   │   │   └── state-sync/
 │   │   │   │       └── state-sync-manager.ts (282 lines)
 │   │   │   ├── services/
@@ -58,6 +58,8 @@ american-mahjong-assistant/
 │   │   │   ├── assets/
 │   │   │   │   ├── react.svg
 │   │   │   │   └── tiles.json (912 lines)
+│   │   │   ├── contexts/
+│   │   │   │   └── SocketContext.tsx (14 lines)
 │   │   │   ├── features/
 │   │   │   │   ├── charleston/
 │   │   │   │   │   ├── __tests__/
@@ -153,7 +155,7 @@ american-mahjong-assistant/
 │   │   │   │   │   ├── RoomCreation.tsx (212 lines)
 │   │   │   │   │   ├── RoomJoining.tsx (204 lines)
 │   │   │   │   │   ├── RoomLobbyView.tsx (310 lines)
-│   │   │   │   │   └── RoomSetupView.tsx (429 lines)
+│   │   │   │   │   └── RoomSetupView.tsx (525 lines)
 │   │   │   │   ├── shared/
 │   │   │   │   │   └── TileInputModal.tsx (291 lines)
 │   │   │   │   ├── strategy-advisor/
@@ -213,10 +215,10 @@ american-mahjong-assistant/
 │   │   │   │   │       ├── skeleton-utils.ts (80 lines)
 │   │   │   │   │       └── urgency-themes.ts (385 lines)
 │   │   │   │   ├── tile-input/
-│   │   │   │   │   ├── HandDisplay.tsx (242 lines)
+│   │   │   │   │   ├── HandDisplay.tsx (253 lines)
 │   │   │   │   │   ├── HandValidation.tsx (208 lines)
 │   │   │   │   │   ├── index.ts (5 lines)
-│   │   │   │   │   ├── TileInputPage.tsx (270 lines)
+│   │   │   │   │   ├── TileInputPage.tsx (288 lines)
 │   │   │   │   │   └── TileSelector.tsx (179 lines)
 │   │   │   │   ├── tutorial/
 │   │   │   │   │   ├── CoPilotDemo.tsx (275 lines)
@@ -239,7 +241,7 @@ american-mahjong-assistant/
 │   │   │   │   │   └── useSocket.test.ts (234 lines)
 │   │   │   │   ├── useAccessibility.ts (252 lines)
 │   │   │   │   ├── useAnimations.ts (265 lines)
-│   │   │   │   ├── useConnectionResilience.ts (289 lines)
+│   │   │   │   ├── useConnectionResilience.ts (283 lines)
 │   │   │   │   ├── useConnectionResilienceTest.ts (200 lines)
 │   │   │   │   ├── useConnectionStatus.ts (19 lines)
 │   │   │   │   ├── useCoPilotMode.ts (68 lines)
@@ -250,9 +252,10 @@ american-mahjong-assistant/
 │   │   │   │   ├── useMultiplayer.ts (343 lines)
 │   │   │   │   ├── usePerformance.ts (306 lines)
 │   │   │   │   ├── usePerformanceMonitor.ts (266 lines)
-│   │   │   │   ├── useRoomSetup.ts (211 lines)
+│   │   │   │   ├── useRoomSetup.ts (214 lines)
 │   │   │   │   ├── useShare.ts (84 lines)
-│   │   │   │   ├── useSocket.ts (188 lines)
+│   │   │   │   ├── useSocket.ts (216 lines)
+│   │   │   │   ├── useSocketContext.ts (10 lines)
 │   │   │   │   ├── useTileEffects.ts (42 lines)
 │   │   │   │   ├── useTileInteraction.ts (35 lines)
 │   │   │   │   ├── useTileSprites.ts (183 lines)
@@ -299,14 +302,14 @@ american-mahjong-assistant/
 │   │   │   │   ├── dev-perspective.store.ts (86 lines)
 │   │   │   │   ├── game-store.ts (304 lines)
 │   │   │   │   ├── history-store.ts (486 lines)
-│   │   │   │   ├── index.ts (39 lines)
+│   │   │   │   ├── index.ts (40 lines)
 │   │   │   │   ├── intelligence-store.ts (429 lines)
 │   │   │   │   ├── multiplayer-store.ts (264 lines)
 │   │   │   │   ├── pattern-store.ts (226 lines)
 │   │   │   │   ├── player.store.ts (102 lines)
 │   │   │   │   ├── room-setup.store.ts (200 lines)
 │   │   │   │   ├── room.store.ts (204 lines)
-│   │   │   │   ├── tile-store.ts (826 lines)
+│   │   │   │   ├── tile-store.ts (836 lines)
 │   │   │   │   ├── turn-store.ts (532 lines)
 │   │   │   │   ├── tutorial-store.ts (260 lines)
 │   │   │   │   └── ui-store.ts (78 lines)
@@ -400,7 +403,7 @@ american-mahjong-assistant/
 │   │   │   │   └── tile-display-utils.ts (299 lines)
 │   │   │   ├── App.tsx (6 lines)
 │   │   │   ├── index.css (190 lines)
-│   │   │   ├── main.tsx (47 lines)
+│   │   │   ├── main.tsx (52 lines)
 │   │   │   └── vite-env.d.ts (1 lines)
 │   │   ├── .env.development
 │   │   ├── .env.development.example
@@ -454,7 +457,7 @@ american-mahjong-assistant/
 │   │   │   ├── socket-event-types.d.ts.map
 │   │   │   ├── socket-event-types.js (17 lines)
 │   │   │   ├── socket-event-types.js.map
-│   │   │   ├── socket-event-types.ts (223 lines)
+│   │   │   ├── socket-event-types.ts (226 lines)
 │   │   │   ├── socket-events.d.ts (290 lines)
 │   │   │   ├── socket-events.d.ts.map
 │   │   │   ├── socket-events.js (41 lines)
@@ -502,10 +505,10 @@ american-mahjong-assistant/
 ==================================================
 DIRECTORY TREE STATISTICS
 ==================================================
-Total directories: 80
-Total files: 419
-Files with line counts: 374
-Total lines of code: 103,000
+Total directories: 81
+Total files: 421
+Files with line counts: 376
+Total lines of code: 103,228
 
 Configuration:
   Excluded directories: .claude, .git, .github, .idea, .pytest_cache, .ruff_cache, .vite, .vscode, __pycache__, build, coverage, dist, docs, legacy, logs, node_modules, public, venv
