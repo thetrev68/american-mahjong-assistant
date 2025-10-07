@@ -1,7 +1,7 @@
 // Tile Input Page
 // Complete interface for inputting and managing player tiles
 
-import { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { shallow } from 'zustand/shallow'
 import { Container } from '../../ui-components/layout/Container'
@@ -12,9 +12,10 @@ import { HandDisplay } from './HandDisplay'
 import { SelectionArea } from '../gameplay/SelectionArea'
 import { useTileStore, useGameStore, useMultiplayerStore } from '../../stores'
 import DevShortcuts from '../../ui-components/DevShortcuts'
+import { PlayerTile } from '../../../../shared-types/src/tile-types'
 
 // Stable empty array to avoid infinite loops from new array references
-const EMPTY_HAND: any[] = []
+const EMPTY_HAND: PlayerTile[] = []
 
 export const TileInputPage = () => {
   const location = useLocation()

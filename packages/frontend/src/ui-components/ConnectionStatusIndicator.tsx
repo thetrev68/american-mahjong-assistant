@@ -2,7 +2,7 @@
 // Visual feedback for connection health, reconnection attempts, and network status
 
 import { useState, useEffect } from 'react'
-import { useSocketContext } from '../contexts/SocketContext'
+import { useSocketContext } from '../hooks/useSocketContext'
 import { useRoomSetupStore } from '../stores/room-setup.store'
 import { useRoomStore } from '../stores/room.store'
 import { useConnectionStore } from '../stores/connection.store'

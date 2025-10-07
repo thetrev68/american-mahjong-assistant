@@ -19,7 +19,7 @@ interface HandDisplayProps {
 }
 
 // Stable empty array to avoid infinite loops
-const EMPTY_HAND: any[] = []
+const EMPTY_HAND: PlayerTile[] = []
 
 export const HandDisplay = ({
   showRecommendations = true,

@@ -35,11 +35,7 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   const multiplayerStore = useMultiplayerStore()
   const multiplayer = useMultiplayer()
 
-  // Subscribe to specific room store values to avoid infinite loops
-  const playersCount = useRoomStore((state) => state.players.length)
-  const playersReadiness = useRoomStore((state) =>
-    state.players.map(p => p.roomReadiness).join(',')
-  )
+
 
   const generateRoomCode = useCallback((): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
@@ -232,7 +228,7 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
   // Only depend on primitive values to avoid infinite loops
   const setupProgress = useMemo(() => {
     return useRoomSetupStore.getState().getRoomSetupProgress()
-  }, [playersCount, playersReadiness])
+  }, [])
 
   // Compute isHost directly using current values
   const isHost = roomSetupStore.coPilotMode === 'solo'

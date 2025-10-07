@@ -6,7 +6,7 @@ import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import { useGameStore } from '../../stores/game-store'
 import { usePlayerStore } from '../../stores/player.store'
 import { useRoomStore } from '../../stores/room.store'
-import { useSocketContext } from '../../contexts/SocketContext'
+import { useSocketContext } from '../../hooks/useSocketContext'
 import { CoPilotModeSelector } from './CoPilotModeSelector'
 import { RoomCreation } from './RoomCreation'
 import { RoomJoining } from './RoomJoining'
@@ -16,6 +16,8 @@ import { ShareButton } from '../../ui-components/ShareButton'
 import { Container } from '../../ui-components/layout/Container'
 import { Card } from '../../ui-components/Card'
 import DevShortcuts from '../../ui-components/DevShortcuts'
+import { SocketEventMap } from '../../../../shared-types/src/socket-event-types'
+import { Player } from '../../../../shared-types/src/room-types'
 
 type RoomMode = 'create' | 'join'
 
@@ -49,7 +51,7 @@ export const RoomSetupView: React.FC = () => {
 
   // Listen for backend test-pong to verify socket connection
   useEffect(() => {
-    const handleTestPong = (data: any) => {
+    const handleTestPong = (data: unknown) => {
       console.log('🏓 RECEIVED test-pong from backend:', data)
     }
 
@@ -203,7 +205,7 @@ export const RoomSetupView: React.FC = () => {
       console.log('🎲 Emitting populate-test-players via wrapper')
       socket.emit('populate-test-players', { roomId })
 
-      socket.on('dev:players-populated', (response: any) => {
+      socket.on('dev:players-populated', (response: SocketEventMap['dev:players-populated']) => {
         console.log('🎯 Received response:', response)
 
         if (response.success && response.room) {
@@ -213,13 +215,13 @@ export const RoomSetupView: React.FC = () => {
           multiplayerStore.setCurrentRoom(response.room)
 
           // Find the host player and update roomStore with hostPlayerId
-          const hostPlayer = response.room.players.find((p: any) => p.isHost)
+          const hostPlayer = response.room.players.find((p: Player) => p.isHost)
           if (hostPlayer) {
             useRoomStore.setState({ hostPlayerId: hostPlayer.id })
           }
 
           // Convert backend players to CrossPhasePlayerState format for roomStore
-          const crossPhasePlayerStates = response.room.players.map((player: any) => ({
+          const crossPhasePlayerStates = response.room.players.map((player: Player) => ({
             id: player.id,
             name: player.name,
             isHost: player.isHost,
@@ -236,7 +238,7 @@ export const RoomSetupView: React.FC = () => {
           useRoomStore.getState().updatePlayers(crossPhasePlayerStates)
 
           // Position all players in playerStore and mark them as ready
-          response.room.players.forEach((player: any) => {
+          response.room.players.forEach((player: Player) => {
             const position = player.name === 'Trevor' ? 'east' :
                             player.name === 'Kim' ? 'south' :
                             player.name === 'Jordan' ? 'west' :

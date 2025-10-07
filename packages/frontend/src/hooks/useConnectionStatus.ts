@@ -1,7 +1,7 @@
 // Connection Status Utilities
 // Separate file to avoid Fast Refresh issues
 
-import { useSocketContext } from '../contexts/SocketContext'
+import { useSocketContext } from './useSocketContext'
 import { useConnectionStore } from '../stores/connection.store'
 
 // Hook for connection status data

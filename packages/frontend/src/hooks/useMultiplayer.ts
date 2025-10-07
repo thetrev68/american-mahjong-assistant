@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useSocketContext } from '../contexts/SocketContext'
+import { useSocketContext } from './useSocketContext'
 import { useConnectionResilience } from './useConnectionResilience'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
 import { getNetworkErrorHandler } from '../lib/services/network-error-handler'

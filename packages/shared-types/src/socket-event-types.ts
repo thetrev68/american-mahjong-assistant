@@ -151,6 +151,9 @@ export interface SocketEventMap {
   'provide-patterns-response': { patterns: NMJL2025Pattern[]; responseId: string };
   'selected-patterns-provided': { playerId: string; patterns: NMJL2025Pattern[]; responseId: string };
   
+  // Dev & Testing Events
+  'dev:players-populated': { success: boolean; room: Room };
+
   // Error & Validation Events
   'invalid-action': { playerId?: string; attemptedAction?: PlayerAction; reason: string; action?: PlayerAction; validActions?: ActionType[] };
   'error': { type?: 'connection' | 'validation' | 'game' | 'server'; message: string; code?: string; details?: unknown; recoverable?: boolean };
@@ -162,6 +165,7 @@ export interface SocketEventMap {
   'heartbeat': { timestamp: number; playerId?: string; roomId?: string };
   'connection-quality': { playerId: string; latency: number; quality: 'excellent' | 'good' | 'poor' | 'disconnected'; packetsLost: number };
   'disconnect': (reason: string) => void;
+  'test-pong': unknown;
 }
 
 // Event handling patterns

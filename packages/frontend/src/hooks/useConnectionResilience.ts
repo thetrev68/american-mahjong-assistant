@@ -2,7 +2,7 @@
 // Centralized hook that coordinates all connection resilience services
 
 import { useEffect, useCallback, useState, useMemo } from 'react'
-import { useSocketContext } from '../contexts/SocketContext'
+import { useSocketContext } from './useSocketContext'
 import { 
   getConnectionResilienceService,
   destroyConnectionResilience 
@@ -52,17 +52,13 @@ const DEFAULT_CONFIG: ConnectionResilienceConfig = {
 }
 
 export function useConnectionResilience(config: ConnectionResilienceConfig = {}) {
-  const roomStore = useRoomStore()
+
   const roomSetupStore = useRoomSetupStore()
   const connectionStore = useConnectionStore()
   const gameStore = useGameStore()
   const finalConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config])
   
-  // Only auto-connect if we're in multiplayer context (not solo mode)
-  const shouldAutoConnect = Boolean(
-    (roomStore.room?.id || roomStore.hostPlayerId) && 
-    roomSetupStore.coPilotMode !== 'solo'
-  )
+
   const socket = useSocketContext()
   
   const [resilienceState, setResilienceState] = useState<ConnectionResilienceState>({
