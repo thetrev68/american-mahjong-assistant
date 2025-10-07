@@ -1,9 +1,9 @@
 // Tutorial Management Hook
 // High-level tutorial logic, step management, and navigation
 
-import { useCallback, useMemo, useEffect, useState } from 'react'
-import { useTutorialStore } from '../stores/tutorial-store'
-import type { TutorialStep, TutorialSection, SkillLevel } from '../features/tutorial/types'
+import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useUIStore } from '../stores';
+import type { TutorialStep, TutorialSection, SkillLevel } from '../features/tutorial/types';
 
 // Tutorial step definitions
 const tutorialSteps: TutorialStep[] = [
@@ -159,50 +159,33 @@ const tutorialSteps: TutorialStep[] = [
     nextButtonText: 'Start Playing',
     timeEstimate: 1,
   },
-]
+];
 
 export function useTutorial() {
-  const {
-    progress,
-    isActive,
-    canProceed,
-    canGoBack,
-    error,
-    startTutorial,
-    nextStep: storeNextStep,
-    previousStep: storePreviousStep,
-    goToStep,
-    goToSection,
-    completeTutorial,
-    skipTutorial,
-    completeStep,
-    updateProgress,
-    setSkillLevel,
-    setError,
-  } = useTutorialStore()
+  const tutorialState = useUIStore((s) => s.tutorial);
+  const tutorialActions = useUIStore((s) => s.actions.tutorial);
 
-  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Get current step from step definitions
   const currentStep = useMemo(() => {
-    return tutorialSteps.find(step => step.id === progress.currentStepId) || tutorialSteps[0]
-  }, [progress.currentStepId])
+    return tutorialSteps.find(step => step.id === tutorialState.progress.currentStepId) || tutorialSteps[0];
+  }, [tutorialState.progress.currentStepId]);
 
   // Get steps for current section
   const currentSectionSteps = useMemo(() => {
-    return tutorialSteps.filter(step => step.section === progress.currentSection)
-  }, [progress.currentSection])
+    return tutorialSteps.filter(step => step.section === tutorialState.progress.currentSection);
+  }, [tutorialState.progress.currentSection]);
 
   // Calculate progress metrics
   const progressMetrics = useMemo(() => {
-    // Filter steps by skill level first
     const relevantSteps = tutorialSteps.filter(step => 
-      !step.showForSkillLevels || step.showForSkillLevels.includes(progress.skillLevel)
-    )
+      !step.showForSkillLevels || step.showForSkillLevels.includes(tutorialState.progress.skillLevel)
+    );
     
-    const totalSteps = relevantSteps.length
-    const completedCount = progress.completedSteps.length
-    const currentIndex = relevantSteps.findIndex(step => step.id === progress.currentStepId)
+    const totalSteps = relevantSteps.length;
+    const completedCount = tutorialState.progress.completedSteps.length;
+    const currentIndex = relevantSteps.findIndex(step => step.id === tutorialState.progress.currentStepId);
     
     return {
       totalSteps,
@@ -212,236 +195,214 @@ export function useTutorial() {
       estimatedTimeRemaining: relevantSteps
         .slice(Math.max(0, currentIndex + 1))
         .reduce((total, step) => total + (step.timeEstimate || 0), 0),
-    }
-  }, [progress.completedSteps, progress.currentStepId, progress.skillLevel])
+    };
+  }, [tutorialState.progress.completedSteps, tutorialState.progress.currentStepId, tutorialState.progress.skillLevel]);
 
   // Navigation helpers
   const canNavigateNext = useMemo(() => {
-    if (!currentStep) return false
+    if (!currentStep) return false;
     
     // Check validation requirements
     if (currentStep.validationRequired) {
-      // Step-specific validation logic
       switch (currentStep.id) {
         case 'pattern-selection':
-          // Check if user has progressed beyond pattern selection
-          return progress.completedSteps.includes('pattern-selection') || progress.currentStepId !== 'pattern-selection'
+          return tutorialState.progress.completedSteps.includes('pattern-selection') || tutorialState.progress.currentStepId !== 'pattern-selection';
         case 'tile-input':
-          // Check if tile input step is completed
-          return progress.completedSteps.includes('tile-input')
+          return tutorialState.progress.completedSteps.includes('tile-input');
         case 'charleston-demo':
-          // Check if charleston demo step is completed
-          return progress.completedSteps.includes('charleston-demo')
+          return tutorialState.progress.completedSteps.includes('charleston-demo');
         case 'skill-assessment':
-          // Check if skill assessment is completed
-          return progress.assessmentCompleted
+          return tutorialState.progress.assessmentCompleted;
         default:
-          // For other steps, check if they are in completed steps or if we've moved past them
-          return progress.completedSteps.includes(currentStep.id) || progress.currentStepId !== currentStep.id
+          return tutorialState.progress.completedSteps.includes(currentStep.id) || tutorialState.progress.currentStepId !== currentStep.id;
       }
     }
 
-    // Check step dependencies
     if (currentStep.requiresPrevious) {
       return currentStep.requiresPrevious.every(stepId => 
-        progress.completedSteps.includes(stepId)
-      )
+        tutorialState.progress.completedSteps.includes(stepId)
+      );
     }
 
-    return canProceed
+    return tutorialState.canProceed;
   }, [
     currentStep, 
-    progress.completedSteps, 
-    progress.currentStepId,
-    progress.assessmentCompleted,
-    canProceed
-  ])
+    tutorialState.progress.completedSteps, 
+    tutorialState.progress.currentStepId,
+    tutorialState.progress.assessmentCompleted,
+    tutorialState.canProceed
+  ]);
 
   const canNavigateBack = useMemo(() => {
-    if (!currentStep) return false
-    return currentStep.canGoBack !== false && canGoBack
-  }, [currentStep, canGoBack])
+    if (!currentStep) return false;
+    return currentStep.canGoBack !== false && tutorialState.canGoBack;
+  }, [currentStep, tutorialState.canGoBack]);
 
   // Navigation actions with transitions
   const nextStep = useCallback(async () => {
-    if (!canNavigateNext || isTransitioning) return
+    if (!canNavigateNext || isTransitioning) return;
 
-    setIsTransitioning(true)
+    setIsTransitioning(true);
     try {
-      // Mark current step as completed
       if (currentStep) {
-        completeStep(currentStep.id)
+        tutorialActions.completeStep(currentStep.id);
       }
 
-      // Find next step
-      const currentIndex = tutorialSteps.findIndex(step => step.id === progress.currentStepId)
-      const nextStepIndex = currentIndex + 1
+      const currentIndex = tutorialSteps.findIndex(step => step.id === tutorialState.progress.currentStepId);
+      const nextStepIndex = currentIndex + 1;
 
       if (nextStepIndex < tutorialSteps.length) {
-        const nextStep = tutorialSteps[nextStepIndex]
-        goToStep(nextStep.id)
+        const nextStep = tutorialSteps[nextStepIndex];
+        tutorialActions.goToStep(nextStep.id);
         
-        // Update section if changed
-        if (nextStep.section !== progress.currentSection) {
-          goToSection(nextStep.section)
+        if (nextStep.section !== tutorialState.progress.currentSection) {
+          tutorialActions.goToSection(nextStep.section);
         }
       } else {
-        // Tutorial completed
-        completeTutorial()
+        tutorialActions.completeTutorial();
       }
 
-      storeNextStep()
+      tutorialActions.nextStep();
     } catch (error) {
-      console.error('Error navigating to next step:', error)
-      setError('Failed to navigate to next step')
+      console.error('Error navigating to next step:', error);
+      tutorialActions.setError('Failed to navigate to next step');
     } finally {
-      setIsTransitioning(false)
+      setIsTransitioning(false);
     }
-  }, [canNavigateNext, isTransitioning, currentStep, completeStep, progress.currentStepId, progress.currentSection, goToStep, goToSection, completeTutorial, storeNextStep, setError])
+  }, [canNavigateNext, isTransitioning, currentStep, tutorialActions, tutorialState.progress.currentStepId, tutorialState.progress.currentSection]);
 
   const previousStep = useCallback(async () => {
-    if (!canNavigateBack || isTransitioning) return
+    if (!canNavigateBack || isTransitioning) return;
 
-    setIsTransitioning(true)
+    setIsTransitioning(true);
     try {
-      // Find previous step
-      const currentIndex = tutorialSteps.findIndex(step => step.id === progress.currentStepId)
-      const prevStepIndex = currentIndex - 1
+      const currentIndex = tutorialSteps.findIndex(step => step.id === tutorialState.progress.currentStepId);
+      const prevStepIndex = currentIndex - 1;
 
       if (prevStepIndex >= 0) {
-        const prevStep = tutorialSteps[prevStepIndex]
-        goToStep(prevStep.id)
+        const prevStep = tutorialSteps[prevStepIndex];
+        tutorialActions.goToStep(prevStep.id);
         
-        // Update section if changed
-        if (prevStep.section !== progress.currentSection) {
-          goToSection(prevStep.section)
+        if (prevStep.section !== tutorialState.progress.currentSection) {
+          tutorialActions.goToSection(prevStep.section);
         }
       }
 
-      storePreviousStep()
+      tutorialActions.previousStep();
     } catch (error) {
-      console.error('Error navigating to previous step:', error)
-      setError('Failed to navigate to previous step')
+      console.error('Error navigating to previous step:', error);
+      tutorialActions.setError('Failed to navigate to previous step');
     } finally {
-      setIsTransitioning(false)
+      setIsTransitioning(false);
     }
-  }, [canNavigateBack, isTransitioning, progress.currentStepId, progress.currentSection, goToStep, goToSection, storePreviousStep, setError])
+  }, [canNavigateBack, isTransitioning, tutorialState.progress.currentStepId, tutorialState.progress.currentSection, tutorialActions]);
 
   // Jump to section
   const jumpToSection = useCallback((section: TutorialSection) => {
-    const sectionFirstStep = tutorialSteps.find(step => step.section === section)
+    const sectionFirstStep = tutorialSteps.find(step => step.section === section);
     if (sectionFirstStep) {
-      goToSection(section)
-      goToStep(sectionFirstStep.id)
+      tutorialActions.goToSection(section);
+      tutorialActions.goToStep(sectionFirstStep.id);
     }
-  }, [goToSection, goToStep])
+  }, [tutorialActions.goToSection, tutorialActions.goToStep]);
 
   // Skill level assessment
   const assessSkillLevel = useCallback((answers: Record<string, unknown>) => {
-    let score = 0
+    let score = 0;
     
-    // Experience-based scoring
     if (answers.experienceYears && typeof answers.experienceYears === 'number') {
-      if (answers.experienceYears >= 10) score += 3
-      else if (answers.experienceYears >= 5) score += 2
-      else if (answers.experienceYears >= 2) score += 1
+      if (answers.experienceYears >= 10) score += 3;
+      else if (answers.experienceYears >= 5) score += 2;
+      else if (answers.experienceYears >= 2) score += 1;
     }
     
-    // Game frequency scoring
     if (answers.gamesPerMonth && typeof answers.gamesPerMonth === 'number') {
-      if (answers.gamesPerMonth >= 12) score += 3 // Weekly+
-      else if (answers.gamesPerMonth >= 8) score += 2 // 2+ per week
-      else if (answers.gamesPerMonth >= 4) score += 1 // Weekly
+      if (answers.gamesPerMonth >= 12) score += 3;
+      else if (answers.gamesPerMonth >= 8) score += 2;
+      else if (answers.gamesPerMonth >= 4) score += 1;
     }
     
-    // Pattern knowledge scoring
     if (answers.patternsKnown && typeof answers.patternsKnown === 'number') {
-      if (answers.patternsKnown >= 50) score += 3 // Most patterns
-      else if (answers.patternsKnown >= 25) score += 2 // Many patterns
-      else if (answers.patternsKnown >= 10) score += 1 // Some patterns
+      if (answers.patternsKnown >= 50) score += 3;
+      else if (answers.patternsKnown >= 25) score += 2;
+      else if (answers.patternsKnown >= 10) score += 1;
     }
     
-    // Charleston confidence scoring
     if (answers.charlestonConfidence && typeof answers.charlestonConfidence === 'number') {
-      if (answers.charlestonConfidence >= 8) score += 2 // Very confident
-      else if (answers.charlestonConfidence >= 5) score += 1 // Somewhat confident
+      if (answers.charlestonConfidence >= 8) score += 2;
+      else if (answers.charlestonConfidence >= 5) score += 1;
     }
     
-    // Strategy understanding scoring
     if (answers.strategyUnderstanding && typeof answers.strategyUnderstanding === 'string') {
       switch (answers.strategyUnderstanding) {
         case 'advanced':
-          score += 3
-          break
+          score += 3;
+          break;
         case 'intermediate':
-          score += 2
-          break
+          score += 2;
+          break;
         case 'basic':
-          score += 1
-          break
+          score += 1;
+          break;
       }
     }
     
-    // Competitive experience scoring
     if (answers.competitiveExperience === true) {
-      score += 2
+      score += 2;
     } else if (answers.competitiveExperience === 'some') {
-      score += 1
+      score += 1;
     }
 
-    // Determine skill level based on weighted scoring
-    let skillLevel: SkillLevel = 'beginner'
-    if (score >= 12) skillLevel = 'expert' // 12+ out of 16 possible points
-    else if (score >= 6) skillLevel = 'intermediate' // 6-11 points
-    // 0-5 points = beginner
+    let skillLevel: SkillLevel = 'beginner';
+    if (score >= 12) skillLevel = 'expert';
+    else if (score >= 6) skillLevel = 'intermediate';
 
-    setSkillLevel(skillLevel)
+    tutorialActions.setSkillLevel(skillLevel);
     
-    // Mark assessment as completed
-    updateProgress({
+    tutorialActions.updateProgress({
       assessmentCompleted: true,
-      skillLevel
-    })
+      skillLevel,
+    });
     
-    return skillLevel
-  }, [setSkillLevel, updateProgress])
+    return skillLevel;
+  }, [tutorialActions.setSkillLevel, tutorialActions.updateProgress]);
 
   // Auto-save progress
   useEffect(() => {
-    if (isActive) {
+    if (tutorialState.isActive) {
       const interval = setInterval(() => {
-        updateProgress({
+        tutorialActions.updateProgress({
           lastActivity: new Date(),
-        })
-      }, 30000) // Save every 30 seconds
+        });
+      }, 30000);
 
-      return () => clearInterval(interval)
+      return () => clearInterval(interval);
     }
-  }, [isActive, updateProgress])
+  }, [tutorialState.isActive, tutorialActions.updateProgress]);
 
   return {
     // State
-    progress,
-    isActive,
+    progress: tutorialState.progress,
+    isActive: tutorialState.isActive,
     currentStep,
     currentSectionSteps,
     progressMetrics,
     isTransitioning,
-    error,
+    error: tutorialState.error,
 
     // Navigation state
     canNavigateNext,
     canNavigateBack,
 
     // Actions
-    startTutorial,
+    startTutorial: tutorialActions.startTutorial,
     nextStep,
     previousStep,
     jumpToSection,
-    goToStep,
-    goToSection,
-    completeTutorial,
-    skipTutorial,
+    goToStep: tutorialActions.goToStep,
+    goToSection: tutorialActions.goToSection,
+    completeTutorial: tutorialActions.completeTutorial,
+    skipTutorial: tutorialActions.skipTutorial,
 
     // Assessment
     assessSkillLevel,
@@ -451,5 +412,5 @@ export function useTutorial() {
     getStepById: (id: string) => tutorialSteps.find(step => step.id === id),
     getStepsBySection: (section: TutorialSection) => 
       tutorialSteps.filter(step => step.section === section),
-  }
+  };
 }

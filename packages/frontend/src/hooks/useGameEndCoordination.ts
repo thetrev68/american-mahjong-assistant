@@ -1,27 +1,24 @@
 // Game End Coordination Hook
 // Handles multiplayer game end synchronization and client-side coordination
 
-import { useEffect, useState } from 'react'
-import { useRoomSetupStore } from '../stores/room-setup.store'
-import { usePatternStore } from '../stores/pattern-store'
-import { useTileStore } from '../stores/tile-store'
-import { useGameStore } from '../stores/game-store'
-import { getUnifiedMultiplayerManager } from '../lib/services/unified-multiplayer-manager'
+import { useEffect, useState } from 'react';
+import { useRoomStore, useGameStore } from '../stores';
+import { getUnifiedMultiplayerManager } from '../lib/services/unified-multiplayer-manager';
 import type { PlayerTile } from 'shared-types';
 
 interface GameEndCoordinationState {
-  isCoordinatingGameEnd: boolean
-  gameEndData: Record<string, unknown> | null
-  allPlayerHands: Record<string, PlayerTile[]> | null
-  finalScores: Array<{ playerId: string; playerName: string; score: number; pattern?: string }> | null
-  shouldNavigateToPostGame: boolean
+  isCoordinatingGameEnd: boolean;
+  gameEndData: Record<string, unknown> | null;
+  allPlayerHands: Record<string, PlayerTile[]> | null;
+  finalScores: Array<{ playerId: string; playerName: string; score: number; pattern?: string }> | null;
+  shouldNavigateToPostGame: boolean;
 }
 
 interface GameEndRequest {
-  requestId: string
-  type: 'final-hand' | 'selected-patterns'
-  requestingPlayerId: string
-  gameId: string
+  requestId: string;
+  type: 'final-hand' | 'selected-patterns';
+  requestingPlayerId: string;
+  gameId: string;
 }
 
 export const useGameEndCoordination = () => {
@@ -30,111 +27,122 @@ export const useGameEndCoordination = () => {
     gameEndData: null,
     allPlayerHands: null,
     finalScores: null,
-    shouldNavigateToPostGame: false
-  })
+    shouldNavigateToPostGame: false,
+  });
 
-  const [pendingRequests, setPendingRequests] = useState<GameEndRequest[]>([])
-  
-  const roomSetupStore = useRoomSetupStore()
-  const patternStore = usePatternStore()
-  const tileStore = useTileStore()
-  const gameStore = useGameStore()
-  
-  const multiplayerManager = getUnifiedMultiplayerManager()
+  const [pendingRequests, setPendingRequests] = useState<GameEndRequest[]>([]);
+
+  const coPilotMode = useRoomStore((s) => s.setup.mode);
+  const gameActions = useGameStore((s) => s.actions);
+  const playerHand = useGameStore((s) => s.playerHand);
+  const targetPatterns = useGameStore((s) => s.targetPatterns);
+
+  const multiplayerManager = getUnifiedMultiplayerManager();
 
   useEffect(() => {
-    if (!multiplayerManager?.socket) return
+    if (!multiplayerManager?.socket) return;
 
-    const socket = multiplayerManager.socket
+    const socket = multiplayerManager.socket;
 
     // Listen for game end coordination
     const handleGameEndCoordinated = (data: Record<string, unknown>) => {
-      console.log('Game end coordinated:', data)
-      
-      setState(prev => ({
+      console.log('Game end coordinated:', data);
+
+      setState((prev) => ({
         ...prev,
         isCoordinatingGameEnd: true,
         gameEndData: data,
-        finalScores: Array.isArray(data.finalScores) ? data.finalScores as Array<{ playerId: string; playerName: string; score: number; pattern?: string }> : null,
-        shouldNavigateToPostGame: true
-      }))
-      
+        finalScores: Array.isArray(data.finalScores)
+          ? (data.finalScores as Array<{
+              playerId: string;
+              playerName: string;
+              score: number;
+              pattern?: string;
+            }>)
+          : null,
+        shouldNavigateToPostGame: true,
+      }));
+
       // Show game end notification
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: String(data.endType) === 'mahjong' ? 'success' : 'info',
         title: 'Game Complete',
         message: String(data.reason) || `Game ended: ${String(data.endType)}`,
-        duration: 5000
-      })
-    }
+        duration: 5000,
+      });
+    };
 
     // Listen for requests to provide final hand
     const handleProvideHandRequest = (data: Record<string, unknown>) => {
-      const { requestingPlayerId, gameId, responseId } = data
-      
+      const { requestingPlayerId, gameId, responseId } = data;
+
       // Add to pending requests
-      setPendingRequests(prev => [...prev, {
-        requestId: String(responseId),
-        type: 'final-hand',
-        requestingPlayerId: String(requestingPlayerId),
-        gameId: String(gameId)
-      }])
+      setPendingRequests((prev) => [
+        ...prev,
+        {
+          requestId: String(responseId),
+          type: 'final-hand',
+          requestingPlayerId: String(requestingPlayerId),
+          gameId: String(gameId),
+        },
+      ]);
 
       // Automatically provide our current hand
-      const currentHand = tileStore.playerHand
       socket.emit('provide-final-hand-response', {
-        hand: currentHand,
-        responseId
-      })
-    }
+        hand: playerHand,
+        responseId,
+      });
+    };
 
     // Listen for requests to provide selected patterns
     const handleProvidePatternRequest = (data: Record<string, unknown>) => {
-      const { requestingPlayerId, gameId, responseId } = data
-      
+      const { requestingPlayerId, gameId, responseId } = data;
+
       // Add to pending requests
-      setPendingRequests(prev => [...prev, {
-        requestId: String(responseId),
-        type: 'selected-patterns',
-        requestingPlayerId: String(requestingPlayerId),
-        gameId: String(gameId)
-      }])
+      setPendingRequests((prev) => [
+        ...prev,
+        {
+          requestId: String(responseId),
+          type: 'selected-patterns',
+          requestingPlayerId: String(requestingPlayerId),
+          gameId: String(gameId),
+        },
+      ]);
 
       // Automatically provide our selected patterns
-      const selectedPatterns = patternStore.getTargetPatterns()
       socket.emit('provide-patterns-response', {
-        patterns: selectedPatterns,
-        responseId
-      })
-    }
+        patterns: targetPatterns,
+        responseId,
+      });
+    };
 
     // Listen for final hand responses (for collecting all hands)
     const handleFinalHandProvided = (data: Record<string, unknown>) => {
-      const { playerId, hand } = data
-      
-      setState(prev => ({
+      const { playerId, hand } = data;
+
+      setState((prev) => ({
         ...prev,
         allPlayerHands: {
           ...prev.allPlayerHands,
-          [String(playerId)]: hand as PlayerTile[]
-        }
-      }))
-    }
+          [String(playerId)]: hand as PlayerTile[],
+        },
+      }));
+    };
 
     // Register event listeners
-    socket.on('game-end-coordinated', handleGameEndCoordinated)
-    socket.on('provide-final-hand', handleProvideHandRequest)
-    socket.on('provide-selected-patterns', handleProvidePatternRequest)
-    socket.on('final-hand-provided', handleFinalHandProvided)
+    socket.on('game-end-coordinated', handleGameEndCoordinated);
+    socket.on('provide-final-hand', handleProvideHandRequest);
+    socket.on('provide-selected-patterns', handleProvidePatternRequest);
+    socket.on('final-hand-provided', handleFinalHandProvided);
 
     // Cleanup on unmount
     return () => {
-      socket.off('game-end-coordinated', handleGameEndCoordinated)
-      socket.off('provide-final-hand', handleProvideHandRequest)
-      socket.off('provide-selected-patterns', handleProvidePatternRequest)
-      socket.off('final-hand-provided', handleFinalHandProvided)
-    }
-  }, [multiplayerManager, gameStore, tileStore, patternStore])
+      socket.off('game-end-coordinated', handleGameEndCoordinated);
+      socket.off('provide-final-hand', handleProvideHandRequest);
+      socket.off('provide-selected-patterns', handleProvidePatternRequest);
+      socket.off('final-hand-provided', handleFinalHandProvided);
+    };
+  }, [multiplayerManager, gameActions, playerHand, targetPatterns]);
 
   // Clear game end state
   const clearGameEndState = () => {
@@ -143,24 +151,24 @@ export const useGameEndCoordination = () => {
       gameEndData: null,
       allPlayerHands: null,
       finalScores: null,
-      shouldNavigateToPostGame: false
-    })
-    setPendingRequests([])
-  }
+      shouldNavigateToPostGame: false,
+    });
+    setPendingRequests([]);
+  };
 
   // Manually trigger post-game navigation
   const navigateToPostGame = () => {
-    setState(prev => ({
+    setState((prev) => ({
       ...prev,
-      shouldNavigateToPostGame: true
-    }))
-  }
+      shouldNavigateToPostGame: true,
+    }));
+  };
 
   return {
     ...state,
     pendingRequests,
     clearGameEndState,
     navigateToPostGame,
-    isMultiplayerSession: roomSetupStore.coPilotMode === 'everyone'
-  }
-}
+    isMultiplayerSession: coPilotMode === 'everyone',
+  };
+};

@@ -1,46 +1,40 @@
-// Connection Resilience Integration Hook
-// Centralized hook that coordinates all connection resilience services
-
-import { useEffect, useCallback, useState, useMemo } from 'react'
-import { useSocketContext } from './useSocketContext'
-import { 
+import { useEffect, useCallback, useState, useMemo } from 'react';
+import { useSocketContext } from './useSocketContext';
+import {
   getConnectionResilienceService,
-  destroyConnectionResilience 
-} from '../lib/services/connection-resilience'
-import { 
-  getNetworkErrorHandler, 
+  destroyConnectionResilience,
+} from '../lib/services/connection-resilience';
+import {
+  getNetworkErrorHandler,
   handleSocketError,
   onConnectionSuccess,
-  isNetworkHealthy 
-} from '../lib/services/network-error-handler'
-import { 
+  isNetworkHealthy,
+} from '../lib/services/network-error-handler';
+import {
   getDisconnectionManager,
   initiateLeaveRoom,
   handleNetworkError,
-  handleServerShutdown 
-} from '../lib/services/disconnection-manager'
-import { useRoomStore } from '../stores/room.store'
-import { useRoomSetupStore } from '../stores/room-setup.store'
-import { useConnectionStore } from '../stores/connection.store'
-import { useGameStore } from '../stores/game-store'
+  handleServerShutdown,
+} from '../lib/services/disconnection-manager';
+import { useRoomStore, useGameStore } from '../stores';
 
 export interface ConnectionResilienceConfig {
-  enableAutoReconnect?: boolean
-  enableStateRecovery?: boolean
-  maxReconnectAttempts?: number
-  heartbeatInterval?: number
-  showConnectionIndicator?: boolean
+  enableAutoReconnect?: boolean;
+  enableStateRecovery?: boolean;
+  maxReconnectAttempts?: number;
+  heartbeatInterval?: number;
+  showConnectionIndicator?: boolean;
 }
 
 interface ConnectionResilienceState {
-  isConnected: boolean
-  isReconnecting: boolean
-  connectionHealth: 'healthy' | 'degraded' | 'poor' | 'offline'
-  reconnectAttempts: number
-  maxAttempts: number
-  canRecover: boolean
-  hasQueuedEvents: boolean
-  lastError: string | null
+  isConnected: boolean;
+  isReconnecting: boolean;
+  connectionHealth: 'healthy' | 'degraded' | 'poor' | 'offline';
+  reconnectAttempts: number;
+  maxAttempts: number;
+  canRecover: boolean;
+  hasQueuedEvents: boolean;
+  lastError: string | null;
 }
 
 const DEFAULT_CONFIG: ConnectionResilienceConfig = {
@@ -48,19 +42,18 @@ const DEFAULT_CONFIG: ConnectionResilienceConfig = {
   enableStateRecovery: true,
   maxReconnectAttempts: 5,
   heartbeatInterval: 15000,
-  showConnectionIndicator: true
-}
+  showConnectionIndicator: true,
+};
 
 export function useConnectionResilience(config: ConnectionResilienceConfig = {}) {
+  const coPilotMode = useRoomStore((s) => s.setup.mode);
+  const connectionStatus = useRoomStore((s) => s.connectionStatus);
+  const gameActions = useGameStore((s) => s.actions);
 
-  const roomSetupStore = useRoomSetupStore()
-  const connectionStore = useConnectionStore()
-  const gameStore = useGameStore()
-  const finalConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config])
-  
+  const finalConfig = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
 
-  const socket = useSocketContext()
-  
+  const socket = useSocketContext();
+
   const [resilienceState, setResilienceState] = useState<ConnectionResilienceState>({
     isConnected: false,
     isReconnecting: false,
@@ -69,37 +62,37 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     maxAttempts: finalConfig.maxReconnectAttempts || 5,
     canRecover: false,
     hasQueuedEvents: false,
-    lastError: null
-  })
+    lastError: null,
+  });
 
   // Get existing service instance (do not initialize here to prevent multiple instances)
   useEffect(() => {
-    const resilienceService = getConnectionResilienceService()
+    const resilienceService = getConnectionResilienceService();
     if (!resilienceService) {
       // Silently skip - service will be initialized when room is created
-      return
+      return;
     }
 
     // Initialize with socket instance only once
     if (socket) {
-      resilienceService.initialize(socket)
+      resilienceService.initialize(socket);
     }
 
     // Unused variable fix
-    void resilienceService
+    void resilienceService;
 
     return () => {
-      destroyConnectionResilience()
-    }
-  }, [finalConfig, socket, roomSetupStore.coPilotMode]) // Include socket but prevent reinitializing with service singleton
+      destroyConnectionResilience();
+    };
+  }, [finalConfig, socket, coPilotMode]); // Include socket but prevent reinitializing with service singleton
 
   // Monitor connection state changes
   useEffect(() => {
     const updateResilienceState = () => {
-      const networkHandler = getNetworkErrorHandler()
-      const disconnectionManager = getDisconnectionManager()
-      const resilienceService = getConnectionResilienceService()
-      
+      const networkHandler = getNetworkErrorHandler();
+      const disconnectionManager = getDisconnectionManager();
+      const resilienceService = getConnectionResilienceService();
+
       // If no services are initialized, provide basic socket-only state
       if (!networkHandler || !disconnectionManager || !resilienceService) {
         setResilienceState({
@@ -110,14 +103,14 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
           maxAttempts: finalConfig.maxReconnectAttempts || 5,
           canRecover: false,
           hasQueuedEvents: socket.eventQueue.length > 0,
-          lastError: socket.lastError
-        })
-        return
+          lastError: socket.lastError,
+        });
+        return;
       }
-      
-      const networkHealth = networkHandler.getNetworkHealth()
-      const connectionHealth = resilienceService?.getConnectionHealth(socket)
-      
+
+      const networkHealth = networkHandler.getNetworkHealth();
+      const connectionHealth = resilienceService?.getConnectionHealth(socket);
+
       setResilienceState({
         isConnected: socket.isConnected,
         isReconnecting: connectionHealth?.status === 'reconnecting' || false,
@@ -126,213 +119,213 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
         maxAttempts: finalConfig.maxReconnectAttempts || 5,
         canRecover: disconnectionManager.canRecover(),
         hasQueuedEvents: socket.eventQueue.length > 0,
-        lastError: socket.lastError
-      })
-    }
+        lastError: socket.lastError,
+      });
+    };
 
     // Defer initial update to avoid React render cycle issues
-    setTimeout(updateResilienceState, 0)
-    
-    // Only run frequent updates if we're in multiplayer context
-    const roomStore = useRoomStore.getState()
-    const updateInterval = (roomStore.room?.id || roomStore.hostPlayerId) ? 2000 : 10000
-    const interval = setInterval(updateResilienceState, updateInterval)
+    setTimeout(updateResilienceState, 0);
 
-    return () => clearInterval(interval)
-  }, [socket, socket.isConnected, socket.eventQueue.length, socket.lastError, finalConfig.maxReconnectAttempts])
+    // Only run frequent updates if we're in multiplayer context
+    const { room } = useRoomStore.getState();
+    const updateInterval = room?.id || room?.hostId ? 2000 : 10000;
+    const interval = setInterval(updateResilienceState, updateInterval);
+
+    return () => clearInterval(interval);
+  }, [socket, socket.isConnected, socket.eventQueue.length, socket.lastError, finalConfig.maxReconnectAttempts]);
 
   // Handle socket connection events
   useEffect(() => {
     const handleConnect = () => {
-      console.log('Socket connected - triggering success handlers')
-      onConnectionSuccess()
-    }
+      console.log('Socket connected - triggering success handlers');
+      onConnectionSuccess();
+    };
 
     const handleDisconnect = (...args: unknown[]) => {
-      const reason = args[0] as string
-      console.log('Socket disconnected:', reason)
-      handleNetworkError(`Connection lost: ${reason}`)
-    }
+      const reason = args[0] as string;
+      console.log('Socket disconnected:', reason);
+      handleNetworkError(`Connection lost: ${reason}`);
+    };
 
     const handleConnectError = (...args: unknown[]) => {
-      const error = args[0] as Error
-      console.error('Socket connection error:', error)
-      handleSocketError(error, 'socket-connection')
-    }
+      const error = args[0] as Error;
+      console.error('Socket connection error:', error);
+      handleSocketError(error, 'socket-connection');
+    };
 
     // Set up socket event listeners
-    socket.on('connect', handleConnect)
-    socket.on('disconnect', handleDisconnect)
-    socket.on('connect_error', handleConnectError)
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+    socket.on('connect_error', handleConnectError);
 
     return () => {
-      socket.off('connect', handleConnect)
-      socket.off('disconnect', handleDisconnect)
-      socket.off('connect_error', handleConnectError)
-    }
-  }, [socket])
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+      socket.off('connect_error', handleConnectError);
+    };
+  }, [socket]);
 
   // Manual retry function
   const retryConnection = useCallback(() => {
-    console.log('Manual retry triggered')
-    const networkHandler = getNetworkErrorHandler()
-    networkHandler.manualRetry(socket)
-  }, [socket])
+    console.log('Manual retry triggered');
+    const networkHandler = getNetworkErrorHandler();
+    networkHandler.manualRetry(socket);
+  }, [socket]);
 
   // Graceful leave room
   const leaveRoom = useCallback(async () => {
-    console.log('Initiating graceful room leave')
-    await initiateLeaveRoom()
-  }, [])
+    console.log('Initiating graceful room leave');
+    await initiateLeaveRoom();
+  }, []);
 
   // Force disconnect (for testing or emergency)
   const forceDisconnect = useCallback(() => {
-    console.log('Force disconnect triggered')
-    socket.disconnect()
-  }, [socket])
+    console.log('Force disconnect triggered');
+    socket.disconnect();
+  }, [socket]);
 
   // Check if operation is safe (network is healthy)
   const isOperationSafe = useCallback(() => {
-    return isNetworkHealthy()
-  }, [])
+    return isNetworkHealthy();
+  }, []);
 
   // Get detailed connection info
   const getConnectionDetails = useCallback(() => {
-    const networkHandler = getNetworkErrorHandler()
-    const resilienceService = getConnectionResilienceService()
-    
+    const networkHandler = getNetworkErrorHandler();
+    const resilienceService = getConnectionResilienceService();
+
     return {
       socket: {
         id: socket.socketId,
         connected: socket.isConnected,
-        health: socket.connectionHealth
+        health: socket.connectionHealth,
       },
       network: networkHandler.getNetworkHealth(),
       resilience: resilienceService?.getConnectionHealth(),
-      room: connectionStore.connectionStatus
-    }
-  }, [socket.socketId, socket.isConnected, socket.connectionHealth, connectionStore.connectionStatus])
+      room: connectionStatus,
+    };
+  }, [socket.socketId, socket.isConnected, socket.connectionHealth, connectionStatus]);
 
   // Recovery functions
   const attemptRecovery = useCallback(async () => {
-    const disconnectionManager = getDisconnectionManager()
-    
+    const disconnectionManager = getDisconnectionManager();
+
     if (!disconnectionManager.canRecover()) {
-      throw new Error('No recovery data available')
+      throw new Error('No recovery data available');
     }
 
-    const recoveryData = disconnectionManager.getRecoveryData()
+    const recoveryData = disconnectionManager.getRecoveryData();
     if (!recoveryData || !recoveryData.roomId) {
-      throw new Error('Invalid recovery data')
+      throw new Error('Invalid recovery data');
     }
 
-    console.log('Attempting recovery with data:', recoveryData)
-    
+    console.log('Attempting recovery with data:', recoveryData);
+
     // Clear old recovery data
-    disconnectionManager.clearRecoveryData()
-    
+    disconnectionManager.clearRecoveryData();
+
     // Try to reconnect to the room
     // This would typically involve calling room service methods
-    gameStore.addAlert({
+    gameActions.addAlert({
       type: 'info',
       title: 'Recovering Session',
-      message: 'Attempting to restore your previous session...'
-    })
+      message: 'Attempting to restore your previous session...',
+    });
 
-    return recoveryData
-  }, [gameStore])
+    return recoveryData;
+  }, [gameActions]);
 
   const clearRecoveryData = useCallback(() => {
-    const disconnectionManager = getDisconnectionManager()
-    disconnectionManager.clearRecoveryData()
-  }, [])
+    const disconnectionManager = getDisconnectionManager();
+    disconnectionManager.clearRecoveryData();
+  }, []);
 
   // Server shutdown handler
   const handleServerMaintenance = useCallback(async () => {
-    console.log('Server maintenance detected')
-    await handleServerShutdown()
-  }, [])
+    console.log('Server maintenance detected');
+    await handleServerShutdown();
+  }, []);
 
   // Network quality assessment
   const getNetworkQuality = useCallback(() => {
-    const networkHandler = getNetworkErrorHandler()
-    const health = networkHandler.getNetworkHealth()
-    
-    let quality: 'excellent' | 'good' | 'fair' | 'poor' | 'offline'
-    
+    const networkHandler = getNetworkErrorHandler();
+    const health = networkHandler.getNetworkHealth();
+
+    let quality: 'excellent' | 'good' | 'fair' | 'poor' | 'offline';
+
     if (!socket.isConnected) {
-      quality = 'offline'
+      quality = 'offline';
     } else if (health.latency === null) {
-      quality = 'good' // Default when no latency data
+      quality = 'good'; // Default when no latency data
     } else if (health.latency < 50) {
-      quality = 'excellent'
+      quality = 'excellent';
     } else if (health.latency < 150) {
-      quality = 'good'
+      quality = 'good';
     } else if (health.latency < 300) {
-      quality = 'fair'
+      quality = 'fair';
     } else {
-      quality = 'poor'
+      quality = 'poor';
     }
-    
+
     return {
       quality,
       latency: health.latency,
       packetLoss: health.packetLoss,
-      stability: health.consecutiveFailures === 0 ? 'stable' : 'unstable'
-    }
-  }, [socket.isConnected])
+      stability: health.consecutiveFailures === 0 ? 'stable' : 'unstable',
+    };
+  }, [socket.isConnected]);
 
   return {
     // State
     ...resilienceState,
-    
+
     // Config
     config: finalConfig,
-    
+
     // Actions
     retryConnection,
     leaveRoom,
     forceDisconnect,
-    
+
     // Recovery
     attemptRecovery,
     clearRecoveryData,
-    
+
     // Utilities
     isOperationSafe,
     getConnectionDetails,
     getNetworkQuality,
-    
+
     // Event handlers (for components that need custom handling)
     handleServerMaintenance,
-    
+
     // Raw socket for advanced usage
-    socket
-  }
+    socket,
+  };
 }
 
 // Helper hook for simple connection monitoring
 export function useConnectionStatus() {
-  const { isConnected, connectionHealth, reconnectAttempts, hasQueuedEvents, lastError } = useConnectionResilience()
-  
+  const { isConnected, connectionHealth, reconnectAttempts, hasQueuedEvents, lastError } = useConnectionResilience();
+
   return {
     isConnected,
     status: connectionHealth,
     isReconnecting: reconnectAttempts > 0,
     queuedActions: hasQueuedEvents,
-    error: lastError
-  }
+    error: lastError,
+  };
 }
 
 // Helper hook for components that need to disable features during poor connections
 export function useNetworkAware() {
-  const { isConnected, connectionHealth, isOperationSafe } = useConnectionResilience()
-  
+  const { isConnected, connectionHealth, isOperationSafe } = useConnectionResilience();
+
   return {
     isOnline: isConnected,
     canPerformActions: isOperationSafe(),
     shouldShowOfflineMessage: !isConnected,
     shouldWarnAboutConnection: connectionHealth === 'poor' || connectionHealth === 'degraded',
-    connectionQuality: connectionHealth
-  }
+    connectionQuality: connectionHealth,
+  };
 }

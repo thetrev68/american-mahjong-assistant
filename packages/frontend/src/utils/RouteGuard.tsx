@@ -1,67 +1,41 @@
-import React from 'react'
-import { Navigate } from 'react-router-dom'
-import { useRoomSetupStore } from '../stores/room-setup.store'
-import { useRoomStore } from '../stores/room.store'
-import { usePlayerStore } from '../stores/player.store'
+import React from 'react';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useRoomStore } from '../stores';
 
 interface RouteGuardProps {
-  children: React.ReactNode
-  requiresRoomSetup?: boolean
-  requiresGameStart?: boolean
+  children?: React.ReactNode;
 }
 
-export const RouteGuard: React.FC<RouteGuardProps> = ({
-  children,
-  requiresRoomSetup = false,
-  requiresGameStart = false
-}) => {
-  const roomSetupStore = useRoomSetupStore()
-  const roomStore = useRoomStore()
-  const playerStore = usePlayerStore()
+const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
+  const location = useLocation();
+  const {
+    coPilotModeSelected,
+    roomCreationStatus,
+    joinRoomStatus,
+    roomCode,
+    room,
+    currentPlayerId,
+  } = useRoomStore((s) => ({
+    coPilotModeSelected: s.coPilotModeSelected,
+    roomCreationStatus: s.roomCreationStatus,
+    joinRoomStatus: s.joinRoomStatus,
+    roomCode: s.roomCode,
+    room: s.room,
+    currentPlayerId: s.currentPlayerId,
+  }));
 
-  console.log('🛡️ RouteGuard check:', { requiresRoomSetup, requiresGameStart })
+  const isRoomSetupComplete = coPilotModeSelected && (roomCreationStatus === 'success' || joinRoomStatus === 'success');
+  const hasRoomAndPlayer = roomCode && room && currentPlayerId;
 
-  // Check if room setup is required and completed
-  if (requiresRoomSetup) {
-    const progress = roomSetupStore.getRoomSetupProgress()
-    
-    // If room setup isn't complete, redirect to room setup
-    if (progress.currentStep !== 'ready') {
-      return <Navigate to="/room-setup" replace />
-    }
+  if (location.pathname === '/' || location.pathname === '/setup') {
+    return children || <Outlet />;
   }
 
-  // Check if game start is required
-  if (requiresGameStart) {
-    const progress = roomSetupStore.getRoomSetupProgress()
-    const isRoomReady = roomStore.isRoomReadyForGame()
-    
-    // Check if we have persisted player data (more resilient to refresh)
-    const hasPersistedPlayerData = playerStore.currentPlayerId && 
-      Object.keys(playerStore.playerPositions).length > 0
-    
-    // Check if co-pilot mode was selected (indicates completed setup)
-    const hasCompletedSetup = roomSetupStore.coPilotModeSelected
-    
-    // Allow staying on current screen if we have persisted data indicating setup was completed
-    const canStayOnCurrentScreen = hasCompletedSetup && hasPersistedPlayerData
-    
-    // If not ready for game AND we don't have indicators of completed setup, redirect to room setup
-    if ((progress.currentStep !== 'ready' || !isRoomReady) && !canStayOnCurrentScreen) {
-      console.warn('🛡️ RouteGuard: Game not ready, REDIRECTING to room setup', {
-        step: progress.currentStep,
-        roomReady: isRoomReady,
-        coPilotMode: roomSetupStore.coPilotMode,
-        hasPersistedPlayerData,
-        hasCompletedSetup
-      })
-      return <Navigate to="/room-setup" replace />
-    }
-
-    console.log('🛡️ RouteGuard: Game IS ready, allowing access')
+  if (!isRoomSetupComplete || !hasRoomAndPlayer) {
+    return <Navigate to="/setup" replace />;
   }
 
-  console.log('🛡️ RouteGuard: Rendering children', children)
-  console.log('🛡️ RouteGuard: Children type:', typeof children, children?.type?.name)
-  return <>{children}</>
-}
+  return children || <Outlet />;
+};
+
+export default RouteGuard;

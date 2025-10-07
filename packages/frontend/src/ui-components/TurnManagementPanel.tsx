@@ -1,18 +1,17 @@
 // Turn Management Panel Component
 // Real-time turn tracking and controls for 4-player American Mahjong
 
-import React from 'react'
-import { useTurnStore, useTurnSelectors, type TurnPlayer } from '../stores/turn-store'
-import { useGameStore } from '../stores/game-store'
-import { Button } from './Button'
-import { Card } from './Card'
+import React from 'react';
+import { useGameStore } from '../stores';
+import { Button } from './Button';
+import { Card } from './Card';
 
 interface TurnManagementPanelProps {
-  isMultiplayer: boolean
-  currentPlayerId?: string
-  onAdvanceTurn?: () => void
-  onStartGame?: () => void
-  showControls?: boolean
+  isMultiplayer: boolean;
+  currentPlayerId?: string;
+  onAdvanceTurn?: () => void;
+  onStartGame?: () => void;
+  showControls?: boolean;
 }
 
 const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
@@ -20,44 +19,62 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
   currentPlayerId,
   onAdvanceTurn,
   onStartGame,
-  showControls = true
+  showControls = true,
 }) => {
-  const turnSelectors = useTurnSelectors()
-  const { updateTurnDuration } = useTurnStore()
-  const { advanceGameTurn } = useGameStore()
+  const gameStore = useGameStore();
+  const gameActions = useGameStore((s) => s.actions);
 
-  // Update turn duration every second
+  const formatDuration = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${minutes}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Recreate selectors from old useTurnSelectors hook
+  const turnSelectors = {
+    isGameActive: gameStore.isGameActive,
+    currentPlayerName: gameStore.players.find((p) => p.id === gameStore.currentPlayerId)?.name || 'No player',
+    nextPlayerName: gameStore.players.find((p) => p.id === gameStore.turnOrder[(gameStore.turnOrder.indexOf(gameStore.currentPlayerId || '') + 1) % gameStore.turnOrder.length])?.name || 'No player',
+    turnNumber: gameStore.turnNumber,
+    roundNumber: gameStore.roundNumber,
+    currentWind: gameStore.currentWind,
+    turnDuration: gameStore.turnDuration,
+    canAdvanceTurn: gameStore.canAdvanceTurn,
+    playerCount: gameStore.players.length,
+    turnOrderDisplay: gameStore.players.map((player) => {
+      const isCurrent = player.id === gameStore.currentPlayerId;
+      const nextPlayer = gameStore.players.find((p) => p.id === gameStore.turnOrder[(gameStore.turnOrder.indexOf(gameStore.currentPlayerId || '') + 1) % gameStore.turnOrder.length]);
+      const isNext = player.id === nextPlayer?.id;
+      return { player, isCurrent, isNext };
+    }),
+    isMyTurn: (id: string) => gameStore.currentPlayerId === id,
+  };
+
   React.useEffect(() => {
     const interval = setInterval(() => {
-      updateTurnDuration()
-    }, 1000)
+      gameActions.updateTurnDuration();
+    }, 1000);
 
-    return () => clearInterval(interval)
-  }, [updateTurnDuration])
+    return () => clearInterval(interval);
+  }, [gameActions]);
 
   const handleAdvanceTurn = () => {
     if (isMultiplayer) {
-      advanceGameTurn() // Use game store integration
+      gameActions.advanceTurn();
     } else {
-      onAdvanceTurn?.() // Solo mode callback
+      onAdvanceTurn?.();
     }
-  }
+  };
 
-  const formatDuration = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${minutes}:${secs.toString().padStart(2, '0')}`
-  }
+  const getPlayerIndicator = (player: any, isCurrent: boolean, isNext: boolean) => {
+    let className = 'flex items-center justify-between p-3 rounded-lg border transition-all';
 
-  const getPlayerIndicator = (player: TurnPlayer, isCurrent: boolean, isNext: boolean) => {
-    let className = 'flex items-center justify-between p-3 rounded-lg border transition-all'
-    
     if (isCurrent) {
-      className += ' border-green-500 bg-green-50 shadow-md'
+      className += ' border-green-500 bg-green-50 shadow-md';
     } else if (isNext) {
-      className += ' border-yellow-500 bg-yellow-50'
+      className += ' border-yellow-500 bg-yellow-50';
     } else {
-      className += ' border-gray-200 bg-gray-50'
+      className += ' border-gray-200 bg-gray-50';
     }
 
     return (
@@ -85,15 +102,15 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
           )}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   if (!turnSelectors.isGameActive && !turnSelectors.playerCount) {
     return (
       <Card className="p-4">
         <p className="text-gray-500 text-center">Turn management not initialized</p>
       </Card>
-    )
+    );
   }
 
   return (
@@ -171,17 +188,17 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
               className="w-full"
               disabled={!turnSelectors.canAdvanceTurn || (currentPlayerId ? !turnSelectors.isMyTurn(currentPlayerId) : false)}
             >
-              {currentPlayerId && turnSelectors.isMyTurn(currentPlayerId) 
-                ? 'End My Turn' 
+              {currentPlayerId && turnSelectors.isMyTurn(currentPlayerId)
+                ? 'End My Turn'
                 : `Advance to ${turnSelectors.nextPlayerName}`
               }
             </Button>
           )}
-          
+
           {turnSelectors.isGameActive && (
             <div className="text-xs text-gray-500 text-center">
-              {currentPlayerId && !turnSelectors.isMyTurn(currentPlayerId) 
-                ? `Waiting for ${turnSelectors.currentPlayerName}` 
+              {currentPlayerId && !turnSelectors.isMyTurn(currentPlayerId)
+                ? `Waiting for ${turnSelectors.currentPlayerName}`
                 : 'Make your move then advance turn'
               }
             </div>
@@ -189,7 +206,7 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
         </div>
       )}
     </Card>
-  )
-}
+  );
+};
 
-export default TurnManagementPanel
+export default TurnManagementPanel;
