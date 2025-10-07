@@ -1,12 +1,12 @@
 // Connection Status Utilities
 // Separate file to avoid Fast Refresh issues
 
-import { useSocket } from './useSocket'
+import { useSocketContext } from '../contexts/SocketContext'
 import { useConnectionStore } from '../stores/connection.store'
 
 // Hook for connection status data
 export function useConnectionStatus() {
-  const socket = useSocket()
+  const socket = useSocketContext()
   const connectionStore = useConnectionStore()
   
   return {

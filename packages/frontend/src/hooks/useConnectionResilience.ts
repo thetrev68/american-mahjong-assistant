@@ -2,7 +2,7 @@
 // Centralized hook that coordinates all connection resilience services
 
 import { useEffect, useCallback, useState, useMemo } from 'react'
-import { useSocket } from './useSocket'
+import { useSocketContext } from '../contexts/SocketContext'
 import { 
   getConnectionResilienceService,
   destroyConnectionResilience 
@@ -63,7 +63,7 @@ export function useConnectionResilience(config: ConnectionResilienceConfig = {})
     (roomStore.room?.id || roomStore.hostPlayerId) && 
     roomSetupStore.coPilotMode !== 'solo'
   )
-  const socket = useSocket({ autoConnect: shouldAutoConnect })
+  const socket = useSocketContext()
   
   const [resilienceState, setResilienceState] = useState<ConnectionResilienceState>({
     isConnected: false,

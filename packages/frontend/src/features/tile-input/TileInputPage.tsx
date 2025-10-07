@@ -1,16 +1,20 @@
 // Tile Input Page
 // Complete interface for inputting and managing player tiles
 
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { shallow } from 'zustand/shallow'
 import { Container } from '../../ui-components/layout/Container'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { TileSelector } from './TileSelector'
 import { HandDisplay } from './HandDisplay'
 import { SelectionArea } from '../gameplay/SelectionArea'
-import { useTileStore, useGameStore } from '../../stores'
+import { useTileStore, useGameStore, useMultiplayerStore } from '../../stores'
 import DevShortcuts from '../../ui-components/DevShortcuts'
+
+// Stable empty array to avoid infinite loops from new array references
+const EMPTY_HAND: any[] = []
 
 export const TileInputPage = () => {
   const location = useLocation()
@@ -28,21 +32,39 @@ export const TileInputPage = () => {
   const [selectorMode] = useState<'full' | 'compact'>('full')
   const [showTileSelector, setShowTileSelector] = useState(false) // Start false for lazy loading
   const [isStartingGame, setIsStartingGame] = useState(false)
-  
-  const {
-    playerHand,
-    dealerHand,
-    clearHand,
-    setDealerHand,
-    validateHand,
-    importTilesFromString
-  } = useTileStore()
-  
+
+  // Get current player ID
+  const currentPlayerId = useMultiplayerStore((state) => state.currentPlayerId)
+
+  // Subscribe directly to the player's hand using their ID - this will update when tiles change
+  // Use stable EMPTY_HAND reference to prevent infinite loops
+  const playerHand = useTileStore((state) => {
+    const effectiveId = currentPlayerId || 'single-player'
+    console.log('🔍 TileInputPage selector - effectiveId:', effectiveId)
+    console.log('🔍 TileInputPage selector - playerHands keys:', Object.keys(state.playerHands))
+    console.log('🔍 TileInputPage selector - hand for this player:', state.playerHands[effectiveId])
+    return state.playerHands[effectiveId] || EMPTY_HAND
+  }, shallow)
+
+  const dealerHand = useTileStore((state) => {
+    const effectiveId = currentPlayerId || 'single-player'
+    return state.dealerHands[effectiveId] || false
+  })
+
+  const clearHand = useTileStore((state) => state.clearHand)
+  const setDealerHand = useTileStore((state) => state.setDealerHand)
+  const validateHand = useTileStore((state) => state.validateHand)
+  const importTilesFromString = useTileStore((state) => state.importTilesFromString)
+
   const { setGamePhase } = useGameStore()
-  
+
   // Calculate hand completion status
   const requiredTiles = dealerHand ? 14 : 13
   const currentTiles = playerHand.length
+
+  console.log('🔍 TileInputPage - currentPlayerId:', currentPlayerId)
+  console.log('🔍 TileInputPage - playerHand length:', playerHand.length)
+  console.log('🔍 TileInputPage - playerHand:', playerHand)
   const missingTiles = Math.max(0, requiredTiles - currentTiles)
   const isHandComplete = currentTiles >= requiredTiles
   

@@ -2,7 +2,7 @@
 // Visual feedback for connection health, reconnection attempts, and network status
 
 import { useState, useEffect } from 'react'
-import { useSocket } from '../hooks/useSocket'
+import { useSocketContext } from '../contexts/SocketContext'
 import { useRoomSetupStore } from '../stores/room-setup.store'
 import { useRoomStore } from '../stores/room.store'
 import { useConnectionStore } from '../stores/connection.store'
@@ -25,7 +25,7 @@ export function ConnectionStatusIndicator({
   const roomSetupStore = useRoomSetupStore()
   const roomStore = useRoomStore()
   const connectionStore = useConnectionStore()
-  const socket = useSocket()
+  const socket = useSocketContext()
   const [showTooltip, setShowTooltip] = useState(false)
   const [connectionHealth, setConnectionHealth] = useState<{
     isHealthy: boolean
@@ -297,7 +297,7 @@ export function ConnectionStatusIndicator({
 
 // Simplified status bar for minimal UI
 export function ConnectionStatusBar() {
-  const socket = useSocket()
+  const socket = useSocketContext()
   const connectionStore = useConnectionStore()
 
   if (socket.isConnected && socket.connectionHealth.isHealthy) {

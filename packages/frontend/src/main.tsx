@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.tsx'
+import { SocketProvider } from './contexts/SocketContext'
 import { nmjlService } from './lib/services/nmjl-service'
 import { PatternVariationLoader } from './features/intelligence-panel/services/pattern-variation-loader'
 
@@ -19,7 +20,11 @@ Promise.all([
   .then(() => {
     console.log('✅✅✅ All NMJL data preloaded successfully!')
     console.log('🚀 Mounting React app...')
-    createRoot(document.getElementById('root')!).render(<App />)
+    createRoot(document.getElementById('root')!).render(
+      <SocketProvider>
+        <App />
+      </SocketProvider>
+    )
   })
   .catch(err => {
     console.error('❌ Failed to preload NMJL data:', err)

@@ -6,7 +6,7 @@ import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import { useGameStore } from '../../stores/game-store'
 import { usePlayerStore } from '../../stores/player.store'
 import { useRoomStore } from '../../stores/room.store'
-import { useSocket } from '../../hooks/useSocket'
+import { useSocketContext } from '../../contexts/SocketContext'
 import { CoPilotModeSelector } from './CoPilotModeSelector'
 import { RoomCreation } from './RoomCreation'
 import { RoomJoining } from './RoomJoining'
@@ -38,7 +38,7 @@ export const RoomSetupView: React.FC = () => {
   const multiplayerStore = useMultiplayerStore()
   const gameStore = useGameStore()
   const playerStore = usePlayerStore()
-  const socket = useSocket()
+  const socket = useSocketContext()
 
   const [roomMode, setRoomMode] = useState<RoomMode>('create')
   const [hostName, setHostName] = useState('')
@@ -46,6 +46,19 @@ export const RoomSetupView: React.FC = () => {
   const [roomCodeInput, setRoomCodeInput] = useState('')
   const [forceStep, setForceStep] = useState<string | null>(null)
   const [isStartingGame, setIsStartingGame] = useState(false)
+
+  // Listen for backend test-pong to verify socket connection
+  useEffect(() => {
+    const handleTestPong = (data: any) => {
+      console.log('🏓 RECEIVED test-pong from backend:', data)
+    }
+
+    socket.on('test-pong', handleTestPong)
+
+    return () => {
+      socket.off('test-pong', handleTestPong)
+    }
+  }, [socket])
 
   // Check for URL parameters to auto-fill room code and switch to join mode
   useEffect(() => {
@@ -174,15 +187,23 @@ export const RoomSetupView: React.FC = () => {
     } else {
       // Multiplayer mode: Use backend to add Kim/Jordan/Emilie, then position everyone
       const roomId = multiplayerStore.currentRoom?.id
-      if (!roomId || !socket.rawSocket) {
-        console.error('❌ No room or socket available')
+      console.log('🔍 Current room from store:', multiplayerStore.currentRoom)
+      console.log('🔍 Room ID to populate:', roomId)
+
+      if (!roomId) {
+        console.error('❌ No room available')
         return
       }
 
       console.log('🎲 Populating players via backend')
-      socket.rawSocket.emit('dev:populate-players', { roomId })
+      console.log('🔌 Socket isConnected:', socket.isConnected)
+      console.log('🔌 Socket ID:', socket.socketId)
 
-      socket.rawSocket.once('dev:players-populated', (response: any) => {
+      // Use socket.emit() wrapper instead of rawSocket - it handles connection checking
+      console.log('🎲 Emitting populate-test-players via wrapper')
+      socket.emit('populate-test-players', { roomId })
+
+      socket.on('dev:players-populated', (response: any) => {
         console.log('🎯 Received response:', response)
 
         if (response.success && response.room) {

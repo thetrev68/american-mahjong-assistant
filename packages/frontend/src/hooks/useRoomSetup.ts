@@ -102,8 +102,8 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
         if (!hostPlayerId) {
           hostPlayerId = generatePlayerId()
           // Update the player store with the generated player ID
-          playerStore.setCurrentPlayerId(hostPlayerId)
-          multiplayerStore.setCurrentPlayerId(hostPlayerId)
+          usePlayerStore.getState().setCurrentPlayerId(hostPlayerId)
+          useMultiplayerStore.getState().setCurrentPlayerId(hostPlayerId)
         }
         
         // Create Player objects for all players in solo mode
@@ -183,8 +183,11 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
 
         // Use the hostId from the backend as our currentPlayerId
         const hostPlayerId = roomData.hostId
-        playerStore.setCurrentPlayerId(hostPlayerId)
-        multiplayerStore.setCurrentPlayerId(hostPlayerId)
+        usePlayerStore.getState().setCurrentPlayerId(hostPlayerId)
+        useMultiplayerStore.getState().setCurrentPlayerId(hostPlayerId)
+
+        // Update multiplayer store with the newly created room
+        useMultiplayerStore.getState().setCurrentRoom(roomData)
 
         roomSetupStore.handleRoomCreated(roomCode, hostPlayerId)
         console.log('🎉 Room setup complete, code:', roomCode)

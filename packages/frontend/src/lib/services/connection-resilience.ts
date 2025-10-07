@@ -1,7 +1,7 @@
 // Connection Resilience Service
 // Comprehensive reconnection handling, state recovery, and network error management
 
-import { useSocket } from '../../hooks/useSocket'
+import type { useSocket } from '../../hooks/useSocket'
 import { useRoomStore } from '../../stores/room.store'
 import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/game-store'

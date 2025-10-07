@@ -155,6 +155,7 @@ export const useTileStore = create<TileState>()(
         // Legacy computed properties (dynamically computed from effective player)
         get playerHand() {
           const playerId = getEffectivePlayerId()
+          console.log('🔧 Reading tiles for playerId:', playerId, 'Available:', Object.keys(get().playerHands))
           return get().playerHands[playerId] || []
         },
         get handSize() {
@@ -628,6 +629,7 @@ export const useTileStore = create<TileState>()(
         importTilesFromString: (tileString: string) => {
           const playerId = getEffectivePlayerId()
           console.log('🔧 importTilesFromString called with:', tileString)
+          console.log('🔧 Writing tiles for playerId:', playerId)
           const tileIds = tileString.trim().split(/\s+/)
           console.log('🔧 Parsed tile IDs:', tileIds)
 
@@ -683,8 +685,17 @@ export const useTileStore = create<TileState>()(
             }
 
             console.log('🔧 importTilesFromString: New hand size:', newState.handSizes[playerId])
+            console.log('🔧 importTilesFromString: playerHands keys:', Object.keys(newState.playerHands))
+            console.log('🔧 importTilesFromString: Actual hand for player:', newState.playerHands[playerId])
             return newState
           })
+
+          // Log the state after set completes
+          setTimeout(() => {
+            const state = get()
+            console.log('🔧 After importTilesFromString: playerHands keys:', Object.keys(state.playerHands))
+            console.log('🔧 After importTilesFromString: Actual hand:', state.playerHands[playerId])
+          }, 0)
         },
         
         exportTilesToString: () => {

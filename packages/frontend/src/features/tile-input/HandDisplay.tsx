@@ -1,12 +1,13 @@
 // Hand Display Component
 // Shows current tiles with management and animation features
 
+import { shallow } from 'zustand/shallow'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { AnimatedTile } from '../../ui-components/tiles/AnimatedTile'
 import { TilePlaceholder } from '../../ui-components/TilePlaceholder'
 import { TileLockBadge } from '../../ui-components/TileLockBadge'
-import { useTileStore, useIntelligenceStore } from '../../stores'
+import { useTileStore, useIntelligenceStore, useMultiplayerStore } from '../../stores'
 import { getTileStateClass } from '../gameplay/TileStates'
 import { useTileInteraction } from '../../hooks/useTileInteraction'
 import type { PlayerTile } from 'shared-types'
@@ -17,22 +18,35 @@ interface HandDisplayProps {
   compactMode?: boolean
 }
 
-export const HandDisplay = ({ 
-  showRecommendations = true, 
+// Stable empty array to avoid infinite loops
+const EMPTY_HAND: any[] = []
+
+export const HandDisplay = ({
+  showRecommendations = true,
   allowReordering = true,
-  compactMode = false 
+  compactMode = false
 }: HandDisplayProps) => {
-  const {
-    playerHand,
-    validation,
-    sortBy,
-    dealerHand,
-    setSortBy,
-    getTileGroups,
-    clearSelection,
-    selectedForAction,
-    tileStates
-  } = useTileStore()
+  // Get current player ID
+  const currentPlayerId = useMultiplayerStore((state) => state.currentPlayerId)
+
+  // Subscribe to player's hand using selector with shallow comparison
+  const playerHand = useTileStore((state) => {
+    const effectiveId = currentPlayerId || 'single-player'
+    return state.playerHands[effectiveId] || EMPTY_HAND
+  }, shallow)
+
+  // Get other tile store values
+  const validation = useTileStore((state) => state.validation)
+  const sortBy = useTileStore((state) => state.sortBy)
+  const dealerHand = useTileStore((state) => {
+    const effectiveId = currentPlayerId || 'single-player'
+    return state.dealerHands[effectiveId] || false
+  })
+  const selectedForAction = useTileStore((state) => state.selectedForAction)
+  const tileStates = useTileStore((state) => state.tileStates)
+  const setSortBy = useTileStore((state) => state.setSortBy)
+  const getTileGroups = useTileStore((state) => state.getTileGroups)
+  const clearSelection = useTileStore((state) => state.clearSelection)
   
   // Get AI recommendations for highlighting
   const { currentAnalysis } = useIntelligenceStore()

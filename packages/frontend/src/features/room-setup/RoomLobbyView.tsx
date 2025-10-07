@@ -6,7 +6,7 @@ import { useRoomStore } from '../../stores/room.store'
 import { usePlayerStore } from '../../stores/player.store'
 import { useDevPerspectiveStore } from '../../stores/dev-perspective.store'
 import { getRoomMultiplayerService } from '../../lib/services/room-multiplayer'
-import { useSocket } from '../../hooks/useSocket'
+import { useSocketContext } from '../../contexts/SocketContext'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import HostControls from '../../ui-components/HostControls'
@@ -24,7 +24,7 @@ const RoomLobbyView: React.FC<RoomLobbyViewProps> = ({
   const roomStore = useRoomStore()
   const playerStore = usePlayerStore()
   const devPerspective = useDevPerspectiveStore()
-  const socket = useSocket()
+  const socket = useSocketContext()
   const [copySuccess, setCopySuccess] = useState(false)
 
   // Copy room code to clipboard

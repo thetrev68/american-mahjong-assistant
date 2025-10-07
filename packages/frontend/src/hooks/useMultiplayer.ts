@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
-import { useSocket } from './useSocket'
+import { useSocketContext } from '../contexts/SocketContext'
 import { useConnectionResilience } from './useConnectionResilience'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
 import { getNetworkErrorHandler } from '../lib/services/network-error-handler'
@@ -21,7 +21,7 @@ interface PendingUpdate {
 }
 
 export function useMultiplayer() {
-  const socket = useSocket()
+  const socket = useSocketContext()
   const connectionResilience = useConnectionResilience()
   
   // Use proper Zustand selectors instead of the whole store

@@ -15,6 +15,9 @@ export interface ConnectionHealth {
   reconnectAttempts: number
 }
 
+// GLOBAL singleton socket - shared across ALL hook instances
+let globalSocketInstance: Socket | null = null
+
 export function useSocket(options: { autoConnect?: boolean } = {}) {
   const { autoConnect = true } = options
   const [isConnected, setIsConnected] = useState(false)
@@ -35,19 +38,26 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
 
   const connect = useCallback(() => {
     try {
-      if (socketRef.current?.connected) {
+      // If global socket exists, use it
+      if (globalSocketInstance) {
+        socketRef.current = globalSocketInstance
+        if (globalSocketInstance.connected) {
+          setIsConnected(true)
+          setSocketId(globalSocketInstance.id || null)
+        }
         return
       }
 
       const backendUrl = appConfig.backendUrl
-      
-      socketRef.current = io(backendUrl, {
+
+      globalSocketInstance = io(backendUrl, {
         autoConnect: true,
         timeout: 10000,
         retries: 3
       })
 
-      const socket = socketRef.current
+      socketRef.current = globalSocketInstance
+      const socket = globalSocketInstance
 
       socket.on('connect', () => {
         setIsConnected(true)
@@ -133,10 +143,13 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
     setEventQueue([])
   }, [])
 
-  const emit = useCallback((event: string, data?: unknown) => {
+  const emit = useCallback((event: string, data?: unknown, callback?: (...args: unknown[]) => void) => {
     try {
+      console.log('🔌 emit() called, event:', event, 'socketRef.current:', socketRef.current?.id, 'connected:', socketRef.current?.connected)
+
       if (!socketRef.current?.connected) {
         // Queue event if disconnected
+        console.log('🔌 Socket not connected, queuing event:', event)
         const queuedEvent: QueuedEvent = {
           event,
           data,
@@ -146,10 +159,27 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
         return
       }
 
-      socketRef.current.emit(event, data)
+      console.log('🔌 Emitting event:', event, 'with data:', data, 'callback:', !!callback)
+
+      try {
+        if (callback) {
+          console.log('🔌 About to call emit WITH callback')
+          socketRef.current.emit(event, data, callback)
+          console.log('🔌 ✅ emit WITH callback completed')
+        } else {
+          console.log('🔌 About to call emit WITHOUT callback, event:', event)
+          socketRef.current.emit(event, data)
+          console.log('🔌 ✅ emit WITHOUT callback completed for event:', event)
+        }
+      } catch (emitError) {
+        console.error('🔌 ❌ ERROR during emit():', emitError)
+        throw emitError
+      }
+
       setLastError(null)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+      console.error('🔌 emit() error:', errorMessage)
       setLastError(`Failed to emit event: ${errorMessage}`)
     }
   }, [])
@@ -190,16 +220,18 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
     }
   }, [isConnected])
 
-  // Auto-connect on mount - run only once, but respect autoConnect option
+  // Auto-connect on mount - run ONCE on mount only
   useEffect(() => {
     if (autoConnect) {
       connect()
     }
 
     return () => {
-      disconnect()
+      // Don't disconnect - keep socket alive across page navigation
+      // disconnect()
     }
-  }, [autoConnect, connect, disconnect])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return {
     isConnected,

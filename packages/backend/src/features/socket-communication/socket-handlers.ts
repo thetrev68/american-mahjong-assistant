@@ -1639,9 +1639,29 @@ export class SocketHandlers {
   // Dev-only handlers for multiplayer testing
   private registerDevHandlers(socket: Socket): void {
     console.log('🔧 Registering dev handlers for socket:', socket.id)
+    console.log('🔧 Socket listeners before registering:', socket.eventNames())
 
-    // Populate room with test players
-    socket.on('dev:populate-players', withSocketErrorHandling(socket, 'dev:players-populated', async (data) => {
+    // Catch-all handler to see ALL events
+    socket.onAny((eventName, ...args) => {
+      console.log(`🎯 CAUGHT EVENT on socket ${socket.id}:`, eventName, 'args:', args)
+    })
+
+    // IMMEDIATE TEST: Send a test event back to client to prove connection works
+    setTimeout(() => {
+      console.log('🧪 Sending test-pong from backend to socket:', socket.id)
+      socket.emit('test-pong', { socketId: socket.id, timestamp: Date.now() })
+    }, 1000)
+
+    // Test handler to verify events are received
+    socket.on('test-event', (data) => {
+      console.log('🧪 TEST EVENT RECEIVED:', data)
+      socket.emit('test-response', { received: true })
+    })
+    console.log('🔧 ✅ test-event handler attached')
+
+    // Populate room with test players - DIRECT handler for debugging
+    socket.on('populate-test-players', async (data) => {
+      console.log('🎲🎲🎲 populate-test-players HANDLER CALLED - raw data:', data)
       const { roomId } = data as { roomId: string }
       console.log('🎲 dev:populate-players called - roomId:', roomId, 'socket.id:', socket.id)
       console.log('📋 All rooms:', Array.from(this.roomManager.getAllRooms()).map(r => ({ id: r.id, players: r.players.map(p => p.id) })))
@@ -1709,7 +1729,9 @@ export class SocketHandlers {
       // Broadcast room-updated event with all players and positions
       this.io.to(roomId).emit('room-updated', { room })
       console.log('✅ Test players populated and room updated. Total players:', room.players.length)
-    }))
+    })
+    console.log('🔧 ✅ dev:populate-players handler attached')
+    console.log('🔧 Socket listeners after registering:', socket.eventNames())
 
     // Set specific player's hand for testing
     socket.on('dev:set-player-hand', withSocketErrorHandling(socket, 'dev:hand-set', async (data) => {

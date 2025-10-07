@@ -20,6 +20,7 @@ export { usePlayerStore } from './player.store'
 export { useConnectionStore } from './connection.store'
 export { useRoomSetupStore, type CoPilotMode, type RoomStatus } from './room-setup.store'
 export { useTurnStore, useTurnSelectors, type TurnPlayer } from './turn-store'
+export { useMultiplayerStore } from './multiplayer-store'
 
 // Dev-only stores
 export { useDevPerspectiveStore } from './dev-perspective.store'
