@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { Socket } from 'socket.io-client';
-import type { Room } from '@shared-types/room-types';
+import type { Room, Player, GameState, PlayerGameState, SharedState } from '@shared-types/room-types';
 import { useUIStore } from './useUIStore';
 
 export type CoPilotMode = 'solo' | 'everyone';
@@ -9,7 +9,59 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 're
 export type PlayerPosition = 'north' | 'east' | 'south' | 'west';
 export type RoomStatus = 'idle' | 'creating' | 'joining' | 'success' | 'error';
 
-// Combined state from all five stores
+interface RoomActions {
+  // From connection.store
+  setConnectionStatus: (status: ConnectionStatus) => void;
+  setReconnectionAttempts: (attempts: number) => void;
+  setConnectionError: (error: string | null) => void;
+
+  // From room-setup.store
+  setMode: (mode: CoPilotMode) => void;
+  setSetupStep: (step: string) => void;
+
+  // From player.store
+  setCurrentPlayerId: (playerId: string) => void;
+
+  // From room.store & multiplayer-store
+  createRoom: () => void; // Placeholder
+  joinRoom: (code: string) => void; // Placeholder
+  setPlayerPosition: (position: PlayerPosition) => void; // Placeholder
+  setCurrentRoom: (room: Room | null) => void;
+  clearCurrentRoom: () => void;
+  updateAvailableRooms: (rooms: Room[]) => void;
+  addPlayerToRoom: (player: Player) => void;
+  removePlayerFromRoom: (playerId: string) => void;
+  updatePlayer: (playerId: string, updates: Partial<Player>) => void;
+
+  // From multiplayer-store (game state actions)
+  setGameState: (gameState: GameState | null) => void;
+  updateGamePhase: (phase: GameState['phase']) => void;
+  updatePlayerGameState: (playerId: string, state: Partial<PlayerGameState>) => void;
+  updateSharedGameState: (state: Partial<SharedState>) => void;
+
+  // Utility
+  clearAll: () => void;
+  setRoomCreationStatus: (status: RoomStatus) => void;
+  handleRoomCreationError: (error: string | null) => void;
+  setJoinRoomStatus: (status: RoomStatus) => void;
+  handleRoomJoined: (roomCode: string) => void;
+  handleRoomJoinError: (error: string | null) => void;
+  isValidRoomCode: (code: string) => boolean;
+  clearError: () => void;
+
+  // Getters (will be implemented as part of the store)
+  getCurrentPlayer: () => Player | null;
+  getPlayerGameState: (playerId: string) => PlayerGameState | null;
+  getPublicRooms: () => Room[];
+  areAllPlayersReady: () => boolean;
+  getRoomStats: () => { playerCount: number; maxPlayers: number; spotsRemaining: number; isFull: boolean; isEmpty: boolean };
+  getEffectivePlayerId: () => string | null;
+  getAvailablePositions: () => PlayerPosition[];
+  isPositionTaken: (position: PlayerPosition) => boolean;
+  getCurrentPlayerPosition: () => PlayerPosition | null;
+}
+
+// Combined state from room, multiplayer, connection, room-setup
 interface RoomState {
   // From connection.store
   connectionStatus: ConnectionStatus;
@@ -18,11 +70,11 @@ interface RoomState {
   connectionError: string | null;
 
   // From room-setup.store
-  setup: { mode: CoPilotMode; step: string; };
-  coPilotModeSelected: boolean;
-  roomCreationStatus: RoomStatus;
-  joinRoomStatus: RoomStatus;
-  error: string | null;
+  setup: {
+    mode: CoPilotMode;
+    step: string;
+    coPilotModeSelected: boolean;
+  };
 
   // From player.store
   currentPlayerId: string | null;
@@ -34,12 +86,15 @@ interface RoomState {
   roomCode: string | null;
   availableRooms: Room[];
   isHost: boolean;
+  roomCreationStatus: RoomStatus;
+  joinRoomStatus: RoomStatus;
+  error: string | null;
 
   // From multiplayer-store
   gameState: GameState | null;
-  socket: Socket | null;
+  socket: Socket | null; // Moved from root
 
-  actions: any; // Using any for actions due to complexity
+  actions: RoomActions; // Use the defined interface
 }
 
 const ALL_POSITIONS: PlayerPosition[] = ['north', 'east', 'south', 'west'];
@@ -49,11 +104,11 @@ const initialState = {
   reconnectionAttempts: 0,
   socketId: null,
   connectionError: null,
-  setup: { mode: 'solo' as CoPilotMode, step: 'initial' },
-  coPilotModeSelected: false,
-  roomCreationStatus: 'idle' as RoomStatus,
-  joinRoomStatus: 'idle' as RoomStatus,
-  error: null,
+  setup: {
+    mode: 'solo' as CoPilotMode,
+    step: 'initial',
+    coPilotModeSelected: false,
+  },
   currentPlayerId: null,
   playerPositions: {},
   otherPlayerNames: [],
@@ -63,6 +118,9 @@ const initialState = {
   isHost: false,
   gameState: null,
   socket: null,
+  roomCreationStatus: 'idle' as RoomStatus,
+  joinRoomStatus: 'idle' as RoomStatus,
+  error: null,
 };
 
 export const useRoomStore = create<RoomState>()(
@@ -75,34 +133,42 @@ export const useRoomStore = create<RoomState>()(
           setConnectionStatus: (status) => set({ connectionStatus: status }),
           setReconnectionAttempts: (attempts) => set({ reconnectionAttempts: attempts }),
           setConnectionError: (error) => set({ connectionError: error, connectionStatus: error ? 'error' : get().connectionStatus }),
-          setMode: (mode) => set((state) => ({ setup: { ...state.setup, mode }, coPilotModeSelected: true })),
+
+          // Room setup actions
+          setMode: (mode) => set((state) => ({ setup: { ...state.setup, mode, coPilotModeSelected: true } })),
           setSetupStep: (step) => set((state) => ({ setup: { ...state.setup, step } })),
+
+          // Player actions
           setCurrentPlayerId: (playerId) => set((state) => ({ currentPlayerId: playerId, isHost: state.room?.hostId === playerId })),
-          setPlayerPosition: (playerId, position) => set((state) => {
-            const clearedPositions = Object.entries(state.playerPositions).reduce((acc, [pid, pos]) => {
-              if (pos !== position) acc[pid] = pos;
-              return acc;
-            }, {} as Record<string, PlayerPosition>);
-            return { playerPositions: { ...clearedPositions, [playerId]: position } };
+
+          // Room actions
+          createRoom: () => console.log('Creating room...'),
+          joinRoom: (code) => console.log(`Joining room ${code}...`),
+          setPlayerPosition: (position) => set((state) => {
+            if (!state.currentPlayerId) return {};
+            return {
+              playerPositions: {
+                ...state.playerPositions,
+                [state.currentPlayerId]: position,
+              },
+            };
           }),
-          clearPlayerPosition: (playerId) => set((state) => {
-            const newPositions = { ...state.playerPositions };
-            delete newPositions[playerId];
-            return { playerPositions: newPositions };
-          }),
-          setOtherPlayerNames: (names) => set({ otherPlayerNames: names }),
-          clearPlayerData: () => set({ currentPlayerId: null, playerPositions: {}, otherPlayerNames: [] }),
           setCurrentRoom: (room) => set((state) => ({ room, isHost: room ? room.hostId === state.currentPlayerId : false, gameState: !room ? null : state.gameState })),
           clearCurrentRoom: () => set({ room: null, gameState: null, isHost: false }),
           updateAvailableRooms: (rooms) => set({ availableRooms: rooms }),
           addPlayerToRoom: (player) => set((state) => (state.room ? { room: { ...state.room, players: [...state.room.players, player] } } : {})),
           removePlayerFromRoom: (playerId) => set((state) => (state.room ? { room: { ...state.room, players: state.room.players.filter((p) => p.id !== playerId) } } : {})),
           updatePlayer: (playerId, updates) => set((state) => (state.room ? { room: { ...state.room, players: state.room.players.map((p) => (p.id === playerId ? { ...p, ...updates } : p)) } } : {})),
+
+          // Game state actions
           setGameState: (gameState) => set({ gameState }),
           updateGamePhase: (phase) => set((state) => (state.gameState ? { gameState: { ...state.gameState, phase, lastUpdated: new Date() } } : {})),
           updatePlayerGameState: (playerId, stateUpdate) => set((state) => (state.gameState ? { gameState: { ...state.gameState, playerStates: { ...state.gameState.playerStates, [playerId]: { ...state.gameState.playerStates[playerId], ...stateUpdate } }, lastUpdated: new Date() } } : {})),
           updateSharedGameState: (stateUpdate) => set((state) => (state.gameState ? { gameState: { ...state.gameState, sharedState: { ...state.gameState.sharedState, ...stateUpdate }, lastUpdated: new Date() } } : {})),
+
+          // Utility
           clearAll: () => set(initialState),
+
           // from room-setup
           setRoomCreationStatus: (status) => set({ roomCreationStatus: status }),
           handleRoomCreationError: (error) => set({ roomCreationStatus: 'error', error }),

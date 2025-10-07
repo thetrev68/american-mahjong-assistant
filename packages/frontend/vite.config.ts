@@ -82,5 +82,13 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: './src/test/setup.ts',
+    resolve: {
+      alias: {
+        '@shared': path.resolve(__dirname, '../shared'),
+        '@frontend': path.resolve(__dirname, './src'),
+        '@backend': path.resolve(__dirname, '../backend'),
+        '@intelligence': path.resolve(__dirname, '../intelligence'),
+      },
+    },
   },
 });

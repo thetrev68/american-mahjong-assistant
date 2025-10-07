@@ -2,118 +2,8 @@ import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 import type { Tile } from '@shared-types/tile-types';
 import type { NMJL2025Pattern } from '@shared-types/nmjl-types';
-import type { TutorialProgress, UserPreferences, SkillLevel, TutorialSection } from '../features/tutorial/types';
-
-// --- HISTORY TYPES ---
-export type GameOutcome = 'won' | 'lost' | 'draw' | 'incomplete' | 'mahjong' | 'wall' | 'pass-out' | 'forfeit';
-export type GameDifficulty = 'beginner' | 'intermediate' | 'expert';
-type DecisionType = 'keep' | 'pass' | 'discard' | 'joker-placement' | 'charleston';
-type DecisionQuality = 'excellent' | 'good' | 'fair' | 'poor';
-
-export interface GameDecision {
-  id: string;
-  timestamp: Date;
-  type: DecisionType;
-  tiles: Tile[];
-  recommendedAction: string;
-  actualAction: string;
-  quality: DecisionQuality;
-  reasoning: string;
-  alternativeOptions?: string[];
-}
-
-export interface PatternAnalysis {
-  patternId: string;
-  pattern: NMJL2025Pattern;
-  completionPercentage: number;
-  timeToCompletion?: number; // in seconds
-  missedOpportunities: string[];
-  optimalMoves: string[];
-}
-
-export interface GamePerformance {
-  totalDecisions: number;
-  excellentDecisions: number;
-  goodDecisions: number;
-  fairDecisions: number;
-  poorDecisions: number;
-  averageDecisionTime: number; // in seconds
-  patternEfficiency: number; // 0-100%
-  charlestonSuccess: number; // 0-100%
-}
-
-export interface GameInsights {
-  strengthAreas: string[];
-  improvementAreas: string[];
-  learningOpportunities: string[];
-  recommendedPatterns: string[];
-  skillProgression: string;
-  patternProgress?: Array<{
-    patternId: string;
-    completionPercentage: number;
-    viability: string;
-  }>;
-}
-
-export interface CompletedGame {
-  id: string;
-  timestamp: Date;
-  createdAt: Date;
-  duration: number; // in minutes
-  outcome: GameOutcome;
-  finalScore: number;
-  difficulty: GameDifficulty;
-  selectedPatterns: NMJL2025Pattern[];
-  finalHand: Tile[];
-  winningPattern?: NMJL2025Pattern;
-  turns?: Array<{ action: string; tiles?: Tile[]; timestamp?: Date }>;
-  decisions: GameDecision[];
-  patternAnalyses: PatternAnalysis[];
-  performance: GamePerformance;
-  insights: GameInsights;
-  shared: boolean;
-  votes: number;
-  comments: GameComment[];
-  roomId?: string;
-  players?: Array<{ id: string; name: string }>;
-  playerCount?: number;
-  playerPosition?: 'north' | 'east' | 'south' | 'west';
-  coPilotMode?: 'everyone' | 'solo';
-}
-
-export interface GameComment {
-  id: string;
-  authorId: string;
-  authorName: string;
-  content: string;
-  timestamp: Date;
-  votes: number;
-}
-
-export interface PerformanceStats {
-  totalGames: number;
-  gamesWon: number;
-  winRate: number;
-  averageScore: number;
-  averageGameDuration: number;
-  decisionQualityTrend: Array<{ date: Date; excellentRate: number; goodRate: number }>;
-  patternStats: Record<string, { attempted: number; completed: number; successRate: number; averageCompletion: number }>;
-  skillLevel: 'beginner' | 'intermediate' | 'expert';
-  nextMilestone: string;
-  progressToNext: number; // 0-100%
-}
-
-export interface LearningRecommendation {
-  id: string;
-  type: 'pattern' | 'strategy' | 'charleston' | 'general';
-  priority: 'high' | 'medium' | 'low';
-  title: string;
-  description: string;
-  actionable: string;
-  relatedGames: string[]; // Game IDs
-  estimatedImpact: string;
-}
-
+import type { TutorialProgress, UserPreferences, SkillLevel, TutorialSection, TutorialStep } from '../features/tutorial/types';
+import type { GameOutcome, GameDifficulty, DecisionType, DecisionQuality, GameDecision, PatternAnalysis, GamePerformance, GameInsights, CompletedGame, GameComment, PerformanceStats, LearningRecommendation } from '@shared-types/game-state-types';
 interface HistoryState {
   completedGames: CompletedGame[];
   currentGameId: string | null;
@@ -164,12 +54,12 @@ interface HistoryActions {
 interface TutorialStoreState {
   progress: TutorialProgress;
   isActive: boolean;
-  currentStep: any; // TutorialStep;
+  currentStep: TutorialStep | null;
   canProceed: boolean;
   canGoBack: boolean;
   isLoading: boolean;
   demoMode: boolean;
-  demoData: any; // { component: string };
+  demoData: { component: string } | null;
   error: string | null;
 }
 
@@ -206,9 +96,43 @@ interface UIState {
   dev: DevState;
   actions: {
     toggleTheme: () => void;
-    startTutorial: TutorialStoreActions['startTutorial'];
-    history: HistoryActions;
-    tutorial: TutorialStoreActions;
+    startTutorial: () => void;
+    nextStep: () => void;
+    previousStep: () => void;
+    goToStep: (stepId: string) => void;
+    goToSection: (section: TutorialSection) => void;
+    completeTutorial: () => void;
+    skipTutorial: () => void;
+    completeStep: (stepId: string) => void;
+    updateProgress: (progressUpdate: Partial<TutorialProgress>) => void;
+    setSkillLevel: (level: SkillLevel) => void;
+    updatePreferences: (preferencesUpdate: Partial<UserPreferences>) => void;
+    resetPreferences: () => void;
+    startDemo: (component: string) => void;
+    stopDemo: () => void;
+    setError: (error: string | null) => void;
+    reset: () => void;
+    startGame: (gameId: string, difficulty: GameDifficulty) => void;
+    completeGame: (gameData: Omit<CompletedGame, 'id'>) => string;
+    deleteGame: (gameId: string) => void;
+    recordDecision: (decision: Omit<GameDecision, 'id'>) => void;
+    updateDecisionQuality: (decisionId: string, quality: DecisionQuality, reasoning: string) => void;
+    calculatePerformanceStats: () => void;
+    generateLearningRecommendations: () => void;
+    updateSkillLevel: (level: 'beginner' | 'intermediate' | 'expert') => void;
+    selectGame: (gameId: string | null) => void;
+    setViewMode: (mode: 'overview' | 'detailed' | 'comparison') => void;
+    setSorting: (sortBy: string, order: 'asc' | 'desc') => void;
+    setFilter: (filter: Partial<HistoryState['filterBy']>) => void;
+    clearFilters: () => void;
+    shareGame: (gameId: string) => Promise<boolean>;
+    voteOnGame: (gameId: string, vote: 'up' | 'down') => Promise<boolean>;
+    addComment: (gameId: string, comment: string) => Promise<boolean>;
+    exportHistory: () => string;
+    importHistory: (data: string) => Promise<boolean>;
+    clearHistory: () => void;
+    historySetError: (error: string | null) => void;
+    historyClearError: () => void;
   };
 }
 
@@ -506,8 +430,8 @@ export const useUIStore = create<UIState>()(
 
             // --- HISTORY ACTIONS ---
             history: {
-              startGame: (gameId: string) => {
-                set((state) => ({ history: { ...state.history, currentGameId: gameId } }));
+              startGame: (gameId: string, difficulty: GameDifficulty) => {
+                set((state) => ({ history: { ...state.history, currentGameId: gameId, filterBy: { ...state.history.filterBy, difficulty } } }));
               },
               completeGame: (gameData: Omit<CompletedGame, 'id'>) => {
                 const gameId = _get().history.currentGameId || `game-${Date.now()}`;
@@ -538,12 +462,16 @@ export const useUIStore = create<UIState>()(
                 set((state) => ({
                   history: {
                     ...state.history,
-                    completedGames: state.history.completedGames.map((game) => ({
-                      ...game,
-                      decisions: game.decisions.map((decision) =>
-                        decision.id === decisionId ? { ...decision, quality, reasoning } : decision
-                      ),
-                    })),
+                    completedGames: state.history.completedGames.map((game) => (
+                      game.decisions.some(decision => decision.id === decisionId) // Only modify game if it contains the decision
+                        ? {
+                            ...game,
+                            decisions: game.decisions.map((decision) =>
+                              decision.id === decisionId ? { ...decision, quality, reasoning } : decision
+                            ),
+                          }
+                        : game
+                    )),
                   },
                 }));
               },
