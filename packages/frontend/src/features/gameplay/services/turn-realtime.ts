@@ -2,7 +2,7 @@
 // Coordinates turn actions across multiplayer sessions with connection resilience
 
 import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
-import { useGameStore } from '../../../stores/useGameStore'
+import { useGameStore } from '../../../stores/useGameStore'\n\nconst getGameActions = () => useGameStore.getState().actions\n
 import { useTurnStore } from '../../../stores/turn-store'
 import { useRoomStore } from '../../../stores/useRoomStore'
 import type { GameAction, CallType } from './game-actions'
@@ -155,7 +155,7 @@ export class TurnRealtimeService {
     switch (actionData.action) {
       case 'draw':
         // Update UI to show player drew a tile (but not which tile)
-        gameStore.addAlert({
+        getGameActions().addAlert({
           type: 'info',
           title: 'Player Action',
           message: `${actionData.playerId} drew a tile`
@@ -183,8 +183,8 @@ export class TurnRealtimeService {
 
       case 'mahjong':
         // Game over
-        gameStore.setGamePhase('finished')
-        gameStore.addAlert({
+        getGameActions().setPhase('finished')
+        getGameActions().addAlert({
           type: 'success',
           title: 'Game Over',
           message: `${actionData.playerId} declared Mahjong!`
@@ -270,7 +270,7 @@ export class TurnRealtimeService {
     }
 
     // Show call opportunity UI
-    gameStore.addAlert({
+    getGameActions().addAlert({
       type: 'info',
       title: 'Call Opportunity',
       message: `${opportunityData.discardedTile.displayName} discarded. You have ${Math.floor(opportunityData.duration / 1000)} seconds to call.`
@@ -353,7 +353,7 @@ export class TurnRealtimeService {
     const gameStore = useGameStore.getState()
 
     if (resolutionData.winner && resolutionData.executed) {
-      gameStore.addAlert({
+      getGameActions().addAlert({
         type: 'success',
         title: 'Call Made',
         message: `${resolutionData.winner.playerId} called ${resolutionData.winner.callType}`
@@ -372,7 +372,7 @@ export class TurnRealtimeService {
     console.log(`Turn timeout for player: ${playerId}`)
     
     const gameStore = useGameStore.getState()
-    gameStore.addAlert({
+    getGameActions().addAlert({
       type: 'warning',
       title: 'Turn Timeout',
       message: `${playerId} took too long. Turn advanced automatically.`
@@ -438,7 +438,7 @@ export class TurnRealtimeService {
     turnStore.setCurrentPlayer(syncData.currentPlayer)
     
     // Update game state
-    gameStore.addAlert({
+    getGameActions().addAlert({
       type: 'info',
       title: 'Game Synchronized',
       message: 'Game state updated from server'
@@ -455,7 +455,7 @@ export class TurnRealtimeService {
     console.error('Turn action rejected:', rejectionData)
 
     const gameStore = useGameStore.getState()
-    gameStore.addAlert({
+    getGameActions().addAlert({
       type: 'warning',
       title: 'Action Rejected',
       message: rejectionData.reason
@@ -480,7 +480,7 @@ export class TurnRealtimeService {
     turnStore.setCurrentPlayer(successData.nextPlayer)
 
     // Show success feedback
-    gameStore.addAlert({
+    getGameActions().addAlert({
       type: 'success',
       title: 'Action Completed',
       message: `${successData.action} completed successfully`
@@ -501,7 +501,7 @@ export class TurnRealtimeService {
     const gameStore = useGameStore.getState()
 
     if (responseData.response === 'call') {
-      gameStore.addAlert({
+      getGameActions().addAlert({
         type: 'info',
         title: 'Player Called',
         message: `${responseData.playerId} called ${responseData.callType}`
@@ -536,7 +536,7 @@ export class TurnRealtimeService {
     turnStore.setCurrentPlayer(interruptData.newCurrentPlayer)
 
     // Show interruption notification
-    gameStore.addAlert({
+    getGameActions().addAlert({
       type: 'warning',
       title: 'Turn Interrupted',
       message: `${interruptData.newCurrentPlayer} interrupted with ${interruptData.reason}`

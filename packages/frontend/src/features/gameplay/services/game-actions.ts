@@ -10,6 +10,8 @@ import { useRoomStore } from '../../../stores/useRoomStore'
 import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
 
+const getGameActions = () => useGameStore.getState().actions
+
 export type GameAction = 'draw' | 'discard' | 'call' | 'joker-swap' | 'mahjong' | 'declare-mahjong' | 'pass-out' | 'other-player-mahjong' | 'game-drawn'
 export type CallType = 'pung' | 'kong' | 'quint' | 'sextet'
 
@@ -74,7 +76,7 @@ export class GameActionsService {
     const validation = this.validateAction('draw', this.getCurrentGameState(), playerId)
     if (!validation.isValid) {
       console.error('Draw action invalid:', validation.reason)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Invalid Action',
         message: validation.reason || 'Cannot draw tile at this time'
@@ -118,7 +120,7 @@ export class GameActionsService {
       return tile
     } catch (error) {
       console.error('Error drawing tile:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Draw Failed',
         message: 'Failed to draw tile. Please try again.'
@@ -131,7 +133,7 @@ export class GameActionsService {
     const validation = this.validateAction('discard', this.getCurrentGameState(), playerId, tile)
     if (!validation.isValid) {
       console.error('Discard action invalid:', validation.reason)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Invalid Discard',
         message: validation.reason || 'Cannot discard that tile'
@@ -181,7 +183,7 @@ export class GameActionsService {
       return true
     } catch (error) {
       console.error('Error discarding tile:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Discard Failed',
         message: 'Failed to discard tile. Please try again.'
@@ -194,7 +196,7 @@ export class GameActionsService {
     const validation = this.validateAction('call', this.getCurrentGameState(), playerId, { callType, tiles })
     if (!validation.isValid) {
       console.error('Call action invalid:', validation.reason)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Invalid Call',
         message: validation.reason || 'Cannot make that call'
@@ -243,7 +245,7 @@ export class GameActionsService {
 
       console.log(`Player ${playerId} called ${callType} with:`, tiles.map(t => t.id))
       
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'success',
         title: 'Call Made',
         message: `${callType.toUpperCase()} call successful`
@@ -252,7 +254,7 @@ export class GameActionsService {
       return true
     } catch (error) {
       console.error('Error making call:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Call Failed',
         message: 'Failed to make call. Please try again.'
@@ -267,7 +269,7 @@ export class GameActionsService {
     const validation = this.validateAction('joker-swap', this.getCurrentGameState(), playerId, { jokerLocation, targetTile })
     if (!validation.isValid) {
       console.error('Joker swap invalid:', validation.reason)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Invalid Joker Swap',
         message: validation.reason || 'Cannot swap that joker'
@@ -324,7 +326,7 @@ export class GameActionsService {
 
       console.log(`Player ${playerId} swapped joker for:`, targetTile.id)
       
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'success',
         title: 'Joker Swapped',
         message: `Joker swapped for ${targetTile.id}`
@@ -333,7 +335,7 @@ export class GameActionsService {
       return true
     } catch (error) {
       console.error('Error swapping joker:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Joker Swap Failed',
         message: 'Failed to swap joker. Please try again.'
@@ -346,7 +348,7 @@ export class GameActionsService {
     const validation = this.validateMahjongClaim(hand)
     if (!validation.isValid) {
       console.error('Mahjong claim invalid:', validation.reason)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Invalid Mahjong',
         message: validation.reason || 'Hand does not match claimed pattern'
@@ -380,9 +382,8 @@ export class GameActionsService {
       }
 
       // End game
-      const gameStore = useGameStore.getState()
-      gameStore.setGamePhase('finished')
-      gameStore.addAlert({
+      getGameActions().setPhase('finished')
+      getGameActions().addAlert({
         type: 'success',
         title: 'MAHJONG!',
         message: `${pattern.Hand_Description} - ${pattern.Hand_Points} points!`
@@ -392,7 +393,7 @@ export class GameActionsService {
       return true
     } catch (error) {
       console.error('Error declaring mahjong:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Mahjong Declaration Failed',
         message: 'Failed to declare mahjong. Please try again.'
@@ -419,20 +420,19 @@ export class GameActionsService {
 
       // Remove player from active play
       const turnStore = useTurnStore.getState()
-      const gameStore = useGameStore.getState()
       
       // Mark player as passed out in game state
-      gameStore.markPlayerPassedOut(playerId)
+      getGameActions().markPlayerPassedOut(playerId)
       
-      gameStore.addAlert({
+      getGameActions().addAlert({
         type: 'info',
         title: 'Player Passed Out',
         message: `${playerId} has passed out: ${reason}`
       })
 
       // Check if game should end due to all players passed out
-      if (gameStore.checkForGameEnd()) {
-        gameStore.addAlert({
+      if (getGameActions().checkForGameEnd()) {
+        getGameActions().addAlert({
           type: 'success',
           title: 'Game Ended',
           message: 'Game ended - all players have passed out',
@@ -449,7 +449,7 @@ export class GameActionsService {
       return true
     } catch (error) {
       console.error('Error declaring pass out:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Pass Out Failed',
         message: 'Failed to declare pass out. Please try again.'
@@ -460,9 +460,7 @@ export class GameActionsService {
 
   async declareOtherPlayerMahjong(_playerId: string, winnerName: string): Promise<boolean> {
     try {
-      const gameStore = useGameStore.getState()
-      
-      gameStore.addAlert({
+      getGameActions().addAlert({
         type: 'success',
         title: 'Game Won',
         message: `${winnerName} declared mahjong!`
@@ -475,11 +473,11 @@ export class GameActionsService {
         appUserResult: 'lost' as const
       }
 
-      gameStore.setGameEndResult(gameEndData)
+      getGameActions().setGameEndResult(gameEndData)
       
       // Trigger game end
-      if (gameStore.checkForGameEnd()) {
-        gameStore.addAlert({
+      if (getGameActions().checkForGameEnd()) {
+        getGameActions().addAlert({
           type: 'info',
           title: 'Game Ended',
           message: 'Recording game results...',
@@ -491,7 +489,7 @@ export class GameActionsService {
       return true
     } catch (error) {
       console.error('Error recording other player mahjong:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Game End Failed',
         message: 'Failed to record game end. Please try again.'
@@ -502,9 +500,7 @@ export class GameActionsService {
 
   async declareGameDrawn(_playerId: string, reason: string): Promise<boolean> {
     try {
-      const gameStore = useGameStore.getState()
-      
-      gameStore.addAlert({
+      getGameActions().addAlert({
         type: 'info',
         title: 'Game Drawn',
         message: `Game ended: ${reason}`
@@ -517,11 +513,11 @@ export class GameActionsService {
         appUserResult: 'drawn' as const
       }
 
-      gameStore.setGameEndResult(gameEndData)
+      getGameActions().setGameEndResult(gameEndData)
       
       // Trigger game end
-      if (gameStore.checkForGameEnd()) {
-        gameStore.addAlert({
+      if (getGameActions().checkForGameEnd()) {
+        getGameActions().addAlert({
           type: 'info',
           title: 'Game Ended',
           message: 'Recording game results...',
@@ -533,7 +529,7 @@ export class GameActionsService {
       return true
     } catch (error) {
       console.error('Error recording game draw:', error)
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'Game End Failed',
         message: 'Failed to record game end. Please try again.'
