@@ -93,14 +93,30 @@ function mapState() {
   }
 }
 
+// Cache the mapped state to prevent infinite loops in useSyncExternalStore
+let cachedState: ReturnType<typeof mapState> | null = null;
+let lastRoomState: ReturnType<typeof useRoomStore.getState> | null = null;
+
+function getMemoizedState(): ReturnType<typeof mapState> {
+  const currentRoomState = useRoomStore.getState();
+
+  // Only regenerate if the underlying room state actually changed (reference equality)
+  if (cachedState === null || lastRoomState !== currentRoomState) {
+    cachedState = mapState();
+    lastRoomState = currentRoomState;
+  }
+
+  return cachedState;
+}
+
 // Create a proper React hook using useSyncExternalStore
 export function useMultiplayerStore<T = ReturnType<typeof mapState>>(
   selector?: (state: ReturnType<typeof mapState>) => T
 ): T {
   const state = useSyncExternalStore(
     useRoomStore.subscribe,
-    mapState,
-    mapState
+    getMemoizedState,  // Use memoized version
+    getMemoizedState   // Use memoized version
   );
 
   if (selector) {
@@ -111,4 +127,4 @@ export function useMultiplayerStore<T = ReturnType<typeof mapState>>(
 }
 
 // Add getState for non-hook usage
-useMultiplayerStore.getState = mapState;
+useMultiplayerStore.getState = getMemoizedState;
