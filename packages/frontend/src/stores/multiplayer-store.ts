@@ -45,7 +45,7 @@ function mapState() {
       }
     },
     setConnectionError: (error: string | null) => {
-      s.actions.setConnectionStatus('error')
+      // setConnectionError already sets connectionStatus to 'error' internally
       s.actions.setConnectionError(error)
     },
 
