@@ -4,6 +4,7 @@
 import { useState, useEffect } from 'react';
 import { useSocketContext } from '../hooks/useSocketContext';
 import { useRoomStore, useGameStore } from '../stores';
+import type { Player } from 'shared-types';
 import { getNetworkErrorHandler } from '../lib/services/network-error-handler';
 import { getConnectionResilienceService } from '../lib/services/connection-resilience';
 
@@ -147,7 +148,7 @@ export function ConnectionStatusIndicator({ position = 'top-right', showDetails 
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-300">Players:</span>
-                <span className="text-sm text-white">{roomStore.room.players.filter(p => p.isConnected).length}/{roomStore.room.players.length}</span>
+                <span className="text-sm text-white">{(roomStore.room.players as Player[]).filter((p: Player) => p.isConnected).length}/{roomStore.room.players.length}</span>
               </div>
             </div>
           </div>

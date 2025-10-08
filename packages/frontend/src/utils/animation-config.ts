@@ -202,10 +202,16 @@ export interface ProcessedSequenceItem extends AnimationSequenceItem {
 export function createAnimationSequence(
   items: AnimationSequenceItem[]
 ): ProcessedSequenceItem[] {
-  return items.map(item => ({
-    ...item,
-    config: getAnimationConfig(item.name, item.config)
-  }))
+  return items.map(item => {
+    const cfg = getAnimationConfig(item.name, item.config)
+    const ensured: AnimationConfig = ('duration' in cfg)
+      ? (cfg as AnimationConfig)
+      : { duration: ANIMATION_DURATIONS.normal, easing: ANIMATION_EASINGS.ease }
+    return {
+      ...item,
+      config: ensured,
+    }
+  })
 }
 
 export function validateAnimationConfig(config: Partial<AnimationConfig>): boolean {

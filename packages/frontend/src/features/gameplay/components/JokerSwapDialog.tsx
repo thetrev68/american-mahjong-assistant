@@ -18,7 +18,7 @@ export const JokerSwapDialog: React.FC<JokerSwapDialogProps> = ({
   onClose,
   onSwap
 }) => {
-  const { playerHand, exposedTiles } = useTileStore()
+  const { playerHand, exposedTiles } = useTileStore(s => ({ playerHand: s.playerHand, exposedTiles: s.exposedTiles }))
   const [currentStep, setCurrentStep] = useState<SwapStep>('select-joker')
   const [selectedJoker, setSelectedJoker] = useState<{ location: 'own' | 'opponent', tile: PlayerTile } | null>(null)
   const [selectedTargetTile, setSelectedTargetTile] = useState<PlayerTile | null>(null)
@@ -27,14 +27,14 @@ export const JokerSwapDialog: React.FC<JokerSwapDialogProps> = ({
   if (!isOpen) return null
 
   // Find jokers in hand and exposed tiles
-  const handJokers = playerHand.filter(tile => tile.isJoker)
-  const exposedJokers = exposedTiles.filter(tile => tile.isJoker)
+  const handJokers = playerHand.filter((tile: PlayerTile) => tile.isJoker)
+  const exposedJokers = exposedTiles.filter((tile: PlayerTile) => tile.isJoker)
 
   // Get all possible target tiles (actual tiles that could replace jokers)
   const getAllTargetTiles = () => {
     // For simplicity, show all non-joker tiles from hand as potential targets
     // In a real game, this would be more sophisticated based on what the joker represents
-    return playerHand.filter(tile => !tile.isJoker)
+    return playerHand.filter((tile: PlayerTile) => !tile.isJoker)
   }
 
   const handleJokerSelect = (location: 'own' | 'opponent', tile: PlayerTile) => {

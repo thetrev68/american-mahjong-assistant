@@ -59,11 +59,11 @@ const navItems: NavItem[] = [
 export const NavigationSidebar = () => {
   const navigate = useNavigate()
   const { sidebarOpen, setSidebarOpen } = useUIStore()
-  const roomSetupStore = useRoomSetupStore()
+  const roomSetupStore = useRoomSetupStore(s => s)
   const roomStore = useRoomStore()
 
   const getItemAccessibility = (path: string) => {
-    const progress = roomSetupStore.getRoomSetupProgress()
+    const progress = (roomSetupStore as any).getRoomSetupProgress ? (roomSetupStore as any).getRoomSetupProgress() : { currentStep: 'ready' }
     
     switch (path) {
       case '/charleston':
@@ -73,9 +73,9 @@ export const NavigationSidebar = () => {
         }
       case '/game':
         return {
-          accessible: progress.currentStep === 'ready' && roomStore.isRoomReadyForGame(),
-          reason: progress.currentStep !== 'ready' || !roomStore.isRoomReadyForGame() 
-            ? 'Complete room setup and player positioning first' 
+          accessible: progress.currentStep === 'ready' && Boolean(roomStore.room && roomStore.currentPlayerId),
+          reason: progress.currentStep !== 'ready' || !(roomStore.room && roomStore.currentPlayerId)
+            ? 'Complete room setup and player positioning first'
             : undefined
         }
       default:

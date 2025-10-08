@@ -17,8 +17,8 @@ const HostControls: React.FC = () => {
   const [roomSettings, setRoomSettings] = useState(room?.settings);
 
   const roomService = getRoomMultiplayerService();
-  const connectedPlayers = players.filter((p) => p.isConnected);
-  const nonHostPlayers = connectedPlayers.filter((p) => !p.isHost);
+  const connectedPlayers = players.filter((p: any) => (p as any).isConnected);
+  const nonHostPlayers = connectedPlayers.filter((p: any) => !(p as any).isHost);
 
   const handleKickPlayer = (playerId: string) => {
     if (!roomService) return;
@@ -78,7 +78,7 @@ const HostControls: React.FC = () => {
       {/* Player Management */}
       <div className="space-y-2">
         <h4 className="text-sm font-medium text-gray-600">Player Management</h4>
-        {nonHostPlayers.map((player) => (
+        {nonHostPlayers.map((player: any) => (
           <div key={player.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
             <div className="flex items-center space-x-2">
               <div className={`w-2 h-2 rounded-full ${player.isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
@@ -191,7 +191,7 @@ const HostControls: React.FC = () => {
             <div className="space-y-3 mb-4">
               <p className="text-sm text-gray-600">Select a player to transfer host role to:</p>
 
-              {nonHostPlayers.map((player) => (
+              {nonHostPlayers.map((player: any) => (
                 <label key={player.id} className="flex items-center p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
                   <input
                     type="radio"

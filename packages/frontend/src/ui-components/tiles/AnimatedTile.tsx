@@ -178,7 +178,11 @@ export const AnimatedTile = memo(({
     }
     
     try {
-      const config = getAnimationConfig(animationState.currentAnimation as keyof typeof import('../../utils/animation-config').TILE_ANIMATIONS)
+      const cfg = getAnimationConfig(animationState.currentAnimation as keyof typeof import('../../utils/animation-config').TILE_ANIMATIONS)
+      if (!('duration' in cfg)) {
+        return {}
+      }
+      const config = cfg as import('../../utils/animation-config').AnimationConfig
       const keyframes = createOptimizedKeyframes(config)
       
       return {

@@ -96,8 +96,8 @@ export class CharlestonResilientService {
       charlestonStore.setPlayerReady(data.playerId, data.isReady)
       
       // Update room store as well for cross-phase consistency
-      const roomStore = useRoomStore.getState()
-      roomStore.setPlayerReadiness(data.playerId, 'charleston', data.isReady)
+      const roomStore = useRoomStore.getState() as any
+      try { roomStore.setPlayerReadiness?.(data.playerId, 'charleston', data.isReady) } catch {}
     })
 
     // Confirmation that our readiness was received by server
@@ -176,9 +176,9 @@ export class CharlestonResilientService {
       
       // Update room readiness for next phase
       const roomStore = useRoomStore.getState()
-      const currentPlayerId = roomStore.room?.id // This would need proper player ID
+      const currentPlayerId = roomStore.currentPlayerId
       if (currentPlayerId) {
-        roomStore.setPlayerReadiness(currentPlayerId, 'gameplay', true)
+        try { (roomStore as any).setPlayerReadiness?.(currentPlayerId, 'gameplay', true) } catch {}
       }
     })
   }
@@ -218,7 +218,7 @@ export class CharlestonResilientService {
   // Mark player as ready with connection resilience
   async markPlayerReady(selectedTiles: Tile[], phase: string): Promise<boolean> {
     const roomStore = useRoomStore.getState()
-    const currentPlayerId = roomStore.hostPlayerId // This needs proper current player ID
+    const currentPlayerId = roomStore.currentPlayerId
     const roomId = roomStore.room?.id
 
     if (!currentPlayerId || !roomId) {

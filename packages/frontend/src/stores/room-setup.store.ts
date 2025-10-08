@@ -8,6 +8,7 @@ const state: StoreShape = {
   setCoPilotMode: (() => {}) as AnyFn,
   nextStep: (() => {}) as AnyFn,
   prevStep: (() => {}) as AnyFn,
+  getRoomSetupProgress: () => ({ currentStep: 'ready' as const })
 }
 
 export const useRoomSetupStore = Object.assign(

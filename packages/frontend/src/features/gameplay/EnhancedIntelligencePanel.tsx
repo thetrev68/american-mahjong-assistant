@@ -41,7 +41,8 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   onPlayingPatternChange,
   isAnalyzing = false
 }) => {
-  const { playerHand } = useTileStore()
+  const playerHandTiles = useTileStore(s => s.playerHand)
+  const playerTileIds = useTileStore(s => s.playerHand.map(t => t.id))
   const navigate = useNavigate()
 
   // Strategy Advisor integration - GlanceModePanel has its own useStrategyAdvisor hook
@@ -77,13 +78,13 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
     if (expandedTiles && expandedTiles.length === 14) {
       normalizedTiles = expandedTiles
     } else {
-      const patternTiles = pattern.pattern.split(' ')
+      const patternTiles = (pattern.pattern ?? '').split(' ')
       normalizedTiles = patternTiles.length < 14
         ? [...patternTiles, ...Array(14 - patternTiles.length).fill('?')]
         : patternTiles.slice(0, 14)
     }
 
-    const completion = getPatternCompletionSummary(normalizedTiles, playerHand.map(t => t.id))
+    const completion = getPatternCompletionSummary(normalizedTiles, playerTileIds)
     return {
       matchedTiles: completion.matchedTiles,
       totalTiles: 14,
@@ -341,13 +342,13 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
                       <div className="text-base">
                         <PatternVariationDisplay
                           patternTiles={expandedTiles}
-                          playerTiles={playerHand.map(t => t.id)}
+                          playerTiles={playerTileIds}
                           showMatches={true}
                           invertMatches={true}
                           showCompletion={false}
                           spacing={true}
                           size="md"
-                          patternGroups={pattern.pattern.groups as unknown as Array<{ Group: string | number; display_color?: string; [key: string]: unknown }>}
+                          patternGroups={Array.isArray((pattern.pattern as any)?.groups) ? (pattern.pattern as any).groups : []}
                           handPattern={pattern.pattern.pattern}
                         />
                       </div>

@@ -1,16 +1,26 @@
-// Legacy placeholder for refactored store
-type AnyFn = (...args: unknown[]) => unknown
-interface StoreShape { [key: string]: unknown }
+import type { PlayerTile } from 'shared-types'
 
-const state: StoreShape = {
+interface TileStoreState {
+  playerHand: PlayerTile[]
+  discardPile: PlayerTile[]
+  exposedTiles: PlayerTile[]
+  dealerHand: boolean
+
+  // minimal setters used by UI
+  setDealerHand: (v: boolean) => void
+  setPlayerHand?: (tiles: PlayerTile[]) => void
+  setExposedTiles?: (tiles: PlayerTile[]) => void
+}
+
+const tileState: TileStoreState = {
   playerHand: [],
   discardPile: [],
-  exposedTiles: {},
+  exposedTiles: [],
   dealerHand: false,
-  setDealerHand: ((v: boolean) => { state.dealerHand = v }) as AnyFn,
+  setDealerHand: (v: boolean) => { tileState.dealerHand = v },
 }
 
 export const useTileStore = Object.assign(
-  ((selector?: (s: StoreShape) => unknown) => (selector ? selector(state) : state)) as <T>(selector?: (s: StoreShape) => T) => T | StoreShape,
-  { getState: () => state }
+  (<T>(selector?: (s: TileStoreState) => T) => (selector ? selector(tileState) : tileState)) as <T>(selector?: (s: TileStoreState) => T) => T | TileStoreState,
+  { getState: () => tileState }
 )

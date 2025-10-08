@@ -94,7 +94,11 @@ export const PatternProgressRing = ({
   }
   
   const sizeConfig = getSizeConfig()
-  const difficultyStyle = getDifficultyStyle()
+  const difficultyStyle = getDifficultyStyle() ?? {
+    color: '#6B7280',
+    bgColor: 'rgba(107, 114, 128, 0.1)',
+    textColor: 'text-gray-500'
+  }
   
   // Calculate circle properties
   const circumference = 2 * Math.PI * sizeConfig.radius
@@ -200,7 +204,7 @@ export const PatternProgressRing = ({
         <div className="text-center space-y-1">
           {/* Colorized Pattern */}
           <div className="flex flex-wrap justify-center gap-1 mb-2">
-            {getColoredPatternParts(pattern.pattern, pattern.groups).map((part, index) => (
+            {getColoredPatternParts(pattern.pattern, pattern.groups ?? []).map((part, index) => (
               <span 
                 key={index}
                 className={`font-mono text-xs ${getColorClasses(part.color, 'text')}`}

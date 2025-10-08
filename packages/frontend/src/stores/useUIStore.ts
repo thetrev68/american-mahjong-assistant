@@ -51,6 +51,8 @@ interface DevState {
 interface UIState {
   theme: 'light' | 'dark';
   activeModal: string | null;
+  sidebarOpen: boolean;
+  setSidebarOpen: (open: boolean) => void;
   tutorial: TutorialStoreState;
   history: HistoryState;
   dev: DevState;
@@ -142,9 +144,11 @@ export const useUIStore = create<UIState>()(
           skipTutorial: false,
         };
 
-        return {
-          theme: 'light',
-          activeModal: null,
+          return {
+            theme: 'light',
+            activeModal: null,
+            sidebarOpen: false,
+            setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
           dev: { activeDevPlayerId: null },
           tutorial: {
             progress: defaultProgress,
@@ -172,7 +176,8 @@ export const useUIStore = create<UIState>()(
             isLoading: false,
             error: null,
           },
-          actions: {
+            actions: {
+              setSidebarOpen: (open: boolean) => set({ sidebarOpen: open }),
             toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
             // --- TUTORIAL ACTIONS ---
             startTutorial: () => {

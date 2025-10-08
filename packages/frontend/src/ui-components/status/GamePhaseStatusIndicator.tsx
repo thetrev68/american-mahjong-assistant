@@ -51,8 +51,10 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
     alerts: state.alerts,
   }));
   const patternStore = usePatternStore()
-  const tileStore = useTileStore()
-  const charlestonStore = useCharlestonStore()
+  const handSize = useTileStore(s => Array.isArray(s.playerHand) ? s.playerHand.length : 0)
+  const dealerHand = useTileStore(s => Boolean(s.dealerHand))
+  type CPhase = 'right' | 'across' | 'left' | 'optional' | 'complete'
+  const charlestonPhase = useCharlestonStore((s: any) => s.currentPhase) as CPhase
 
   // Get current phase information
   const getPhaseInfo = (): PhaseInfo => {
@@ -76,8 +78,8 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
       }
 
       case 'tile-input': {
-        const tilesCount = tileStore.handSize
-        const expectedTiles = tileStore.dealerHand ? 14 : 13
+        const tilesCount = handSize
+        const expectedTiles = dealerHand ? 14 : 13
         const tileProgress = (tilesCount / expectedTiles) * 100
         
         return {
@@ -92,10 +94,10 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
       }
 
       case 'charleston': {
-        const charlestonProgress = charlestonStore.currentPhase === 'complete' ? 100 : 
-          charlestonStore.currentPhase === 'left' ? 75 :
-          charlestonStore.currentPhase === 'across' ? 50 :
-          charlestonStore.currentPhase === 'right' ? 25 : 0
+        const charlestonProgress = charlestonPhase === 'complete' ? 100 : 
+          charlestonPhase === 'left' ? 75 :
+          charlestonPhase === 'across' ? 50 :
+          charlestonPhase === 'right' ? 25 : 0
         
         const roundNames = {
           'right': 'Right Pass',
@@ -110,9 +112,9 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
           icon: '🔄',
           color: 'text-orange-600',
           bgColor: 'bg-orange-50 border-orange-200',
-          description: roundNames[charlestonStore.currentPhase] || 'In Progress',
+          description: roundNames[charlestonPhase] || 'In Progress',
           progress: charlestonProgress,
-          nextAction: charlestonStore.currentPhase === 'complete' ? 'Start Gameplay' : 'Continue Charleston'
+          nextAction: charlestonPhase === 'complete' ? 'Start Gameplay' : 'Continue Charleston'
         }
       }
 
@@ -295,13 +297,13 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Round</div>
               <div className="font-medium">
-                {charlestonStore.currentPhase === 'right' ? '1' : charlestonStore.currentPhase === 'across' ? '2' : '3'}/3
+                {charlestonPhase === 'right' ? '1' : charlestonPhase === 'across' ? '2' : '3'}/3
               </div>
             </div>
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Direction</div>
               <div className="font-medium capitalize">
-                {charlestonStore.currentPhase}
+                {charlestonPhase}
               </div>
             </div>
           </div>

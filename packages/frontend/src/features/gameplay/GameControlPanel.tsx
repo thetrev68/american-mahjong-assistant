@@ -16,15 +16,14 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
   const currentTurn = useGameStore((state) => state.currentTurn)
   const currentPlayerId = useGameStore((state) => state.currentPlayerId)
   const gameActions = useGameStore((state) => state.actions)
-  const roomSetupStore = useRoomSetupStore()
-  const tileStore = useTileStore()
+  const isSoloMode = useRoomSetupStore(s => (s as any).coPilotMode === 'solo')
+  const tileStore = useTileStore(s => s)
   const intelligenceStore = useIntelligenceStore()
 
   const [showDiscardModal, setShowDiscardModal] = useState(false)
   const [showCallModal, setShowCallModal] = useState(false)
 
   // Only show in solo mode - depends on roomSetupStore state
-  const isSoloMode = roomSetupStore.coPilotMode === 'solo'
   const isGameActive = gamePhase === 'playing'
 
   if (!isSoloMode || !isGameActive) {
@@ -37,8 +36,10 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
       gameActions.recordDiscard('opponent')
       gameActions.recordAction('opponent', 'discard')
 
-      // Trigger intelligence analysis if needed
-      intelligenceStore.analyzeHand(tileStore.playerHand, [])
+      // Trigger intelligence analysis if available
+      if ((intelligenceStore as any)?.analyzeHand) {
+        (intelligenceStore as any).analyzeHand(tileStore.playerHand, [])
+      }
 
       // Add alert for tracking
       gameActions.addAlert({

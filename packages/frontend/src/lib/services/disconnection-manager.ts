@@ -164,7 +164,7 @@ export class DisconnectionManager {
       playerId: useGameStore.getState().currentPlayerId || 'unknown',
       playerName: 'Unknown Player', // Will be updated from room store
       roomId: roomStore.room?.id || null,
-      currentPhase: roomStore.currentPhase,
+      currentPhase: useGameStore.getState().gamePhase || 'unknown',
       disconnectionTime: new Date(),
       reason
     }
@@ -204,16 +204,17 @@ export class DisconnectionManager {
       const progressData = {
         room: {
           roomCode: roomStore.room?.id,
-          players: roomStore.players,
-          currentPhase: roomStore.currentPhase
+          players: roomStore.room?.players || [],
+          currentPhase: useGameStore.getState().gamePhase
         },
         game: {
           gamePhase: gameStore.gamePhase,
           currentPlayerId: gameStore.currentPlayerId
         },
         turn: {
-          currentPlayer: turnStore.currentPlayer,
-          turnOrder: turnStore.turnOrder
+          currentPlayer: turnStore.currentPlayerId,
+          // turn order not exposed via adapter; derive from game store if needed
+          turnOrder: useGameStore.getState().turnOrder
         },
         charleston: {
           currentPhase: charlestonStore.currentPhase,
@@ -236,8 +237,8 @@ export class DisconnectionManager {
     const turnStore = useTurnStore.getState()
     const charlestonStore = useCharlestonStore.getState()
 
-    // Handle phase-specific cleanup
-    switch (roomStore.currentPhase) {
+    // Handle phase-specific cleanup based on consolidated game phase
+    switch (useGameStore.getState().gamePhase) {
       case 'charleston':
         // End Charleston gracefully
         if (charlestonStore.isActive) {
@@ -247,7 +248,7 @@ export class DisconnectionManager {
 
       case 'playing':
         // Handle turn cleanup if it's the player's turn
-        if (turnStore.currentPlayer) {
+        if (turnStore.currentPlayerId) {
           // Auto-pass turn or handle gracefully - would need proper turn management
           console.log('Player disconnected during their turn')
         }
@@ -255,7 +256,7 @@ export class DisconnectionManager {
 
       case 'setup':
         // Clear readiness states
-        roomStore.setPhaseReadiness('setup', false)
+        // No-op: readiness is not tracked in consolidated room store
         break
     }
 
@@ -264,7 +265,9 @@ export class DisconnectionManager {
       try {
         const roomActions = useRoomStore.getState().actions
         roomActions.setConnectionStatus('disconnected')
-      } catch {}
+      } catch (e) {
+        console.warn('Failed to mark player disconnected', e)
+      }
     }
   }
 
@@ -319,19 +322,9 @@ export class DisconnectionManager {
     }
 
     // Clear all stores - reset to empty state
-    roomStore.updateRoom({
-      id: '',
-      hostId: '',
-      players: [],
-      phase: 'waiting',
-      maxPlayers: 4,
-      isPrivate: false,
-      createdAt: new Date()
-    })
-    roomStore.updatePlayers([])
-    roomStore.setCurrentPhase('waiting')
+    useRoomStore.getState().actions.clearAll()
     getGameActions().resetGame()
-    turnStore.resetTurns()
+    useGameStore.getState().actions.resetTurns()
     charlestonStore.endCharleston()
 
     // Clear localStorage

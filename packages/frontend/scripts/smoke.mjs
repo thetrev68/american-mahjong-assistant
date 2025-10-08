@@ -29,10 +29,10 @@ async function main() {
     const assetResp = await fetch(assetUrl)
     if (!assetResp.ok) throw new Error(`Asset fetch failed: ${toStatus(assetResp)} (${assetUrl})`)
 
-    // eslint-disable-next-line no-console
+     
     console.log(`SMOKE OK url=${url} home=${homeResp.status} asset=${assetResp.status} path=${m[0]}`)
   } catch (err) {
-    // eslint-disable-next-line no-console
+     
     console.error('SMOKE FAIL', err)
     process.exitCode = 1
   } finally {

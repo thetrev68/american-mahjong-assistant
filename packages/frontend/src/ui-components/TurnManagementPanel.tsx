@@ -2,7 +2,7 @@
 // Real-time turn tracking and controls for 4-player American Mahjong
 
 import React from 'react';
-import type { Player } from '@shared-types/game-types';
+import type { Player } from 'shared-types';
 import { useGameStore } from '../stores';
 import { Button } from './Button';
 import { Card } from './Card';
