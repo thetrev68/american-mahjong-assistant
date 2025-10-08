@@ -71,7 +71,20 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 }) => {
   // Store state
   const navigate = useNavigate()
-  const gameStore = useGameStore()
+  const gamePhase = useGameStore((state) => state.gamePhase ?? state.phase)
+  const phase = useGameStore((state) => state.phase)
+  const gameActions = useGameStore((state) => state.actions)
+  const players = useGameStore((state) => state.players)
+  const currentPlayerIdState = useGameStore((state) => state.currentPlayerId)
+  const wallTilesRemaining = useGameStore((state) => state.wallTilesRemaining ?? state.wallCount)
+  const wallCount = useGameStore((state) => state.wallCount)
+  const currentTurn = useGameStore((state) => state.currentTurn ?? state.turnNumber)
+  const turnNumber = useGameStore((state) => state.turnNumber)
+  const turnDuration = useGameStore((state) => state.turnDuration)
+  const turnStartTime = useGameStore((state) => state.turnStartTime)
+  const gameStartTime = useGameStore((state) => state.gameStartTime)
+  const gameEndResult = useGameStore((state) => state.gameEndResult)
+  const isGameActive = useGameStore((state) => state.isGameActive)
   const gameActions = useGameStore((state) => state.actions)
   const roomStore = useRoomStore()
   const roomSetupStore = useRoomSetupStore()
@@ -94,10 +107,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Initialize game phase - start with Charleston when first entering from tile input
   useEffect(() => {
-    if (gameStore.gamePhase === 'tile-input') {
+    if (gamePhase === 'tile-input') {
       gameActions.setPhase('charleston')
     }
-  }, [gameStore.gamePhase, gameActions])
+  }, [gamePhase, gameActions])
 
   // Get current player ID - use host or first player as fallback (moved up to avoid hoisting issues)
   const currentPlayerId = useMemo(() => {
@@ -109,7 +122,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Initialize current player to the user when starting gameplay
   useEffect(() => {
-    if (gameStore.gamePhase === 'playing' && !gameStore.currentPlayerId) {
+    if (gamePhase === 'playing' && !currentPlayerIdState) {
       // Set the current player to the user (first player)
       const userPlayerId = currentPlayerId
       gameActions.setCurrentPlayer(userPlayerId)
@@ -118,18 +131,18 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Initialize turn system to start with the user
       gameActions.startTurn()
     }
-  }, [gameStore.gamePhase, gameStore.currentPlayerId, currentPlayerId, gameActions])
+  }, [gamePhase, currentPlayerIdState, currentPlayerId, gameActions])
 
   // Set dealer hand based on East player position
   useEffect(() => {
-    const currentPlayer = gameStore.players.find(p => p.id === currentPlayerId)
+    const currentPlayer = players.find(p => p.id === currentPlayerId)
     const isDealer = currentPlayer?.position === 'east'
 
     // Update tile store if dealer status has changed
     if (tileStore.dealerHand !== isDealer) {
       tileStore.setDealerHand(isDealer)
     }
-  }, [currentPlayerId, gameStore.players, tileStore])
+  }, [currentPlayerId, players, tileStore])
 
   // Trigger initial analysis when entering game mode (triggered by clicking "Start Game")
   const hasTriggeredAnalysisRef = useRef(false)
@@ -138,7 +151,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     const playerHand = tileStore.playerHand
     const hasEnoughTiles = playerHand.length >= 10
     const hasNoAnalysis = !intelligenceStore.currentAnalysis
-    const isInGameMode = gameStore.gamePhase === 'playing' || gameStore.gamePhase === 'charleston'
+    const isInGameMode = gamePhase === 'playing' || gamePhase === 'charleston'
 
     // Only auto-analyze if we're in game mode AND haven't analyzed yet AND haven't already triggered
     if (isInGameMode && hasEnoughTiles && hasNoAnalysis && !intelligenceStore.isAnalyzing && !hasTriggeredAnalysisRef.current) {
@@ -156,7 +169,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         hasTriggeredAnalysisRef.current = false // Reset on error so user can retry
       }
     }
-  }, [gameStore.gamePhase, tileStore.playerHand.length, intelligenceStore.currentAnalysis, tileStore, intelligenceStore, gameStore])
+  }, [gamePhase, tileStore.playerHand.length, intelligenceStore.currentAnalysis, tileStore, intelligenceStore])
 
 
   // Get selected patterns properly
@@ -219,8 +232,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Get player names from game store, fallback to positions if not available
   const playerNames = useMemo(() => {
     // For multiplayer games, use game store players
-    if (gameStore.players.length > 0) {
-      return gameStore.players.map(p => p.name)
+    if (players.length > 0) {
+      return players.map(p => p.name)
     }
     
     // For solo games, use room store other player names with "You" as the first player
@@ -230,13 +243,13 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     
     // Fallback to generic names
     return ['You', 'Right', 'Across', 'Left']
-  }, [gameStore.players, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
+  }, [players, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
 
   // Get current player info from game store
   const currentPlayer = useMemo(() => {
-    const currentPlayerId = gameStore.currentPlayerId
-    if (currentPlayerId && gameStore.players.length > 0) {
-      const player = gameStore.players.find(p => p.id === currentPlayerId)
+    const currentPlayerId = currentPlayerIdState
+    if (currentPlayerId && players.length > 0) {
+      const player = players.find(p => p.id === currentPlayerId)
       return player?.name || playerNames[0]
     }
     
@@ -249,7 +262,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
     
     return playerNames[currentPlayerIndex]
-  }, [gameStore.currentPlayerId, gameStore.players, currentPlayerIndex, playerNames, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
+  }, [currentPlayerIdState, players, currentPlayerIndex, playerNames, roomSetupStore.coPilotMode, playerStore.otherPlayerNames])
   const gameRound = useGameStore(state => state.currentTurn) || 1
   const [windRound] = useState<'east' | 'south' | 'west' | 'north'>('east')
 
@@ -298,9 +311,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Charleston-specific analysis adaptation
   const currentAnalysis = useMemo(() => {
-    console.log('🎯 currentAnalysis memo - baseAnalysis:', !!baseAnalysis, 'gamePhase:', gameStore.gamePhase)
+    console.log('🎯 currentAnalysis memo - baseAnalysis:', !!baseAnalysis, 'gamePhase:', gamePhase)
 
-    if (!baseAnalysis || gameStore.gamePhase !== 'charleston') {
+    if (!baseAnalysis || gamePhase !== 'charleston') {
       console.log('🎯 currentAnalysis - returning baseAnalysis (not Charleston or no analysis)')
       return baseAnalysis
     }
@@ -331,7 +344,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       ...baseAnalysis,
       tileRecommendations: charlestonRecommendations
     }
-  }, [baseAnalysis, gameStore.gamePhase])
+  }, [baseAnalysis, gamePhase])
 
   // Auto-include primary pattern in playing patterns
   useEffect(() => {
@@ -350,7 +363,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Re-analyze when playing patterns change (for Charleston phase recommendations)
   useEffect(() => {
     const playerHand = tileStore.playerHand
-    if (playerHand.length >= 10 && gameStore.gamePhase === 'charleston' && playingPatternIds.length > 1) {
+    if (playerHand.length >= 10 && gamePhase === 'charleston' && playingPatternIds.length > 1) {
       // Only re-analyze if we have more than just the primary pattern
       // Get the current patterns for re-analysis
       const allPatterns = baseAnalysis?.recommendedPatterns?.map(p => p.pattern) || []
@@ -530,10 +543,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Initialize game end coordinator
   useEffect(() => {
-    if (!gameEndCoordinator && selectedPatterns.length > 0 && gameStore.players.length > 0) {
+    if (!gameEndCoordinator && selectedPatterns.length > 0 && players.length > 0) {
       const gameEndContext: GameEndContext = {
         gameId: roomStore.room?.id || `game-${Date.now()}`,
-        players: gameStore.players.map(p => ({ id: p.id, name: p.name })),
+        players: players.map(p => ({ id: p.id, name: p.name })),
         wallTilesRemaining: turnSelectors.wallCount,
         passedOutPlayers,
         currentTurn: gameRound,
@@ -565,7 +578,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       
       setGameEndCoordinator(new GameEndCoordinator(gameEndContext))
     }
-  }, [gameEndCoordinator, selectedPatterns, gameStore.players, turnSelectors.wallCount, 
+  }, [gameEndCoordinator, selectedPatterns, players, turnSelectors.wallCount, 
       passedOutPlayers, gameRound, gameStartTime, currentHand, currentPlayerId, 
       roomStore.room?.id, roomSetupStore.coPilotMode])
 
@@ -590,7 +603,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         
         // Prepare final hand revelation data
         const revelationData = gameEndCoordinator.createHandRevelationData()
-        const playerNames = gameStore.players.reduce((names, player) => {
+        const playerNames = players.reduce((names, player) => {
           names[player.id] = player.name
           return names
         }, {} as Record<string, string>)
@@ -604,11 +617,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
             score: gameEndResult.scenario.winningPattern?.Hand_Points || 0
           } : undefined,
           gameStatistics: {
-            totalTurns: gameStore.currentTurn,
-            gameDuration: gameStore.gameStartTime ? 
-              Math.round((Date.now() - gameStore.gameStartTime.getTime()) / 1000 / 60) + ' min' : 
+            totalTurns: currentTurn,
+            gameDuration: gameStartTime ? 
+              Math.round((Date.now() - gameStartTime.getTime()) / 1000 / 60) + ' min' : 
               'Unknown',
-            wallTilesRemaining: gameStore.wallTilesRemaining
+            wallTilesRemaining: wallTilesRemaining
           }
         }
         
@@ -616,7 +629,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         setShowFinalHandReveal(true)
       }
     }
-  }, [gameEndCoordinator, gameEnded, historyStore, gameStore, onNavigateToPostGame])
+  }, [gameEndCoordinator, gameEnded, historyStore, players, currentTurn, gameStartTime, wallTilesRemaining, onNavigateToPostGame])
 
   // Handle multiplayer game end coordination
   useEffect(() => {
@@ -624,7 +637,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // In multiplayer, wait for all hands to be collected before showing final reveal
       if (gameEndCoordination.gameEndData && gameEndCoordination.allPlayerHands) {
         // Create final hand reveal data with multiplayer data
-        const playerNames = gameStore.players.reduce((names, player) => {
+        const playerNames = players.reduce((names, player) => {
           names[player.id] = player.name
           return names
         }, {} as Record<string, string>)
@@ -638,11 +651,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
             score: gameEndCoordination.finalScores?.find(s => s.playerId === String(gameEndCoordination.gameEndData?.winner))?.score || 0
           } : undefined,
           gameStatistics: {
-            totalTurns: gameStore.currentTurn,
-            gameDuration: gameStore.gameStartTime ? 
-              Math.round((Date.now() - gameStore.gameStartTime.getTime()) / 1000 / 60) + ' min' : 
+            totalTurns: currentTurn,
+            gameDuration: gameStartTime ? 
+              Math.round((Date.now() - gameStartTime.getTime()) / 1000 / 60) + ' min' : 
               'Unknown',
-            wallTilesRemaining: gameStore.wallTilesRemaining
+            wallTilesRemaining: wallTilesRemaining
           }
         }
 
@@ -651,13 +664,13 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         gameEndCoordination.clearGameEndState()
       }
     }
-  }, [gameEndCoordination, gameStore])
+  }, [gameEndCoordination, players, currentTurn, gameStartTime, wallTilesRemaining])
 
   // Solo game end enhancements
   useEffect(() => {
     if (roomSetupStore.coPilotMode === 'solo' && gameEnded && finalHandRevealData) {
       // For solo games, add context about the real-world game result
-      const gameEndResult = gameStore.gameEndResult
+      const gameEndResult = gameEndResult
       let message = 'Review your co-pilot analysis from this game'
       
       if (gameEndResult?.endReason === 'mahjong') {
@@ -675,7 +688,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         duration: 5000
       })
     }
-  }, [roomSetupStore.coPilotMode, gameEnded, finalHandRevealData, gameStore])
+  }, [roomSetupStore.coPilotMode, gameEnded, finalHandRevealData, gameActions])
 
   // Wall exhaustion warning
   const wallExhaustionWarning = useMemo(() => {
@@ -735,7 +748,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         message: 'Failed to execute action. Please try again.'
       })
     }
-  }, [currentPlayerId, isMyTurn, turnStore, gameStore, tileStore, intelligenceStore])
+  }, [currentPlayerId, isMyTurn, turnStore, gameActions, tileStore, intelligenceStore])
 
   // Handle tile discard
   const handleDiscardTile = useCallback(async (tile: Tile) => {
@@ -749,7 +762,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
 
     await handlePlayerAction('discard', tile)
-  }, [currentPlayerId, handlePlayerAction, turnSelectors, gameStore])
+  }, [currentPlayerId, handlePlayerAction, turnSelectors, gameActions])
 
   // Handle draw tile
   const handleDrawTile = useCallback(async () => {
@@ -763,7 +776,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     }
 
     await handlePlayerAction('draw')
-  }, [currentPlayerId, handlePlayerAction, turnSelectors, gameStore])
+  }, [currentPlayerId, handlePlayerAction, turnSelectors, gameActions])
 
   // Handle call opportunity responses
   const handleCallOpportunityResponse = useCallback((response: 'call' | 'pass', callType?: CallType) => {
@@ -803,7 +816,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Check if this is a multiplayer session
       const gameEndContext: GameEndContext = {
         gameId: roomStore.room?.id || `game-${Date.now()}`,
-        players: gameStore.players.map(p => ({ id: p.id, name: p.name })),
+        players: players.map(p => ({ id: p.id, name: p.name })),
         wallTilesRemaining: turnSelectors.wallCount,
         passedOutPlayers,
         currentTurn: gameRound,
@@ -896,7 +909,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         onNavigateToPostGame?.()
       }, 3000)
     }
-  }, [currentPlayerId, gameEndCoordinator, currentHand, selectedPatterns, roomStore, gameStore, 
+  }, [currentPlayerId, gameEndCoordinator, currentHand, selectedPatterns, roomStore, gameActions, 
       turnSelectors.wallCount, passedOutPlayers, gameRound, gameStartTime, historyStore, onNavigateToPostGame])
 
   // Create game context for mahjong validation
@@ -907,8 +920,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     exposedTiles: {
       [currentPlayerId]: exposedTiles.flatMap(group => group.tiles.map(tile => tile.id))
     },
-    currentPhase: gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'
-  }), [fullHand, discardPile, currentPlayerId, exposedTiles, gameStore.gamePhase])
+    currentPhase: gamePhase === 'charleston' ? 'charleston' : 'gameplay'
+  }), [fullHand, discardPile, currentPlayerId, exposedTiles, gamePhase])
 
 
   // Prepare call opportunity data for modal
@@ -951,7 +964,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         timestamp: new Date()
       }])
 
-      const callPlayerId = gameStore.currentPlayerId || 'player-1'
+      const callPlayerId = currentPlayerIdState || 'player-1'
       setPlayerExposedCount(prev => ({
         ...prev,
         [callPlayerId]: prev[callPlayerId] + 1
@@ -972,7 +985,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     } else {
       // Call passed
     }
-  }, [gameStore.currentPlayerId, callOpportunities, callTimeoutId])
+  }, [currentPlayerIdState, callOpportunities, callTimeoutId])
 
   // Simulate other players' turns
   const simulateOtherPlayerTurn = useCallback(() => {
@@ -1053,11 +1066,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     gameActions.setPhase('playing')
 
     // Initialize turn system when skipping Charleston
-    if (!gameStore.currentPlayerId) {
+    if (!currentPlayerIdState) {
       gameActions.setCurrentPlayer(currentPlayerId)
       gameActions.startTurn()
     }
-  }, [gameStore, gameActions, currentPlayerId])
+  }, [gameActions, currentPlayerId])
 
   const handleResetGame = useCallback(() => {
     // Reset all stores and navigate back to setup
@@ -1068,7 +1081,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     intelligenceStore.clearAnalysis()
     charlestonStore.reset()
     navigate('/room-setup')
-  }, [roomSetupStore, gameStore, gameActions, tileStore, patternStore, intelligenceStore, charlestonStore, navigate])
+  }, [roomSetupStore, gameActions, tileStore, patternStore, intelligenceStore, charlestonStore, navigate])
 
   // Dev perspective handlers
   const handleSwitchPlayer = useCallback((playerId: string) => {
@@ -1147,7 +1160,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         onNavigateToCharleston()
       }
     }
-  }, [tileStore, roomSetupStore.coPilotMode, gameStore, onNavigateToCharleston, charlestonStore, handleAdvanceToGameplay])
+  }, [tileStore, roomSetupStore.coPilotMode, gameActions, onNavigateToCharleston, charlestonStore, handleAdvanceToGameplay])
 
   // Handle receiving tiles in Charleston
   const handleCharlestonTilesReceived = useCallback((tileIds: string[]) => {
@@ -1290,8 +1303,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   return (
     <>
       <DevShortcuts
-        variant={showMultiplayerDevShortcuts ? 'multiplayer' : (gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay')}
-        onSkipToGameplay={gameStore.gamePhase === 'charleston' ? handleSkipToGameplay : undefined}
+        variant={showMultiplayerDevShortcuts ? 'multiplayer' : (gamePhase === 'charleston' ? 'charleston' : 'gameplay')}
+        onSkipToGameplay={gamePhase === 'charleston' ? handleSkipToGameplay : undefined}
         onResetGame={handleResetGame}
         onSwitchPlayer={handleSwitchPlayer}
         onPopulatePlayers={handlePopulatePlayers}
@@ -1335,7 +1348,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       {/* Phase 4: Pull-to-refresh DISABLED - was blocking render */}
       <div className="min-h-screen" style={isDevMode && activeDevPlayerId !== realPlayerId ? { marginTop: '40px' } : undefined}>
         <GameScreenLayout
-        gamePhase={gameStore.gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
+        gamePhase={gamePhase === 'charleston' ? 'charleston' : 'gameplay'}
         currentPlayer={currentPlayer}
         timeElapsed={elapsedTime}
         playerNames={playerNames}
@@ -1566,10 +1579,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       {/* Selection Area - Fixed overlay for tile actions */}
       <SelectionArea
         onAdvanceToGameplay={handleAdvanceToGameplay}
-        onCharlestonPass={gameStore.gamePhase === 'charleston' ? handleCharlestonPass : undefined}
-        onPass={gameStore.gamePhase === 'charleston' ? handleCharlestonPass : undefined}
-        isReadyToPass={gameStore.gamePhase === 'charleston' ? false : undefined}
-        allPlayersReady={gameStore.gamePhase === 'charleston' ? false : undefined}
+        onCharlestonPass={gamePhase === 'charleston' ? handleCharlestonPass : undefined}
+        onPass={gamePhase === 'charleston' ? handleCharlestonPass : undefined}
+        isReadyToPass={gamePhase === 'charleston' ? false : undefined}
+        allPlayersReady={gamePhase === 'charleston' ? false : undefined}
       />
     </>
   )
