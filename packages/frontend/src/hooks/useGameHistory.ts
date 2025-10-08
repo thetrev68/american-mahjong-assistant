@@ -21,23 +21,31 @@ export function useGameHistory() {
 
   // Filtered and sorted games
   const filteredGames = useMemo(() => {
-    // ... (logic remains the same, uses `completedGames`, `filterBy`, etc. from state)
+    // TODO: implement filtering and sorting
+    void completedGames; void filterBy; void sortBy; void sortOrder;
+    return [];
   }, [completedGames, filterBy, sortBy, sortOrder]);
 
   // Game summary statistics
   const gameSummary = useMemo(() => {
-    // ... (logic remains the same, uses `completedGames`, `performanceStats`)
+    // TODO: implement game summary calculation
+    void completedGames; void performanceStats;
+    return undefined as unknown as { total?: number };
   }, [completedGames, performanceStats]);
 
   // Selected game with additional context
   const selectedGame = useMemo(() => {
-    // ... (logic remains the same, uses `selectedGameId`, `completedGames`)
+    // TODO: implement selected game derivation
+    void selectedGameId; void completedGames;
+    return undefined;
   }, [selectedGameId, completedGames]);
 
   // Quick filters for common use cases
-  const quickFilters = useMemo(() => ({
-    // ... (logic remains the same, uses `historyActions.setFilter`, `performanceStats`, `completedGames`)
-  }), [historyActions.setFilter, performanceStats, completedGames]);
+  const quickFilters = useMemo(() => {
+    // TODO: implement quick filters
+    void historyActions.setFilter; void performanceStats; void completedGames;
+    return {} as Record<string, unknown>;
+  }, [historyActions.setFilter, performanceStats, completedGames]);
 
   // Game completion handler with analysis
   const completeGameWithAnalysis = useCallback(async (gameData) => {
@@ -64,12 +72,15 @@ export function useGameHistory() {
 
   // Pattern performance analysis
   const getPatternPerformance = useCallback((_patternId) => {
-    // ... (logic remains the same, uses `performanceStats`, `completedGames`)
+    // TODO: implement pattern performance
+    void performanceStats.patternStats; void completedGames;
+    return undefined;
   }, [performanceStats.patternStats, completedGames]);
 
   // Export functionality with formatting
   const exportFormattedHistory = useCallback((_format) => {
-    // ... (logic uses `historyActions.exportHistory`, `completedGames`, etc.)
+    // TODO: implement export
+    void historyActions.exportHistory; void completedGames; void gameSummary; void performanceStats; void learningRecommendations;
   }, [historyActions.exportHistory, completedGames, gameSummary, performanceStats, learningRecommendations]);
 
   // Auto-refresh analytics when games change

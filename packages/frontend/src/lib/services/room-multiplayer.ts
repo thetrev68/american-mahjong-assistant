@@ -3,7 +3,6 @@
 
 import { Socket } from 'socket.io-client'
 import { useRoomStore } from '../../stores/useRoomStore'
-import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/useGameStore'
 import type { Room, Player, RoomConfig } from 'shared-types'
 
@@ -450,12 +449,13 @@ export class RoomMultiplayerService {
     // Update connection status - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useConnectionStore.getState().updateConnectionStatus({
-          isConnected: true,
-          connectionId: this.playerId || undefined,
-          lastPing: new Date(),
-          reconnectionAttempts: 0
-        })
+        const roomActions = useRoomStore.getState().actions
+        roomActions.setConnectionStatus('connected')
+        roomActions.setReconnectionAttempts(0)
+        // Optionally set socket id when available
+        if (this.playerId) {
+          useRoomStore.setState({ socketId: this.playerId })
+        }
       } catch (error) {
         console.warn('Failed to update connection status from room multiplayer:', error)
       }
@@ -478,8 +478,8 @@ export class RoomMultiplayerService {
     const roomStore = useRoomStore.getState()
     return {
       roomId: this.roomId,
-      isConnected: useConnectionStore.getState().connectionStatus.isConnected,
-      isHost: roomStore.hostPlayerId === this.playerId
+      isConnected: roomStore.connectionStatus === 'connected',
+      isHost: roomStore.isHost
     }
   }
 

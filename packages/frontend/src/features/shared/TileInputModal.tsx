@@ -47,7 +47,7 @@ export const TileInputModal = ({
         setModalHand([])
       }
     }
-  }, [isOpen])
+  }, [isOpen, initialTiles])
 
   // Get current hand as colored single characters
   const getCurrentHandDisplay = () => {

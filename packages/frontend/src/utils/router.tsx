@@ -7,7 +7,7 @@ import { TutorialView } from '../features/tutorial'
 import { GameModeView } from '../features/gameplay'
 import { RoomSetupView } from '../features/room-setup/RoomSetupView'
 import { PostGameView } from '../features/post-game/PostGameView'
-import { RouteGuard } from './RouteGuard'
+import RouteGuard from './RouteGuard'
 
 export const router = createBrowserRouter([
   {

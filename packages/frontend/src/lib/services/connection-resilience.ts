@@ -3,7 +3,6 @@
 
 import type { useSocket } from '../../hooks/useSocket'
 import { useRoomStore } from '../../stores/useRoomStore'
-import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/useGameStore'
 
 const getGameActions = () => useGameStore.getState().actions
@@ -105,10 +104,9 @@ export class ConnectionResilienceService {
     // Update connection status in stores - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useConnectionStore.getState().updateConnectionStatus({
-          isConnected: true,
-          reconnectionAttempts: 0
-        })
+        const roomActions = useRoomStore.getState().actions
+        roomActions.setConnectionStatus('connected')
+        roomActions.setReconnectionAttempts(0)
 
         getGameActions().addAlert({
           type: 'success',
@@ -155,9 +153,8 @@ export class ConnectionResilienceService {
     // Update connection status - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useConnectionStore.getState().updateConnectionStatus({
-          isConnected: false
-        })
+        const roomActions = useRoomStore.getState().actions
+        roomActions.setConnectionStatus('disconnected')
 
         if (this.currentAttempt === 0) {
           // Only show alert on first disconnection, not on retry attempts
@@ -208,9 +205,8 @@ export class ConnectionResilienceService {
     // Update reconnection attempts in store - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useConnectionStore.getState().updateConnectionStatus({
-          reconnectionAttempts: this.currentAttempt
-        })
+        const roomActions = useRoomStore.getState().actions
+        roomActions.setReconnectionAttempts(this.currentAttempt)
       } catch (error) {
         console.warn('Failed to update reconnection attempts:', error)
       }
@@ -270,10 +266,9 @@ export class ConnectionResilienceService {
     // Offer manual retry - defer to avoid React render cycle issues
     setTimeout(() => {
       try {
-        useConnectionStore.getState().updateConnectionStatus({
-          isConnected: false,
-          reconnectionAttempts: this.config.reconnectionStrategy.maxAttempts
-        })
+        const roomActions = useRoomStore.getState().actions
+        roomActions.setConnectionStatus('error')
+        roomActions.setReconnectionAttempts(this.config.reconnectionStrategy.maxAttempts)
       } catch (error) {
         console.warn('Failed to update connection status after max attempts:', error)
       }
@@ -369,15 +364,7 @@ export class ConnectionResilienceService {
       if (socketInstance.isConnected) {
         // Send heartbeat - this is handled by useSocket's ping mechanism
         // Update last ping time - defer to avoid React render cycle issues
-        setTimeout(() => {
-          try {
-            useConnectionStore.getState().updateConnectionStatus({
-              lastPing: new Date()
-            })
-          } catch (error) {
-            console.warn('Failed to update last ping time:', error)
-          }
-        }, 0)
+        // No-op: lastPing not tracked in consolidated store
       }
     }, this.config.heartbeatInterval)
   }
@@ -390,7 +377,7 @@ export class ConnectionResilienceService {
     maxAttempts: number
     lastPing: Date | null
   } {
-    const connectionStore = useConnectionStore.getState()
+    // Using consolidated room store; last ping is not tracked
 
     let status: 'connected' | 'disconnected' | 'reconnecting' | 'failed'
 
@@ -409,7 +396,7 @@ export class ConnectionResilienceService {
       status,
       attempt: this.currentAttempt,
       maxAttempts: this.config.reconnectionStrategy.maxAttempts,
-      lastPing: connectionStore.connectionStatus.lastPing || null
+      lastPing: null
     }
   }
 

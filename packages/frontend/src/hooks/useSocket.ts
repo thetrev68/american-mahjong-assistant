@@ -220,7 +220,7 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
     }
   }, [isConnected])
 
-  // Auto-connect on mount - run ONCE on mount only
+  // Auto-connect on mount (or when config changes)
   useEffect(() => {
     if (autoConnect) {
       connect()
@@ -230,7 +230,7 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
       // Don't disconnect - keep socket alive across page navigation
       // disconnect()
     }
-  }, [])
+  }, [autoConnect, connect])
 
   return {
     isConnected,

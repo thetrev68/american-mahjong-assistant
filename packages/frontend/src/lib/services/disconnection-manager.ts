@@ -2,7 +2,6 @@
 // Handles clean disconnection, state preservation, and graceful degradation
 
 import { useRoomStore } from '../../stores/useRoomStore'
-import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/useGameStore'
 
 const getGameActions = () => useGameStore.getState().actions
@@ -262,7 +261,10 @@ export class DisconnectionManager {
 
     // Mark player as disconnected
     if (this.disconnectionMetadata?.playerId) {
-      useConnectionStore.getState().setPlayerConnection(this.disconnectionMetadata.playerId, false)
+      try {
+        const roomActions = useRoomStore.getState().actions
+        roomActions.setConnectionStatus('disconnected')
+      } catch {}
     }
   }
 
@@ -351,7 +353,7 @@ export class DisconnectionManager {
   // Perform delayed cleanup after grace period
   private async performDelayedCleanup(): Promise<void> {
     // Check if reconnection happened during grace period
-    if (useConnectionStore.getState().connectionStatus.isConnected) {
+    if (useRoomStore.getState().connectionStatus === 'connected') {
       console.log('Reconnection successful during grace period')
       return
     }
