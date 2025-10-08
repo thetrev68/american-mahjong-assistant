@@ -2,6 +2,7 @@
 // Maps the old multiplayer-store API onto the new useRoomStore
 import { useRoomStore } from './useRoomStore'
 import type { Room, Player, GameState, PlayerGameState, SharedState } from '@shared-types/room-types'
+import { useSyncExternalStore } from 'react'
 
 function mapState() {
   const s = useRoomStore.getState()
@@ -92,32 +93,22 @@ function mapState() {
   }
 }
 
-// Cache the mapped state to prevent infinite loops
-// The mapState function creates new objects/functions on every call,
-// which causes React components to think props changed infinitely
-let cachedMappedState: ReturnType<typeof mapState> | null = null;
-let lastRoomState: ReturnType<typeof useRoomStore.getState> | null = null;
+// Create a proper React hook using useSyncExternalStore
+export function useMultiplayerStore<T = ReturnType<typeof mapState>>(
+  selector?: (state: ReturnType<typeof mapState>) => T
+): T {
+  const state = useSyncExternalStore(
+    useRoomStore.subscribe,
+    mapState,
+    mapState
+  );
 
-export const useMultiplayerStore = Object.assign(
-  ((selector?: (s: ReturnType<typeof mapState>) => unknown) => {
-    const currentRoomState = useRoomStore.getState();
-
-    // Only regenerate mapped state if underlying room state changed
-    if (cachedMappedState === null || lastRoomState !== currentRoomState) {
-      cachedMappedState = mapState();
-      lastRoomState = currentRoomState;
-    }
-
-    return selector ? selector(cachedMappedState) : cachedMappedState;
-  }) as <T>(selector?: (s: ReturnType<typeof mapState>) => T) => T | ReturnType<typeof mapState>,
-  {
-    getState: () => {
-      const currentRoomState = useRoomStore.getState();
-      if (cachedMappedState === null || lastRoomState !== currentRoomState) {
-        cachedMappedState = mapState();
-        lastRoomState = currentRoomState;
-      }
-      return cachedMappedState;
-    },
+  if (selector) {
+    return selector(state);
   }
-)
+
+  return state as T;
+}
+
+// Add getState for non-hook usage
+useMultiplayerStore.getState = mapState;
