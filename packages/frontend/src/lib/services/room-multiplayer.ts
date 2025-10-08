@@ -2,9 +2,9 @@
 // Real-time room coordination and player state synchronization
 
 import { Socket } from 'socket.io-client'
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { useConnectionStore } from '../../stores/connection.store'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import type { Room, Player, RoomConfig } from 'shared-types'
 
 interface RoomSettings {
@@ -532,3 +532,4 @@ export const destroyRoomMultiplayerService = (): void => {
     roomMultiplayerService = null
   }
 }
+

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useUIStore } from '../../stores'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { Button } from '../Button'
 
 interface NavItem {

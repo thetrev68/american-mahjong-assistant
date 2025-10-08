@@ -2,8 +2,8 @@
 // Provides reactive urgency context for adaptive UI treatments
 
 import { useMemo, useCallback, useRef, useEffect } from 'react'
-import { useGameStore } from '../../../stores/game-store'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useGameStore } from '../../../stores/useGameStore'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { urgencyDetectionService } from '../services/urgency-detection.service'
 import { useGamePhaseDetection } from './useGamePhaseDetection'
 import type {
@@ -322,3 +322,4 @@ function getBasicUITreatment(urgencyLevel: UrgencyLevel, isEmergency: boolean): 
 
 // Export types for external use
 export type { PerformanceMetrics }
+

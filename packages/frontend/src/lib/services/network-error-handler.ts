@@ -1,7 +1,7 @@
 // Network Error Handler & Retry Logic
 // Intelligent error classification, retry strategies, and network resilience
 
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { useConnectionStore } from '../../stores/connection.store'
 import { handleNetworkError } from './disconnection-manager'
 

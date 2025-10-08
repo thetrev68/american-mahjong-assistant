@@ -2,7 +2,7 @@
 // Multiplayer Charleston coordination with connection resilience and event queuing
 
 import { useCharlestonStore } from '../../../stores/charleston-store'
-import { useRoomStore } from '../../../stores/room.store'
+import { useRoomStore } from '../../../stores/useRoomStore'
 import { getConnectionResilienceService } from '../../../lib/services/connection-resilience'
 import { getNetworkErrorHandler } from '../../../lib/services/network-error-handler'
 import type { Tile, TileSuit, TileValue } from 'shared-types';

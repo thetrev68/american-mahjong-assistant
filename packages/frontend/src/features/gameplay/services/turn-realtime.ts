@@ -2,9 +2,9 @@
 // Coordinates turn actions across multiplayer sessions with connection resilience
 
 import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
-import { useGameStore } from '../../../stores/game-store'
+import { useGameStore } from '../../../stores/useGameStore'
 import { useTurnStore } from '../../../stores/turn-store'
-import { useRoomStore } from '../../../stores/room.store'
+import { useRoomStore } from '../../../stores/useRoomStore'
 import type { GameAction, CallType } from './game-actions'
 import type { Tile } from 'shared-types'
 
@@ -593,3 +593,4 @@ export const useTurnRealtime = () => {
     cleanup: () => service.cleanup()
   }
 }
+

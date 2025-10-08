@@ -3,7 +3,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useCharlestonStore } from '../../../stores/charleston-store'
-import { useRoomStore } from '../../../stores/room.store'
+import { useRoomStore } from '../../../stores/useRoomStore'
 import {
   initializeCharlestonResilientService,
   destroyCharlestonResilientService,
@@ -13,7 +13,7 @@ import { createTile } from '../../../__tests__/factories'
 import type { Tile, TileValue } from 'shared-types'
 
 // Mock dependencies
-vi.mock('../../../stores/room.store')
+vi.mock('../../../stores/useRoomStore')
 vi.mock('../../../lib/services/connection-resilience')
 vi.mock('../../../lib/services/network-error-handler')
 

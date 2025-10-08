@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 
 import App from '../../App'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { nmjlService } from '../../lib/services/nmjl-service'

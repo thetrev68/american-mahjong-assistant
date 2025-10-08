@@ -7,7 +7,7 @@ import type {
   UrgencyLevel,
   ActionPatternData
 } from '../types/strategy-advisor.types'
-import type { PatternRecommendation } from '../../../stores/intelligence-store'
+import type { PatternRecommendation } from '../../../stores/useIntelligenceStore'
 import type { PatternSelectionOption } from 'shared-types'
 
 // Priority calculation weights for different factors

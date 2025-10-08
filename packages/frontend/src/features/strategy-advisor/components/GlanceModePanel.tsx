@@ -5,8 +5,8 @@ import React, { useMemo, useEffect, useCallback, useRef, useState } from 'react'
 import { Card } from '../../../ui-components/Card'
 import { useStrategyAdvisor } from '../hooks/useStrategyAdvisor'
 import { useUrgencyDetection } from '../hooks/useUrgencyDetection'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
-import { useGameStore } from '../../../stores/game-store'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
+import { useGameStore } from '../../../stores/useGameStore'
 import { UrgencyIndicator } from './UrgencyIndicator'
 import { DisclosureManager } from './DisclosureManager'
 import { strategyModeService } from '../services/strategy-mode.service'
@@ -871,3 +871,4 @@ const GlanceModePanelWithErrorBoundary = withErrorBoundary(GlanceModePanel, {
 GlanceModePanelWithErrorBoundary.displayName = 'GlanceModePanelWithErrorBoundary'
 
 export default GlanceModePanelWithErrorBoundary
+

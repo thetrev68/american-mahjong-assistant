@@ -12,14 +12,14 @@ import {
   // type CharlestonEventData // Unused type import removed
 } from '../charleston-resilient'
 import { useCharlestonStore } from '../../../../stores/charleston-store'
-import { useRoomStore } from '../../../../stores/room.store'
+import { useRoomStore } from '../../../../stores/useRoomStore'
 import { getConnectionResilienceService } from '../../../../lib/services/connection-resilience'
 import { getNetworkErrorHandler } from '../../../../lib/services/network-error-handler'
 import type { Tile, TileValue } from 'shared-types'
 
 // Mock dependencies
 vi.mock('../../../../stores/charleston-store')
-vi.mock('../../../../stores/room.store')
+vi.mock('../../../../stores/useRoomStore')
 vi.mock('../../../../lib/services/connection-resilience')
 vi.mock('../../../../lib/services/network-error-handler')
 

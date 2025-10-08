@@ -2,7 +2,7 @@
 // Shows AI recommendations for tile discarding during gameplay
 
 import { useMemo } from 'react'
-import type { HandAnalysis, TileRecommendation } from '../../stores/intelligence-store'
+import type { HandAnalysis, TileRecommendation } from '../../stores/useIntelligenceStore'
 import { getTileDisplayChar, getTileCharClasses } from '../../utils/tile-display-utils'
 
 interface GameplayRecommendationsProps {

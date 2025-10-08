@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event'
 // import type { Tile, PlayerTile } from 'shared-types'
 
 // Mock all store dependencies with simple implementations
-vi.mock('../../../stores/game-store', () => ({
+vi.mock('../../../stores/useGameStore', () => ({
   useGameStore: vi.fn(() => ({
     gamePhase: 'playing',
     setGamePhase: vi.fn(),
@@ -33,7 +33,7 @@ vi.mock('../../../stores/game-store', () => ({
   }))
 }))
 
-vi.mock('../../../stores/room.store', () => ({
+vi.mock('../../../stores/useRoomStore', () => ({
   useRoomStore: vi.fn(() => ({
     players: [
       { id: 'player1', name: 'You' },
@@ -88,7 +88,7 @@ vi.mock('../../../stores/pattern-store', () => ({
   }))
 }))
 
-vi.mock('../../../stores/intelligence-store', () => ({
+vi.mock('../../../stores/useIntelligenceStore', () => ({
   useIntelligenceStore: vi.fn(() => ({
     currentAnalysis: {
       recommendedPatterns: [
@@ -562,3 +562,5 @@ describe('GameModeView Component - Core Functionality', () => {
     })
   })
 })
+
+

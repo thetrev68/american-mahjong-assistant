@@ -7,8 +7,8 @@ import { getNetworkErrorHandler } from './network-error-handler'
 import { getDisconnectionManager } from './disconnection-manager'
 import { initializeRoomMultiplayerService, destroyRoomMultiplayerService, getRoomMultiplayerService } from './room-multiplayer'
 import { initializeCharlestonResilientService, destroyCharlestonResilientService, getCharlestonResilientService } from '../../features/charleston/services/charleston-resilient'
-import { useRoomStore } from '../../stores/room.store'
-import { useGameStore } from '../../stores/game-store'
+import { useRoomStore } from '../../stores/useRoomStore'
+import { useGameStore } from '../../stores/useGameStore'
 import { initializeEventQueueManager, getEventQueueManager, destroyEventQueueManager } from './event-queue-manager'
 import type { EventReplayResult } from './event-queue-manager'
 
@@ -615,3 +615,4 @@ export const useUnifiedMultiplayer = () => {
     shutdown: manager.shutdown.bind(manager)
   }
 }
+

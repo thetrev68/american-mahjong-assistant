@@ -4,7 +4,8 @@
 
 import type { PatternSelectionOption } from 'shared-types'
 import type { PlayerTile } from 'shared-types'
-import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
+import type { HandAnalysis, TileRecommendation } from '@shared-types/game-types'
+import type { PatternRecommendation } from '../../features/intelligence-panel/services/real-time-analysis-service'
 import { nmjlService } from './nmjl-service'
 import { PatternAnalysisEngine, type GameContext, type PatternAnalysisFacts } from '../../features/intelligence-panel/services/pattern-analysis-engine'
 import { PatternRankingEngine, type RankedPatternResults } from '../../features/intelligence-panel/services/pattern-ranking-engine'

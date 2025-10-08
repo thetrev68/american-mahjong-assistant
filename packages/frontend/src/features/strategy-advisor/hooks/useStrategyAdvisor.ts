@@ -3,7 +3,7 @@
 // Enhanced with Phase 6 performance monitoring and memory optimization
 
 import { useCallback, useEffect, useRef, useMemo } from 'react'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import {
   useStrategyAdvisorStore,
   strategyAdvisorActions

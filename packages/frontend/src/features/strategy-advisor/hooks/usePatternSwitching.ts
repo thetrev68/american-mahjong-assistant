@@ -3,7 +3,7 @@
 
 import { useState, useCallback, useRef, useMemo } from 'react'
 import { usePatternStore } from '../../../stores/pattern-store'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import type {
   UsePatternSwitching,
   PatternSwitchPreview,

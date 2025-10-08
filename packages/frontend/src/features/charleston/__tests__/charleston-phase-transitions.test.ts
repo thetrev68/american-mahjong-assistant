@@ -3,13 +3,13 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { useCharlestonStore, type CharlestonPhase } from '../../../stores/charleston-store'
-import { useGameStore } from '../../../stores/game-store'
+import { useGameStore } from '../../../stores/useGameStore'
 import { useTileStore } from '../../../stores/tile-store'
 import { createTile } from '../../../__tests__/factories'
 import type { Tile, TileValue } from 'shared-types'
 
 // Mock dependencies
-vi.mock('../../../stores/game-store')
+vi.mock('../../../stores/useGameStore')
 vi.mock('../../../stores/tile-store')
 
 // Test utilities

@@ -1,8 +1,8 @@
 // Phase Transition Manager
 // Seamless integration between all game phases with proper state management
 
-import { useRoomStore } from '../../stores/room.store'
-import { useGameStore } from '../../stores/game-store'
+import { useRoomStore } from '../../stores/useRoomStore'
+import { useGameStore } from '../../stores/useGameStore'
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
@@ -413,3 +413,4 @@ export const usePhaseTransition = () => {
     reset: () => manager.resetPhases()
   }
 }
+

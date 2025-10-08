@@ -6,7 +6,7 @@ import { EnhancedIntelligencePanel } from './EnhancedIntelligencePanel'
 import { GameplayRecommendations } from './GameplayRecommendations'
 import { GameControlPanel } from './GameControlPanel'
 import type { PlayerTile, Tile } from 'shared-types'
-import type { HandAnalysis } from '../../stores/intelligence-store'
+import type { HandAnalysis } from '../../stores/useIntelligenceStore'
 import type { GameAction } from '../intelligence-panel/services/turn-intelligence-engine'
 
 interface GameScreenLayoutProps {

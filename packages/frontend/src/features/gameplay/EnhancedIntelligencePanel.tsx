@@ -11,7 +11,7 @@ import { GlanceModePanel } from '../strategy-advisor/components/GlanceModePanel'
 // import { useStrategyAdvisor } from '../strategy-advisor/hooks/useStrategyAdvisor' // Not needed - GlanceModePanel has its own hook
 import { useTileStore } from '../../stores/tile-store'
 import { getPatternCompletionSummary } from '../../utils/tile-display-utils'
-import type { HandAnalysis } from '../../stores/intelligence-store'
+import type { HandAnalysis } from '../../stores/useIntelligenceStore'
 import type { GameState } from '../intelligence-panel/services/turn-intelligence-engine'
 import type { CallOpportunity } from '../intelligence-panel/services/call-opportunity-analyzer'
 

@@ -2,12 +2,12 @@
 // Complete action system for American Mahjong gameplay with validation and coordination
 
 import type { Tile, NMJL2025Pattern } from 'shared-types'
-import { useGameStore } from '../../../stores/game-store'
+import { useGameStore } from '../../../stores/useGameStore'
 import { useTileStore } from '../../../stores/tile-store'
 import { useTurnStore } from '../../../stores/turn-store'
 import { useRoomSetupStore } from '../../../stores/room-setup.store'
-import { useRoomStore } from '../../../stores/room.store'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useRoomStore } from '../../../stores/useRoomStore'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
 
 export type GameAction = 'draw' | 'discard' | 'call' | 'joker-swap' | 'mahjong' | 'declare-mahjong' | 'pass-out' | 'other-player-mahjong' | 'game-drawn'
@@ -717,3 +717,5 @@ export const useGameActions = () => {
     getAvailableActions: (playerId: string, gameState: GameState) => service.getAvailableActions(playerId, gameState)
   }
 }
+
+

@@ -1,5 +1,28 @@
 import { create } from 'zustand';
-import { HandAnalysis, TileRecommendation, PatternRanking } from '@shared-types/game-types';
+import type { PatternRanking } from '@shared-types/game-types';
+import type {
+  HandAnalysis,
+  TileRecommendation,
+  PatternRecommendation,
+  PatternAnalysis,
+  PatternScoreBreakdown,
+  PatternAnalysisDetail,
+  AnalysisThreat,
+  IntelligenceSnapshot,
+  TileAction,
+} from '../types/intelligence';
+
+export type {
+  HandAnalysis,
+  TileRecommendation,
+  PatternRecommendation,
+  PatternAnalysis,
+  PatternScoreBreakdown,
+  PatternAnalysisDetail,
+  AnalysisThreat,
+  IntelligenceSnapshot,
+  TileAction,
+} from '../types/intelligence';
 
 interface IntelligenceState {
   handAnalysis: HandAnalysis | null;

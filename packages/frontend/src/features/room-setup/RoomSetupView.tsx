@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom'
 import { useRoomSetup } from '../../hooks/useRoomSetup'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { usePlayerStore } from '../../stores/player.store'
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { useSocketContext } from '../../hooks/useSocketContext'
 import { CoPilotModeSelector } from './CoPilotModeSelector'
 import { RoomCreation } from './RoomCreation'
@@ -583,3 +583,4 @@ export const RoomSetupView: React.FC = () => {
     </div>
   )
 }
+

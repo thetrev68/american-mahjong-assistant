@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { Card } from '../../ui-components/Card'
 import { Button } from '../../ui-components/Button'
 import { TileInputModal } from '../shared/TileInputModal'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { useTileStore } from '../../stores/tile-store'
-import { useIntelligenceStore } from '../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../stores/useIntelligenceStore'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
 
 interface GameControlPanelProps {
@@ -164,3 +164,4 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
     </>
   )
 }
+

@@ -2,8 +2,8 @@
 // Provides reactive game phase detection with performance optimization
 
 import { useMemo } from 'react'
-import { useGameStore } from '../../../stores/game-store'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useGameStore } from '../../../stores/useGameStore'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { urgencyDetectionService } from '../services/urgency-detection.service'
 import type { GamePhase } from '../types/strategy-advisor.types'
 import type { GameStateSnapshot } from '../services/urgency-detection.service'
@@ -307,3 +307,4 @@ function generatePhaseRecommendations(phase: GamePhase, gameState: GameStateSnap
 
 // Export types for external use
 export type { GamePhaseAnalysis }
+

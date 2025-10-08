@@ -8,7 +8,7 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { LoadingSpinner } from '../../ui-components/LoadingSpinner'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
-import type { PatternRecommendation } from '../../stores/intelligence-store'
+import type { PatternRecommendation } from '../../stores/useIntelligenceStore'
 
 interface PatternRecommendationsProps {
   recommendations: PatternRecommendation[]

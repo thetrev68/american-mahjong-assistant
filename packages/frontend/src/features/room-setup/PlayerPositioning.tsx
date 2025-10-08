@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { type PlayerPosition } from '../../stores/player.store'
 import { usePlayerStore } from '../../stores/player.store'
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 
 interface Player {
   id: string

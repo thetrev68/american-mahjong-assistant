@@ -1,9 +1,9 @@
 // Graceful Disconnection Manager
 // Handles clean disconnection, state preservation, and graceful degradation
 
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { useConnectionStore } from '../../stores/connection.store'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService, destroyRoomMultiplayerService } from './room-multiplayer'
@@ -514,3 +514,4 @@ export const handleServerShutdown = async (): Promise<void> => {
     }
   )
 }
+

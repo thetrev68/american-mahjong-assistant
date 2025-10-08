@@ -2,7 +2,7 @@
 // Pre-game lobby with complete player management and host controls
 
 import React, { useState, useMemo, useEffect } from 'react'
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { usePlayerStore } from '../../stores/player.store'
 import { useDevPerspectiveStore } from '../../stores/dev-perspective.store'
 import { getRoomMultiplayerService } from '../../lib/services/room-multiplayer'

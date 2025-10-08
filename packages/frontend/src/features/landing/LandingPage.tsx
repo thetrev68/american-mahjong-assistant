@@ -4,10 +4,10 @@ import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { Container } from '../../ui-components/layout/Container'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
-import { useIntelligenceStore } from '../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../stores/useIntelligenceStore'
 
 export const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
@@ -225,3 +225,4 @@ export const LandingPage = () => {
     </Container>
   )
 }
+

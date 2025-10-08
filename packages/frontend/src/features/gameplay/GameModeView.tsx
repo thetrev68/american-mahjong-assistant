@@ -2,12 +2,12 @@
 // Handles draw/discard mechanics, call evaluation, and continuous pattern analysis
 
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
-import { useGameStore } from '../../stores/game-store'
-import { useRoomStore } from '../../stores/room.store'
+import { useGameStore } from '../../stores/useGameStore'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { usePlayerStore } from '../../stores/player.store'
 import { usePatternStore } from '../../stores/pattern-store'
-import { useIntelligenceStore } from '../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../stores/useIntelligenceStore'
 import { useTileStore } from '../../stores/tile-store'
 import { useTurnStore, useTurnSelectors } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
@@ -1573,3 +1573,5 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     </>
   )
 }
+
+

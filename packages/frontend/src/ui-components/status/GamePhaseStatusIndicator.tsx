@@ -4,7 +4,7 @@
  */
 
 import React from 'react'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
@@ -343,3 +343,4 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
     </Card>
   )
 }
+

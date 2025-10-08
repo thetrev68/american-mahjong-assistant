@@ -3,7 +3,7 @@
 
 import { Socket } from 'socket.io-client'
 import { useTurnStore, type TurnPlayer } from '../../../stores/turn-store'
-import { useGameStore } from '../../../stores/game-store'
+import { useGameStore } from '../../../stores/useGameStore'
 
 export class TurnMultiplayerService {
   private socket: Socket | null = null

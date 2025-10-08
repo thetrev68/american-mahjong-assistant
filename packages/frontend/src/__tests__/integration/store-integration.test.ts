@@ -4,12 +4,12 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
 import { useHistoryStore } from '../../stores/history-store'
-import { useIntelligenceStore } from '../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../stores/useIntelligenceStore'
 import type { NMJL2025Pattern } from 'shared-types'
 import type { TileSuit } from 'shared-types'
 import type { TileValue } from 'shared-types'
@@ -388,3 +388,4 @@ describe('Store Integration Tests', () => {
     })
   })
 })
+

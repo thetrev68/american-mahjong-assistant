@@ -6,15 +6,15 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { act } from '@testing-library/react'
 import { GameModeView } from '../../gameplay/GameModeView'
 import { useCharlestonStore } from '../../../stores/charleston-store'
-import { useGameStore } from '../../../stores/game-store'
+import { useGameStore } from '../../../stores/useGameStore'
 import { useTileStore } from '../../../stores/tile-store'
 import { useRoomSetupStore } from '../../../stores/room-setup.store'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { usePatternStore } from '../../../stores/pattern-store'
 import { useTurnStore, useTurnSelectors } from '../../../stores/turn-store'
 import { useHistoryStore } from '../../../stores/history-store'
 import { usePlayerStore } from '../../../stores/player.store'
-import { useRoomStore } from '../../../stores/room.store'
+import { useRoomStore } from '../../../stores/useRoomStore'
 import { createTestHand } from '../../../__tests__/factories'
 import type { Tile } from 'shared-types'
 
@@ -23,7 +23,7 @@ vi.mock('../../../stores/charleston-store', () => ({
   useCharlestonStore: vi.fn()
 }))
 
-vi.mock('../../../stores/game-store', () => {
+vi.mock('../../../stores/useGameStore', () => {
   const mockGetState = vi.fn(() => ({ currentTurn: 1 }))
   const useGameStore = vi.fn(() => ({})) as any
   useGameStore.getState = mockGetState
@@ -38,7 +38,7 @@ vi.mock('../../../stores/room-setup.store', () => ({
   useRoomSetupStore: vi.fn()
 }))
 
-vi.mock('../../../stores/intelligence-store', () => ({
+vi.mock('../../../stores/useIntelligenceStore', () => ({
   useIntelligenceStore: vi.fn()
 }))
 
@@ -59,7 +59,7 @@ vi.mock('../../../stores/player.store', () => ({
   usePlayerStore: vi.fn()
 }))
 
-vi.mock('../../../stores/room.store', () => ({
+vi.mock('../../../stores/useRoomStore', () => ({
   useRoomStore: vi.fn()
 }))
 
@@ -825,3 +825,5 @@ describe('Charleston Integration Tests', () => {
     })
   })
 })
+
+

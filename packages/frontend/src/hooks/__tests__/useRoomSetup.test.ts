@@ -4,7 +4,7 @@ import { renderHook, act } from '@testing-library/react'
 import { vi } from 'vitest'
 import { useRoomSetup } from '../useRoomSetup'
 import { useRoomSetupStore } from '../../stores/room-setup.store'
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { usePlayerStore } from '../../stores/player.store'
 import { useMultiplayerStore } from '../../stores/multiplayer-store'
 import { useMultiplayer } from '../useMultiplayer'
@@ -12,7 +12,7 @@ import { useMultiplayer } from '../useMultiplayer'
 // Mock dependencies
 vi.mock('../useMultiplayer')
 vi.mock('../../stores/room-setup.store')
-vi.mock('../../stores/room.store')
+vi.mock('../../stores/useRoomStore')
 vi.mock('../../stores/player.store')
 vi.mock('../../stores/multiplayer-store')
 

@@ -1,7 +1,7 @@
 // Pattern Progress Ring Component
 // Circular progress indicator for pattern completion with animated fills
 
-import type { PatternAnalysis } from '../../stores/intelligence-store'
+import type { PatternAnalysis } from '../../stores/useIntelligenceStore'
 import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-color-utils'
 
 interface PatternProgressRingProps {

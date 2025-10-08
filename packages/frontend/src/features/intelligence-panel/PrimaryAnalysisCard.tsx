@@ -6,7 +6,7 @@ import { getColoredPatternParts, getColorClasses } from '../../utils/pattern-col
 import { renderPatternVariation, getTileCharClasses, getTileDisplayChar } from '../../utils/tile-display-utils'
 import { tileService } from '../../lib/services/tile-service'
 import { useTileStore } from '../../stores/tile-store'
-import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
+import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/useIntelligenceStore'
 
 interface PrimaryAnalysisCardProps {
   analysis: HandAnalysis

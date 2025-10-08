@@ -9,7 +9,7 @@ import type {
   StrategyMessage,
   UrgencyLevel
 } from '../types/strategy-advisor.types'
-import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../../stores/intelligence-store'
+import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../../stores/useIntelligenceStore'
 import { MessageGeneratorService } from './message-generator.service'
 
 export class StrategyAdvisorAdapter {

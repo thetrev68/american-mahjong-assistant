@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 
 interface MobileNavItem {
   id: string
@@ -398,3 +398,4 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
     </button>
   )
 }
+

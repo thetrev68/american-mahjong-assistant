@@ -1,7 +1,7 @@
 // Recommendation Badge Component
 // Shows keep/pass/discard recommendations with confidence indicators
 
-import type { TileRecommendation } from '../../stores/intelligence-store'
+import type { TileRecommendation } from '../../stores/useIntelligenceStore'
 
 interface RecommendationBadgeProps {
   recommendation: TileRecommendation

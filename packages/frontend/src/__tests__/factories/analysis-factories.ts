@@ -4,7 +4,7 @@
  * Creates consistent analysis engine results and intelligence data for testing
  */
 
-import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/intelligence-store'
+import type { HandAnalysis, PatternRecommendation, TileRecommendation } from '../../stores/useIntelligenceStore'
 import type { PatternAnalysisFacts, TileContribution, GameContext } from '../../features/intelligence-panel/services/pattern-analysis-engine'
 import type { RankedPatternResults } from '../../features/intelligence-panel/services/pattern-ranking-engine'
 import type { PatternSelectionOption } from 'shared-types'

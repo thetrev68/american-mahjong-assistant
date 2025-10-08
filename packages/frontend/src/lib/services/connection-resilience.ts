@@ -2,9 +2,9 @@
 // Comprehensive reconnection handling, state recovery, and network error management
 
 import type { useSocket } from '../../hooks/useSocket'
-import { useRoomStore } from '../../stores/room.store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { useConnectionStore } from '../../stores/connection.store'
-import { useGameStore } from '../../stores/game-store'
+import { useGameStore } from '../../stores/useGameStore'
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
@@ -484,3 +484,4 @@ export const destroyConnectionResilience = (): void => {
   lastDisconnectionTime = 0
   isGlobalReconnectionInProgress = false
 }
+

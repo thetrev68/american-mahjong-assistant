@@ -11,12 +11,12 @@ import type { Tile, PlayerTile } from 'shared-types'
 import type { CoPilotMode } from '../../../stores/room-setup.store'
 
 // Mock all store dependencies
-vi.mock('../../../stores/game-store')
-vi.mock('../../../stores/room.store')
+vi.mock('../../../stores/useGameStore')
+vi.mock('../../../stores/useRoomStore')
 vi.mock('../../../stores/room-setup.store')
 vi.mock('../../../stores/player.store')
 vi.mock('../../../stores/pattern-store')
-vi.mock('../../../stores/intelligence-store')
+vi.mock('../../../stores/useIntelligenceStore')
 vi.mock('../../../stores/tile-store')
 vi.mock('../../../stores/turn-store')
 vi.mock('../../../stores/charleston-store')
@@ -425,12 +425,12 @@ const mockTileService = {
 }
 
 // Import and setup all mocks directly
-import { useGameStore } from '../../../stores/game-store'
-import { useRoomStore } from '../../../stores/room.store'
+import { useGameStore } from '../../../stores/useGameStore'
+import { useRoomStore } from '../../../stores/useRoomStore'
 import { useRoomSetupStore } from '../../../stores/room-setup.store'
 import { usePlayerStore } from '../../../stores/player.store'
 import { usePatternStore } from '../../../stores/pattern-store'
-import { useIntelligenceStore } from '../../../stores/intelligence-store'
+import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { useTileStore } from '../../../stores/tile-store'
 import { useTurnStore, useTurnSelectors } from '../../../stores/turn-store'
 import { useCharlestonStore } from '../../../stores/charleston-store'
@@ -1490,3 +1490,5 @@ describe('GameModeView Component', () => {
     })
   })
 })
+
+
