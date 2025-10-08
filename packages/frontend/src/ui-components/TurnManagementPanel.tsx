@@ -66,7 +66,9 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
     }
   };
 
-  const getPlayerIndicator = (player: any, isCurrent: boolean, isNext: boolean) => {
+  import type { Player } from '@shared-types/game-types';
+
+const getPlayerIndicator = (player: Player, isCurrent: boolean, isNext: boolean) => {
     let className = 'flex items-center justify-between p-3 rounded-lg border transition-all';
 
     if (isCurrent) {

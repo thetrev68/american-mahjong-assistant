@@ -304,7 +304,7 @@ export function useTutorial() {
       tutorialActions.goToSection(section);
       tutorialActions.goToStep(sectionFirstStep.id);
     }
-  }, [tutorialActions.goToSection, tutorialActions.goToStep]);
+  }, [tutorialActions]);
 
   // Skill level assessment
   const assessSkillLevel = useCallback((answers: Record<string, unknown>) => {
@@ -365,7 +365,7 @@ export function useTutorial() {
     });
     
     return skillLevel;
-  }, [tutorialActions.setSkillLevel, tutorialActions.updateProgress]);
+  }, [tutorialActions]);
 
   // Auto-save progress
   useEffect(() => {
@@ -378,7 +378,7 @@ export function useTutorial() {
 
       return () => clearInterval(interval);
     }
-  }, [tutorialState.isActive, tutorialActions.updateProgress]);
+  }, [tutorialState.isActive, tutorialActions]);
 
   return {
     // State

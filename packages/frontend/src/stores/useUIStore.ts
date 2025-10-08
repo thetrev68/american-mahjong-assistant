@@ -1,9 +1,8 @@
 import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
-import type { Tile } from '@shared-types/tile-types';
-import type { NMJL2025Pattern } from '@shared-types/nmjl-types';
+
 import type { TutorialProgress, UserPreferences, SkillLevel, TutorialSection, TutorialStep } from '../features/tutorial/types';
-import type { GameOutcome, GameDifficulty, DecisionType, DecisionQuality, GameDecision, PatternAnalysis, GamePerformance, GameInsights, CompletedGame, GameComment, PerformanceStats, LearningRecommendation } from '@shared-types/game-state-types';
+import type { GameOutcome, GameDifficulty, DecisionQuality, GameDecision, CompletedGame, PerformanceStats, LearningRecommendation } from '@shared-types/game-state-types';
 interface HistoryState {
   completedGames: CompletedGame[];
   currentGameId: string | null;
@@ -26,29 +25,7 @@ interface HistoryState {
   error: string | null;
 }
 
-interface HistoryActions {
-  startGame: (gameId: string, difficulty: GameDifficulty) => void;
-  completeGame: (gameData: Omit<CompletedGame, 'id'>) => string;
-  deleteGame: (gameId: string) => void;
-  recordDecision: (decision: Omit<GameDecision, 'id'>) => void;
-  updateDecisionQuality: (decisionId: string, quality: DecisionQuality, reasoning: string) => void;
-  calculatePerformanceStats: () => void;
-  generateLearningRecommendations: () => void;
-  updateSkillLevel: (level: 'beginner' | 'intermediate' | 'expert') => void;
-  selectGame: (gameId: string | null) => void;
-  setViewMode: (mode: 'overview' | 'detailed' | 'comparison') => void;
-  setSorting: (sortBy: string, order: 'asc' | 'desc') => void;
-  setFilter: (filter: Partial<HistoryState['filterBy']>) => void;
-  clearFilters: () => void;
-  shareGame: (gameId: string) => Promise<boolean>;
-  voteOnGame: (gameId: string, vote: 'up' | 'down') => Promise<boolean>;
-  addComment: (gameId: string, comment: string) => Promise<boolean>;
-  exportHistory: () => string;
-  importHistory: (data: string) => Promise<boolean>;
-  clearHistory: () => void;
-  setError: (error: string | null) => void;
-  clearError: () => void;
-}
+
 
 // --- TUTORIAL TYPES ---
 interface TutorialStoreState {
@@ -63,24 +40,7 @@ interface TutorialStoreState {
   error: string | null;
 }
 
-interface TutorialStoreActions {
-  startTutorial: () => void;
-  nextStep: () => void;
-  previousStep: () => void;
-  goToStep: (stepId: string) => void;
-  goToSection: (section: TutorialSection) => void;
-  completeTutorial: () => void;
-  skipTutorial: () => void;
-  completeStep: (stepId: string) => void;
-  updateProgress: (progressUpdate: Partial<TutorialProgress>) => void;
-  setSkillLevel: (level: SkillLevel) => void;
-  updatePreferences: (preferencesUpdate: Partial<UserPreferences>) => void;
-  resetPreferences: () => void;
-  startDemo: (component: string) => void;
-  stopDemo: () => void;
-  setError: (error: string | null) => void;
-  reset: () => void;
-}
+
 
 // --- DEV TYPES ---
 interface DevState {

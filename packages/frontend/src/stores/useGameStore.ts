@@ -141,7 +141,7 @@ export const useGameStore = create<GameState>()(
           addAlert: (alert) => set((state) => ({ alerts: [...state.alerts, { ...alert, id: Date.now().toString() }] })),
           // --- Merged TurnStore Actions ---
       initializeTurns: (players: Player[]) =>
-        set(state => ({
+        set(_state => ({
           turnOrder: players.map(p => p.id),
           currentPlayerId: players[0]?.id || null,
         })),

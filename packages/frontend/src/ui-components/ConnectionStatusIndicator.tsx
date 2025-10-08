@@ -14,12 +14,18 @@ interface ConnectionStatusProps {
   className?: string;
 }
 
+interface ConnectionHealth {
+  status: string;
+  attempt?: number;
+  maxAttempts?: number;
+}
+
 export function ConnectionStatusIndicator({ position = 'top-right', showDetails = false, compact = false, className = '' }: ConnectionStatusProps) {
   const roomStore = useRoomStore();
   const gameStore = useGameStore();
   const socket = useSocketContext();
   const [showTooltip, setShowTooltip] = useState(false);
-  const [connectionHealth, setConnectionHealth] = useState<any>();
+  const [connectionHealth, setConnectionHealth] = useState<ConnectionHealth | undefined>();
 
   useEffect(() => {
     const updateHealth = () => {
