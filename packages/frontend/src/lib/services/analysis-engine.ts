@@ -289,7 +289,7 @@ export class AnalysisEngine {
           },
           engine1FactsForEngine3 // Pass Engine 1 facts so Engine 3 can see actual tile matching
         ) as unknown as Promise<{
-          tileActions: Array<{ 
+          tileActions: Array<{
             tileId: string
             primaryAction: string
             confidence: number
@@ -297,7 +297,16 @@ export class AnalysisEngine {
             priority: number
           }>
           strategicAdvice: string[]
-        }> | { tileActions: any[]; strategicAdvice: string[] }
+        }> | {
+          tileActions: Array<{
+            tileId: string
+            primaryAction: string
+            confidence: number
+            reasoning: string
+            priority: number
+          }>
+          strategicAdvice: string[]
+        }
       )
       console.log('✅ Engine 3 complete:', tileRecommendations.tileActions?.length, 'tile actions')
 

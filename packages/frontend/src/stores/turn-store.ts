@@ -1,8 +1,6 @@
 // Legacy adapter over the consolidated game store turn state
 import { useGameStore } from './useGameStore'
 
-type AnyFn = (...args: unknown[]) => unknown
-
 function mapState() {
   const s = useGameStore.getState()
   return {
@@ -24,10 +22,10 @@ function mapState() {
 }
 
 export const useTurnStore = Object.assign(
-  ((selector?: (s: ReturnType<typeof mapState>) => any) => {
+  ((selector?: (s: ReturnType<typeof mapState>) => unknown) => {
     const mapped = mapState()
     return selector ? selector(mapped) : mapped
-  }) as AnyFn,
+  }) as <T>(selector?: (s: ReturnType<typeof mapState>) => T) => T | ReturnType<typeof mapState>,
   { getState: () => mapState() }
 )
 

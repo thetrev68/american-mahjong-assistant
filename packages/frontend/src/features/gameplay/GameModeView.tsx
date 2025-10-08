@@ -529,7 +529,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Hand changed - triggering analysis
       analyzeCurrentHand()
     }
-    // eslint-disable-next-line
   }, [fullHand.length, selectedPatterns.length])
 
   // Initialize game end coordinator

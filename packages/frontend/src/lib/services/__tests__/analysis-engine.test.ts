@@ -202,7 +202,7 @@ describe('Analysis Engine', () => {
       const patterns = [createPatternSelection()]
       const gameContext = {
         wallTilesRemaining: 50,
-        currentPhase: 'gameplay' as const,
+        currentPhase: 'gameplay',
         discardPile: ['1B', '2C']
       }
       
@@ -597,4 +597,5 @@ describe('Analysis Engine', () => {
       expect(result.recommendedPatterns[1].completionPercentage).toBe(75) // Higher completion but lower AI score
     })
   })
-})
+// Ensure file is treated as a module for parsers
+export {}

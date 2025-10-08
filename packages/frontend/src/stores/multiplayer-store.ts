@@ -3,8 +3,6 @@
 import { useRoomStore } from './useRoomStore'
 import type { Room, Player, GameState, PlayerGameState, SharedState } from '@shared-types/room-types'
 
-type AnyFn = (...args: unknown[]) => unknown
-
 function mapState() {
   const s = useRoomStore.getState()
   return {
@@ -54,9 +52,9 @@ function mapState() {
     // Utilities and computed
     clearAll: () => s.actions.clearAll(),
     getCurrentPlayer: () => {
-      const p = s.actions.getCurrentPlayer?.()
+      const p = s.actions.getCurrentPlayer?.() as Player | null
       if (!p) return null
-      const { id, name, isHost } = p as any
+      const { id, name, isHost } = p
       return { id, name, isHost }
     },
     getPlayerGameState: (playerId: string): PlayerGameState | null => {
@@ -68,7 +66,7 @@ function mapState() {
     areAllPlayersReady: () => {
       const gs = useRoomStore.getState().gameState
       if (!gs) return false
-      const states = Object.values(gs.playerStates || {}) as any[]
+      const states = Object.values(gs.playerStates || {}) as PlayerGameState[]
       if (states.length === 0) return false
       return states.every((ps) => ps?.isReady === true)
     },
@@ -89,16 +87,16 @@ function mapState() {
       }
     },
     getAvailablePositions: () => s.actions.getAvailablePositions?.(),
-    isPositionTaken: (pos: any) => s.actions.isPositionTaken?.(pos),
+    isPositionTaken: (pos: ReturnType<typeof useRoomStore.getState>['actions']['getAvailablePositions'] extends () => (infer P)[] ? P : never) => s.actions.isPositionTaken?.(pos),
     getCurrentPlayerPosition: () => s.actions.getCurrentPlayerPosition?.(),
   }
 }
 
 export const useMultiplayerStore = Object.assign(
-  ((selector?: (s: ReturnType<typeof mapState>) => any) => {
+  ((selector?: (s: ReturnType<typeof mapState>) => unknown) => {
     const mapped = mapState()
     return selector ? selector(mapped) : mapped
-  }) as AnyFn,
+  }) as <T>(selector?: (s: ReturnType<typeof mapState>) => T) => T | ReturnType<typeof mapState>,
   {
     getState: () => mapState(),
   }

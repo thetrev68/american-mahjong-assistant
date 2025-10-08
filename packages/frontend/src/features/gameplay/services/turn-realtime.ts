@@ -151,7 +151,6 @@ export class TurnRealtimeService {
     console.log('Received turn action broadcast:', actionData)
 
     const turnStore = useTurnStore.getState()
-    const gameStore = useGameStore.getState()
 
     switch (actionData.action) {
       case 'draw':
@@ -256,7 +255,6 @@ export class TurnRealtimeService {
 
     console.log('Call opportunity available:', opportunityData)
 
-    const gameStore = useGameStore.getState()
     const roomStore = useRoomStore.getState()
     const currentPlayerId = roomStore.hostPlayerId
 
@@ -351,7 +349,6 @@ export class TurnRealtimeService {
     }
 
     const turnStore = useTurnStore.getState()
-    const gameStore = useGameStore.getState()
 
     if (resolutionData.winner && resolutionData.executed) {
       getGameActions().addAlert({
@@ -372,7 +369,6 @@ export class TurnRealtimeService {
   handleTurnTimeout(playerId: string): void {
     console.log(`Turn timeout for player: ${playerId}`)
     
-    const gameStore = useGameStore.getState()
     getGameActions().addAlert({
       type: 'warning',
       title: 'Turn Timeout',
@@ -433,7 +429,6 @@ export class TurnRealtimeService {
     console.log('Received game state sync:', syncData)
 
     const turnStore = useTurnStore.getState()
-    const gameStore = useGameStore.getState()
 
     // Update turn state
     turnStore.setCurrentPlayer(syncData.currentPlayer)
@@ -455,7 +450,6 @@ export class TurnRealtimeService {
 
     console.error('Turn action rejected:', rejectionData)
 
-    const gameStore = useGameStore.getState()
     getGameActions().addAlert({
       type: 'warning',
       title: 'Action Rejected',
@@ -474,7 +468,6 @@ export class TurnRealtimeService {
 
     console.log('Turn action confirmed successful:', successData)
 
-    const gameStore = useGameStore.getState()
     const turnStore = useTurnStore.getState()
 
     // Update turn to next player
@@ -499,7 +492,6 @@ export class TurnRealtimeService {
 
     console.log('Call response broadcast received:', responseData)
 
-    const gameStore = useGameStore.getState()
 
     if (responseData.response === 'call') {
       getGameActions().addAlert({
@@ -530,7 +522,6 @@ export class TurnRealtimeService {
 
     console.log('Turn interrupted:', interruptData)
 
-    const gameStore = useGameStore.getState()
     const turnStore = useTurnStore.getState()
 
     // Update turn to interrupting player
@@ -594,4 +585,3 @@ export const useTurnRealtime = () => {
     cleanup: () => service.cleanup()
   }
 }
-

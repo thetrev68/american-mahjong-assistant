@@ -306,7 +306,7 @@ export class DisconnectionManager {
   // Clear all local state
   private async clearAllLocalState(): Promise<void> {
     const roomStore = useRoomStore.getState()
-    const _gameStore = useGameStore.getState()
+    // const gameState = useGameStore.getState()
     const turnStore = useTurnStore.getState()
     const charlestonStore = useCharlestonStore.getState()
 

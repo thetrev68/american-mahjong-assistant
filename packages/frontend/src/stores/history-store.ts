@@ -1,6 +1,6 @@
 // Legacy placeholder for refactored store
-type AnyFn = (...args: any[]) => any
-interface StoreShape { [key: string]: any }
+type AnyFn = (...args: unknown[]) => unknown
+interface StoreShape { [key: string]: unknown }
 
 const state: StoreShape = {
   completedGames: [],
@@ -8,7 +8,6 @@ const state: StoreShape = {
 }
 
 export const useHistoryStore = Object.assign(
-  ((selector?: (s: StoreShape) => any) => (selector ? selector(state) : state)) as AnyFn,
+  ((selector?: (s: StoreShape) => unknown) => (selector ? selector(state) : state)) as <T>(selector?: (s: StoreShape) => T) => T | StoreShape,
   { getState: () => state }
 )
-/* eslint-disable @typescript-eslint/no-explicit-any */
