@@ -16,8 +16,8 @@ import { ShareButton } from '../../ui-components/ShareButton'
 import { Container } from '../../ui-components/layout/Container'
 import { Card } from '../../ui-components/Card'
 import DevShortcuts from '../../ui-components/DevShortcuts'
-import { SocketEventMap } from '../../../../shared-types/src/socket-event-types'
-import { Player } from '../../../../shared-types/src/room-types'
+import type { SocketEventMap } from 'shared-types'
+import type { Player } from 'shared-types'
 
 type RoomMode = 'create' | 'join'
 

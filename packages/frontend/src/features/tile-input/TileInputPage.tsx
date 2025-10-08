@@ -12,7 +12,7 @@ import { HandDisplay } from './HandDisplay'
 import { SelectionArea } from '../gameplay/SelectionArea'
 import { useTileStore, useGameStore, useMultiplayerStore } from '../../stores'
 import DevShortcuts from '../../ui-components/DevShortcuts'
-import { PlayerTile } from '../../../../shared-types/src/tile-types'
+import type { PlayerTile } from 'shared-types'
 
 // Stable empty array to avoid infinite loops from new array references
 const EMPTY_HAND: PlayerTile[] = []
