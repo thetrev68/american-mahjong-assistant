@@ -37,11 +37,9 @@ export const RoomSetupView: React.FC = () => {
   const navigate = useNavigate()
   const roomSetup = useRoomSetup()
   const roomSetupStore = useRoomSetupStore()
-  // Only select the specific properties we need to prevent infinite re-renders
+  // Only select DATA (not functions) to prevent infinite re-renders from new function references
   const currentRoom = useMultiplayerStore((s) => s.currentRoom)
   const currentPlayerId = useMultiplayerStore((s) => s.currentPlayerId)
-  const clearAll = useMultiplayerStore((s) => s.clearAll)
-  const setCurrentRoom = useMultiplayerStore((s) => s.setCurrentRoom)
   const gameActions = useGameStore((state) => state.actions)
   const playerStore = usePlayerStore()
   const socket = useSocketContext()
@@ -151,7 +149,7 @@ export const RoomSetupView: React.FC = () => {
     console.log('🔄 Resetting all stores...')
     roomSetupStore.resetToStart()
     gameActions.resetGame()
-    clearAll()
+    useMultiplayerStore.getState().clearAll()
     playerStore.clearPlayerData()
     // Note: tileStore reset is handled by gameActions.resetGame()
 
@@ -216,7 +214,7 @@ export const RoomSetupView: React.FC = () => {
           console.log('✅ Players added. Positioning all', response.room.players.length, 'players')
 
           // Update multiplayerStore with new room
-          setCurrentRoom(response.room)
+          useMultiplayerStore.getState().setCurrentRoom(response.room)
 
           // Find the host player and update roomStore with hostPlayerId
           const hostPlayer = response.room.players.find((p: Player) => p.isHost)
