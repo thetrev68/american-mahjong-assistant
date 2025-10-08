@@ -15,6 +15,11 @@ interface GameActions {
   startCharleston: () => void;
   selectPattern: (pattern: PatternSelectionOption) => void;
   addAlert: (alert: Omit<Notification, "id">) => void;
+  setPhase: (phase: GamePhase | 'charleston') => void;
+  resetGame: () => void;
+  clearTargetPatterns: () => void;
+  setTargetPatterns: (patterns: PatternSelectionOption[]) => void;
+  clearHand: () => void;
 
   // From turn-store (Setup and initialization)
   initializeTurns: (players: Player[]) => void;
@@ -139,6 +144,11 @@ export const useGameStore = create<GameState>()(
           startCharleston: () => set({ phase: 'charleston' }),
           selectPattern: (pattern) => set((state) => ({ targetPatterns: [...state.targetPatterns, pattern] })),
           addAlert: (alert) => set((state) => ({ alerts: [...state.alerts, { ...alert, id: Date.now().toString() }] })),
+          setPhase: (phase) => set({ phase }),
+          resetGame: () => set(() => ({ ...initialState })),
+          clearTargetPatterns: () => set({ targetPatterns: [] }),
+          setTargetPatterns: (patterns) => set({ targetPatterns: patterns }),
+          clearHand: () => set({ playerHand: [], exposedTiles: [], discardPile: [] }),
           // --- Merged TurnStore Actions ---
       initializeTurns: (players: Player[]) =>
         set(_state => ({

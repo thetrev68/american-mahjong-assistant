@@ -3,20 +3,16 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '../../ui-components/Button'
 import { Card } from '../../ui-components/Card'
 import { Container } from '../../ui-components/layout/Container'
-import { useRoomSetupStore } from '../../stores/room-setup.store'
 import { useGameStore } from '../../stores/useGameStore'
-import { usePatternStore } from '../../stores/pattern-store'
-import { useTileStore } from '../../stores/tile-store'
+import { useRoomStore } from '../../stores/useRoomStore'
 import { useIntelligenceStore } from '../../stores/useIntelligenceStore'
 
 export const LandingPage = () => {
   const [selectedFeature, setSelectedFeature] = useState<string | null>(null)
   const navigate = useNavigate()
-  const roomSetupStore = useRoomSetupStore()
-  const gameStore = useGameStore()
-  const patternStore = usePatternStore()
-  const tileStore = useTileStore()
-  const intelligenceStore = useIntelligenceStore()
+  const gameActions = useGameStore((state) => state.actions)
+  const roomActions = useRoomStore((state) => state.actions)
+  const intelligenceActions = useIntelligenceStore((state) => state.actions)
   
   const handleStartGame = () => {
     navigate('/room-setup')
@@ -24,16 +20,15 @@ export const LandingPage = () => {
   
   const handleReset = () => {
     // Clear ALL stores for a complete fresh start - no navigation
-    roomSetupStore.resetToStart()
-    patternStore.clearSelection()
-    patternStore.clearAllFilters()
-    tileStore.clearHand()
-    tileStore.clearRecommendations()
-    intelligenceStore.clearAnalysis()
-    intelligenceStore.clearCache()
+    roomActions.clearAll()
+    gameActions.resetGame()
+    gameActions.clearTargetPatterns()
+    intelligenceActions.clearAnalysis()
+    intelligenceActions.clearRecommendations()
+    intelligenceActions.clearCache()
     
     // Show confirmation that reset was successful
-    gameStore.addAlert({
+    gameActions.addAlert({
       type: 'success',
       title: 'Reset Complete',
       message: 'All game data cleared successfully'
@@ -181,15 +176,15 @@ export const LandingPage = () => {
                           onClick={(e) => {
                             e.stopPropagation()
                             if (feature.id === 'pattern-selection') {
-                              gameStore.setGamePhase('lobby')
+                              gameActions.setPhase('lobby')
                               navigate('/pattern-selection')
                             }
                             if (feature.id === 'tile-intelligence') {
-                              gameStore.setGamePhase('lobby')
+                              gameActions.setPhase('lobby')
                               navigate('/tiles')
                             }
                             if (feature.id === 'charleston-ai') {
-                              gameStore.setGamePhase('lobby')
+                              gameActions.setPhase('lobby')
                               navigate('/tiles')
                             }
                           }}
