@@ -35,7 +35,7 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
 }) => {
   const navigate = useNavigate()
   const location = useLocation()
-  const gameStore = useGameStore()
+  const gamePhase = useGameStore((state) => state.gamePhase ?? state.phase)
   const [activeItem, setActiveItem] = useState<string>('')
 
   // Default navigation items based on current game phase
@@ -53,13 +53,13 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
         label: 'Patterns',
         icon: '🎯',
         path: '/patterns',
-        badge: gameStore.gamePhase === 'tile-input' ? '!' : undefined,
+        badge: gamePhase === 'tile-input' ? '!' : undefined,
         description: 'Select patterns'
       }
     ]
 
     // Add phase-specific navigation
-    switch (gameStore.gamePhase) {
+    switch (gamePhase) {
       case 'tile-input':
         baseItems.push({
           id: 'tiles',

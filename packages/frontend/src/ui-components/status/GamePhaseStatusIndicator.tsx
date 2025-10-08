@@ -33,19 +33,35 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
   showProgress = true,
   className = ''
 }) => {
-  const gameStore = useGameStore()
+  const {
+    gamePhase,
+    players,
+    wallTilesRemaining,
+    currentTurn,
+    coPilotMode,
+    roomCode,
+    alerts,
+  } = useGameStore((state) => ({
+    gamePhase: state.gamePhase ?? state.phase,
+    players: state.players,
+    wallTilesRemaining: state.wallTilesRemaining ?? state.wallCount,
+    currentTurn: state.currentTurn ?? state.turnNumber,
+    coPilotMode: state.coPilotMode,
+    roomCode: state.roomCode,
+    alerts: state.alerts,
+  }));
   const patternStore = usePatternStore()
   const tileStore = useTileStore()
   const charlestonStore = useCharlestonStore()
 
   // Get current phase information
   const getPhaseInfo = (): PhaseInfo => {
-    const currentPhase = gameStore.gamePhase
+    const currentPhase = gamePhase
 
     switch (currentPhase) {
       case 'lobby': {
-        const playersReady = gameStore.players.filter(p => p.isReady).length
-        const totalPlayers = gameStore.players.length
+        const playersReady = players.filter(p => p.isReady).length
+        const totalPlayers = players.length
         const progress = totalPlayers > 0 ? (playersReady / totalPlayers) * 100 : 0
         
         return {
@@ -102,7 +118,7 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
 
       case 'playing': {
         const patterns = patternStore.targetPatterns.length
-        const wallRemaining = gameStore.wallTilesRemaining
+        const wallRemaining = wallTilesRemaining
         const gameProgress = wallRemaining > 0 ? ((152 - wallRemaining) / 152) * 100 : 100
         
         return {
@@ -227,7 +243,7 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
             })}
           </div>
           <div className="text-xs text-gray-400">
-            Turn {gameStore.currentTurn}
+            Turn {currentTurn}
           </div>
         </div>
       </div>
@@ -257,24 +273,24 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
 
       {/* Phase-specific details */}
       <div className="space-y-3 mb-4">
-        {gameStore.gamePhase === 'lobby' && (
+        {gamePhase === 'lobby' && (
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Co-Pilot Mode</div>
               <div className="font-medium capitalize">
-                {gameStore.coPilotMode || 'Not set'}
+                {coPilotMode || 'Not set'}
               </div>
             </div>
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Room Code</div>
               <div className="font-mono font-medium">
-                {gameStore.roomCode || 'N/A'}
+                {roomCode || 'N/A'}
               </div>
             </div>
           </div>
         )}
 
-        {gameStore.gamePhase === 'charleston' && (
+        {gamePhase === 'charleston' && (
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Round</div>
@@ -291,7 +307,7 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
           </div>
         )}
 
-        {gameStore.gamePhase === 'playing' && (
+        {gamePhase === 'playing' && (
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Patterns</div>
@@ -302,7 +318,7 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
             <div className="bg-white/50 rounded-lg p-3">
               <div className="text-xs text-gray-500 mb-1">Wall Tiles</div>
               <div className="font-medium">
-                {gameStore.wallTilesRemaining} remaining
+                {wallTilesRemaining} remaining
               </div>
             </div>
           </div>
@@ -322,11 +338,11 @@ export const GamePhaseStatusIndicator: React.FC<GamePhaseStatusProps> = ({
       )}
 
       {/* Game alerts */}
-      {gameStore.alerts.length > 0 && (
+      {alerts.length > 0 && (
         <div className="border-t border-white/50 pt-4 mt-4">
           <div className="text-xs text-gray-500 mb-2">Active Alerts</div>
           <div className="space-y-1">
-            {gameStore.alerts.slice(0, 2).map((alert, index) => (
+            {alerts.slice(0, 2).map((alert, index) => (
               <div key={index} className={`
                 text-xs px-2 py-1 rounded-full
                 ${alert.type === 'warning' ? 'bg-yellow-100 text-yellow-700' :

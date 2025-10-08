@@ -158,7 +158,7 @@ export class PhaseTransitionManager {
             // Use the centralized GameEndCoordinator for consistent game end detection
             try {
               const gameStore = useGameStore.getState()
-              return gameStore.checkForGameEnd()
+              return gameStore.actions.checkForGameEnd()
             } catch (error) {
               console.warn('Game end check failed, allowing transition:', error)
               return true // Allow transition if check fails

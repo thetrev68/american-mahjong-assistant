@@ -5,6 +5,8 @@ import { useGameStore } from '../../stores/useGameStore'
 import { useConnectionStore } from '../../stores/connection.store'
 import { handleNetworkError } from './disconnection-manager'
 
+const getGameActions = () => useGameStore.getState().actions
+
 export interface NetworkError {
   type: 'connection-failed' | 'timeout' | 'server-error' | 'rate-limit' | 'unknown'
   code?: string | number
@@ -286,7 +288,7 @@ export class NetworkErrorHandler {
     
     this.networkHealth.status = 'offline'
     
-    useGameStore.getState().addAlert({
+    getGameActions().addAlert({
       type: 'warning',
       title: 'Connection Failed',
       message: `Unable to restore connection after ${this.retryStrategy.maxAttempts} attempts. Please check your network and try again.`
@@ -298,8 +300,6 @@ export class NetworkErrorHandler {
 
   // Show error notification to user
   private showErrorNotification(error: NetworkError): void {
-    const gameStore = useGameStore.getState()
-    
     // Don't spam user with low severity errors
     if (error.severity === 'low' && this.networkHealth.consecutiveFailures < 3) {
       return
@@ -327,7 +327,7 @@ export class NetworkErrorHandler {
         break
     }
 
-    gameStore.addAlert({
+    getGameActions().addAlert({
       type,
       title,
       message: this.getUserFriendlyMessage(error)
@@ -395,7 +395,7 @@ export class NetworkErrorHandler {
     // Clear any active retries
     this.clearAllRetries()
     
-    useGameStore.getState().addAlert({
+    getGameActions().addAlert({
       type: 'success',
       title: 'Connection Restored',
       message: 'Successfully reconnected to the server'

@@ -4,6 +4,8 @@
 import { useRoomStore } from '../../stores/useRoomStore'
 import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/useGameStore'
+
+const getGameActions = () => useGameStore.getState().actions
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService, destroyRoomMultiplayerService } from './room-multiplayer'
@@ -129,7 +131,7 @@ export class DisconnectionManager {
     await this.preserveLocalStateForRecovery()
 
     // Show user-friendly message
-    useGameStore.getState().addAlert({
+    getGameActions().addAlert({
       type: 'warning',
       title: 'Connection Lost',
       message: reason.isRecoverable 
@@ -327,7 +329,7 @@ export class DisconnectionManager {
     })
     roomStore.updatePlayers([])
     roomStore.setCurrentPhase('waiting')
-    gameStore.resetGame()
+    getGameActions().resetGame()
     turnStore.resetTurns()
     charlestonStore.endCharleston()
 
@@ -359,7 +361,7 @@ export class DisconnectionManager {
     console.log('Grace period expired, performing cleanup')
     await this.performImmediateCleanup()
 
-    useGameStore.getState().addAlert({
+    getGameActions().addAlert({
       type: 'info',
       title: 'Session Ended',
       message: 'Unable to reconnect. Please start a new session.'
@@ -372,7 +374,7 @@ export class DisconnectionManager {
 
     switch (reason.type) {
       case 'user-initiated':
-        gameStore.addAlert({
+        getGameActions().addAlert({
           type: 'info',
           title: 'Left Game',
           message: 'You have left the game session'
@@ -380,7 +382,7 @@ export class DisconnectionManager {
         break
 
       case 'kicked':
-        gameStore.addAlert({
+        getGameActions().addAlert({
           type: 'warning',
           title: 'Removed from Room',
           message: 'You were removed from the room by the host'
@@ -388,7 +390,7 @@ export class DisconnectionManager {
         break
 
       case 'server-shutdown':
-        gameStore.addAlert({
+        getGameActions().addAlert({
           type: 'warning',
           title: 'Server Unavailable',
           message: 'The server is currently unavailable'
@@ -396,7 +398,7 @@ export class DisconnectionManager {
         break
 
       case 'network-error':
-        gameStore.addAlert({
+        getGameActions().addAlert({
           type: 'warning',
           title: 'Connection Error',
           message: reason.isRecoverable 
@@ -406,7 +408,7 @@ export class DisconnectionManager {
         break
 
       case 'timeout':
-        gameStore.addAlert({
+        getGameActions().addAlert({
           type: 'warning',
           title: 'Connection Timeout',
           message: 'Connection timed out. Please check your network.'

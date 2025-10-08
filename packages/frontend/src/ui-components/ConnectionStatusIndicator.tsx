@@ -22,7 +22,7 @@ interface ConnectionHealth {
 
 export function ConnectionStatusIndicator({ position = 'top-right', showDetails = false, compact = false, className = '' }: ConnectionStatusProps) {
   const roomStore = useRoomStore();
-  const gameStore = useGameStore();
+  const phase = useGameStore((state) => state.phase);
   const socket = useSocketContext();
   const [showTooltip, setShowTooltip] = useState(false);
   const [connectionHealth, setConnectionHealth] = useState<ConnectionHealth | undefined>();
@@ -143,7 +143,7 @@ export function ConnectionStatusIndicator({ position = 'top-right', showDetails 
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-300">Phase:</span>
-                <span className="text-sm text-white capitalize">{gameStore.phase}</span>
+                <span className="text-sm text-white capitalize">{phase}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-300">Players:</span>

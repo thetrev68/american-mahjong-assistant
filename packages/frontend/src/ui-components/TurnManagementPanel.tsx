@@ -2,6 +2,7 @@
 // Real-time turn tracking and controls for 4-player American Mahjong
 
 import React from 'react';
+import type { Player } from '@shared-types/game-types';
 import { useGameStore } from '../stores';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -21,7 +22,27 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
   onStartGame,
   showControls = true,
 }) => {
-  const gameStore = useGameStore();
+  const {
+    isGameActive,
+    players,
+    turnOrder,
+    currentPlayerId: currentPlayerIdState,
+    turnNumber,
+    roundNumber,
+    currentWind,
+    turnDuration,
+    canAdvanceTurn,
+  } = useGameStore((state) => ({
+    isGameActive: state.isGameActive,
+    players: state.players,
+    turnOrder: state.turnOrder,
+    currentPlayerId: state.currentPlayerId,
+    turnNumber: state.turnNumber,
+    roundNumber: state.roundNumber,
+    currentWind: state.currentWind,
+    turnDuration: state.turnDuration,
+    canAdvanceTurn: state.canAdvanceTurn,
+  }));
   const gameActions = useGameStore((s) => s.actions);
 
   const formatDuration = (seconds: number): string => {
@@ -31,23 +52,29 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
   };
 
   // Recreate selectors from old useTurnSelectors hook
+  const nextPlayerId = React.useMemo(() => {
+    if (!currentPlayerIdState || turnOrder.length === 0) return null;
+    const currentIndex = turnOrder.indexOf(currentPlayerIdState);
+    if (currentIndex === -1) return null;
+    return turnOrder[(currentIndex + 1) % turnOrder.length] || null;
+  }, [currentPlayerIdState, turnOrder]);
+
   const turnSelectors = {
-    isGameActive: gameStore.isGameActive,
-    currentPlayerName: gameStore.players.find((p) => p.id === gameStore.currentPlayerId)?.name || 'No player',
-    nextPlayerName: gameStore.players.find((p) => p.id === gameStore.turnOrder[(gameStore.turnOrder.indexOf(gameStore.currentPlayerId || '') + 1) % gameStore.turnOrder.length])?.name || 'No player',
-    turnNumber: gameStore.turnNumber,
-    roundNumber: gameStore.roundNumber,
-    currentWind: gameStore.currentWind,
-    turnDuration: gameStore.turnDuration,
-    canAdvanceTurn: gameStore.canAdvanceTurn,
-    playerCount: gameStore.players.length,
-    turnOrderDisplay: gameStore.players.map((player) => {
-      const isCurrent = player.id === gameStore.currentPlayerId;
-      const nextPlayer = gameStore.players.find((p) => p.id === gameStore.turnOrder[(gameStore.turnOrder.indexOf(gameStore.currentPlayerId || '') + 1) % gameStore.turnOrder.length]);
-      const isNext = player.id === nextPlayer?.id;
+    isGameActive,
+    currentPlayerName: players.find((p) => p.id === currentPlayerIdState)?.name || 'No player',
+    nextPlayerName: players.find((p) => p.id === nextPlayerId)?.name || 'No player',
+    turnNumber,
+    roundNumber,
+    currentWind,
+    turnDuration,
+    canAdvanceTurn,
+    playerCount: players.length,
+    turnOrderDisplay: players.map((player) => {
+      const isCurrent = player.id === currentPlayerIdState;
+      const isNext = player.id === nextPlayerId;
       return { player, isCurrent, isNext };
     }),
-    isMyTurn: (id: string) => gameStore.currentPlayerId === id,
+    isMyTurn: (id: string) => currentPlayerIdState === id,
   };
 
   React.useEffect(() => {
@@ -66,9 +93,7 @@ const TurnManagementPanel: React.FC<TurnManagementPanelProps> = ({
     }
   };
 
-  import type { Player } from '@shared-types/game-types';
-
-const getPlayerIndicator = (player: Player, isCurrent: boolean, isNext: boolean) => {
+  const getPlayerIndicator = (player: Player, isCurrent: boolean, isNext: boolean) => {
     let className = 'flex items-center justify-between p-3 rounded-lg border transition-all';
 
     if (isCurrent) {

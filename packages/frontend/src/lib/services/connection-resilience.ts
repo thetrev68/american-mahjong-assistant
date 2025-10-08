@@ -5,6 +5,8 @@ import type { useSocket } from '../../hooks/useSocket'
 import { useRoomStore } from '../../stores/useRoomStore'
 import { useConnectionStore } from '../../stores/connection.store'
 import { useGameStore } from '../../stores/useGameStore'
+
+const getGameActions = () => useGameStore.getState().actions
 import { useTurnStore } from '../../stores/turn-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
 import { getRoomMultiplayerService } from './room-multiplayer'
@@ -108,7 +110,7 @@ export class ConnectionResilienceService {
           reconnectionAttempts: 0
         })
 
-        useGameStore.getState().addAlert({
+        getGameActions().addAlert({
           type: 'success',
           title: 'Connected',
           message: 'Connection established successfully'
@@ -159,7 +161,7 @@ export class ConnectionResilienceService {
 
         if (this.currentAttempt === 0) {
           // Only show alert on first disconnection, not on retry attempts
-          useGameStore.getState().addAlert({
+          getGameActions().addAlert({
             type: 'warning',
             title: 'Connection Lost',
             message: 'Attempting to reconnect...'
@@ -191,7 +193,7 @@ export class ConnectionResilienceService {
     const jitter = Math.random() * this.config.reconnectionStrategy.jitterMax
     const delay = baseDelay + jitter
 
-    useGameStore.getState().addAlert({
+    getGameActions().addAlert({
       type: 'info',
       title: 'Reconnecting',
       message: `Attempt ${this.currentAttempt}/${this.config.reconnectionStrategy.maxAttempts}`
@@ -243,7 +245,7 @@ export class ConnectionResilienceService {
     this.clearConnectionTimeoutTimer()
     this.isReconnecting = false
     
-    useGameStore.getState().addAlert({
+    getGameActions().addAlert({
       type: 'warning',
       title: 'Connection Timeout',
       message: 'Connection attempt timed out'
@@ -259,7 +261,7 @@ export class ConnectionResilienceService {
     this.currentAttempt = 0
     isGlobalReconnectionInProgress = false // Clear global flag when giving up
     
-    useGameStore.getState().addAlert({
+    getGameActions().addAlert({
       type: 'warning',
       title: 'Connection Failed',
       message: 'Unable to reconnect to server. Please check your connection and try again.'
@@ -329,7 +331,7 @@ export class ConnectionResilienceService {
         roomService.reconnectToRoom(roomStore.room?.id)
       }
 
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'info',
         title: 'State Recovery',
         message: 'Recovering game state...'
@@ -338,7 +340,7 @@ export class ConnectionResilienceService {
     } catch (error) {
       console.error('State recovery failed:', error)
       
-      useGameStore.getState().addAlert({
+      getGameActions().addAlert({
         type: 'warning',
         title: 'State Recovery Failed',
         message: 'Some game state may be lost. Please verify your current position.'
