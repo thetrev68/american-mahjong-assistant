@@ -16,10 +16,20 @@ interface GameActions {
   selectPattern: (pattern: PatternSelectionOption) => void;
   addAlert: (alert: Omit<Notification, "id">) => void;
   setPhase: (phase: GamePhase | 'charleston') => void;
+  setGamePhase: (phase: GamePhase | 'charleston' | 'tile-input' | 'lobby' | 'playing' | 'finished') => void;
   resetGame: () => void;
   clearTargetPatterns: () => void;
   setTargetPatterns: (patterns: PatternSelectionOption[]) => void;
   clearHand: () => void;
+  setCoPilotMode: (mode: 'solo' | 'everyone' | null) => void;
+  startTurn: () => void;
+  incrementTurn: () => void;
+  recordDiscard: (playerId?: string, tile?: Tile) => void;
+  recordAction: (playerId: string, action: string) => void;
+  recordCallAttempt: (playerId: string) => void;
+  setGameEndResult: (result: unknown) => void;
+  markPlayerPassedOut: (playerId: string) => void;
+  checkForGameEnd: () => boolean;
 
   // From turn-store (Setup and initialization)
   initializeTurns: (players: Player[]) => void;
@@ -82,16 +92,19 @@ interface CallOpportunity {
 // Combined state from game-store and turn-store
 interface GameState {
   phase: GamePhase | 'charleston';
+  gamePhase: GamePhase | 'charleston' | 'tile-input' | 'lobby' | 'playing' | 'finished';
   playerHand: Tile[];
   exposedTiles: Tile[];
   discardPile: Tile[];
   wallCount: number;
+  wallTilesRemaining: number;
   turnOrder: string[];
   currentPlayerId: string | null;
   targetPatterns: PatternSelectionOption[];
   charleston: CharlestonState;
   alerts: Notification[];
   isMultiplayer: boolean;
+  coPilotMode: 'solo' | 'everyone' | null;
 
   // From turn-store
   turnNumber: number;
@@ -104,22 +117,36 @@ interface GameState {
   canAdvanceTurn: boolean;
   playerActions: Record<string, PlayerActionState>;
   currentCallOpportunity: CallOpportunity | null;
+  currentTurn: number;
+  gameStartTime: Date | null;
+  gameStatistics: {
+    totalActions: number;
+    turnTimings: number[];
+    playerActionCounts: Record<string, number>;
+    callAttempts: Record<string, number>;
+    discardCount: number;
+  };
+  passedOutPlayers: string[];
+  gameEndResult: unknown;
 
   actions: GameActions; // Use the defined interface
 }
 
 const initialState = {
   phase: 'loading' as GamePhase | 'charleston',
+  gamePhase: 'lobby' as GamePhase | 'charleston' | 'tile-input' | 'lobby' | 'playing' | 'finished',
   playerHand: [],
   exposedTiles: [],
   discardPile: [],
   wallCount: 136,
+  wallTilesRemaining: 136,
   turnOrder: [],
   currentPlayerId: null,
   targetPatterns: [],
   charleston: { phase: 'complete', selectedTiles: [], passesRemaining: 3, playersReady: [], timeLimit: 0, startTime: 0 },
   alerts: [],
   isMultiplayer: false,
+  coPilotMode: null as 'solo' | 'everyone' | null,
   turnNumber: 1,
   roundNumber: 1,
   currentWind: 'east' as PlayerPosition,
@@ -130,6 +157,17 @@ const initialState = {
   canAdvanceTurn: false,
   playerActions: {},
   currentCallOpportunity: null,
+  currentTurn: 0,
+  gameStartTime: null,
+  gameStatistics: {
+    totalActions: 0,
+    turnTimings: [],
+    playerActionCounts: {},
+    callAttempts: {},
+    discardCount: 0,
+  },
+  passedOutPlayers: [],
+  gameEndResult: null,
 };
 
 export const useGameStore = create<GameState>()(
@@ -139,29 +177,104 @@ export const useGameStore = create<GameState>()(
         ...initialState,
         actions: {
           // --- Original GameStore Actions ---
-          drawTile: () => set((_state) => ({ wallCount: _state.wallCount - 1 })),
+          drawTile: () => set((_state) => ({
+            wallCount: Math.max(0, _state.wallCount - 1),
+            wallTilesRemaining: Math.max(0, _state.wallTilesRemaining - 1),
+          })),
           discardTile: (tile) => set((_state) => ({ discardPile: [..._state.discardPile, tile] })),
-          startCharleston: () => set({ phase: 'charleston' }),
+          startCharleston: () => set({ phase: 'charleston', gamePhase: 'charleston' }),
           selectPattern: (pattern) => set((state) => ({ targetPatterns: [...state.targetPatterns, pattern] })),
           addAlert: (alert) => set((state) => ({ alerts: [...state.alerts, { ...alert, id: Date.now().toString() }] })),
-          setPhase: (phase) => set({ phase }),
-          resetGame: () => set(() => ({ ...initialState })),
+          setPhase: (phase) => set({ phase, gamePhase: phase }),
+          setGamePhase: (phase) => set({ phase, gamePhase: phase }),
+          resetGame: () => set(() => ({ ...initialState, actions: get().actions })),
           clearTargetPatterns: () => set({ targetPatterns: [] }),
           setTargetPatterns: (patterns) => set({ targetPatterns: patterns }),
           clearHand: () => set({ playerHand: [], exposedTiles: [], discardPile: [] }),
+          setCoPilotMode: (mode) => set({ coPilotMode: mode }),
+          startTurn: () => set({ turnStartTime: new Date(), turnDuration: 0 }),
+          incrementTurn: () =>
+            set((state) => ({
+              currentTurn: state.currentTurn + 1,
+              turnNumber: state.turnNumber + 1,
+            })),
+          recordDiscard: (playerId = 'opponent', tile) =>
+            set((state) => {
+              const playerActionCounts = {
+                ...state.gameStatistics.playerActionCounts,
+                [playerId]: (state.gameStatistics.playerActionCounts[playerId] || 0) + 1,
+              };
+              return {
+                gameStatistics: {
+                  ...state.gameStatistics,
+                  totalActions: state.gameStatistics.totalActions + 1,
+                  discardCount: state.gameStatistics.discardCount + 1,
+                  playerActionCounts,
+                },
+                discardPile: tile ? [...state.discardPile, tile] : state.discardPile,
+              };
+            }),
+          recordAction: (playerId, action) =>
+            set((state) => {
+              const playerActionCounts = {
+                ...state.gameStatistics.playerActionCounts,
+                [playerId]: (state.gameStatistics.playerActionCounts[playerId] || 0) + 1,
+              };
+              return {
+                gameStatistics: {
+                  ...state.gameStatistics,
+                  totalActions: state.gameStatistics.totalActions + 1,
+                  playerActionCounts,
+                },
+              };
+            }),
+          recordCallAttempt: (playerId) =>
+            set((state) => ({
+              gameStatistics: {
+                ...state.gameStatistics,
+                callAttempts: {
+                  ...state.gameStatistics.callAttempts,
+                  [playerId]: (state.gameStatistics.callAttempts[playerId] || 0) + 1,
+                },
+              },
+            })),
+          setGameEndResult: (result) => set({ gameEndResult: result }),
+          markPlayerPassedOut: (playerId) =>
+            set((state) => ({
+              passedOutPlayers: state.passedOutPlayers.includes(playerId)
+                ? state.passedOutPlayers
+                : [...state.passedOutPlayers, playerId],
+            })),
+          checkForGameEnd: () => {
+            const state = get();
+            const everyonePassedOut =
+              state.players.length > 0 &&
+              state.passedOutPlayers.length >= state.players.length;
+            return state.wallTilesRemaining <= 0 || everyonePassedOut;
+          },
           // --- Merged TurnStore Actions ---
-      initializeTurns: (players: Player[]) =>
-        set(_state => ({
-          turnOrder: players.map(p => p.id),
-          currentPlayerId: players[0]?.id || null,
-        })),
-      setMultiplayerMode: (isMultiplayer: boolean) => set({ isMultiplayer }),
-      setPlayers: (players: Player[]) => set({ players }),
+          initializeTurns: (players: Player[]) =>
+            set(() => ({
+              turnOrder: players.map((p) => p.id),
+              currentPlayerId: players[0]?.id || null,
+            })),
+          setMultiplayerMode: (isMultiplayer: boolean) => set({ isMultiplayer }),
+          setPlayers: (players: Player[]) => set({ players }),
           startGame: () => {
             const { turnOrder } = get();
-            if (turnOrder.length > 0) {
-              set({ isGameActive: true, currentPlayerId: turnOrder[0], turnStartTime: new Date(), turnDuration: 0, canAdvanceTurn: true });
-            }
+            const startTime = new Date();
+            set({
+              isGameActive: true,
+              currentPlayerId: turnOrder[0] || null,
+              turnStartTime: startTime,
+              turnDuration: 0,
+              canAdvanceTurn: true,
+              phase: 'playing',
+              gamePhase: 'playing',
+              gameStartTime: startTime,
+              currentTurn: turnOrder.length > 0 ? 1 : 0,
+              turnNumber: turnOrder.length > 0 ? 1 : 0,
+            });
           },
           advanceTurn: () => {
             const { isGameActive, canAdvanceTurn, turnOrder, currentPlayerId, turnNumber, roundNumber, currentWind } = get();
@@ -179,7 +292,15 @@ export const useGameStore = create<GameState>()(
               const currentWindIndex = windOrder.indexOf(newCurrentWind);
               newCurrentWind = windOrder[(currentWindIndex + 1) % windOrder.length];
             }
-            set({ currentPlayerId: nextPlayer, turnNumber: newTurnNumber, roundNumber: newRoundNumber, currentWind: newCurrentWind, turnStartTime: new Date(), turnDuration: 0 });
+            set({
+              currentPlayerId: nextPlayer,
+              turnNumber: newTurnNumber,
+              currentTurn: newTurnNumber,
+              roundNumber: newRoundNumber,
+              currentWind: newCurrentWind,
+              turnStartTime: new Date(),
+              turnDuration: 0,
+            });
           },
           updateTurnDuration: () => {
             const { turnStartTime } = get();
@@ -188,7 +309,6 @@ export const useGameStore = create<GameState>()(
               set({ turnDuration: duration });
             }
           },
-          // ... other actions from turn-store
           setCurrentPlayer: (playerId) => set({ currentPlayerId: playerId }),
           advanceRound: () => {
             const state = get();
@@ -197,7 +317,7 @@ export const useGameStore = create<GameState>()(
             const newWind = windOrder[(currentWindIndex + 1) % windOrder.length];
             set({ roundNumber: state.roundNumber + 1, currentWind: newWind });
           },
-          resetTurns: () => set(initialState),
+          resetTurns: () => set(() => ({ ...initialState, actions: get().actions })),
           setAvailableActions: (playerId, actions) => {
             set((state) => ({
               playerActions: {
@@ -207,7 +327,6 @@ export const useGameStore = create<GameState>()(
             }));
           },
           executeAction: async (_playerId, action, _data) => {
-            // Simplified for now, actual implementation would be complex
             console.log(`Executing action ${action} for player ${_playerId}`);
             return true;
           },
@@ -215,13 +334,17 @@ export const useGameStore = create<GameState>()(
             set((state) => ({
               playerActions: {
                 ...state.playerActions,
-                [playerId]: { ...state.playerActions[playerId], [actionType]: value, lastActionTime: value ? new Date() : state.playerActions[playerId]?.lastActionTime },
+                [playerId]: {
+                  ...state.playerActions[playerId],
+                  [actionType]: value,
+                  lastActionTime: value ? new Date() : state.playerActions[playerId]?.lastActionTime,
+                },
               },
             }));
           },
           startTurnTimer: (duration = 0) => set({ turnStartTime: new Date(), turnDuration: duration }),
           pauseTurnTimer: () => {
-            const { turnStartTime, turnDuration: _turnDuration } = get();
+            const { turnStartTime } = get();
             if (turnStartTime) {
               const duration = Math.floor((Date.now() - turnStartTime.getTime()) / 1000);
               set({ turnDuration: duration, turnStartTime: null });
@@ -242,7 +365,7 @@ export const useGameStore = create<GameState>()(
           },
           closeCallOpportunity: () => set({ currentCallOpportunity: null }),
           updateDiscardPile: (tile, _playerId) => set((state) => ({ discardPile: [...state.discardPile, tile] })),
-          updateWallCount: (count) => set({ wallCount: Math.max(0, count) }),
+          updateWallCount: (count) => set({ wallCount: Math.max(0, count), wallTilesRemaining: Math.max(0, count) }),
           getCurrentPlayerData: () => get().players.find((p) => p.id === get().currentPlayerId) || null,
           getNextPlayer: () => {
             const state = get();
@@ -272,6 +395,8 @@ export const useGameStore = create<GameState>()(
           exposedTiles: state.exposedTiles,
           targetPatterns: state.targetPatterns,
           // Persisted parts from turn-store
+          phase: state.phase,
+          gamePhase: state.gamePhase,
           turnNumber: state.turnNumber,
           roundNumber: state.roundNumber,
           currentWind: state.currentWind,
@@ -280,6 +405,9 @@ export const useGameStore = create<GameState>()(
           players: state.players,
           isGameActive: state.isGameActive,
           currentPlayerId: state.currentPlayerId,
+          currentTurn: state.currentTurn,
+          wallTilesRemaining: state.wallTilesRemaining,
+          coPilotMode: state.coPilotMode,
         }),
       }
     ),

@@ -12,7 +12,10 @@ interface GameControlPanelProps {
 }
 
 export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
-  const gameStore = useGameStore()
+  const gamePhase = useGameStore((state) => state.gamePhase ?? state.phase)
+  const currentTurn = useGameStore((state) => state.currentTurn)
+  const currentPlayerId = useGameStore((state) => state.currentPlayerId)
+  const gameActions = useGameStore((state) => state.actions)
   const roomSetupStore = useRoomSetupStore()
   const tileStore = useTileStore()
   const intelligenceStore = useIntelligenceStore()
@@ -20,9 +23,9 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
   const [showDiscardModal, setShowDiscardModal] = useState(false)
   const [showCallModal, setShowCallModal] = useState(false)
 
-  // Only show in solo mode - check roomSetupStore instead of gameStore
+  // Only show in solo mode - depends on roomSetupStore state
   const isSoloMode = roomSetupStore.coPilotMode === 'solo'
-  const isGameActive = gameStore.gamePhase === 'playing'
+  const isGameActive = gamePhase === 'playing'
 
   if (!isSoloMode || !isGameActive) {
     return null
@@ -31,14 +34,14 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
   const handleLogDiscard = (tiles: string[]) => {
     if (tiles.length === 1) {
       // Record opponent discard in game statistics
-      gameStore.recordDiscard()
-      gameStore.recordAction('opponent', 'discard')
+      gameActions.recordDiscard('opponent')
+      gameActions.recordAction('opponent', 'discard')
 
       // Trigger intelligence analysis if needed
       intelligenceStore.analyzeHand(tileStore.playerHand, [])
 
       // Add alert for tracking
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'info',
         title: 'Opponent Action',
         message: `Logged opponent discard: ${tiles[0]}`,
@@ -51,11 +54,11 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
   const handleLogCall = (tiles: string[]) => {
     if (tiles.length === 3) {
       // Record opponent call (pung/kong)
-      gameStore.recordAction('opponent', 'call')
-      gameStore.recordCallAttempt('opponent')
+      gameActions.recordAction('opponent', 'call')
+      gameActions.recordCallAttempt('opponent')
 
       // Add alert for tracking
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'info',
         title: 'Opponent Action',
         message: `Logged opponent call: ${tiles.join(', ')}`,
@@ -67,8 +70,8 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
 
   const handleUndoLastTurn = () => {
     // Basic undo implementation - reset to previous turn
-    if (gameStore.currentTurn > 0) {
-      gameStore.addAlert({
+    if (currentTurn > 0) {
+      gameActions.addAlert({
         type: 'warning',
         title: 'Undo Action',
         message: 'Previous turn undone',
@@ -77,9 +80,9 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
 
       // Note: More sophisticated undo would require state history
       // For now, just provide user feedback
-      gameStore.recordAction(gameStore.currentPlayerId || 'player', 'undo')
+      gameActions.recordAction(currentPlayerId || 'player', 'undo')
     } else {
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'warning',
         title: 'Undo Failed',
         message: 'No previous turn to undo',
@@ -98,7 +101,7 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
               Solo Game Controls
             </h3>
             <div className="text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
-              Turn {gameStore.currentTurn}
+              Turn {currentTurn}
             </div>
           </div>
 
@@ -127,7 +130,7 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
               variant="outline"
               size="sm"
               onClick={handleUndoLastTurn}
-              disabled={gameStore.currentTurn === 0}
+              disabled={currentTurn === 0}
               className="flex items-center justify-center space-x-2 text-sm"
             >
               <span>↩️</span>
