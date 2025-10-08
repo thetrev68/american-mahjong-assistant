@@ -72,6 +72,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Store state
   const navigate = useNavigate()
   const gameStore = useGameStore()
+  const gameActions = useGameStore((state) => state.actions)
   const roomStore = useRoomStore()
   const roomSetupStore = useRoomSetupStore()
   const playerStore = usePlayerStore()
@@ -94,9 +95,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Initialize game phase - start with Charleston when first entering from tile input
   useEffect(() => {
     if (gameStore.gamePhase === 'tile-input') {
-      gameStore.setGamePhase('charleston')
+      gameActions.setPhase('charleston')
     }
-  }, [gameStore.gamePhase, gameStore.setGamePhase])
+  }, [gameStore.gamePhase, gameActions])
 
   // Get current player ID - use host or first player as fallback (moved up to avoid hoisting issues)
   const currentPlayerId = useMemo(() => {
@@ -111,13 +112,13 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     if (gameStore.gamePhase === 'playing' && !gameStore.currentPlayerId) {
       // Set the current player to the user (first player)
       const userPlayerId = currentPlayerId
-      gameStore.setCurrentPlayer(userPlayerId)
+      gameActions.setCurrentPlayer(userPlayerId)
       setCurrentPlayerIndex(0) // Ensure user starts
 
       // Initialize turn system to start with the user
-      gameStore.startTurn()
+      gameActions.startTurn()
     }
-  }, [gameStore.gamePhase, gameStore.currentPlayerId, currentPlayerId, gameStore.setCurrentPlayer, gameStore.startTurn])
+  }, [gameStore.gamePhase, gameStore.currentPlayerId, currentPlayerId, gameActions])
 
   // Set dealer hand based on East player position
   useEffect(() => {
@@ -581,7 +582,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         setCompletedGameId(gameId)
         
         // Show appropriate alert
-        gameStore.addAlert({
+        gameActions.addAlert({
           type: gameEndResult.scenario.type === 'mahjong' ? 'success' : 'info',
           title: 'Game Ended',
           message: gameEndResult.scenario.reason
@@ -667,7 +668,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         message = `Game drawn: ${gameEndResult.drawReason}. Review your hand development.`
       }
       
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'info',
         title: 'Game Tracking Complete',
         message,
@@ -685,7 +686,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Enhanced action handlers using game actions service
   const handlePlayerAction = useCallback(async (action: GameAction, data?: unknown) => {
     if (!isMyTurn && action !== 'call' && action !== 'joker-swap') {
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'warning',
         title: 'Not Your Turn',
         message: 'Wait for your turn to take actions'
@@ -728,7 +729,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       }
     } catch (error) {
       console.error('Action execution error:', error)
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'warning',
         title: 'Action Failed',
         message: 'Failed to execute action. Please try again.'
@@ -739,7 +740,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Handle tile discard
   const handleDiscardTile = useCallback(async (tile: Tile) => {
     if (!turnSelectors.canPlayerDiscard(currentPlayerId)) {
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'warning',
         title: 'Cannot Discard',
         message: 'Must draw a tile before discarding'
@@ -753,7 +754,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Handle draw tile
   const handleDrawTile = useCallback(async () => {
     if (!turnSelectors.canPlayerDraw(currentPlayerId)) {
-      gameStore.addAlert({
+      gameActions.addAlert({
         type: 'warning',
         title: 'Cannot Draw',
         message: 'Not your turn to draw'
@@ -843,7 +844,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           historyStore.completeGame(multiplayerData.gameEndResult.completedGameData)
 
           // Add success alert with multiplayer context
-          gameStore.addAlert({
+          gameActions.addAlert({
             type: 'success',
             title: 'Mahjong! 🏆',
             message: `Won with ${validationResult.validPattern.Hand_Description} for ${validationResult.score} points! All players will see the results.`
@@ -872,7 +873,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         
         historyStore.completeGame(gameEndResult.completedGameData)
 
-        gameStore.addAlert({
+        gameActions.addAlert({
           type: 'success',
           title: 'Mahjong!',
           message: `Won with ${validationResult.validPattern.Hand_Description} for ${validationResult.score} points!`
@@ -1049,25 +1050,25 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Dev shortcut functions
   const handleSkipToGameplay = useCallback(() => {
     // Set game phase to playing
-    gameStore.setGamePhase('playing')
+    gameActions.setPhase('playing')
 
     // Initialize turn system when skipping Charleston
     if (!gameStore.currentPlayerId) {
-      gameStore.setCurrentPlayer(currentPlayerId)
-      gameStore.startTurn()
+      gameActions.setCurrentPlayer(currentPlayerId)
+      gameActions.startTurn()
     }
-  }, [gameStore, currentPlayerId])
+  }, [gameStore, gameActions, currentPlayerId])
 
   const handleResetGame = useCallback(() => {
     // Reset all stores and navigate back to setup
     roomSetupStore.resetToStart()
-    gameStore.resetGame()
+    gameActions.resetGame()
     tileStore.clearHand()
     patternStore.clearSelection()
     intelligenceStore.clearAnalysis()
     charlestonStore.reset()
     navigate('/room-setup')
-  }, [roomSetupStore, gameStore, tileStore, patternStore, intelligenceStore, charlestonStore, navigate])
+  }, [roomSetupStore, gameStore, gameActions, tileStore, patternStore, intelligenceStore, charlestonStore, navigate])
 
   // Dev perspective handlers
   const handleSwitchPlayer = useCallback((playerId: string) => {
@@ -1090,8 +1091,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   // Advance from Charleston to Gameplay phase
   const handleAdvanceToGameplay = useCallback(() => {
-    gameStore.setGamePhase('playing')
-  }, [gameStore])
+    gameActions.setPhase('playing')
+  }, [gameActions])
 
   // Handle Charleston tile passing
   const handleCharlestonPass = useCallback(() => {
@@ -1116,7 +1117,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
       // Advance the turn counter for Charleston progression
       console.log('Charleston phase completed, incrementing turn from:', useGameStore.getState().currentTurn)
-      gameStore.incrementTurn()
+      gameActions.incrementTurn()
       console.log('Turn incremented to:', useGameStore.getState().currentTurn)
 
       // Show alert prompting user to input the tiles they received
@@ -1124,7 +1125,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       const isCharlestonComplete = currentPhase === 'complete'
 
       if (isCharlestonComplete) {
-        gameStore.addAlert({
+        gameActions.addAlert({
           type: 'info',
           title: 'Charleston Complete!',
           message: 'Charleston is complete! Moving to gameplay phase.'
@@ -1163,7 +1164,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
     // Complete the turn after receiving tiles
     console.log('Charleston tiles received, incrementing turn from:', useGameStore.getState().currentTurn)
-    gameStore.incrementTurn()
+    gameActions.incrementTurn()
     console.log('Turn incremented to:', useGameStore.getState().currentTurn)
 
     // Trigger analysis with the new hand
@@ -1573,5 +1574,3 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
     </>
   )
 }
-
-
