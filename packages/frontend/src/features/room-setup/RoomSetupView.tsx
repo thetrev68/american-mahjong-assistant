@@ -37,7 +37,11 @@ export const RoomSetupView: React.FC = () => {
   const navigate = useNavigate()
   const roomSetup = useRoomSetup()
   const roomSetupStore = useRoomSetupStore()
-  const multiplayerStore = useMultiplayerStore()
+  // Only select the specific properties we need to prevent infinite re-renders
+  const currentRoom = useMultiplayerStore((s) => s.currentRoom)
+  const currentPlayerId = useMultiplayerStore((s) => s.currentPlayerId)
+  const clearAll = useMultiplayerStore((s) => s.clearAll)
+  const setCurrentRoom = useMultiplayerStore((s) => s.setCurrentRoom)
   const gameActions = useGameStore((state) => state.actions)
   const playerStore = usePlayerStore()
   const socket = useSocketContext()
@@ -147,7 +151,7 @@ export const RoomSetupView: React.FC = () => {
     console.log('🔄 Resetting all stores...')
     roomSetupStore.resetToStart()
     gameActions.resetGame()
-    multiplayerStore.clearAll()
+    clearAll()
     playerStore.clearPlayerData()
     // Note: tileStore reset is handled by gameActions.resetGame()
 
@@ -160,7 +164,7 @@ export const RoomSetupView: React.FC = () => {
 
   const handleAutoPosition = () => {
     const isSoloMode = roomSetupStore.coPilotMode === 'solo'
-    const players = multiplayerStore.currentRoom?.players || []
+    const players = currentRoom?.players || []
     console.log('Auto-positioning players:', players)
 
     if (isSoloMode) {
@@ -188,8 +192,8 @@ export const RoomSetupView: React.FC = () => {
       }
     } else {
       // Multiplayer mode: Use backend to add Kim/Jordan/Emilie, then position everyone
-      const roomId = multiplayerStore.currentRoom?.id
-      console.log('🔍 Current room from store:', multiplayerStore.currentRoom)
+      const roomId = currentRoom?.id
+      console.log('🔍 Current room from store:', currentRoom)
       console.log('🔍 Room ID to populate:', roomId)
 
       if (!roomId) {
@@ -212,7 +216,7 @@ export const RoomSetupView: React.FC = () => {
           console.log('✅ Players added. Positioning all', response.room.players.length, 'players')
 
           // Update multiplayerStore with new room
-          multiplayerStore.setCurrentRoom(response.room)
+          setCurrentRoom(response.room)
 
           // Find the host player and update roomStore with hostPlayerId
           const hostPlayer = response.room.players.find((p: Player) => p.isHost)
@@ -428,7 +432,7 @@ export const RoomSetupView: React.FC = () => {
                   {/* Show share button for host (multiple fallback conditions for reliability) */}
                   {(roomSetup.isHost ||
                     roomSetupStore.roomCreationStatus === 'success' ||
-                    multiplayerStore.currentRoom?.hostId === multiplayerStore.currentPlayerId) && roomSetup.roomCode && (
+                    currentRoom?.hostId === currentPlayerId) && roomSetup.roomCode && (
                     <ShareButton
                       roomCode={roomSetup.roomCode}
                       disabled={roomSetup.isCreatingRoom || roomSetup.isJoiningRoom}
@@ -442,8 +446,8 @@ export const RoomSetupView: React.FC = () => {
             )}
 
             <PlayerPositioning
-              players={multiplayerStore.currentRoom?.players || []}
-              currentPlayerId={multiplayerStore.currentPlayerId}
+              players={currentRoom?.players || []}
+              currentPlayerId={currentPlayerId}
               disabled={false}
               isSoloMode={roomSetupStore.coPilotMode === 'solo'}
             />
