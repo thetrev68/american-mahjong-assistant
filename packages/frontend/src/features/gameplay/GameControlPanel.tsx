@@ -36,10 +36,8 @@ export const GameControlPanel = ({ className = '' }: GameControlPanelProps) => {
       gameActions.recordDiscard('opponent')
       gameActions.recordAction('opponent', 'discard')
 
-      // Trigger intelligence analysis if available
-      if ((intelligenceStore as any)?.analyzeHand) {
-        (intelligenceStore as any).analyzeHand(tileStore.playerHand, [])
-      }
+      // Trigger intelligence analysis
+      intelligenceStore.analyzeHand(tileStore.playerHand, [])
 
       // Add alert for tracking
       gameActions.addAlert({
