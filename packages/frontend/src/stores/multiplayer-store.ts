@@ -92,12 +92,32 @@ function mapState() {
   }
 }
 
+// Cache the mapped state to prevent infinite loops
+// The mapState function creates new objects/functions on every call,
+// which causes React components to think props changed infinitely
+let cachedMappedState: ReturnType<typeof mapState> | null = null;
+let lastRoomState: ReturnType<typeof useRoomStore.getState> | null = null;
+
 export const useMultiplayerStore = Object.assign(
   ((selector?: (s: ReturnType<typeof mapState>) => unknown) => {
-    const mapped = mapState()
-    return selector ? selector(mapped) : mapped
+    const currentRoomState = useRoomStore.getState();
+
+    // Only regenerate mapped state if underlying room state changed
+    if (cachedMappedState === null || lastRoomState !== currentRoomState) {
+      cachedMappedState = mapState();
+      lastRoomState = currentRoomState;
+    }
+
+    return selector ? selector(cachedMappedState) : cachedMappedState;
   }) as <T>(selector?: (s: ReturnType<typeof mapState>) => T) => T | ReturnType<typeof mapState>,
   {
-    getState: () => mapState(),
+    getState: () => {
+      const currentRoomState = useRoomStore.getState();
+      if (cachedMappedState === null || lastRoomState !== currentRoomState) {
+        cachedMappedState = mapState();
+        lastRoomState = currentRoomState;
+      }
+      return cachedMappedState;
+    },
   }
 )
