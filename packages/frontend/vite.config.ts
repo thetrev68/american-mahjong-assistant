@@ -56,7 +56,7 @@ export default defineConfig({
           }
           
           // Stores (split large stores)
-          if (id.includes('stores/intelligence-store') || id.includes('stores/pattern-store')) {
+          if (id.includes('stores/useIntelligenceStore') || id.includes('stores/pattern-store')) {
             return 'stores-heavy';
           }
           if (id.includes('stores/')) {

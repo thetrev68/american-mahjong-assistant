@@ -38,7 +38,7 @@ export const RoomSetupView: React.FC = () => {
   const roomSetup = useRoomSetup()
   const roomSetupStore = useRoomSetupStore()
   const multiplayerStore = useMultiplayerStore()
-  const gameStore = useGameStore()
+  const gameActions = useGameStore((state) => state.actions)
   const playerStore = usePlayerStore()
   const socket = useSocketContext()
 
@@ -87,7 +87,7 @@ export const RoomSetupView: React.FC = () => {
       // Starting game - first need to input tiles
       // Mark the game as started in game store for route guards
       console.time('⏱️ setGamePhase')
-      gameStore.setGamePhase('tile-input')
+      gameActions.setPhase('tile-input')
       console.timeEnd('⏱️ setGamePhase')
 
       // Always go to tile input first, then Charleston, then game
@@ -132,13 +132,13 @@ export const RoomSetupView: React.FC = () => {
 
   const handleSkipToCharleston = () => {
     // Set up a complete game state and navigate to Charleston
-    gameStore.setGamePhase('charleston')
+    gameActions.setPhase('charleston')
     navigate('/charleston')
   }
 
   const handleSkipToGameplay = () => {
     // Set up a complete game state and navigate to gameplay
-    gameStore.setGamePhase('playing')
+    gameActions.setPhase('playing')
     navigate('/game')
   }
 
@@ -146,10 +146,10 @@ export const RoomSetupView: React.FC = () => {
     // Reset all stores and navigate back to setup
     console.log('🔄 Resetting all stores...')
     roomSetupStore.resetToStart()
-    gameStore.resetGame()
+    gameActions.resetGame()
     multiplayerStore.clearAll()
     playerStore.clearPlayerData()
-    // Note: tileStore reset is handled by gameStore.resetGame()
+    // Note: tileStore reset is handled by gameActions.resetGame()
 
     // Clear sessionStorage to remove any persisted state
     sessionStorage.clear()

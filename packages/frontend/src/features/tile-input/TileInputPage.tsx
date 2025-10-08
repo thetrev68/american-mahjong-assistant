@@ -57,7 +57,7 @@ export const TileInputPage = () => {
   const validateHand = useTileStore((state) => state.validateHand)
   const importTilesFromString = useTileStore((state) => state.importTilesFromString)
 
-  const { setGamePhase } = useGameStore()
+  const setPhase = useGameStore((state) => state.actions.setPhase)
 
   // Calculate hand completion status
   const requiredTiles = dealerHand ? 14 : 13
@@ -76,8 +76,8 @@ export const TileInputPage = () => {
   
   // Set game phase for tile input
   useEffect(() => {
-    setGamePhase('tile-input')
-  }, [setGamePhase])
+    setPhase('tile-input')
+  }, [setPhase])
 
   // Lazy load TileSelector to improve initial render performance
   useEffect(() => {
@@ -144,7 +144,7 @@ export const TileInputPage = () => {
     setIsStartingGame(true)
     console.log('🚀 Set isStartingGame to true')
     // Set game phase to 'charleston' first - players must go through Charleston before gameplay
-    setGamePhase('charleston')
+    setPhase('charleston')
     console.log('🚀 Set game phase to charleston')
     // Navigate immediately - analysis is now synchronous so no delay needed
     console.log('🚀 About to call navigate("/game")')
@@ -154,12 +154,12 @@ export const TileInputPage = () => {
   }
 
   const handleSkipToCharleston = () => {
-    setGamePhase('charleston')
+    setPhase('charleston')
     navigate('/game')
   }
 
   const handleSkipToGameplay = () => {
-    setGamePhase('playing')
+    setPhase('playing')
     navigate('/game')
   }
 
