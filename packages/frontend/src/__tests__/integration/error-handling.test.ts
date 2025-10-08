@@ -33,10 +33,12 @@ const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   )
 }
 
+const getGameActions = () => useGameStore.getState().actions
+
 describe('Error Handling and Edge Cases Integration', () => {
   beforeEach(() => {
     // Reset all stores
-    useGameStore.getState().resetGame()
+    getGameActions().resetGame()
     usePatternStore.getState().clearSelection()
     useTileStore.getState().clearHand()
 
@@ -83,8 +85,8 @@ describe('Error Handling and Edge Cases Integration', () => {
       const tileStore = useTileStore.getState()
 
       // Set up game state
-      gameStore.setCoPilotMode('solo')
-      gameStore.setGamePhase('playing')
+      getGameActions().setCoPilotMode('solo')
+      getGameActions().setPhase('playing')
 
       // Add tiles to trigger analysis
       const mockTiles = [
@@ -97,7 +99,7 @@ describe('Error Handling and Edge Cases Integration', () => {
 
       // Should not crash the application
       expect(tileStore.handSize).toBe(3)
-      expect(gameStore.gamePhase).toBe('gameplay')
+      expect(gameStore.gamePhase).toBe('playing')
     })
 
     it('should recover from intermittent failures', async () => {
@@ -251,14 +253,14 @@ describe('Error Handling and Edge Cases Integration', () => {
 
       invalidTransitions.forEach(({ from, to }) => {
         try {
-          gameStore.setGamePhase(from as 'lobby' | 'tile-input' | 'charleston' | 'playing' | 'finished')
+          getGameActions().setPhase(from as 'lobby' | 'tile-input' | 'charleston' | 'playing' | 'finished')
           // Phase might revert to default if invalid, which is acceptable
         } catch {
           // Invalid phases might throw, which is also acceptable
         }
 
         try {
-          gameStore.setGamePhase(to as 'lobby' | 'tile-input' | 'charleston' | 'playing' | 'finished')
+          getGameActions().setPhase(to as 'lobby' | 'tile-input' | 'charleston' | 'playing' | 'finished')
           // If transition is allowed, verify it's intentional
           if (gameStore.gamePhase === to) {
             // Some transitions might be valid (e.g., reset to setup)
@@ -284,7 +286,7 @@ describe('Error Handling and Edge Cases Integration', () => {
       
       // Should not crash when trying to persist state
       expect(() => {
-        gameStore.setCoPilotMode('solo')
+        getGameActions().setCoPilotMode('solo')
       }).not.toThrow()
 
       // Restore original implementation
@@ -376,7 +378,7 @@ describe('Error Handling and Edge Cases Integration', () => {
 
       // All stores should handle empty states gracefully
       expect(() => {
-        gameStore.resetGame()
+        getGameActions().resetGame()
         patternStore.clearSelection()
         tileStore.clearHand()
       }).not.toThrow()
@@ -409,7 +411,7 @@ describe('Error Handling and Edge Cases Integration', () => {
 
       // Should handle minimum player requirements
       expect(() => {
-        gameStore.setCoPilotMode('solo')
+        getGameActions().setCoPilotMode('solo')
         // Solo mode should work with just one player
       }).not.toThrow()
 
@@ -417,7 +419,7 @@ describe('Error Handling and Edge Cases Integration', () => {
       const tileStore = useTileStore.getState()
       
       // Charleston requires 13 tiles
-      gameStore.setGamePhase('charleston')
+      getGameActions().setPhase('charleston')
       
       const canProceed = tileStore.handSize >= 13
       expect(typeof canProceed).toBe('boolean')
@@ -429,12 +431,12 @@ describe('Error Handling and Edge Cases Integration', () => {
       const gameStore = useGameStore.getState()
       
       // Set up some complex state
-      gameStore.setCoPilotMode('solo')
-      gameStore.setGamePhase('playing')
-      gameStore.addPlayer({ id: 'test-player', name: 'Test', position: null, isReady: true, isConnected: true })
+      getGameActions().setCoPilotMode('solo')
+      getGameActions().setPhase('playing')
+      getGameActions().addPlayer({ id: 'test-player', name: 'Test', position: null, isReady: true, isConnected: true })
 
       // Reset should clean up properly
-      gameStore.resetGame()
+      getGameActions().resetGame()
 
       expect(gameStore.coPilotMode).toBe(null)
       expect(gameStore.gamePhase).toBe('lobby')
@@ -454,7 +456,7 @@ describe('Error Handling and Edge Cases Integration', () => {
 
         largeMockData.forEach(playerData => {
           try {
-            gameStore.addPlayer({
+            getGameActions().addPlayer({
               ...playerData,
               position: null,
               isConnected: true
@@ -466,7 +468,7 @@ describe('Error Handling and Edge Cases Integration', () => {
         expect(gameStore.players.length).toBeGreaterThan(0)
         
         // Reset should clear all references
-        gameStore.resetGame()
+        getGameActions().resetGame()
         expect(gameStore.players.length).toBe(0)
       }
 

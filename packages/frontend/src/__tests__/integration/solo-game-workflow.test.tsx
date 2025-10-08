@@ -60,7 +60,7 @@ describe('Solo Game Complete Workflow Integration', () => {
 
   beforeEach(() => {
     // Reset all stores to initial state
-    useGameStore.getState().resetGame()
+    useGameStore.getState().actions.resetGame()
     usePatternStore.getState().clearSelection()
     useTileStore.getState().clearHand()
     useCharlestonStore.getState().reset()

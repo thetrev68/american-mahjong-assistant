@@ -14,6 +14,8 @@ import type { NMJL2025Pattern } from 'shared-types'
 import type { TileSuit } from 'shared-types'
 import type { TileValue } from 'shared-types'
 
+const getGameActions = () => useGameStore.getState().actions
+
 // Mock NMJL patterns for testing
 const mockPatterns: NMJL2025Pattern[] = [
   {
@@ -65,7 +67,7 @@ const mockTiles = [
 describe('Store Integration Tests', () => {
   beforeEach(() => {
     // Reset all stores to clean state
-    useGameStore.getState().resetGame()
+    getGameActions().resetGame()
     usePatternStore.getState().clearSelection()
     useTileStore.getState().clearHand()
     useCharlestonStore.getState().reset()
@@ -171,11 +173,11 @@ describe('Store Integration Tests', () => {
       // Access charleston store actions and state correctly
 
       // Start game in tile input phase
-      useGameStore.getState().setGamePhase('tile-input')
+      getGameActions().setPhase('tile-input')
       expect(useGameStore.getState().gamePhase).toBe('tile-input')
 
       // Transition to charleston
-      useGameStore.getState().setGamePhase('charleston')
+      getGameActions().setPhase('charleston')
       expect(useGameStore.getState().gamePhase).toBe('charleston')
 
       // Charleston store should initialize properly
@@ -199,14 +201,14 @@ describe('Store Integration Tests', () => {
       // Access game store actions and state correctly
 
       // Set up solo mode
-      useGameStore.getState().setCoPilotMode('solo')
-      useGameStore.getState().addPlayer({ id: 'player-1', name: 'Solo Player', isReady: false, position: 'east', isConnected: true })
+      getGameActions().setCoPilotMode('solo')
+      getGameActions().addPlayer({ id: 'player-1', name: 'Solo Player', isReady: false, position: 'east', isConnected: true })
 
       expect(useGameStore.getState().players).toHaveLength(1)
       expect(useGameStore.getState().coPilotMode).toBe('solo')
 
       // Mark player as ready
-      useGameStore.getState().updatePlayer('player-1', { isReady: true })
+      getGameActions().updatePlayer('player-1', { isReady: true })
       const player = useGameStore.getState().players.find(p => p.id === 'player-1')
       expect(player?.isReady).toBe(true)
     })
@@ -265,8 +267,8 @@ describe('Store Integration Tests', () => {
       // Access pattern store actions and state correctly
 
       // Set up game
-      useGameStore.getState().setCoPilotMode('solo')
-      useGameStore.getState().setGamePhase('playing')
+      getGameActions().setCoPilotMode('solo')
+      getGameActions().setPhase('playing')
       
       // Select patterns
       usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
@@ -343,8 +345,8 @@ describe('Store Integration Tests', () => {
       // Access tile store actions and state correctly
 
       // Set up coordinated state
-      useGameStore.getState().setCoPilotMode('solo')
-      useGameStore.getState().setGamePhase('tile-input')
+      getGameActions().setCoPilotMode('solo')
+      getGameActions().setPhase('tile-input')
       
       usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
       mockTiles.forEach(tile => useTileStore.getState().addTile(tile.id))
@@ -355,7 +357,7 @@ describe('Store Integration Tests', () => {
       expect(useTileStore.getState().handSize).toBe(13)
 
       // Transition to next phase
-      useGameStore.getState().setGamePhase('charleston')
+      getGameActions().setPhase('charleston')
       
       // State should remain consistent
       expect(useGameStore.getState().gamePhase).toBe('charleston')
@@ -369,7 +371,7 @@ describe('Store Integration Tests', () => {
       // Access tile store actions and state correctly
 
       // Set up some state
-      useGameStore.getState().setCoPilotMode('solo')
+      getGameActions().setCoPilotMode('solo')
       usePatternStore.getState().selectPattern(mockPatterns[0].Hands_Key)
       useTileStore.getState().addTile(mockTiles[0].id)
 
@@ -382,10 +384,9 @@ describe('Store Integration Tests', () => {
       expect(useTileStore.getState().handSize).toBe(1)
 
       // Reset game should reset everything
-      useGameStore.getState().resetGame()
+      getGameActions().resetGame()
       expect(useGameStore.getState().coPilotMode).toBe(null) // default
       expect(useGameStore.getState().gamePhase).toBe('lobby') // default
     })
   })
 })
-

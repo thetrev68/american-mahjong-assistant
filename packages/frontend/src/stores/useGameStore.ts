@@ -30,6 +30,16 @@ interface GameActions {
   setGameEndResult: (result: unknown) => void;
   markPlayerPassedOut: (playerId: string) => void;
   checkForGameEnd: () => boolean;
+  setRoomCode: (code: string | null) => void;
+  addPlayer: (player: Player) => void;
+  removePlayer: (playerId: string) => void;
+  updatePlayer: (playerId: string, updates: Partial<Player>) => void;
+  removeAlert: (alertId: string) => void;
+  updateWallTiles: (count: number) => void;
+  recordTurnTiming: (durationMs: number) => void;
+  resetStatistics: () => void;
+  advanceGameTurn: () => void;
+  removePassedOutPlayer: (playerId: string) => void;
 
   // From turn-store (Setup and initialization)
   initializeTurns: (players: Player[]) => void;
@@ -105,6 +115,7 @@ interface GameState {
   alerts: Notification[];
   isMultiplayer: boolean;
   coPilotMode: 'solo' | 'everyone' | null;
+  roomCode: string | null;
 
   // From turn-store
   turnNumber: number;
@@ -132,6 +143,14 @@ interface GameState {
   actions: GameActions; // Use the defined interface
 }
 
+const createDefaultGameStatistics = () => ({
+  totalActions: 0,
+  turnTimings: [] as number[],
+  playerActionCounts: {} as Record<string, number>,
+  callAttempts: {} as Record<string, number>,
+  discardCount: 0,
+});
+
 const initialState = {
   phase: 'loading' as GamePhase | 'charleston',
   gamePhase: 'lobby' as GamePhase | 'charleston' | 'tile-input' | 'lobby' | 'playing' | 'finished',
@@ -147,6 +166,7 @@ const initialState = {
   alerts: [],
   isMultiplayer: false,
   coPilotMode: null as 'solo' | 'everyone' | null,
+  roomCode: null as string | null,
   turnNumber: 1,
   roundNumber: 1,
   currentWind: 'east' as PlayerPosition,
@@ -159,13 +179,7 @@ const initialState = {
   currentCallOpportunity: null,
   currentTurn: 0,
   gameStartTime: null,
-  gameStatistics: {
-    totalActions: 0,
-    turnTimings: [],
-    playerActionCounts: {},
-    callAttempts: {},
-    discardCount: 0,
-  },
+  gameStatistics: createDefaultGameStatistics(),
   passedOutPlayers: [],
   gameEndResult: null,
 };
@@ -187,7 +201,20 @@ export const useGameStore = create<GameState>()(
           addAlert: (alert) => set((state) => ({ alerts: [...state.alerts, { ...alert, id: Date.now().toString() }] })),
           setPhase: (phase) => set({ phase, gamePhase: phase }),
           setGamePhase: (phase) => set({ phase, gamePhase: phase }),
-          resetGame: () => set(() => ({ ...initialState, actions: get().actions })),
+          resetGame: () => set(() => ({
+            ...initialState,
+            gameStatistics: createDefaultGameStatistics(),
+            alerts: [],
+            playerHand: [],
+            exposedTiles: [],
+            discardPile: [],
+            turnOrder: [],
+            players: [],
+            passedOutPlayers: [],
+            roomCode: null,
+            currentCallOpportunity: null,
+            actions: get().actions,
+          })),
           clearTargetPatterns: () => set({ targetPatterns: [] }),
           setTargetPatterns: (patterns) => set({ targetPatterns: patterns }),
           clearHand: () => set({ playerHand: [], exposedTiles: [], discardPile: [] }),
@@ -245,6 +272,47 @@ export const useGameStore = create<GameState>()(
                 ? state.passedOutPlayers
                 : [...state.passedOutPlayers, playerId],
             })),
+          setRoomCode: (code) => set({ roomCode: code }),
+          addPlayer: (player) => set((state) => ({
+            players: [...state.players, player],
+            turnOrder: state.turnOrder.includes(player.id)
+              ? state.turnOrder
+              : [...state.turnOrder, player.id],
+          })),
+          removePlayer: (playerId) => set((state) => ({
+            players: state.players.filter((p) => p.id !== playerId),
+            turnOrder: state.turnOrder.filter((id) => id !== playerId),
+            passedOutPlayers: state.passedOutPlayers.filter((id) => id !== playerId),
+          })),
+          updatePlayer: (playerId, updates) => set((state) => ({
+            players: state.players.map((player) =>
+              player.id === playerId ? { ...player, ...updates } : player
+            ),
+          })),
+          removeAlert: (alertId) => set((state) => ({
+            alerts: state.alerts.filter((alert) => alert.id !== alertId),
+          })),
+          updateWallTiles: (count) => set({
+            wallCount: Math.max(0, count),
+            wallTilesRemaining: Math.max(0, count),
+          }),
+          recordTurnTiming: (durationMs) => set((state) => ({
+            gameStatistics: {
+              ...state.gameStatistics,
+              turnTimings: [...state.gameStatistics.turnTimings, durationMs],
+            },
+          })),
+          resetStatistics: () => set(() => ({
+            gameStatistics: createDefaultGameStatistics(),
+            passedOutPlayers: [],
+          })),
+          advanceGameTurn: () => set((state) => ({
+            currentTurn: state.currentTurn + 1,
+            turnNumber: state.turnNumber + 1,
+          })),
+          removePassedOutPlayer: (playerId) => set((state) => ({
+            passedOutPlayers: state.passedOutPlayers.filter((id) => id !== playerId),
+          })),
           checkForGameEnd: () => {
             const state = get();
             const everyonePassedOut =
