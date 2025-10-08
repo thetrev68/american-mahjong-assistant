@@ -63,9 +63,9 @@ export function useHapticFeedback(): UseHapticFeedbackReturn {
   
   // Feature detection for haptic feedback support
   const isSupported = typeof navigator !== 'undefined' && (
-    'vibrate' in navigator || 
-    'hapticFeedback' in navigator ||
-    window.DeviceMotionEvent !== undefined
+    typeof navigator.vibrate === 'function' ||
+    typeof window.TapticEngine !== 'undefined' ||
+    typeof window.DeviceMotionEvent !== 'undefined'
   )
   
   // Check for iOS haptic feedback support
@@ -73,7 +73,7 @@ export function useHapticFeedback(): UseHapticFeedbackReturn {
     typeof navigator.vibrate === 'function'
   
   // Check for Android haptic feedback support
-  const hasAndroidHaptics = 'vibrate' in navigator
+  const hasAndroidHaptics = typeof navigator.vibrate === 'function'
   
   const triggerHaptic = useCallback(async (options: HapticOptions = {}): Promise<boolean> => {
     // Don't trigger haptics if reduced motion is preferred or haptics are disabled

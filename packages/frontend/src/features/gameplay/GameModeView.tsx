@@ -72,20 +72,11 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   // Store state
   const navigate = useNavigate()
   const gamePhase = useGameStore((state) => state.gamePhase ?? state.phase)
-  const phase = useGameStore((state) => state.phase)
   const gameActions = useGameStore((state) => state.actions)
   const players = useGameStore((state) => state.players)
   const currentPlayerIdState = useGameStore((state) => state.currentPlayerId)
   const wallTilesRemaining = useGameStore((state) => state.wallTilesRemaining ?? state.wallCount)
-  const wallCount = useGameStore((state) => state.wallCount)
   const currentTurn = useGameStore((state) => state.currentTurn ?? state.turnNumber)
-  const turnNumber = useGameStore((state) => state.turnNumber)
-  const turnDuration = useGameStore((state) => state.turnDuration)
-  const turnStartTime = useGameStore((state) => state.turnStartTime)
-  const gameStartTime = useGameStore((state) => state.gameStartTime)
-  const gameEndResult = useGameStore((state) => state.gameEndResult)
-  const isGameActive = useGameStore((state) => state.isGameActive)
-  const gameActions = useGameStore((state) => state.actions)
   const roomStore = useRoomStore()
   const roomSetupStore = useRoomSetupStore()
   const playerStore = usePlayerStore()
@@ -538,7 +529,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       // Hand changed - triggering analysis
       analyzeCurrentHand()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line
   }, [fullHand.length, selectedPatterns.length])
 
   // Initialize game end coordinator

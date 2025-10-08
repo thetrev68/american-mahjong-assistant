@@ -160,8 +160,9 @@ export const TILE_ANIMATIONS: Record<string, AnimationConfig> = {
 export function getAnimationConfig(
   animationName: keyof typeof TILE_ANIMATIONS,
   overrides: Partial<AnimationConfig> = {}
-): AnimationConfig {
-  const baseConfig = TILE_ANIMATIONS[animationName] || { duration: 300, easing: 'ease-out' }
+): AnimationConfig | Record<string, never> {
+  const baseConfig = TILE_ANIMATIONS[animationName]
+  if (!baseConfig) return {}
   return { ...baseConfig, ...overrides }
 }
 

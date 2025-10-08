@@ -2,7 +2,8 @@
 // Coordinates turn actions across multiplayer sessions with connection resilience
 
 import { getUnifiedMultiplayerManager } from '../../../lib/services/unified-multiplayer-manager'
-import { useGameStore } from '../../../stores/useGameStore'\n\nconst getGameActions = () => useGameStore.getState().actions\n
+import { useGameStore } from '../../../stores/useGameStore'
+const getGameActions = () => useGameStore.getState().actions
 import { useTurnStore } from '../../../stores/turn-store'
 import { useRoomStore } from '../../../stores/useRoomStore'
 import type { GameAction, CallType } from './game-actions'

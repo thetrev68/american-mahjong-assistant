@@ -26,17 +26,17 @@ describe('Analysis Engine', () => {
     AnalysisEngine.clearCache()
 
     // Mock default responses from each engine
-    vi.mocked(nmjlService.getSelectionOptions).mockResolvedValue([
+    vi.mocked(nmjlService.getSelectionOptions).mockReturnValue([
       createPatternSelection({ id: 1 }),
       createPatternSelection({ id: 2 })
     ])
     
-    vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue([
+    vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReturnValue([
       createAnalysisFacts({ patternId: 'pattern1', tilesMatched: 7 }),
       createAnalysisFacts({ patternId: 'pattern2', tilesMatched: 5 })
     ])
     
-    vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(
+    vi.mocked(PatternRankingEngine.rankPatterns).mockReturnValue(
       createRankedPatternResults({
         patterns: [
           createPatternSelection({ id: 1 }),
@@ -46,8 +46,7 @@ describe('Analysis Engine', () => {
     )
     
     // Use implementation that works with correct parameter types
-    vi.mocked(TileRecommendationEngine.generateRecommendations).mockImplementation(() => {
-      return Promise.resolve({
+    vi.mocked(TileRecommendationEngine.generateRecommendations).mockReturnValue({
         tileActions: [
           {
             tileId: '1B',
@@ -249,7 +248,7 @@ describe('Analysis Engine', () => {
         patterns: [createPatternSelection({ id: 1, difficulty: 'easy', points: 25 })]
       })
       
-      vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockPatternRankings)
+      vi.mocked(PatternRankingEngine.rankPatterns).mockReturnValue(mockPatternRankings)
       
       const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])
       
@@ -291,7 +290,7 @@ describe('Analysis Engine', () => {
     })
 
     it('should normalize tile actions correctly', async () => {
-      vi.mocked(TileRecommendationEngine.generateRecommendations).mockResolvedValue({
+      vi.mocked(TileRecommendationEngine.generateRecommendations).mockReturnValue({
         tileActions: [
           {
             tileId: '1B',
@@ -428,7 +427,7 @@ describe('Analysis Engine', () => {
       // Mock a ranking with specific current tile score
       mockRankings.topRecommendations[0].components.currentTileScore = 20 // 50% completion
       
-      vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockRankings)
+      vi.mocked(PatternRankingEngine.rankPatterns).mockReturnValue(mockRankings)
       
       const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])
       
@@ -445,7 +444,7 @@ describe('Analysis Engine', () => {
         ]
       })]
       
-      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue(mockFacts)
+      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReturnValue(mockFacts)
       
       const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [createPatternSelection({ id: 1 })])
       
@@ -468,24 +467,24 @@ describe('Analysis Engine', () => {
   describe('Error Handling', () => {
 
     it('should handle Pattern Analysis Engine errors', async () => {
-      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockResolvedValue([createPatternSelection()])
+      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockReturnValue([createPatternSelection()])
       vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReset().mockRejectedValue(new Error('Engine 1 failed'))
       
       await expect(AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])).rejects.toThrow('Analysis engine failure: Engine 1 failed')
     })
 
     it.skip('should handle Pattern Ranking Engine errors', async () => {
-      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockResolvedValue([createPatternSelection()])
-      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReset().mockResolvedValue([createAnalysisFacts()])
+      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockReturnValue([createPatternSelection()])
+      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReset().mockReturnValue([createAnalysisFacts()])
       vi.mocked(PatternRankingEngine.rankPatterns).mockReset().mockRejectedValue(new Error('Engine 2 failed'))
       
       await expect(AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])).rejects.toThrow('Analysis engine failure: Engine 2 failed')
     })
 
     it.skip('should handle Tile Recommendation Engine errors', async () => {
-      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockResolvedValue([createPatternSelection()])
-      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReset().mockResolvedValue([createAnalysisFacts()])
-      vi.mocked(PatternRankingEngine.rankPatterns).mockReset().mockResolvedValue(createRankedPatternResults())
+      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockReturnValue([createPatternSelection()])
+      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReset().mockReturnValue([createAnalysisFacts()])
+      vi.mocked(PatternRankingEngine.rankPatterns).mockReset().mockReturnValue(createRankedPatternResults())
       vi.mocked(TileRecommendationEngine.generateRecommendations).mockReset().mockRejectedValue(new Error('Engine 3 failed'))
       
       await expect(AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])).rejects.toThrow('Analysis engine failure: Engine 3 failed')
@@ -498,7 +497,7 @@ describe('Analysis Engine', () => {
     })
 
     it('should handle non-Error exceptions', async () => {
-      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockResolvedValue([createPatternSelection()])
+      vi.mocked(nmjlService.getSelectionOptions).mockReset().mockReturnValue([createPatternSelection()])
       vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReset().mockRejectedValue('String error')
       
       await expect(AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])).rejects.toThrow('Analysis engine failure: Unknown error')
@@ -540,7 +539,7 @@ describe('Analysis Engine', () => {
       })
       
       mockRankings.topRecommendations[0].patternId = 'nonexistent-pattern'
-      vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockRankings)
+      vi.mocked(PatternRankingEngine.rankPatterns).mockReturnValue(mockRankings)
       
       const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])
       
@@ -554,7 +553,7 @@ describe('Analysis Engine', () => {
   describe('Integration Points', () => {
     it('should pass Engine 1 facts to Engine 3', async () => {
       const mockFacts = [createAnalysisFacts({ patternId: 'test' })]
-      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockResolvedValue(mockFacts)
+      vi.mocked(PatternAnalysisEngine.analyzePatterns).mockReturnValue(mockFacts)
       
       await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])
       
@@ -587,7 +586,7 @@ describe('Analysis Engine', () => {
       mockRankings.topRecommendations[1].totalScore = 85 // Higher AI score
       mockRankings.topRecommendations[1].components.currentTileScore = 10 // Lower completion
 
-      vi.mocked(PatternRankingEngine.rankPatterns).mockResolvedValue(mockRankings)
+      vi.mocked(PatternRankingEngine.rankPatterns).mockReturnValue(mockRankings)
 
       const result = await AnalysisEngine.analyzeHand(TilePresets.mixedHand(), [])
 

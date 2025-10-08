@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useMemo, useEffect } from 'react';
 import { useUIStore } from '../stores';
 

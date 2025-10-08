@@ -49,11 +49,11 @@ export class AnalysisEngine {
   /**
    * Get Engine 1 results from cache or compute fresh
    */
-  private static getEngine1Facts(
+  private static async getEngine1Facts(
     tileIds: string[],
     patternIds: string[],
     gameContext: GameContext
-  ): PatternAnalysisFacts[] {
+  ): Promise<PatternAnalysisFacts[]> {
     console.log('🏭 getEngine1Facts called')
     const cacheKey = this.generateCacheKey(tileIds, patternIds, gameContext)
     const handHash = [...tileIds].sort().join(',')
@@ -65,7 +65,7 @@ export class AnalysisEngine {
     if (cached && (now - cached.timestamp) < this.CACHE_TTL_MS) {
       console.log('✅ Cache hit! Returning cached facts')
       // Cache hit - using cached analysis
-      return cached.facts
+      return Promise.resolve(cached.facts)
     }
 
     // Check if there's already a pending computation for this key
@@ -78,13 +78,18 @@ export class AnalysisEngine {
 
     // Cache miss - computing fresh analysis
     console.log('🔄 Cache miss, calling PatternAnalysisEngine.analyzePatterns...')
-    // analyzePatterns is synchronous (data preloaded), returns plain array
-    const facts = PatternAnalysisEngine.analyzePatterns(
-      tileIds,
-      patternIds,
-      gameContext
+    // analyzePatterns may return synchronously or as a Promise - normalize to Promise
+    console.log('🔄 Cache miss, calling PatternAnalysisEngine.analyzePatterns...')
+    const computePromise = Promise.resolve(
+      PatternAnalysisEngine.analyzePatterns(
+        tileIds,
+        patternIds,
+        gameContext
+      ) as unknown as PatternAnalysisFacts[] | Promise<PatternAnalysisFacts[]>
     )
+    this.pendingPromises.set(cacheKey, computePromise)
 
+    const facts = await computePromise
     console.log('✅ PatternAnalysisEngine.analyzePatterns completed with', facts.length, 'facts')
 
     // Store in cache
@@ -94,6 +99,7 @@ export class AnalysisEngine {
       handHash,
       patternIds: [...patternIds]
     })
+    this.pendingPromises.delete(cacheKey)
 
     // Manage cache size
     this.manageCacheSize()
@@ -166,12 +172,12 @@ export class AnalysisEngine {
   /**
    * Main analysis function - coordinates 3-engine intelligence system
    */
-  static analyzeHand(
+  static async analyzeHand(
     playerTiles: PlayerTile[],
     selectedPatterns: PatternSelectionOption[] = [],
     gameContext?: Partial<GameContext>,
     isPatternSwitching: boolean = false
-  ): HandAnalysis {
+  ): Promise<HandAnalysis> {
     console.log('🎯 AnalysisEngine.analyzeHand called with', playerTiles.length, 'tiles,', selectedPatterns.length, 'patterns')
     // const startTime = performance.now()
 
@@ -191,9 +197,21 @@ export class AnalysisEngine {
         console.log('✅ Using', selectedPatterns.length, 'provided patterns')
       } else {
         console.log('🔄 Calling getSelectionOptions...')
-        // Data is preloaded in main.tsx, so this returns array directly (no await)
-        patternsToAnalyze = nmjlService.getSelectionOptions() as PatternSelectionOption[]
-        console.log('✅ Got', patternsToAnalyze.length, 'patterns')
+        const optionsOrPromise = nmjlService.getSelectionOptions()
+        if (Array.isArray(optionsOrPromise)) {
+          patternsToAnalyze = optionsOrPromise
+          console.log('✅ Got', patternsToAnalyze.length, 'patterns (sync)')
+        } else {
+          // Await async loading when not preloaded
+          try {
+            const loaded = await optionsOrPromise
+            patternsToAnalyze = loaded as PatternSelectionOption[]
+            console.log('✅ Got', patternsToAnalyze.length, 'patterns (async)')
+          } catch {
+            console.warn('⚠️ Failed to load patterns; proceeding with empty list')
+            patternsToAnalyze = []
+          }
+        }
       }
 
       console.log('🔄 Creating game context...')
@@ -217,7 +235,7 @@ export class AnalysisEngine {
       console.log('✅ Pattern IDs extracted:', patternIds.length)
 
       console.log('🔄 Calling getEngine1Facts with', tileIds.length, 'tiles and', patternIds.length, 'patterns...')
-      const analysisFacts = this.getEngine1Facts(
+      const analysisFacts = await this.getEngine1Facts(
         tileIds,
         patternIds,
         fullGameContext
@@ -241,28 +259,45 @@ export class AnalysisEngine {
       
       // Engine 2: Apply strategic ranking and scoring
       console.log('🔄 Calling Engine 2: PatternRankingEngine.rankPatterns...')
-      const patternRankings = PatternRankingEngine.rankPatterns(
+      const patternRankings = await Promise.resolve(
+        PatternRankingEngine.rankPatterns(
         analysisFacts,
         patternsToAnalyze,
         {
           phase: fullGameContext.currentPhase,
           wallTilesRemaining: fullGameContext.wallTilesRemaining
         }
+        ) as unknown as RankedPatternResults | Promise<RankedPatternResults>
       )
       console.log('✅ Engine 2 complete:', patternRankings.topRecommendations?.length, 'top patterns')
 
       // Engine 3: Generate tile recommendations
       console.log('🔄 Calling Engine 3: TileRecommendationEngine.generateRecommendations...')
-      const tileRecommendations = TileRecommendationEngine.generateRecommendations(
-        tileIds,
-        patternRankings,
-        {
-          phase: fullGameContext.currentPhase,
-          discardPile: fullGameContext.discardPile,
-          exposedTiles: fullGameContext.exposedTiles,
-          wallTilesRemaining: fullGameContext.wallTilesRemaining
-        },
-        analysisFacts // Pass Engine 1 facts so Engine 3 can see actual tile matching
+      const engine1FactsForEngine3 = Array.isArray(analysisFacts)
+        ? analysisFacts
+        : await Promise.resolve(analysisFacts as unknown as PatternAnalysisFacts[])
+
+      const tileRecommendations = await Promise.resolve(
+        TileRecommendationEngine.generateRecommendations(
+          tileIds,
+          patternRankings,
+          {
+            phase: fullGameContext.currentPhase,
+            discardPile: fullGameContext.discardPile,
+            exposedTiles: fullGameContext.exposedTiles,
+            wallTilesRemaining: fullGameContext.wallTilesRemaining
+          },
+          engine1FactsForEngine3 // Pass Engine 1 facts so Engine 3 can see actual tile matching
+        ) as unknown as Promise<{
+          tileActions: Array<{ 
+            tileId: string
+            primaryAction: string
+            confidence: number
+            reasoning: string
+            priority: number
+          }>
+          strategicAdvice: string[]
+        }> | { tileActions: any[]; strategicAdvice: string[] }
       )
       console.log('✅ Engine 3 complete:', tileRecommendations.tileActions?.length, 'tile actions')
 
@@ -316,12 +351,16 @@ export class AnalysisEngine {
     preservePatternOrder: boolean = false
   ): HandAnalysis {
 
-    let sortedRecommendations: typeof patternRankings.topRecommendations
+    // Guard against undefined arrays in results
+    const topRecs = Array.isArray(patternRankings?.topRecommendations)
+      ? patternRankings.topRecommendations
+      : []
+    let sortedRecommendations: typeof topRecs
 
     if (preservePatternOrder && patterns.length > 0) {
       // When patterns are explicitly provided in order (e.g., pattern switching), preserve that order
       console.log('Preserving explicit pattern order for pattern switching')
-      sortedRecommendations = patternRankings.topRecommendations.sort((a, b) => {
+      sortedRecommendations = [...topRecs].sort((a, b) => {
         const aIndex = patterns.findIndex(p => p.id === a.patternId)
         const bIndex = patterns.findIndex(p => p.id === b.patternId)
 
@@ -337,7 +376,7 @@ export class AnalysisEngine {
       })
     } else {
       // Default behavior: sort by AI scores (totalScore) - highest first
-      sortedRecommendations = patternRankings.topRecommendations.sort((a, b) => {
+      sortedRecommendations = [...topRecs].sort((a, b) => {
         return b.totalScore - a.totalScore // Highest AI totalScore first
       })
     }
@@ -429,7 +468,8 @@ export class AnalysisEngine {
 
 
     // Generate best patterns for detailed analysis
-    const bestPatterns = patternRankings.viablePatterns.slice(0, 10).map((ranking) => {
+    const viable = Array.isArray(patternRankings?.viablePatterns) ? patternRankings.viablePatterns : []
+    const bestPatterns = viable.slice(0, 10).map((ranking) => {
       const pattern = patterns.find(p => p.id === ranking.patternId)
       
       // Calculate actual completion and tiles needed from currentTileScore
@@ -457,7 +497,7 @@ export class AnalysisEngine {
     })
 
     return {
-      overallScore: patternRankings.topRecommendations[0]?.totalScore || 0,
+      overallScore: topRecs[0]?.totalScore || 0,
       recommendedPatterns,
       bestPatterns,
       tileRecommendations: tileRecommendationsList,

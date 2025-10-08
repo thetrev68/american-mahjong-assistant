@@ -160,10 +160,9 @@ export class DisconnectionManager {
   // Gather current state metadata
   private gatherDisconnectionMetadata(reason: DisconnectionReason): void {
     const roomStore = useRoomStore.getState()
-    const gameStore = useGameStore.getState()
 
     this.disconnectionMetadata = {
-      playerId: gameStore.currentPlayerId || 'unknown',
+      playerId: useGameStore.getState().currentPlayerId || 'unknown',
       playerName: 'Unknown Player', // Will be updated from room store
       roomId: roomStore.room?.id || null,
       currentPhase: roomStore.currentPhase,
@@ -307,7 +306,7 @@ export class DisconnectionManager {
   // Clear all local state
   private async clearAllLocalState(): Promise<void> {
     const roomStore = useRoomStore.getState()
-    const gameStore = useGameStore.getState()
+    const _gameStore = useGameStore.getState()
     const turnStore = useTurnStore.getState()
     const charlestonStore = useCharlestonStore.getState()
 
@@ -370,7 +369,6 @@ export class DisconnectionManager {
 
   // Show appropriate disconnection feedback
   private showDisconnectionFeedback(reason: DisconnectionReason): void {
-    const gameStore = useGameStore.getState()
 
     switch (reason.type) {
       case 'user-initiated':

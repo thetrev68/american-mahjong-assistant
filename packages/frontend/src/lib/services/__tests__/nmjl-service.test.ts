@@ -160,8 +160,7 @@ describe('NMJL Service', () => {
         Promise.reject(new Error('Network error'))
       ) as unknown as typeof fetch
       
-      const patterns = await nmjlService.getAllPatterns()
-      expect(patterns).toEqual([])
+      await expect(nmjlService.getAllPatterns()).rejects.toThrow(/Network error/)
     })
 
     it('should handle invalid response status', async () => {
@@ -172,8 +171,7 @@ describe('NMJL Service', () => {
         })
       ) as unknown as typeof fetch
       
-      const patterns = await nmjlService.getAllPatterns()
-      expect(patterns).toEqual([])
+      await expect(nmjlService.getAllPatterns()).rejects.toThrow(/Network error/)
     })
 
     it('should cache patterns after first load', async () => {

@@ -241,7 +241,7 @@ export const useGameStore = create<GameState>()(
                 discardPile: tile ? [...state.discardPile, tile] : state.discardPile,
               };
             }),
-          recordAction: (playerId, action) =>
+          recordAction: (playerId, _action) =>
             set((state) => {
               const playerActionCounts = {
                 ...state.gameStatistics.playerActionCounts,

@@ -230,7 +230,6 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
       // Don't disconnect - keep socket alive across page navigation
       // disconnect()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return {
