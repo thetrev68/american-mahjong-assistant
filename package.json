@@ -16,6 +16,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "lint:workspaces": "npm run lint --workspaces",
+    "smoke:frontend": "npm run -w packages/frontend smoke",
     "knip": "knip"
   },
   "devDependencies": {

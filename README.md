@@ -87,7 +87,20 @@ npm run test:coverage  # Coverage reports
 # Quality & Build
 npm run lint           # ESLint across entire monorepo
 npm run build          # Build all packages
+
+# Smoke test (build + preview probe)
+npm run smoke:frontend  # Build frontend and verify index + a core asset load
 ```
+
+### Smoke Test Details
+
+- Command: `npm run smoke:frontend` (run from repo root)
+- What it does:
+  - Builds the frontend (`vite build`).
+  - Starts a temporary Vite preview server on an ephemeral port.
+  - Requests the home page and one built JS asset.
+  - Shuts the server down and exits non‑zero on failure.
+  - Useful in CI or before deployment to quickly validate the bundle.
 
 ## 🏗️ Architecture
 
