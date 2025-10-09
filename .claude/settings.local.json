@@ -1,18 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git restore:*)",
-      "Bash(git add:*)",
-      "Bash(npm run type-check:*)",
-      "Bash(npm run lint)",
-      "Bash(npx tsc:*)",
-      "Bash(timeout 30 npx tsc --noEmit)",
-      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: Add multiplayer dev perspective switching (Phase 2-4)\n\nImplements dev-only player perspective switcher for testing multiplayer\nmode on a single device. Allows switching between Player 1-4 perspectives\nto see different hands, patterns, and game states.\n\nChanges:\n- Updated tile-store.ts to store hands per player with multiplayer maps\n  - Added playerHands, handSizes, dealerHands, exposedTilesMap, etc.\n  - Converted legacy properties to computed getters respecting dev perspective\n  - Updated all 24 action methods to work with player-specific state\n- Updated GameModeView.tsx with dev perspective integration\n  - Added dev mode banner showing current perspective\n  - Updated DevShortcuts to use multiplayer variant in dev mode\n  - Added handleSwitchPlayer and handlePopulatePlayers handlers\n- YourHandZone.tsx requires no changes (already uses computed getters)\n\nArchitecture:\n- Backend maintains all 4 players'' states normally (Phase 3 already done)\n- Frontend adds dev perspective layer switching which player''s data to display\n- All stores/components respect the active perspective playerId\n- Zero impact on production builds (import.meta.env.DEV guards)\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")",
-      "Bash(git commit:*)",
-      "Bash(git checkout:*)",
-      "Bash(xargs sed:*)",
-      "Bash(npm run dev:backend:*)",
-      "Bash(npm run dev:frontend:*)"
+      "Bash(find:*)"
     ],
     "deny": [],
     "ask": [],

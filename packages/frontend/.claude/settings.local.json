@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Repos/american-mahjong-assistant/packages/shared-types/src/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

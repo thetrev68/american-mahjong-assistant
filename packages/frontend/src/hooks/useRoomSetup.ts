@@ -3,41 +3,69 @@ import { useRoomStore } from '../stores';
 import { useMultiplayer } from './useMultiplayer';
 import type { Player, Room } from '../stores';
 
-// ... (interface remains the same)
+export interface UseRoomSetupReturn {
+  coPilotMode: 'solo' | 'everyone'
+  roomCode: string | null
+  isHost: boolean
+  isCreatingRoom: boolean
+  isJoiningRoom: boolean
+  error: string | null
+  setupProgress: {
+    currentStep: string
+    completedSteps: number
+    totalSteps: number
+  }
+  setCoPilotMode: (mode: 'solo' | 'everyone') => void
+  createRoom: (hostName: string, otherPlayerNames?: string[]) => Promise<void>
+  joinRoom: (roomCode: string, playerName: string) => Promise<void>
+  generateRoomCode: () => string
+  clearError: () => void
+}
 
 export const useRoomSetup = (): UseRoomSetupReturn => {
-  const roomStore = useRoomStore();
-  const roomActions = useRoomStore((s) => s.actions);
+  // Select ONLY primitives - NO objects or functions
+  const currentPlayerId = useRoomStore((state) => state.currentPlayerId);
+  const roomCreationStatus = useRoomStore((state) => state.roomCreationStatus);
+  const joinRoomStatus = useRoomStore((state) => state.joinRoomStatus);
+  const error = useRoomStore((state) => state.error);
+  const roomCode = useRoomStore((state) => state.roomCode);
+  const isHost = useRoomStore((state) => state.isHost);
+  const setupMode = useRoomStore((state) => state.setup.mode);
+  const setupStep = useRoomStore((state) => state.setup.step);
+  const coPilotModeSelected = useRoomStore((state) => state.setup.coPilotModeSelected);
+
   const multiplayer = useMultiplayer();
 
   const generateRoomCode = useCallback((): string => {
-    // ... (implementation remains the same)
+    const letters = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Removed I and O to avoid confusion
+    return Array.from({ length: 4 }, () => letters[Math.floor(Math.random() * letters.length)]).join('');
   }, []);
 
   const generateRoomCodeFromId = useCallback((_roomId: string): string => {
-    // ... (implementation remains the same)
-  }, []);
+    // For now, just generate a random code. In the future, you could hash the roomId
+    return generateRoomCode();
+  }, [generateRoomCode]);
 
   const generatePlayerId = useCallback((): string => {
     return `player-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
   const createRoom = useCallback(async (hostName: string, otherPlayerNames?: string[]) => {
-    if (roomStore.roomCreationStatus === 'creating') {
+    if (roomCreationStatus === 'creating') {
       console.warn('⚠️ Room creation already in progress, ignoring duplicate call');
       return;
     }
     if (!hostName.trim()) {
-      roomActions.handleRoomCreationError('Please enter your name');
+      useRoomStore.getState().actions.handleRoomCreationError('Please enter your name');
       return;
     }
 
     try {
-      roomActions.setRoomCreationStatus('creating');
-      if (roomStore.setup.mode === 'solo') {
+      useRoomStore.getState().actions.setRoomCreationStatus('creating');
+      if (setupMode === 'solo') {
         const roomCode = generateRoomCode();
-        const hostPlayerId = roomStore.currentPlayerId || generatePlayerId();
-        roomActions.setCurrentPlayerId(hostPlayerId);
+        const hostPlayerId = currentPlayerId || generatePlayerId();
+        useRoomStore.getState().actions.setCurrentPlayerId(hostPlayerId);
 
         const players: Player[] = [{ id: hostPlayerId, name: hostName.trim(), isHost: true, isConnected: true, isReady: false, joinedAt: new Date() }];
         if (otherPlayerNames) {
@@ -47,64 +75,66 @@ export const useRoomSetup = (): UseRoomSetupReturn => {
         }
 
         const room: Room = { id: roomCode, hostId: hostPlayerId, players, phase: 'setup', maxPlayers: 4, isPrivate: true, gameMode: 'nmjl-2025', createdAt: new Date() };
-        roomActions.setCurrentRoom(room);
-        roomActions.handleRoomJoined(roomCode);
+        console.log('🏠 SOLO: Created room:', room);
+        useRoomStore.getState().actions.setCurrentRoom(room);
+        console.log('🏠 SOLO: Room set in store, checking:', useRoomStore.getState().room);
+        useRoomStore.getState().actions.handleRoomJoined(roomCode);
+        console.log('🏠 SOLO: handleRoomJoined called');
       } else {
         const roomData = await multiplayer.createRoom({ hostName: hostName.trim(), maxPlayers: 4, gameMode: 'nmjl-2025', isPrivate: false });
         const roomCode = generateRoomCodeFromId(roomData.id);
-        roomActions.setCurrentPlayerId(roomData.hostId);
-        roomActions.setCurrentRoom(roomData);
-        roomActions.handleRoomJoined(roomCode);
+        useRoomStore.getState().actions.setCurrentPlayerId(roomData.hostId);
+        useRoomStore.getState().actions.setCurrentRoom(roomData);
+        useRoomStore.getState().actions.handleRoomJoined(roomCode);
       }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to create room';
-      roomActions.handleRoomCreationError(errorMessage);
+      useRoomStore.getState().actions.handleRoomCreationError(errorMessage);
     }
-  }, [roomStore, roomActions, multiplayer, generatePlayerId, generateRoomCode, generateRoomCodeFromId]);
+  }, [roomCreationStatus, setupMode, currentPlayerId, multiplayer, generatePlayerId, generateRoomCode, generateRoomCodeFromId]);
 
   const joinRoom = useCallback(async (roomCode: string, playerName: string) => {
-    if (!roomActions.isValidRoomCode(roomCode)) {
-      roomActions.handleRoomJoinError('Please enter a valid 4-character room code');
+    const actions = useRoomStore.getState().actions;
+    if (!actions.isValidRoomCode(roomCode)) {
+      actions.handleRoomJoinError('Please enter a valid 4-character room code');
       return;
     }
     if (!playerName.trim()) {
-      roomActions.handleRoomJoinError('Please enter your name');
+      actions.handleRoomJoinError('Please enter your name');
       return;
     }
 
     try {
-      roomActions.setJoinRoomStatus('joining');
+      actions.setJoinRoomStatus('joining');
       await multiplayer.joinRoom(roomCode.toUpperCase(), playerName.trim());
-      roomActions.handleRoomJoined(roomCode.toUpperCase());
+      actions.handleRoomJoined(roomCode.toUpperCase());
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Failed to join room';
-      roomActions.handleRoomJoinError(errorMessage);
+      actions.handleRoomJoinError(errorMessage);
     }
-  }, [roomActions, multiplayer]);
+  }, [multiplayer]);
 
   const setupProgress = useMemo(() => {
     // This logic should be moved into the store as a selector/getter if it gets more complex
     let completedSteps = 0;
-    if (roomStore.coPilotModeSelected) completedSteps = 1;
-    if (roomStore.roomCreationStatus === 'success' || roomStore.joinRoomStatus === 'success') completedSteps = 2;
+    if (coPilotModeSelected) completedSteps = 1;
+    if (roomCreationStatus === 'success' || joinRoomStatus === 'success') completedSteps = 2;
     // ... more steps
-    return { currentStep: roomStore.setup.step, completedSteps, totalSteps: 4 };
-  }, [roomStore.coPilotModeSelected, roomStore.roomCreationStatus, roomStore.joinRoomStatus, roomStore.setup.step]);
-
-  const isHost = useMemo(() => roomStore.isHost, [roomStore.isHost]);
+    return { currentStep: setupStep, completedSteps, totalSteps: 4 };
+  }, [coPilotModeSelected, roomCreationStatus, joinRoomStatus, setupStep]);
 
   return {
-    coPilotMode: roomStore.setup.mode,
-    roomCode: roomStore.roomCode,
+    coPilotMode: setupMode,
+    roomCode,
     isHost,
-    isCreatingRoom: roomStore.roomCreationStatus === 'creating',
-    isJoiningRoom: roomStore.joinRoomStatus === 'joining',
-    error: roomStore.error,
+    isCreatingRoom: roomCreationStatus === 'creating',
+    isJoiningRoom: joinRoomStatus === 'joining',
+    error,
     setupProgress,
-    setCoPilotMode: roomActions.setMode,
+    setCoPilotMode: (mode: 'solo' | 'everyone') => useRoomStore.getState().actions.setMode(mode),
     createRoom,
     joinRoom,
     generateRoomCode,
-    clearError: roomActions.clearError,
+    clearError: () => useRoomStore.getState().actions.clearError(),
   };
 };

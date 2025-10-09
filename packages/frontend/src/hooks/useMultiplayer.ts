@@ -111,12 +111,15 @@ export function useMultiplayer() {
         hostName: roomData.hostName
       }
 
+      console.log('🏠 Emitting create-room with socket ID:', socket.socketId)
+
       socket.emit('create-room', {
         hostName: roomData.hostName,
         config
       })
 
       const handleResponse = (...args: unknown[]) => {
+        console.log('🏠 Received room-created response:', args)
         const response = args[0] as { success: boolean; room?: Room; error?: string }
         setIsCreatingRoom(false)
         
@@ -135,7 +138,13 @@ export function useMultiplayer() {
         socket.off('room-created', handleResponse)
       }
 
+      console.log('🏠 Listening for room-created event')
       socket.on('room-created', handleResponse)
+
+      // Add timeout to detect if backend doesn't respond
+      setTimeout(() => {
+        console.warn('⚠️ No room-created response received after 5 seconds')
+      }, 5000)
     })
   }, [socket, clearError, handleError])
 

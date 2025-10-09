@@ -147,10 +147,10 @@ export const RoomSetupView: React.FC = () => {
   const handleResetGame = () => {
     // Reset all stores and navigate back to setup
     console.log('🔄 Resetting all stores...')
-    useRoomStore.getState().actions.clearAll()
+    roomSetupStore.resetToStart()
     gameActions.resetGame()
     useMultiplayerStore.getState().clearAll()
-    useRoomStore.setState({ playerPositions: {}, currentPlayerId: null })
+    playerStore.clearPlayerData()
     // Note: tileStore reset is handled by gameActions.resetGame()
 
     // Clear sessionStorage to remove any persisted state
@@ -174,19 +174,19 @@ export const RoomSetupView: React.FC = () => {
 
       if (trevorPlayer) {
         console.log('Positioning Trevor at east')
-        useRoomStore.setState(s => ({ playerPositions: { ...s.playerPositions, [trevorPlayer.id]: 'east' }}))
+        playerStore.setPlayerPosition(trevorPlayer.id, 'east')
       }
       if (kimPlayer) {
         console.log('Positioning Kim at south')
-        useRoomStore.setState(s => ({ playerPositions: { ...s.playerPositions, [kimPlayer.id]: 'south' }}))
+        playerStore.setPlayerPosition(kimPlayer.id, 'south')
       }
       if (jordanPlayer) {
         console.log('Positioning Jordan at west')
-        useRoomStore.setState(s => ({ playerPositions: { ...s.playerPositions, [jordanPlayer.id]: 'west' }}))
+        playerStore.setPlayerPosition(jordanPlayer.id, 'west')
       }
       if (emiliePlayer) {
         console.log('Positioning Emilie at north')
-        useRoomStore.setState(s => ({ playerPositions: { ...s.playerPositions, [emiliePlayer.id]: 'north' }}))
+        playerStore.setPlayerPosition(emiliePlayer.id, 'north')
       }
     } else {
       // Multiplayer mode: Use backend to add Kim/Jordan/Emilie, then position everyone
@@ -247,7 +247,7 @@ export const RoomSetupView: React.FC = () => {
                             player.name === 'Emilie' ? 'north' : null
 
             if (position) {
-              useRoomStore.setState(s => ({ playerPositions: { ...s.playerPositions, [player.id]: position }}))
+              playerStore.setPlayerPosition(player.id, position)
               // Mark player as ready for the room phase (multiplayer mode doesn't auto-mark)
               useRoomStore.getState().setPlayerReadiness(player.id, 'room', true)
               console.log('📍 Positioned', player.name, 'at', position, '(ready)')
@@ -264,10 +264,10 @@ export const RoomSetupView: React.FC = () => {
     switch (currentStep) {
       case 'room-creation':
         // Reset the co-pilot mode selection so user can change it
-        useRoomStore.setState(s => ({ setup: { ...s.setup, coPilotModeSelected: false, mode: 'solo' }}))
+        roomSetupStore.resetCoPilotModeSelection()
         // Also reset room creation status and clear errors
-        useRoomStore.getState().actions.setRoomCreationStatus('idle')
-        useRoomStore.getState().actions.clearError()
+        roomSetupStore.setRoomCreationStatus('idle')
+        roomSetupStore.clearError()
         setForceStep('mode-selection')
         break
       case 'player-positioning':
@@ -278,7 +278,7 @@ export const RoomSetupView: React.FC = () => {
 
   const handleContinueFromModeSelection = () => {
     // Confirm the mode selection when continuing
-    useRoomStore.getState().actions.setMode(roomSetup.coPilotMode)
+    roomSetupStore.setCoPilotMode(roomSetup.coPilotMode)
     setForceStep('room-creation')
   }
 
@@ -345,7 +345,7 @@ export const RoomSetupView: React.FC = () => {
         return (
           <CoPilotModeSelector
             selectedMode={roomSetup.coPilotMode}
-            onModeChange={useRoomStore.getState().actions.setMode}
+            onModeChange={roomSetupStore.updateCoPilotMode}
             onContinue={handleContinueFromModeSelection}
             disabled={roomSetup.isCreatingRoom || roomSetup.isJoiningRoom}
           />
@@ -526,7 +526,7 @@ export const RoomSetupView: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => {
-              useRoomStore.getState().actions.clearAll()
+              roomSetupStore.resetToStart()
             }}
             className="text-red-600 hover:bg-red-50 border-red-200"
           >

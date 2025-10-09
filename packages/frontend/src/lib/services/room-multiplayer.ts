@@ -38,13 +38,13 @@ export class RoomMultiplayerService {
     this.socket.on('room-created', (data) => {
       if (data.success && data.room) {
         this.handleRoomUpdate(data.room)
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'success',
           title: 'Room Created',
           message: `Room ${data.room.id} created successfully`
         })
       } else {
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'warning',
           title: 'Room Creation Failed',
           message: data.error || 'Failed to create room'
@@ -55,13 +55,13 @@ export class RoomMultiplayerService {
     this.socket.on('room-joined', (data) => {
       if (data.success && data.room) {
         this.handleRoomUpdate(data.room)
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'success',
           title: 'Room Joined',
           message: `Joined room ${data.room.id}`
         })
       } else {
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'warning',
           title: 'Join Failed',
           message: data.error || 'Failed to join room'
@@ -72,8 +72,8 @@ export class RoomMultiplayerService {
     this.socket.on('player-joined', (data) => {
       const roomStore = useRoomStore.getState()
       if (data.player && data.room) {
-        roomStore.updateRoom(data.room)
-        useGameStore.getState().addAlert({
+        roomStore.actions.setCurrentRoom(data.room)
+        useGameStore.getState().actions.addAlert({
           type: 'info',
           title: 'Player Joined',
           message: `${data.player.name} joined the room`
@@ -83,10 +83,10 @@ export class RoomMultiplayerService {
 
     this.socket.on('player-left', (data) => {
       const roomStore = useRoomStore.getState()
-      roomStore.removePlayer(data.playerId)
+      roomStore.actions.removePlayer(data.playerId)
       
       const message = data.kicked ? 'Player was kicked from room' : 'Player left the room'
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'info',
         title: 'Player Left',
         message
@@ -96,10 +96,10 @@ export class RoomMultiplayerService {
     // Enhanced room management events
     this.socket.on('room-settings-changed', (data) => {
       const roomStore = useRoomStore.getState()
-      roomStore.updateRoom(data.room)
-      roomStore.updateRoomSettings(data.settings)
+      roomStore.actions.setCurrentRoom(data.room)
+      roomStore.actions.setCurrentRoomSettings(data.settings)
       
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'info',
         title: 'Room Settings Updated',
         message: 'Host updated room settings'
@@ -108,11 +108,11 @@ export class RoomMultiplayerService {
 
     this.socket.on('room-host-changed', (data) => {
       const roomStore = useRoomStore.getState()
-      roomStore.updateRoom(data.room)
-      roomStore.transferHost(data.newHostId)
+      roomStore.actions.setCurrentRoom(data.room)
+      roomStore.actions.transferHost(data.newHostId)
       
       const isNewHost = data.newHostId === this.playerId
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'info',
         title: 'Host Changed',
         message: isNewHost ? 'You are now the host' : 'Host role was transferred'
@@ -120,7 +120,7 @@ export class RoomMultiplayerService {
 
       // Update host permissions if user is new host
       if (isNewHost) {
-        roomStore.updateHostPermissions({
+        roomStore.actions.updateHostPermissions({
           canKickPlayers: true,
           canTransferHost: true,
           canChangeSettings: true,
@@ -133,7 +133,7 @@ export class RoomMultiplayerService {
     this.socket.on('room-kicked', () => {
       const roomStore = useRoomStore.getState()
       // Clear room state
-      roomStore.updateRoom({
+      roomStore.actions.setCurrentRoom({
         id: '',
         hostId: '',
         players: [],
@@ -142,10 +142,10 @@ export class RoomMultiplayerService {
         isPrivate: false,
         createdAt: new Date()
       })
-      roomStore.updatePlayers([])
-      roomStore.setCurrentPhase('waiting')
+      roomStore.actions.updatePlayers([])
+      roomStore.actions.setCurrentPhase('waiting')
       
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'warning',
         title: 'Kicked from Room',
         message: 'You were removed from the room by the host'
@@ -161,13 +161,13 @@ export class RoomMultiplayerService {
           useRoomStore.getState().updatePlayers(data.playerStates)
         }
         
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'success',
           title: 'Reconnected',
           message: 'Successfully reconnected to room'
         })
       } else {
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'warning',
           title: 'Reconnection Failed',
           message: data.error || 'Failed to reconnect to room'
@@ -178,7 +178,7 @@ export class RoomMultiplayerService {
     this.socket.on('player-reconnected', (data) => {
       useConnectionStore.getState().setPlayerConnection(data.playerId, true)
       
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'info',
         title: 'Player Reconnected',
         message: `${data.playerName} reconnected`
@@ -189,9 +189,9 @@ export class RoomMultiplayerService {
     this.socket.on('player-disconnected', (data) => {
       const roomStore = useRoomStore.getState()
       useConnectionStore.getState().setPlayerConnection(data.playerId, false)
-      roomStore.updatePlayerState(data.playerId, { lastSeen: new Date() })
+      roomStore.actions.updatePlayerState(data.playerId, { lastSeen: new Date() })
       
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'warning',
         title: 'Player Disconnected',
         message: `${data.playerName} lost connection`
@@ -200,7 +200,7 @@ export class RoomMultiplayerService {
 
     // Connection timeout warnings
     this.socket.on('player-connection-warning', (data) => {
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'info',
         title: 'Connection Issues',
         message: `${data.playerName} experiencing connection problems`
@@ -238,9 +238,9 @@ export class RoomMultiplayerService {
         
         // Restore room state
         if (data.roomState) {
-          roomStore.updateRoom(data.roomState.room)
-          roomStore.updatePlayers(data.roomState.players)
-          roomStore.setCurrentPhase(data.roomState.currentPhase)
+          roomStore.actions.setCurrentRoom(data.roomState.room)
+          roomStore.actions.updatePlayers(data.roomState.players)
+          roomStore.actions.setCurrentPhase(data.roomState.currentPhase)
         }
         
         // Restore turn state if available
@@ -255,13 +255,13 @@ export class RoomMultiplayerService {
           console.log('Charleston state recovery:', data.charlestonState)
         }
         
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'success',
           title: 'State Recovered',
           message: 'Game state successfully recovered'
         })
       } else {
-        useGameStore.getState().addAlert({
+        useGameStore.getState().actions.addAlert({
           type: 'warning',
           title: 'Recovery Failed',
           message: data.error || 'Failed to recover game state'
@@ -272,9 +272,9 @@ export class RoomMultiplayerService {
     // Phase transition events
     this.socket.on('phase-changed', (data) => {
       const roomStore = useRoomStore.getState()
-      roomStore.setCurrentPhase(data.toPhase)
+      roomStore.actions.setCurrentPhase(data.toPhase)
       
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'info',
         title: 'Phase Changed',
         message: `Game phase changed to ${data.toPhase}`
@@ -284,12 +284,12 @@ export class RoomMultiplayerService {
     // Player state updates
     this.socket.on('player-state-updated', (data) => {
       const roomStore = useRoomStore.getState()
-      roomStore.updatePlayerState(data.playerId, {
+      roomStore.actions.updatePlayerState(data.playerId, {
         isConnected: data.isConnected
       })
       
       if (data.isReady !== undefined) {
-        roomStore.setPlayerReadiness(data.playerId, data.phase as 'room' | 'charleston' | 'gameplay', data.isReady)
+        roomStore.actions.setPlayerReadiness(data.playerId, data.phase as 'room' | 'charleston' | 'gameplay', data.isReady)
       }
     })
 
@@ -304,9 +304,9 @@ export class RoomMultiplayerService {
         isReady: false,
         joinedAt: new Date()
       }
-      roomStore.addSpectator(spectator)
+      roomStore.actions.addSpectator(spectator)
       
-      useGameStore.getState().addAlert({
+      useGameStore.getState().actions.addAlert({
         type: 'info',
         title: 'Spectator Joined',
         message: `${data.spectatorName} is now spectating`
@@ -430,7 +430,7 @@ export class RoomMultiplayerService {
   private handleRoomUpdate(room: Room): void {
     this.roomId = room.id
     const roomStore = useRoomStore.getState()
-    roomStore.updateRoom(room)
+    roomStore.actions.setCurrentRoom(room)
 
     // Convert Room players to CrossPhasePlayerState
     const crossPhaseStates = room.players.map(player => ({
@@ -444,7 +444,7 @@ export class RoomMultiplayerService {
       gameplayReadiness: false
     }))
 
-    roomStore.updatePlayers(crossPhaseStates)
+    roomStore.actions.updatePlayers(crossPhaseStates)
 
     // Update connection status - defer to avoid React render cycle issues
     setTimeout(() => {
@@ -463,7 +463,7 @@ export class RoomMultiplayerService {
 
     // Update host permissions if user is host
     if (room.hostId === this.playerId) {
-      roomStore.updateHostPermissions({
+      roomStore.actions.updateHostPermissions({
         canKickPlayers: true,
         canTransferHost: true,
         canChangeSettings: true,
