@@ -131,18 +131,19 @@ export function useMultiplayer() {
           store.setCurrentRoom(response.room)
           store.setCurrentPlayerId(socket.socketId!)
 
+          // DISABLED: Testing if this auto-emit interferes with socket
           // In development, immediately populate test players after successful room creation
           // to sequence the emit after the server has joined the socket to the room.
-          if (import.meta.env.DEV) {
-            try {
-              console.log('?? Dev mode: auto-emitting populate-test-players for room:', response.room.id)
-              socket.emit('populate-test-players', { roomId: response.room.id }, (ack: unknown) => {
-                console.log('🧪 populate-test-players ACK (auto):', ack)
-              })
-            } catch (e) {
-              console.warn('?? Failed to auto-emit populate-test-players:', e)
-            }
-          }
+          // if (import.meta.env.DEV) {
+          //   try {
+          //     console.log('?? Dev mode: auto-emitting populate-test-players for room:', response.room.id)
+          //     socket.emit('populate-test-players', { roomId: response.room.id }, (ack: unknown) => {
+          //       console.log('🧪 populate-test-players ACK (auto):', ack)
+          //     })
+          //   } catch (e) {
+          //     console.warn('?? Failed to auto-emit populate-test-players:', e)
+          //   }
+          // }
           resolve(response.room)
           clearError()
         } else {
