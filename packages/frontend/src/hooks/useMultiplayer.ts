@@ -3,7 +3,7 @@ import { useSocketContext } from './useSocketContext'
 import { useConnectionResilience } from './useConnectionResilience'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
 import { getNetworkErrorHandler } from '../lib/services/network-error-handler'
-import { getRoomMultiplayerService, initializeRoomMultiplayerService } from '../lib/services/room-multiplayer'
+import { getRoomMultiplayerService, initializeRoomMultiplayerService, destroyRoomMultiplayerService } from '../lib/services/room-multiplayer'
 import type { Room, Player, GameState, PlayerGameState, RoomConfig } from 'shared-types'
 
 interface CreateRoomData {
@@ -42,11 +42,21 @@ export function useMultiplayer() {
 
   const retryTimeoutsRef = useRef<NodeJS.Timeout[]>([])
   const roomServiceRef = useRef<ReturnType<typeof getRoomMultiplayerService>>(null)
+  const enableLegacyRoomService = (import.meta.env.VITE_ENABLE_LEGACY_ROOM_SERVICE === 'true')
 
   // Initialize room multiplayer service with connection resilience
   useEffect(() => {
+    if (!enableLegacyRoomService) {
+      // Explicitly disable legacy service during refactor to avoid conflicting listeners
+      if (roomServiceRef.current) {
+        try { destroyRoomMultiplayerService() } catch {}
+      }
+      roomServiceRef.current = null
+      return
+    }
+
     if (socket.isConnected && socket.socketId && socket.rawSocket && !roomServiceRef.current) {
-      const playerName = 'Player' // This should come from user context
+      const playerName = 'Player' // TODO: source from user context/profile
       roomServiceRef.current = initializeRoomMultiplayerService(socket.rawSocket, socket.socketId, playerName)
     }
     
@@ -55,7 +65,7 @@ export function useMultiplayer() {
         roomServiceRef.current = null
       }
     }
-  }, [socket.isConnected, socket.socketId, socket.rawSocket])
+  }, [socket.isConnected, socket.socketId, socket.rawSocket, enableLegacyRoomService])
 
   // Sync connection state with store using resilience service
   useEffect(() => {
@@ -111,13 +121,6 @@ export function useMultiplayer() {
         hostName: roomData.hostName
       }
 
-      console.log('🏠 Emitting create-room with socket ID:', socket.socketId)
-
-      socket.emit('create-room', {
-        hostName: roomData.hostName,
-        config
-      })
-
       const handleResponse = (...args: unknown[]) => {
         console.log('🏠 Received room-created response:', args)
         const response = args[0] as { success: boolean; room?: Room; error?: string }
@@ -127,6 +130,19 @@ export function useMultiplayer() {
           const store = useMultiplayerStore.getState()
           store.setCurrentRoom(response.room)
           store.setCurrentPlayerId(socket.socketId!)
+
+          // In development, immediately populate test players after successful room creation
+          // to sequence the emit after the server has joined the socket to the room.
+          if (import.meta.env.DEV) {
+            try {
+              console.log('?? Dev mode: auto-emitting populate-test-players for room:', response.room.id)
+              socket.emit('populate-test-players', { roomId: response.room.id }, (ack: unknown) => {
+                console.log('🧪 populate-test-players ACK (auto):', ack)
+              })
+            } catch (e) {
+              console.warn('?? Failed to auto-emit populate-test-players:', e)
+            }
+          }
           resolve(response.room)
           clearError()
         } else {
@@ -140,6 +156,13 @@ export function useMultiplayer() {
 
       console.log('🏠 Listening for room-created event')
       socket.on('room-created', handleResponse)
+
+      // Emit AFTER listener is attached to avoid missing fast responses
+      console.log('🏠 Emitting create-room with socket ID:', socket.socketId)
+      socket.emit('create-room', {
+        hostName: roomData.hostName,
+        config
+      })
 
       // Add timeout to detect if backend doesn't respond
       setTimeout(() => {
@@ -156,11 +179,6 @@ export function useMultiplayer() {
     clearError()
 
     return new Promise((resolve, reject) => {
-      socket.emit('join-room', {
-        roomId,
-        playerName
-      })
-
       const handleResponse = (...args: unknown[]) => {
         const response = args[0] as { success: boolean; room?: Room; error?: string }
         setIsJoiningRoom(false)
@@ -181,6 +199,12 @@ export function useMultiplayer() {
       }
 
       socket.on('room-joined', handleResponse)
+
+      // Emit AFTER listener is attached to avoid missing fast responses
+      socket.emit('join-room', {
+        roomId,
+        playerName
+      })
     })
   }, [socket, clearError, handleError])
 
@@ -414,3 +438,5 @@ export function useMultiplayer() {
     areAllPlayersReady
   }
 }
+
+

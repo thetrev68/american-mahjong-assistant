@@ -18,6 +18,36 @@ export interface ConnectionHealth {
 // GLOBAL singleton socket - shared across ALL hook instances
 let globalSocketInstance: Socket | null = null
 
+function patchOutgoingLogging(socket: Socket) {
+  try {
+    if (!import.meta.env.DEV) return
+    const anySock = socket as any
+    if (anySock.__outgoingPatched) return
+    const originalEmit = socket.emit.bind(socket)
+    anySock.__outgoingPatched = true
+    socket.emit = ((event: string, ...args: unknown[]) => {
+      try {
+        // Log outgoing event and first payload arg (compact)
+        console.log('🛰️ client OUT:', event, args?.[0])
+      } catch {}
+
+      // Wrap ACK to log incoming ACKs tied to this emit
+      const last = args[args.length - 1]
+      if (typeof last === 'function') {
+        const ack = last as (...ackArgs: unknown[]) => void
+        args[args.length - 1] = (...ackArgs: unknown[]) => {
+          try {
+            console.log('🛰️ client ACK for', event, ackArgs?.[0])
+          } catch {}
+          return ack(...ackArgs)
+        }
+      }
+
+      return originalEmit(event as any, ...(args as any[]))
+    }) as any
+  } catch {}
+}
+
 export function useSocket(options: { autoConnect?: boolean } = {}) {
   const { autoConnect = true } = options
   const [isConnected, setIsConnected] = useState(false)
@@ -41,6 +71,7 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
       // If global socket exists, use it
       if (globalSocketInstance) {
         socketRef.current = globalSocketInstance
+        patchOutgoingLogging(globalSocketInstance)
         if (globalSocketInstance.connected) {
           setIsConnected(true)
           setSocketId(globalSocketInstance.id || null)
@@ -58,6 +89,7 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
 
       socketRef.current = globalSocketInstance
       const socket = globalSocketInstance
+      patchOutgoingLogging(socket)
 
       socket.on('connect', () => {
         setIsConnected(true)
@@ -231,6 +263,25 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
       // disconnect()
     }
   }, [autoConnect, connect])
+
+  // Dev-only: log all incoming socket events to aid debugging
+  useEffect(() => {
+    if (!import.meta.env.DEV) return
+    const s = socketRef.current
+    if (!s) return
+    const onAny = (event: string, ...args: unknown[]) => {
+      try {
+        // Keep logs compact to avoid noise
+        console.log('🧪 client onAny:', event, args?.[0])
+      } catch {}
+    }
+    // @ts-ignore onAny is available on Socket instance
+    s.onAny(onAny)
+    return () => {
+      // @ts-ignore offAny is available on Socket instance
+      s.offAny?.(onAny)
+    }
+  }, [isConnected])
 
   return {
     isConnected,

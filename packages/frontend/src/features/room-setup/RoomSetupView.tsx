@@ -205,7 +205,9 @@ export const RoomSetupView: React.FC = () => {
 
       // Use socket.emit() wrapper instead of rawSocket - it handles connection checking
       console.log('🎲 Emitting populate-test-players via wrapper')
-      socket.emit('populate-test-players', { roomId })
+      socket.emit('populate-test-players', { roomId }, (ack: unknown) => {
+        console.log('🧪 populate-test-players ACK (manual):', ack)
+      })
 
       socket.on('dev:players-populated', (response: SocketEventMap['dev:players-populated']) => {
         console.log('🎯 Received response:', response)
@@ -585,4 +587,3 @@ export const RoomSetupView: React.FC = () => {
     </div>
   )
 }
-

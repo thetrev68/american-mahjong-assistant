@@ -137,6 +137,66 @@ export class SocketHandlers {
       this.broadcastRoomListUpdate()
     }))
 
+    // Dev utility: populate test players for a room (also enabled in non-prod for reliability)
+    socket.on('populate-test-players', async (data, ack?: (resp: unknown) => void) => {
+      try {
+        console.log('🧪 [unconditional] populate-test-players RECEIVED for socket:', socket.id, 'data:', data)
+        const { roomId } = data as { roomId: string }
+        const room = this.roomManager.getRoom(roomId)
+        if (!room) {
+          console.warn('🧪 [unconditional] populate-test-players: room not found:', roomId)
+          socket.emit('dev:players-populated', { success: false, error: 'Room not found' })
+          if (typeof ack === 'function') ack({ success: false, error: 'Room not found' })
+          return
+        }
+
+        const testPlayerNames = ['Kim', 'Jordan', 'Emilie']
+        const positions = ['east', 'south', 'west', 'north'] as const
+        const aiPlayers: Player[] = []
+
+        for (let i = 0; i < 3; i++) {
+          const aiPlayer: Player = {
+            id: `player-${i + 2}-${Date.now()}`,
+            name: testPlayerNames[i],
+            position: positions[i + 1] as 'east' | 'north' | 'west' | 'south',
+            isHost: false,
+            isReady: true,
+            isConnected: true
+          }
+          aiPlayers.push(aiPlayer)
+        }
+
+        aiPlayers.forEach(p => room.players.push(p))
+
+        const hostPlayer = room.players.find(p => p.isHost)
+        if (hostPlayer) {
+          if (!hostPlayer.position) hostPlayer.position = positions[0]
+          hostPlayer.name = hostPlayer.name || 'Trevor'
+          hostPlayer.isReady = true
+        }
+
+        console.log('🧪 [unconditional] populate-test-players: adding AI players and emitting updates for room:', roomId)
+        socket.emit('dev:players-populated', {
+          success: true,
+          room,
+          players: aiPlayers
+        })
+        if (typeof ack === 'function') ack({ success: true, roomId })
+
+        aiPlayers.forEach(player => {
+          this.io.to(roomId).emit('player-joined', { player, room })
+        })
+        this.io.to(roomId).emit('room-updated', { room })
+
+        this.broadcastRoomListUpdate()
+        console.log('🧪 [unconditional] populate-test-players: complete for room:', roomId)
+      } catch (err) {
+        console.error('🧪 [unconditional] populate-test-players: error:', err)
+        socket.emit('dev:players-populated', { success: false, error: 'Internal error' })
+        if (typeof ack === 'function') ack({ success: false, error: 'Internal error' })
+      }
+    })
+
     socket.on('leave-room', async (data) => {
       try {
         const { roomId } = data

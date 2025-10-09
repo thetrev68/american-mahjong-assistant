@@ -119,3 +119,65 @@ const handleResponse = (...args: unknown[]) => {
 - ✅ Handler is registered
 
 **Next Step:** Add 1-second delay before emitting populate-test-players to test if it's a timing issue.
+
+## Progress Update (2025-10-09)
+
+### What We Verified
+- `create-room` flows end-to-end: frontend receives `room-created`, backend logs the event and emits back.
+- Room IDs are 8-character uppercase values (server-generated); the 4-char code is UI-only and not used in server calls.
+- The frontend emits `populate-test-players` on the same socket id used for `create-room`.
+- When emitted from the app, the backend does NOT log receiving `populate-test-players`, and no ACK is observed on the client.
+- A separate smoke client succeeds end-to-end (backend receives `populate-test-players`, adds players, emits `dev:players-populated`).
+
+### Changes Implemented
+- Frontend
+  - Listen-before-emit for `room-created` and `room-joined` to prevent races: `packages/frontend/src/hooks/useMultiplayer.ts`.
+  - Dev auto-emit of `populate-test-players` immediately after `room-created` for sequencing: `packages/frontend/src/hooks/useMultiplayer.ts`.
+  - Added ACK callback logging for both auto and manual emits to confirm server receipt: `useMultiplayer.ts`, `packages/frontend/src/features/room-setup/RoomSetupView.tsx`.
+  - Added dev-only client `onAny` logger to trace all incoming events: `packages/frontend/src/hooks/useSocket.ts`.
+  - Disabled/destroyed legacy room-multiplayer service to avoid conflicting listeners and stubbed actions: `packages/frontend/src/hooks/useMultiplayer.ts`.
+- Backend
+  - Added unconditional handler for `populate-test-players` (not gated by NODE_ENV) with verbose logs and ACK support: `packages/backend/src/features/socket-communication/socket-handlers.ts`.
+  - Added connection/registration logs to correlate socket ids and event listeners: `packages/backend/src/server.ts`.
+- Tooling
+  - Added a Socket.IO smoke test script to reproduce the exact flow out-of-app: `scripts/dev/socket-populate-smoke.mjs`.
+
+### Results So Far
+- Smoke script: PASS. Backend receives `populate-test-players`, adds players, and emits `dev:players-populated`.
+- In-app: `populate-test-players` emits (auto + manual) show as sent, but:
+  - No backend log for the event.
+  - No ACK callback observed in frontend.
+  - No `dev:players-populated` received by the frontend.
+- Conclusion: The event is not reaching the server from the app, despite using the same connected socket immediately after a successful `create-room`.
+
+### Outgoing Trace Findings
+- Added dev-only outgoing tracer (monkey-patch of `socket.emit`) logs:
+  - `client OUT: create-room ...` then `client onAny: room-created ...` (OK)
+  - `client OUT: populate-test-players { roomId: <8-char> }` (both auto and manual)
+  - No `client ACK for populate-test-players ...` seen
+- Backend shows no `populate-test-players` receipt for those attempts.
+- This confirms a transport drop of that specific event from the app context (not backend logic, not ID mapping), while other events (create-room) on the same socket work.
+
+### Hypotheses (Updated)
+- Client transport is dropping this specific event name from the app context (name-specific filtering or collision). Less likely but possible given smoke test passes.
+- A listener or wrapper in-app is interfering with outbound emits for this event between provider boundaries (less likely given `create-room` works via same path).
+- Not a room ID mapping issue (8-char id is used and valid, and server handler checks by `roomId`).
+
+### Next Diagnostics
+- After restart, capture whether ACK logs appear for both emits:
+  - Auto (after `room-created`) and manual (from Auto Position).
+  - If no ACK: confirm server never receives the event; proceed to emit an alternate diagnostic event name in parallel (dev-only) to isolate name-specific filtering.
+  - If ACK success arrives but UI doesn’t update: verify `RoomSetupView.tsx` `socket.on('dev:players-populated', ...)` fires once and store updates propagate (Zustand store adapters after refactor).
+- Keep verifying socket ids match between frontend and backend connection logs.
+
+Additional high-signal checks (next session):
+- Inspect WS frames in DevTools for `populate-test-players` right when Auto Position emits; if absent, emit didn’t leave the browser.
+- Emit a trivial `test-event` immediately before populate in Auto Position to see if any event reaches backend at that moment.
+- Optionally emit a parallel diagnostic event name (e.g., `dev:populate-players-alt`) to rule out name-specific filtering.
+
+### Commands
+- Run smoke test directly:
+  - `BACKEND_URL=http://localhost:5000 node scripts/dev/socket-populate-smoke.mjs`
+
+### Notes
+- In Multiplayer mode, `create-room` adds only Trevor initially. The other three players (Kim, Jordan, Emilie) are added by `populate-test-players`. Seeing only Trevor in `create-room` logs is expected.

@@ -43,7 +43,9 @@ const socketHandlers = new SocketHandlers(io, roomManager, stateSyncManager);
 
 // Setup socket event handlers and start cleanup
 io.on('connection', (socket) => {
+  console.log('🧪 [server] New connection:', socket.id, 'from', (socket.handshake.headers.origin || 'unknown'))
   socketHandlers.registerHandlers(socket);
+  console.log('🧪 [server] Registered handlers for', socket.id, 'events:', socket.eventNames())
 });
 
 socketHandlers.startPeriodicCleanup();
@@ -60,4 +62,3 @@ server.listen(PORT, () => {
   console.log(`📡 Socket.io server ready for connections`);
   console.log(`🏥 Health check available at http://localhost:${PORT}/health`);
 });
-
