@@ -18,36 +18,6 @@ export interface ConnectionHealth {
 // GLOBAL singleton socket - shared across ALL hook instances
 let globalSocketInstance: Socket | null = null
 
-function patchOutgoingLogging(socket: Socket) {
-  try {
-    if (!import.meta.env.DEV) return
-    const anySock = socket as any
-    if (anySock.__outgoingPatched) return
-    const originalEmit = socket.emit.bind(socket)
-    anySock.__outgoingPatched = true
-    socket.emit = ((event: string, ...args: unknown[]) => {
-      try {
-        // Log outgoing event and first payload arg (compact)
-        console.log('🛰️ client OUT:', event, args?.[0])
-      } catch {}
-
-      // Wrap ACK to log incoming ACKs tied to this emit
-      const last = args[args.length - 1]
-      if (typeof last === 'function') {
-        const ack = last as (...ackArgs: unknown[]) => void
-        args[args.length - 1] = (...ackArgs: unknown[]) => {
-          try {
-            console.log('🛰️ client ACK for', event, ackArgs?.[0])
-          } catch {}
-          return ack(...ackArgs)
-        }
-      }
-
-      return originalEmit(event as any, ...(args as any[]))
-    }) as any
-  } catch {}
-}
-
 export function useSocket(options: { autoConnect?: boolean } = {}) {
   const { autoConnect = true } = options
   const [isConnected, setIsConnected] = useState(false)
@@ -70,8 +40,8 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
     try {
       // If global socket exists, use it
       if (globalSocketInstance) {
+        console.log('🔌 useSocket: Reusing existing global socket instance:', globalSocketInstance.id)
         socketRef.current = globalSocketInstance
-        patchOutgoingLogging(globalSocketInstance)
         if (globalSocketInstance.connected) {
           setIsConnected(true)
           setSocketId(globalSocketInstance.id || null)
@@ -79,23 +49,16 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
         return
       }
 
+      console.log('🔌 useSocket: Creating NEW global socket instance')
       const backendUrl = appConfig.backendUrl
-
-      // Enable Socket.IO debug logging in development
-      if (import.meta.env.DEV) {
-        localStorage.debug = 'socket.io-client:*'
-      }
 
       globalSocketInstance = io(backendUrl, {
         autoConnect: true,
-        timeout: 10000,
-        retries: 3
+        timeout: 10000
       })
 
       socketRef.current = globalSocketInstance
       const socket = globalSocketInstance
-      // DISABLED: Testing if monkey-patch is breaking emit after create-room
-      // patchOutgoingLogging(socket)
 
       socket.on('connect', () => {
         setIsConnected(true)
@@ -183,9 +146,10 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
 
   const emit = useCallback((event: string, data?: unknown, callback?: (...args: unknown[]) => void) => {
     try {
-      console.log('📤 useSocket.emit() wrapper called:', event, 'connected:', socketRef.current?.connected)
+      // Always use globalSocketInstance directly to avoid stale closure issues
+      const socket = globalSocketInstance
 
-      if (!socketRef.current?.connected) {
+      if (!socket?.connected) {
         // Queue event if disconnected
         const queuedEvent: QueuedEvent = {
           event,
@@ -197,14 +161,11 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
         return
       }
 
-      console.log('📤 About to call socketRef.current.emit for:', event)
-      // Socket.IO debug will show the actual packet transmission
       if (callback) {
-        socketRef.current.emit(event, data, callback)
+        socket.emit(event, data, callback)
       } else {
-        socketRef.current.emit(event, data)
+        socket.emit(event, data)
       }
-      console.log('📤 socketRef.current.emit completed for:', event)
 
       setLastError(null)
     } catch (error) {
