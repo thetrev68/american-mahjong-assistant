@@ -199,33 +199,12 @@ export const RoomSetupView: React.FC = () => {
         return
       }
 
-      console.log('🎲 Populating players via backend')
-      console.log('🔌 Socket isConnected:', socket.isConnected)
-      console.log('🔌 Socket ID:', socket.socketId)
+      console.log('%c━━━ AUTO POSITION CLICKED ━━━', 'font-weight: bold; font-size: 14px; color: orange;')
+      console.log('Room ID:', roomId)
 
-      // Check underlying WebSocket state
-      const rawSocket = socket.rawSocket
-      if (rawSocket) {
-        console.log('🔍 Socket.IO connected:', rawSocket.connected)
-        console.log('🔍 Socket.IO disconnected:', rawSocket.disconnected)
-        // @ts-ignore - access engine for WebSocket readyState
-        const engine = rawSocket.io?.engine
-        if (engine) {
-          console.log('🔍 Engine readyState:', engine.readyState)
-          console.log('🔍 Engine transport:', engine.transport?.name)
-        }
-      }
-
-      // TEST: Emit a diagnostic event right before populate to verify socket works
-      console.log('🧪 TEST: Emitting test-before-populate event')
-      socket.emit('test-before-populate', { roomId, timestamp: Date.now() }, (ack: unknown) => {
-        console.log('🧪 test-before-populate ACK:', ack)
-      })
-
-      // Use socket.emit() wrapper instead of rawSocket - it handles connection checking
-      console.log('🎲 Emitting populate-test-players via wrapper')
+      // Emit populate-test-players - Socket.IO debug will show internal details
       socket.emit('populate-test-players', { roomId }, (ack: unknown) => {
-        console.log('🧪 populate-test-players ACK (manual):', ack)
+        console.log('✅ populate-test-players ACK received:', ack)
       })
 
       socket.on('dev:players-populated', (response: SocketEventMap['dev:players-populated']) => {

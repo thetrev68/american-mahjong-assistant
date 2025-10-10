@@ -94,7 +94,8 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
 
       socketRef.current = globalSocketInstance
       const socket = globalSocketInstance
-      patchOutgoingLogging(socket)
+      // DISABLED: Testing if monkey-patch is breaking emit after create-room
+      // patchOutgoingLogging(socket)
 
       socket.on('connect', () => {
         setIsConnected(true)
@@ -182,41 +183,33 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
 
   const emit = useCallback((event: string, data?: unknown, callback?: (...args: unknown[]) => void) => {
     try {
-      console.log('🔌 emit() called, event:', event, 'socketRef.current:', socketRef.current?.id, 'connected:', socketRef.current?.connected)
+      console.log('📤 useSocket.emit() wrapper called:', event, 'connected:', socketRef.current?.connected)
 
       if (!socketRef.current?.connected) {
         // Queue event if disconnected
-        console.log('🔌 Socket not connected, queuing event:', event)
         const queuedEvent: QueuedEvent = {
           event,
           data,
           timestamp: new Date()
         }
         setEventQueue(prev => [...prev, queuedEvent])
+        console.warn('⚠️ Socket disconnected, queued event:', event)
         return
       }
 
-      console.log('🔌 Emitting event:', event, 'with data:', data, 'callback:', !!callback)
-
-      try {
-        if (callback) {
-          console.log('🔌 About to call emit WITH callback')
-          socketRef.current.emit(event, data, callback)
-          console.log('🔌 ✅ emit WITH callback completed')
-        } else {
-          console.log('🔌 About to call emit WITHOUT callback, event:', event)
-          socketRef.current.emit(event, data)
-          console.log('🔌 ✅ emit WITHOUT callback completed for event:', event)
-        }
-      } catch (emitError) {
-        console.error('🔌 ❌ ERROR during emit():', emitError)
-        throw emitError
+      console.log('📤 About to call socketRef.current.emit for:', event)
+      // Socket.IO debug will show the actual packet transmission
+      if (callback) {
+        socketRef.current.emit(event, data, callback)
+      } else {
+        socketRef.current.emit(event, data)
       }
+      console.log('📤 socketRef.current.emit completed for:', event)
 
       setLastError(null)
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      console.error('🔌 emit() error:', errorMessage)
+      console.error('❌ emit() error:', errorMessage)
       setLastError(`Failed to emit event: ${errorMessage}`)
     }
   }, [])

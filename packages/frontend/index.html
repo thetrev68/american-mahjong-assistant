@@ -8,6 +8,12 @@
   </head>
   <body>
     <div id="root"></div>
+    <!-- Enable Socket.IO debug logging BEFORE any modules load -->
+    <script>
+      if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        localStorage.debug = 'socket.io-client:*';
+      }
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
