@@ -4,7 +4,8 @@
   "description": "Backend server for Mahjong Co-Pilot application",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "nodemon --exec ts-node src/server.ts",
+    "dev": "cross-env DEBUG=socket.io:* nodemon --exec ts-node src/server.ts",
+    "dev:verbose": "cross-env DEBUG=* nodemon --exec ts-node src/server.ts",
     "build": "tsc --build",
     "start": "node dist/server.js",
     "type-check": "tsc --noEmit",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@types/uuid": "^10.0.0",
     "@vitest/coverage-v8": "^3.2.4",
+    "cross-env": "^10.1.0",
     "vitest": "^3.2.4"
   }
 }

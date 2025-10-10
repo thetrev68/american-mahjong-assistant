@@ -1,6 +1,6 @@
 # Debug: populate-test-players Not Reaching Backend
 
-## Issue
+## Issue 
 Frontend emits `populate-test-players` event but backend `socket.onAny()` doesn't catch it.
 
 ## Evidence

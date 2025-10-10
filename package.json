@@ -28,5 +28,8 @@
     "knip": "^5.64.0",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.41.0"
+  },
+  "dependencies": {
+    "socket.io": "^4.8.1"
   }
 }

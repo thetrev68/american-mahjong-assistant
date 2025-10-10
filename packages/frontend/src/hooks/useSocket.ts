@@ -81,6 +81,11 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
 
       const backendUrl = appConfig.backendUrl
 
+      // Enable Socket.IO debug logging in development
+      if (import.meta.env.DEV) {
+        localStorage.debug = 'socket.io-client:*'
+      }
+
       globalSocketInstance = io(backendUrl, {
         autoConnect: true,
         timeout: 10000,
