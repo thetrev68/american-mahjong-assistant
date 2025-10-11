@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, devtools } from 'zustand/middleware';
 
 import type { TutorialProgress, UserPreferences, SkillLevel, TutorialSection, TutorialStep } from '../features/tutorial/types';
-import type { GameOutcome, GameDifficulty, DecisionQuality, GameDecision, CompletedGame, PerformanceStats, LearningRecommendation } from '@shared-types/game-state-types';
+import type { GameOutcome, GameDifficulty, DecisionQuality, GameDecision, CompletedGame, PerformanceStats, LearningRecommendation } from 'shared-types';
 interface HistoryState {
   completedGames: CompletedGame[];
   currentGameId: string | null;

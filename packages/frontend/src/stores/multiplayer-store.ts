@@ -1,7 +1,7 @@
 // Legacy adapter for refactored room/multiplayer store
 // Maps the old multiplayer-store API onto the new useRoomStore
 import { useRoomStore } from './useRoomStore'
-import type { Room, Player, GameState, PlayerGameState, SharedState } from '@shared-types/room-types'
+import type { Room, Player, GameState, PlayerGameState, SharedState } from 'shared-types'
 import { useSyncExternalStore } from 'react'
 
 function mapState() {

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import type { PatternRanking } from '@shared-types/game-types';
+import type { PatternRanking } from 'shared-types';
 import type { HandAnalysis, TileRecommendation } from '../types/intelligence';
 import type { PlayerTile, PatternSelectionOption } from 'shared-types';
 import { AnalysisEngine } from '../lib/services/analysis-engine';

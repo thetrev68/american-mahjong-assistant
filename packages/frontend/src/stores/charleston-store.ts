@@ -1,5 +1,4 @@
-import type { Tile } from 'shared-types'
-import type { PatternSelectionOption } from '@shared-types/nmjl-types'
+import type { Tile, PatternSelectionOption } from 'shared-types'
 import { useGameStore } from './useGameStore'
 
 export type CharlestonPhase = 'right' | 'across' | 'left' | 'optional' | 'complete'

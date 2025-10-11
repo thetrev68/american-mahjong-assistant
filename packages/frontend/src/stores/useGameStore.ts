@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
-import type { GamePhase, Tile, Notification, Player, CharlestonState, PlayerPosition } from '@shared-types/game-types';
-import type { PatternSelectionOption } from '@shared-types/nmjl-types';
+import type { GamePhase, Tile, Notification, Player, CharlestonState, PlayerPosition } from 'shared-types';
+import type { PatternSelectionOption } from 'shared-types';
 
 import type { GameAction, CallType } from '../features/gameplay/services/game-actions';
 

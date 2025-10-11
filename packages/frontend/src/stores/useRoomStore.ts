@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { Socket } from 'socket.io-client';
-import type { Room, Player, GameState, PlayerGameState, SharedState } from '@shared-types/room-types';
+import type { Room, Player, GameState, PlayerGameState, SharedState } from 'shared-types';
 import { useUIStore } from './useUIStore';
 
 export type CoPilotMode = 'solo' | 'everyone';
