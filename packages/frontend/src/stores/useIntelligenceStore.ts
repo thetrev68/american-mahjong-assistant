@@ -49,7 +49,7 @@ interface IntelligenceState {
   };
 }
 
-export const useIntelligenceStore = create<IntelligenceState>((set, get) => {
+export const useIntelligenceStore = create<IntelligenceState>((set) => {
   // Shared analyzeHand implementation
   const analyzeHandImpl = async (
     playerTiles: PlayerTile[],

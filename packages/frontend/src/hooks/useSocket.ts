@@ -229,15 +229,13 @@ export function useSocket(options: { autoConnect?: boolean } = {}) {
     const s = socketRef.current
     if (!s) return
     const onAny = (event: string, ...args: unknown[]) => {
-      try {
-        // Keep logs compact to avoid noise
-        console.log('🧪 client onAny:', event, args?.[0])
-      } catch {}
+      // Keep logs compact to avoid noise
+      console.log('🧪 client onAny:', event, args?.[0])
     }
-    // @ts-ignore onAny is available on Socket instance
+    // @ts-expect-error onAny is available on Socket instance
     s.onAny(onAny)
     return () => {
-      // @ts-ignore offAny is available on Socket instance
+      // @ts-expect-error offAny is available on Socket instance
       s.offAny?.(onAny)
     }
   }, [isConnected])

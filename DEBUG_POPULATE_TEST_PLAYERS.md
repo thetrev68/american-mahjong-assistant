@@ -321,3 +321,96 @@ localStorage.debug
 
 # Watch backend logs for "socket.io:socket got packet"
 ```
+
+---
+
+## ✅ RESOLVED (2025-10-10) (* premature! not solved! *)
+
+```
+  # Trevor: The frontend is SENDING 4 separate create-room packets! (IDs 0, 1, 2, 3)
+
+```
+
+### Root Cause
+**Socket.IO client internal queue was blocked by pending acknowledgment.**
+
+When the frontend emitted `create-room`, Socket.IO client added it to an internal `_queue` array with `pending: true`, expecting an acknowledgment (ACK) callback from the server. The backend handler processed the request and sent `room-created` event, but **never called the ACK callback**.
+
+This caused Socket.IO to keep the `create-room` message marked as pending indefinitely, **blocking ALL subsequent emits**. Any new emit (populate-test-players, test events, etc.) would be added to the queue but never transmitted because the queue was blocked waiting for the first item's ACK.
+
+### Evidence
+```javascript
+// Socket.IO internal queue (from browser inspection)
+rawSock._queue: [{
+  "id": 0,
+  "tryCount": 1,
+  "pending": true,    // ← STUCK!
+  "args": ["create-room", {...}, null],
+  "flags": {"fromQueue": true}
+}]
+```
+
+After `create-room` was queued:
+- ✅ Frontend: `socket.emit()` completed without error
+- ✅ Backend: Received event, processed it, sent `room-created` response
+- ❌ Socket.IO client: Never marked queue item as complete
+- ❌ Result: All subsequent emits silently queued but never sent
+
+### The Fix
+
+**Backend:** Modified `withSocketErrorHandling` wrapper to accept and call ACK callbacks.
+
+```typescript
+// packages/backend/src/features/socket-communication/socket-handlers.ts
+
+type SocketHandler = (data: unknown, ack?: (response: any) => void) => Promise<void> | void
+
+function withSocketErrorHandling(
+  socket: Socket,
+  eventName: string,
+  handler: SocketHandler
+): SocketHandler {
+  return async (data, ack?) => {
+    try {
+      await handler(data)
+      // Call ACK to unblock Socket.IO client queue
+      if (typeof ack === 'function') {
+        ack({ success: true })
+      }
+    } catch (error) {
+      const errorResponse = {
+        success: false,
+        error: error instanceof Error ? error.message : `Failed to handle ${eventName.replace('-', ' ')}`
+      }
+      socket.emit(eventName, errorResponse)
+      if (typeof ack === 'function') {
+        ack(errorResponse)
+      }
+    }
+  }
+}
+```
+
+**Frontend:** Also fixed:
+1. Removed auto-retry loop that was causing infinite retries (`handleError` on line 151)
+2. Re-enabled `socket.off()` cleanup to prevent duplicate listeners
+3. Ensured `emit()` wrapper uses `globalSocketInstance` to avoid stale closure issues
+
+### Files Modified
+- `packages/backend/src/features/socket-communication/socket-handlers.ts` (lines 11, 20-43)
+- `packages/frontend/src/hooks/useMultiplayer.ts` (lines 150-155)
+- `packages/frontend/src/hooks/useSocket.ts` (cleanup of diagnostic code)
+- `packages/frontend/src/features/room-setup/RoomSetupView.tsx` (cleanup of diagnostic code)
+
+### Key Learnings
+1. **Socket.IO v4.5+ queues emits with ACK support** - If you emit without a callback but Socket.IO detects an ACK is possible, it queues the message and waits for acknowledgment
+2. **Backend handlers MUST call ACK callbacks** - Even if using event-based responses (emit `room-created`), you must also call the ACK callback if provided
+3. **Queue blocking is silent** - Socket.IO won't throw errors, emits will complete successfully in code, but no WebSocket frames are generated
+4. **Inspect `rawSocket._queue`** - This internal property reveals if messages are stuck pending
+
+### Verification
+After fix:
+- ✅ `create-room` → receives ACK → queue unblocks
+- ✅ `populate-test-players` → WebSocket frame sent → backend receives → players added
+- ✅ All subsequent events work normally
+

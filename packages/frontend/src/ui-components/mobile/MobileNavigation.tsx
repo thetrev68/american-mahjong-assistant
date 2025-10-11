@@ -100,16 +100,6 @@ export const MobileNavigation: React.FC<MobileNavigationProps> = ({
           }
         )
         break
-        
-      case 'finished':
-        baseItems.push({
-          id: 'results',
-          label: 'Results',
-          icon: '🏆',
-          path: '/post-game',
-          description: 'View game results'
-        })
-        break
     }
 
     // Add settings

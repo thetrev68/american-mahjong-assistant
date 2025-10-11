@@ -47,12 +47,6 @@ const navItems: NavItem[] = [
     path: '/game',
     icon: '🎮',
     description: 'Full co-pilot gameplay experience'
-  },
-  {
-    label: 'Post-Game Analysis',
-    path: '/post-game',
-    icon: '📊',
-    description: 'Review performance and insights'
   }
 ]
 

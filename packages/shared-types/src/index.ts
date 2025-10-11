@@ -52,7 +52,7 @@ export type {
   ApiResponse
 } from './game-state-types';
 
-// Legacy exports for compatibility (TODO: gradually remove these)
+// Game action and Charleston types
 export type {
   PlayerAction,
   ActionType,

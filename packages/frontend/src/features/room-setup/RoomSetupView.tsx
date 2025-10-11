@@ -167,10 +167,10 @@ export const RoomSetupView: React.FC = () => {
 
     if (isSoloMode) {
       // Solo mode: position named players (Trevor, Kim, Jordan, Emilie)
-      const trevorPlayer = players.find(p => p.name === 'Trevor')
-      const kimPlayer = players.find(p => p.name === 'Kim')
-      const jordanPlayer = players.find(p => p.name === 'Jordan')
-      const emiliePlayer = players.find(p => p.name === 'Emilie')
+      const trevorPlayer: Player | undefined = players.find((p: Player) => p.name === 'Trevor')
+      const kimPlayer: Player | undefined = players.find((p: Player) => p.name === 'Kim')
+      const jordanPlayer: Player | undefined = players.find((p: Player) => p.name === 'Jordan')
+      const emiliePlayer: Player | undefined = players.find((p: Player) => p.name === 'Emilie')
 
       if (trevorPlayer) {
         console.log('Positioning Trevor at east')
@@ -199,16 +199,15 @@ export const RoomSetupView: React.FC = () => {
         return
       }
 
-      console.log('%c━━━ AUTO POSITION CLICKED ━━━', 'font-weight: bold; font-size: 14px; color: orange;')
-      console.log('Room ID:', roomId)
+      console.log('🎲 Populating test players for room:', roomId)
 
-      // Emit populate-test-players - Socket.IO debug will show internal details
-      socket.emit('populate-test-players', { roomId }, (ack: unknown) => {
-        console.log('✅ populate-test-players ACK received:', ack)
-      })
-
-      socket.on('dev:players-populated', (response: SocketEventMap['dev:players-populated']) => {
+      // Define handler once and clean it up after first call
+      const handlePlayersPopulated = (...args: unknown[]) => {
+        const response = args[0] as SocketEventMap['dev:players-populated']
         console.log('🎯 Received response:', response)
+
+        // Clean up listener immediately to prevent duplicates
+        socket.off('dev:players-populated', handlePlayersPopulated)
 
         if (response.success && response.room) {
           console.log('✅ Players added. Positioning all', response.room.players.length, 'players')
@@ -216,30 +215,7 @@ export const RoomSetupView: React.FC = () => {
           // Update multiplayerStore with new room
           useMultiplayerStore.getState().setCurrentRoom(response.room)
 
-          // Find the host player and update roomStore with hostPlayerId
-          const hostPlayer = response.room.players.find((p: Player) => p.isHost)
-          if (hostPlayer) {
-            useRoomStore.setState({ hostPlayerId: hostPlayer.id })
-          }
-
-          // Convert backend players to CrossPhasePlayerState format for roomStore
-          const crossPhasePlayerStates = response.room.players.map((player: Player) => ({
-            id: player.id,
-            name: player.name,
-            isHost: player.isHost,
-            isConnected: player.isConnected,
-            lastSeen: new Date(),
-            roomReadiness: true,  // Mark as ready
-            charlestonReadiness: false,
-            gameplayReadiness: false,
-            position: undefined,  // Will be set below
-            isCurrentTurn: false
-          }))
-
-          // Update roomStore with all players
-          useRoomStore.getState().updatePlayers(crossPhasePlayerStates)
-
-          // Position all players in playerStore and mark them as ready
+          // Position all players
           response.room.players.forEach((player: Player) => {
             const position = player.name === 'Trevor' ? 'east' :
                             player.name === 'Kim' ? 'south' :
@@ -248,14 +224,20 @@ export const RoomSetupView: React.FC = () => {
 
             if (position) {
               useRoomStore.setState(s => ({ playerPositions: { ...s.playerPositions, [player.id]: position }}))
-              // Mark player as ready for the room phase (multiplayer mode doesn't auto-mark)
-              useRoomStore.getState().setPlayerReadiness(player.id, 'room', true)
-              console.log('📍 Positioned', player.name, 'at', position, '(ready)')
+              console.log('📍 Positioned', player.name, 'at', position)
             }
           })
 
-          console.log('✅ All players positioned and marked ready')
+          console.log('✅ All players positioned')
         }
+      }
+
+      // Listen for response
+      socket.on('dev:players-populated', handlePlayersPopulated)
+
+      // Emit populate-test-players
+      socket.emit('populate-test-players', { roomId }, (ack: unknown) => {
+        console.log('✅ populate-test-players ACK received:', ack)
       })
     }
   }

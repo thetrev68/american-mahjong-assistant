@@ -1,12 +1,19 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(rm:*)",
+      "mcp__serena__search_for_pattern",
+      "mcp__serena__find_symbol"
     ],
     "deny": [],
     "ask": [],
     "additionalDirectories": [
       "C:\\Repos\\american-mahjong-assistant"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "serena"
+  ]
 }

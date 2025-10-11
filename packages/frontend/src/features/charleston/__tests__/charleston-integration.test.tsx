@@ -12,7 +12,6 @@ import { useRoomSetupStore } from '../../../stores/room-setup.store'
 import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { usePatternStore } from '../../../stores/pattern-store'
 import { useTurnStore, useTurnSelectors } from '../../../stores/turn-store'
-import { useHistoryStore } from '../../../stores/history-store'
 import { usePlayerStore } from '../../../stores/player.store'
 import { useRoomStore } from '../../../stores/useRoomStore'
 import { createTestHand } from '../../../__tests__/factories'
@@ -49,10 +48,6 @@ vi.mock('../../../stores/pattern-store', () => ({
 vi.mock('../../../stores/turn-store', () => ({
   useTurnStore: vi.fn(),
   useTurnSelectors: vi.fn()
-}))
-
-vi.mock('../../../stores/history-store', () => ({
-  useHistoryStore: vi.fn()
 }))
 
 vi.mock('../../../stores/player.store', () => ({
@@ -325,11 +320,6 @@ describe('Charleston Integration Tests', () => {
       turnTimeRemaining: 30
     }
 
-    const mockHistoryStore = {
-      gameHistory: [],
-      addEntry: vi.fn()
-    }
-
     const mockPlayerStore = {
       currentPlayer: { id: 'player1', name: 'Player 1' },
       allPlayers: [{ id: 'player1', name: 'Player 1' }]
@@ -381,7 +371,6 @@ describe('Charleston Integration Tests', () => {
     ;(useIntelligenceStore as any).mockReturnValue(mockIntelligenceStore)
     ;(usePatternStore as any).mockReturnValue(mockPatternStore)
     ;(useTurnStore as any).mockReturnValue(mockTurnStore)
-    ;(useHistoryStore as any).mockReturnValue(mockHistoryStore)
     ;(usePlayerStore as any).mockReturnValue(mockPlayerStore)
     ;(useRoomStore as any).mockReturnValue(mockRoomStore)
     ;(useTurnSelectors as any).mockReturnValue(mockTurnSelectors)

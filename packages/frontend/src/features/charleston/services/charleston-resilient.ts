@@ -96,8 +96,11 @@ export class CharlestonResilientService {
       charlestonStore.setPlayerReady(data.playerId, data.isReady)
       
       // Update room store as well for cross-phase consistency
-      const roomStore = useRoomStore.getState() as any
-      try { roomStore.setPlayerReadiness?.(data.playerId, 'charleston', data.isReady) } catch {}
+      type RoomStore = {
+        setPlayerReadiness?: (playerId: string, phase: string, isReady: boolean) => void
+      } & ReturnType<typeof useRoomStore.getState>
+      const roomStore = useRoomStore.getState() as RoomStore
+      try { roomStore.setPlayerReadiness?.(data.playerId, 'charleston', data.isReady) } catch { /* intentionally ignored */ }
     })
 
     // Confirmation that our readiness was received by server
@@ -178,7 +181,11 @@ export class CharlestonResilientService {
       const roomStore = useRoomStore.getState()
       const currentPlayerId = roomStore.currentPlayerId
       if (currentPlayerId) {
-        try { (roomStore as any).setPlayerReadiness?.(currentPlayerId, 'gameplay', true) } catch {}
+        type RoomStore = {
+          setPlayerReadiness?: (playerId: string, phase: string, isReady: boolean) => void
+          currentPlayerId?: string
+        } & typeof roomStore
+        (roomStore as RoomStore).setPlayerReadiness?.(currentPlayerId, 'gameplay', true)
       }
     })
   }

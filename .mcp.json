@@ -1,0 +1,23 @@
+{
+  "mcpServers": {
+    "serena": {
+      "type": "stdio",
+      "command": "python",
+      "args": [
+        "-m",
+        "uv",
+        "tool",
+        "run",
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "ide-assistant",
+        "--project",
+        "c:\\Repos\\american-mahjong-assistant"
+      ],
+      "env": {}
+    }
+  }
+}

@@ -49,18 +49,7 @@ interface RoomActions {
   isValidRoomCode: (code: string) => boolean;
   clearError: () => void;
 
-  // Legacy compatibility stubs for room-multiplayer.ts (TODO: refactor room-multiplayer)
-  removePlayer?: (playerId: string) => void;
-  transferHost?: (newHostId: string) => void;
-  updateHostPermissions?: (permissions: unknown) => void;
-  updatePlayers?: (players: unknown[]) => void;
-  setCurrentPhase?: (phase: string) => void;
-  updatePlayerState?: (playerId: string, state: unknown) => void;
-  setPlayerReadiness?: (playerId: string, phase: string, isReady: boolean) => void;
-  addSpectator?: (spectator: unknown) => void;
-  setCurrentRoomSettings?: (settings: unknown) => void;
-
-  // Getters (will be implemented as part of the store)
+  // Getters
   getCurrentPlayer: () => Player | null;
   getPlayerGameState: (playerId: string) => PlayerGameState | null;
   getPublicRooms: () => Room[];
@@ -189,20 +178,7 @@ export const useRoomStore = create<RoomState>()(
           isValidRoomCode: (code) => /^[A-Z]{4}$/.test(code.toUpperCase()),
           clearError: () => set({ error: null }),
 
-          // Legacy compatibility stubs - log warnings but don't crash
-          removePlayer: (playerId: string) => {
-            console.warn('⚠️ removePlayer called - needs implementation in new store structure');
-            set((state) => (state.room ? { room: { ...state.room, players: state.room.players.filter((p) => p.id !== playerId) } } : {}));
-          },
-          transferHost: (newHostId: string) => console.warn('⚠️ transferHost called - needs implementation'),
-          updateHostPermissions: () => console.warn('⚠️ updateHostPermissions called - needs implementation'),
-          updatePlayers: (players: unknown[]) => console.warn('⚠️ updatePlayers called with:', players),
-          setCurrentPhase: (phase: string) => console.warn('⚠️ setCurrentPhase called:', phase),
-          updatePlayerState: () => console.warn('⚠️ updatePlayerState called - needs implementation'),
-          setPlayerReadiness: () => console.warn('⚠️ setPlayerReadiness called - needs implementation'),
-          addSpectator: () => console.warn('⚠️ addSpectator called - needs implementation'),
-          setCurrentRoomSettings: () => console.warn('⚠️ setCurrentRoomSettings called - needs implementation'),
-          // --- Merged Getters ---
+          // Getters
           getCurrentPlayer: () => {
             const { room, currentPlayerId } = get();
             const devPlayerId = useUIStore.getState().dev.activeDevPlayerId;

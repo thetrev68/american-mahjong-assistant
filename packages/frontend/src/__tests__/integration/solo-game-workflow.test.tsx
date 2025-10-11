@@ -15,7 +15,6 @@ import { useGameStore } from '../../stores/useGameStore'
 import { usePatternStore } from '../../stores/pattern-store'
 import { useTileStore } from '../../stores/tile-store'
 import { useCharlestonStore } from '../../stores/charleston-store'
-import { useHistoryStore } from '../../stores/history-store'
 
 // Mock test data
 const mockSoloPatterns = [

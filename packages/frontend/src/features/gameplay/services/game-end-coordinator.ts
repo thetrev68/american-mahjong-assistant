@@ -1,17 +1,35 @@
 // Game End Coordinator - Manages all game end scenarios and transitions
-// Integrates with GameStatisticsEngine and handles multiplayer coordination
+// Simplified version without persistent history storage
 
-import { GameStatisticsEngine, type GameEndScenario, type GameStatistics } from '../../post-game/services/game-statistics'
 import type { PlayerTile } from 'shared-types'
 import type { NMJL2025Pattern } from 'shared-types'
-import type { TileSuit } from 'shared-types'
-import type { CompletedGame } from '../../../stores/history-store'
+
+// Local type definitions (no longer stored in database)
+export interface GameEndScenario {
+  type: 'mahjong' | 'wall_exhausted' | 'all_passed_out' | 'forfeit'
+  winner?: string
+  winningPattern?: NMJL2025Pattern
+  winningHand?: PlayerTile[]
+  endedAt: Date
+  reason: string
+}
+
+export interface GameStatistics {
+  gameId: string
+  startTime: Date
+  duration: number
+  totalTurns: number
+  playerStats: Record<string, {
+    turns: number
+    discards: number
+    calls: number
+  }>
+}
 
 export interface GameEndResult {
   scenario: GameEndScenario
   statistics: GameStatistics
   shouldNavigateToPostGame: boolean
-  completedGameData: Omit<CompletedGame, 'id'>
 }
 
 export interface GameEndContext {
@@ -28,36 +46,24 @@ export interface GameEndContext {
 }
 
 export class GameEndCoordinator {
-  private statisticsEngine: GameStatisticsEngine
   private context: GameEndContext
 
   constructor(context: GameEndContext) {
     this.context = context
-    this.statisticsEngine = new GameStatisticsEngine(
-      context.gameId,
-      context.players
-    )
   }
 
   /**
    * Check if game should end due to any scenario
    */
   checkForGameEnd(): GameEndResult | null {
-    // Check wall exhaustion
-    const wallCheck = GameStatisticsEngine.checkWallExhaustion(
-      this.context.wallTilesRemaining,
-      this.context.players.length
-    )
-    
-    if (!wallCheck.canContinue) {
+    // Check wall exhaustion (simplified)
+    const minTilesNeeded = this.context.players.length * 2
+    if (this.context.wallTilesRemaining < minTilesNeeded) {
       return this.endGameByWallExhaustion()
     }
 
     // Check if all players passed out
-    if (GameStatisticsEngine.checkAllPlayersPassedOut(
-      this.context.passedOutPlayers,
-      this.context.players.length
-    )) {
+    if (this.context.passedOutPlayers.size >= this.context.players.length) {
       return this.endGameByAllPassedOut()
     }
 
@@ -144,56 +150,17 @@ export class GameEndCoordinator {
   }
 
   /**
-   * Record a player action for statistics
-   */
-  recordPlayerAction(
-    playerId: string, 
-    actionType: 'draw' | 'discard' | 'call',
-    turnDuration?: number
-  ): void {
-    this.statisticsEngine.recordTurn(playerId, actionType, turnDuration)
-  }
-
-  /**
-   * Record a tile discard
-   */
-  recordDiscard(playerId: string, tile: PlayerTile): void {
-    this.statisticsEngine.recordDiscard(playerId, tile)
-  }
-
-  /**
-   * Record a call attempt
-   */
-  recordCallAttempt(playerId: string): void {
-    this.statisticsEngine.recordCallAttempt(playerId)
-  }
-
-  /**
-   * Record pattern switch
-   */
-  recordPatternSwitch(playerId: string, newPatterns: NMJL2025Pattern[]): void {
-    this.statisticsEngine.recordPatternSwitch(playerId, newPatterns)
-  }
-
-  /**
-   * Update pattern progress
-   */
-  updatePatternProgress(playerId: string, completionPercentage: number): void {
-    this.statisticsEngine.updatePatternProgress(playerId, completionPercentage)
-  }
-
-  /**
-   * Get current game statistics (for live updates)
+   * Get current game statistics (simplified - no persistence)
    */
   getCurrentStatistics(): Partial<GameStatistics> {
     const duration = Math.floor((Date.now() - this.context.gameStartTime.getTime()) / 1000 / 60)
-    
+
     return {
       gameId: this.context.gameId,
       startTime: this.context.gameStartTime,
       duration,
       totalTurns: this.context.currentTurn,
-      playerStats: Object.fromEntries(this.statisticsEngine['playerStats'])
+      playerStats: {}
     }
   }
 
@@ -211,94 +178,24 @@ export class GameEndCoordinator {
   }
 
   private finalizeGameEnd(endScenario: GameEndScenario): GameEndResult {
-    // Generate comprehensive statistics
-    const statistics = this.statisticsEngine.generateFinalStatistics(endScenario)
-
-    // Get winning player's data for completed game
-    const winnerData = endScenario.winner ? {
-      finalHand: this.context.playerHands[endScenario.winner] || [],
-      winningPattern: endScenario.winningPattern
-    } : {
-      finalHand: [],
-      winningPattern: undefined
-    }
-
-    // Generate game analysis for history store
-    const gameAnalysis = this.statisticsEngine.generateGameAnalysis(
-      endScenario,
-      this.context.selectedPatterns
-    )
-
-    // Create completed game data
-    const completedGameData: Omit<CompletedGame, 'id'> = {
-      timestamp: statistics.startTime,
-      createdAt: statistics.startTime,
-      duration: statistics.duration,
-      outcome: this.determineOutcome(endScenario),
-      finalScore: this.getFinalScore(endScenario),
-      difficulty: this.determineDifficulty(),
-      selectedPatterns: this.context.selectedPatterns,
-      finalHand: winnerData.finalHand.map(tile => ({
-        id: tile.id,
-        suit: tile.suit as TileSuit, // Type conversion needed
-        value: tile.value,
-        displayName: tile.displayName
-      })),
-      winningPattern: winnerData.winningPattern,
-      decisions: gameAnalysis.decisions,
-      patternAnalyses: gameAnalysis.patternAnalyses,
-      performance: gameAnalysis.performance,
-      insights: gameAnalysis.insights,
-      shared: false,
-      votes: 0,
-      comments: [],
-      roomId: this.context.roomId,
-      playerCount: this.context.players.length,
-      coPilotMode: this.context.coPilotMode
+    // Simplified - just basic statistics
+    const statistics: GameStatistics = {
+      gameId: this.context.gameId,
+      startTime: this.context.gameStartTime,
+      duration: Math.floor((Date.now() - this.context.gameStartTime.getTime()) / 1000 / 60),
+      totalTurns: this.context.currentTurn,
+      playerStats: {}
     }
 
     return {
       scenario: endScenario,
       statistics,
-      shouldNavigateToPostGame: true,
-      completedGameData
+      shouldNavigateToPostGame: true
     }
   }
 
   private getPlayerName(playerId: string): string {
     return this.context.players.find(p => p.id === playerId)?.name || 'Unknown Player'
-  }
-
-  private determineOutcome(endScenario: GameEndScenario): 'won' | 'lost' | 'draw' | 'incomplete' {
-    switch (endScenario.type) {
-      case 'mahjong':
-        return 'won'
-      case 'wall_exhausted':
-      case 'all_passed_out':
-        return 'draw'
-      case 'forfeit':
-        return endScenario.winner ? 'won' : 'incomplete'
-      default:
-        return 'incomplete'
-    }
-  }
-
-  private getFinalScore(endScenario: GameEndScenario): number {
-    if (endScenario.type === 'mahjong' && endScenario.winningPattern) {
-      return endScenario.winningPattern.Hand_Points
-    }
-    
-    // For non-winning scenarios, return 0 (traditional American Mahjong)
-    return 0
-  }
-
-  private determineDifficulty(): 'beginner' | 'intermediate' | 'expert' {
-    // Determine difficulty based on patterns selected
-    const difficulties = this.context.selectedPatterns.map(p => p.Hand_Difficulty)
-    
-    if (difficulties.some(d => d === 'hard')) return 'expert'
-    if (difficulties.some(d => d === 'medium')) return 'intermediate'
-    return 'beginner'
   }
 }
 

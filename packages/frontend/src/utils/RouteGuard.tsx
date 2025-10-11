@@ -1,7 +1,6 @@
 import React from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useRoomStore } from '../stores';
-import { useGameStore } from '../stores';
 
 interface RouteGuardProps {
   children?: React.ReactNode;
@@ -25,7 +24,6 @@ const RouteGuard: React.FC<RouteGuardProps> = ({ children }) => {
     currentPlayerId: s.currentPlayerId,
     coPilotModeSelected: s.setup?.coPilotModeSelected,
   }));
-  const gamePhase = useGameStore(s => s.gamePhase)
 
   const isRoomSetupComplete = coPilotModeSelected && (roomCreationStatus === 'success' || joinRoomStatus === 'success');
   const hasRoomAndPlayer = roomCode && room && currentPlayerId;

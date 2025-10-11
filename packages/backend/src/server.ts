@@ -43,7 +43,10 @@ const socketHandlers = new SocketHandlers(io, roomManager, stateSyncManager);
 
 // Setup socket event handlers and start cleanup
 io.on('connection', (socket) => {
+  const totalConnections = io.sockets.sockets.size
   console.log('🧪 [server] New connection:', socket.id, 'from', (socket.handshake.headers.origin || 'unknown'))
+  console.log('🧪 [server] 📊 TOTAL ACTIVE CONNECTIONS:', totalConnections)
+  console.log('🧪 [server] 📋 All active socket IDs:', Array.from(io.sockets.sockets.keys()))
   socketHandlers.registerHandlers(socket);
   console.log('🧪 [server] Registered handlers for', socket.id, 'events:', socket.eventNames())
 });

@@ -8,7 +8,7 @@ import { MahjongValidationBridge } from '../../services/mahjong-validation-bridg
 import type { Room, Player, GameState, RoomConfig, Tile, NMJL2025Pattern } from 'shared-types'
 import type { StateUpdate } from '../state-sync/state-sync-manager'
 
-type SocketHandler = (data: unknown) => Promise<void> | void
+type SocketHandler = (data: unknown, ack?: (response: unknown) => void) => Promise<void> | void
 
 interface ActionResult {
   success: boolean
@@ -22,14 +22,27 @@ function withSocketErrorHandling(
   eventName: string,
   handler: SocketHandler
 ): SocketHandler {
-  return async (data) => {
+  return async (data, ack?) => {
+    console.log(`🔧 withSocketErrorHandling: ${eventName} called`)
     try {
       await handler(data)
+      console.log(`🔧 withSocketErrorHandling: ${eventName} handler completed successfully`)
+      // If client provided an acknowledgment callback, call it to unblock the queue
+      if (typeof ack === 'function') {
+        console.log(`🔧 withSocketErrorHandling: ${eventName} calling ACK`)
+        ack({ success: true })
+      }
     } catch (error) {
-      socket.emit(eventName, {
+      console.log(`🔧 withSocketErrorHandling: ${eventName} caught error:`, error)
+      const errorResponse = {
         success: false,
         error: error instanceof Error ? error.message : `Failed to handle ${eventName.replace('-', ' ')}`
-      })
+      }
+      socket.emit(eventName, errorResponse)
+      // Also send error via ACK if provided
+      if (typeof ack === 'function') {
+        ack(errorResponse)
+      }
     }
   }
 }
@@ -1304,10 +1317,14 @@ export class SocketHandlers {
   }
 
   private registerConnectionHandlers(socket: Socket): void {
-    socket.on('ping', (data) => {
+    socket.on('ping', (data, ack?) => {
       socket.emit('pong', {
         timestamp: data.timestamp
       })
+      // CRITICAL: Call ACK to prevent Socket.IO queue blocking
+      if (typeof ack === 'function') {
+        ack({ success: true })
+      }
     })
 
     socket.on('disconnect', (reason) => {
@@ -1720,6 +1737,8 @@ export class SocketHandlers {
     console.log('🔧 ✅ test-event handler attached')
 
     // Populate room with test players - DIRECT handler for debugging
+    // DISABLED: Duplicate handler - using the one at line 150 instead
+    /*
     socket.on('populate-test-players', async (data) => {
       console.log('🎲🎲🎲 populate-test-players HANDLER CALLED - raw data:', data)
       const { roomId } = data as { roomId: string }
@@ -1790,7 +1809,8 @@ export class SocketHandlers {
       this.io.to(roomId).emit('room-updated', { room })
       console.log('✅ Test players populated and room updated. Total players:', room.players.length)
     })
-    console.log('🔧 ✅ dev:populate-players handler attached')
+    */
+    console.log('🔧 ✅ dev:populate-players handler attached (DISABLED - using handler at line 150)')
     console.log('🔧 Socket listeners after registering:', socket.eventNames())
 
     // Set specific player's hand for testing

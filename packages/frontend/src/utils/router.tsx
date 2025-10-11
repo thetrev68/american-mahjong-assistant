@@ -6,7 +6,6 @@ import { TileInputPage } from '../features/tile-input'
 import { TutorialView } from '../features/tutorial'
 import { GameModeView } from '../features/gameplay'
 import { RoomSetupView } from '../features/room-setup/RoomSetupView'
-import { PostGameView } from '../features/post-game/PostGameView'
 import RouteGuard from './RouteGuard'
 
 export const router = createBrowserRouter([
@@ -37,9 +36,5 @@ export const router = createBrowserRouter([
   {
     path: '/room-setup',
     element: <AppLayout key="room-setup"><RoomSetupView /></AppLayout>,
-  },
-  {
-    path: '/post-game',
-    element: <AppLayout key="post-game"><PostGameView /></AppLayout>,
   },
 ])

@@ -3,7 +3,6 @@ import { useSocketContext } from './useSocketContext'
 import { useConnectionResilience } from './useConnectionResilience'
 import { useMultiplayerStore } from '../stores/multiplayer-store'
 import { getNetworkErrorHandler } from '../lib/services/network-error-handler'
-import { getRoomMultiplayerService, initializeRoomMultiplayerService, destroyRoomMultiplayerService } from '../lib/services/room-multiplayer'
 import type { Room, Player, GameState, PlayerGameState, RoomConfig } from 'shared-types'
 
 interface CreateRoomData {
@@ -41,31 +40,6 @@ export function useMultiplayer() {
   const [retryAttempts, setRetryAttempts] = useState(0)
 
   const retryTimeoutsRef = useRef<NodeJS.Timeout[]>([])
-  const roomServiceRef = useRef<ReturnType<typeof getRoomMultiplayerService>>(null)
-  const enableLegacyRoomService = (import.meta.env.VITE_ENABLE_LEGACY_ROOM_SERVICE === 'true')
-
-  // Initialize room multiplayer service with connection resilience
-  useEffect(() => {
-    if (!enableLegacyRoomService) {
-      // Explicitly disable legacy service during refactor to avoid conflicting listeners
-      if (roomServiceRef.current) {
-        try { destroyRoomMultiplayerService() } catch {}
-      }
-      roomServiceRef.current = null
-      return
-    }
-
-    if (socket.isConnected && socket.socketId && socket.rawSocket && !roomServiceRef.current) {
-      const playerName = 'Player' // TODO: source from user context/profile
-      roomServiceRef.current = initializeRoomMultiplayerService(socket.rawSocket, socket.socketId, playerName)
-    }
-    
-    return () => {
-      if (!socket.isConnected) {
-        roomServiceRef.current = null
-      }
-    }
-  }, [socket.isConnected, socket.socketId, socket.rawSocket, enableLegacyRoomService])
 
   // Sync connection state with store using resilience service
   useEffect(() => {
@@ -108,6 +82,8 @@ export function useMultiplayer() {
   // Room creation with connection resilience
   const createRoom = useCallback(async (roomData: CreateRoomData): Promise<Room> => {
     // Note: Removed connection safety check - socket will connect on first emit
+    console.log('🚨 createRoom CALLED - stack trace:')
+    console.trace()
 
     setIsCreatingRoom(true)
     clearError()
@@ -148,7 +124,7 @@ export function useMultiplayer() {
           clearError()
         } else {
           const error = response.error || 'Failed to create room'
-          handleError(error, async () => { await createRoom(roomData) })
+          handleError(error)
           reject(new Error(error))
         }
 

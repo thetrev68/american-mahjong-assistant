@@ -7,7 +7,6 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import { useGameStore } from '../../stores/useGameStore'
 import { usePatternStore } from '../../stores/pattern-store'  
 import { useTileStore } from '../../stores/tile-store'
-import { useHistoryStore } from '../../stores/history-store'
 
 const getGameActions = () => useGameStore.getState().actions
 

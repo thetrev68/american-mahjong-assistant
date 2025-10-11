@@ -393,6 +393,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
     config,
     expandedMessageId,
     expandMessage,
+    dismissMessage,
     updateConfig,
     activate,
     refresh
@@ -603,8 +604,7 @@ export const GlanceModePanel: React.FC<GlanceModePanelProps> = ({
   }
 
   const handleDismiss = (messageId: string) => {
-    // TODO: Implement dismiss functionality in useStrategyAdvisor hook
-    console.log('Dismiss message:', messageId)
+    dismissMessage(messageId)
   }
 
   // Enhanced error handling with recovery options

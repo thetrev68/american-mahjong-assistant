@@ -32,7 +32,6 @@ import type { MahjongValidationResult } from '../../lib/services/mahjong-validat
 import type { GameContext } from '../intelligence-panel/services/pattern-analysis-engine'
 import { GameEndCoordinator, type GameEndContext, getWallExhaustionWarning } from '../gameplay/services/game-end-coordinator'
 import { createMultiplayerGameEndService, isMultiplayerSession } from '../gameplay/services/multiplayer-game-end'
-import { useHistoryStore } from '../../stores/history-store'
 import { tileService } from '../../lib/services/tile-service'
 import DevShortcuts from '../../ui-components/DevShortcuts'
 import { useNavigate } from 'react-router-dom'
@@ -44,7 +43,6 @@ import { useMultiplayerStore } from '../../stores/multiplayer-store'
 
 interface GameModeViewProps {
   onNavigateToCharleston?: () => void
-  onNavigateToPostGame?: (gameId?: string) => void
 }
 
 interface GameTurn {
@@ -66,8 +64,7 @@ interface CallOpportunity {
 }
 
 export const GameModeView: React.FC<GameModeViewProps> = ({
-  onNavigateToCharleston,
-  onNavigateToPostGame
+  onNavigateToCharleston
 }) => {
   // Store state
   const navigate = useNavigate()
@@ -86,7 +83,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const turnStore = useTurnStore()
   const charlestonStore = useCharlestonStore()
   const turnSelectors = useTurnSelectors()
-  const historyStore = useHistoryStore()
   const devPerspectiveStore = useDevPerspectiveStore()
   const multiplayerStore = useMultiplayerStore()
 
@@ -274,7 +270,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
   const [passedOutPlayers] = useState<Set<string>>(new Set())
   const [showFinalHandReveal, setShowFinalHandReveal] = useState(false)
   const [finalHandRevealData, setFinalHandRevealData] = useState<FinalHandRevealData | null>(null)
-  const [completedGameId, setCompletedGameId] = useState<string | null>(null)
   const [alternativePatterns, setAlternativePatterns] = useState<Array<{ 
     patternId: string; 
     completionPercentage: number; 
@@ -579,11 +574,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       
       if (gameEndResult) {
         setGameEnded(true)
-        
-        // Add game to history and capture the ID
-        const gameId = historyStore.completeGame(gameEndResult.completedGameData)
-        setCompletedGameId(gameId)
-        
+
         // Show appropriate alert
         gameActions.addAlert({
           type: gameEndResult.scenario.type === 'mahjong' ? 'success' : 'info',
@@ -619,7 +610,7 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         setShowFinalHandReveal(true)
       }
     }
-  }, [gameEndCoordinator, gameEnded, historyStore, players, currentTurn, gameStartTime, wallTilesRemaining, onNavigateToPostGame])
+  }, [gameEndCoordinator, gameEnded, players, currentTurn, gameStartTime, wallTilesRemaining])
 
   // Handle multiplayer game end coordination
   useEffect(() => {
@@ -843,9 +834,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
             winningHand
           )
 
-          // Add game to history using multiplayer data
-          historyStore.completeGame(multiplayerData.gameEndResult.completedGameData)
-
           // Add success alert with multiplayer context
           gameActions.addAlert({
             type: 'success',
@@ -858,24 +846,10 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
         } catch (error) {
           console.error('Multiplayer game end failed:', error)
-          // Fallback to single-player handling
-          const gameEndResult = gameEndCoordinator.endGameByMahjong(
-            currentPlayerId,
-            validationResult.validPattern,
-            winningHand
-          )
-          historyStore.completeGame(gameEndResult.completedGameData)
+          // Fallback to single-player handling (no history storage)
         }
       } else {
-        // Single-player or solo mode
-        const gameEndResult = gameEndCoordinator.endGameByMahjong(
-          currentPlayerId,
-          validationResult.validPattern,
-          winningHand
-        )
-        
-        historyStore.completeGame(gameEndResult.completedGameData)
-
+        // Single-player or solo mode (no history storage)
         gameActions.addAlert({
           type: 'success',
           title: 'Mahjong!',
@@ -893,14 +867,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
         timestamp: new Date()
       }
       setGameHistory(prev => [mahjongTurn, ...prev])
-
-      // Navigate to post-game after a delay
-      setTimeout(() => {
-        onNavigateToPostGame?.()
-      }, 3000)
     }
-  }, [currentPlayerId, gameEndCoordinator, currentHand, selectedPatterns, roomStore, gameActions, 
-      turnSelectors.wallCount, passedOutPlayers, gameRound, gameStartTime, historyStore, onNavigateToPostGame])
+  }, [currentPlayerId, gameEndCoordinator, currentHand, selectedPatterns, roomStore, gameActions,
+      turnSelectors.wallCount, passedOutPlayers, gameRound, gameStartTime])
 
   // Create game context for mahjong validation
   const gameContext = useMemo((): GameContext => ({
@@ -1016,15 +985,9 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
       } else if (isOurTurnNext) {
         // Back to your turn
         setGameEnded(true)
-
-        if (onNavigateToPostGame) {
-          setTimeout(() => {
-            onNavigateToPostGame()
-          }, 1000)
-        }
       }
     }, 1500)
-  }, [currentPlayerIndex, playerNames, showCallDialog, gameEnded, onNavigateToPostGame])
+  }, [currentPlayerIndex, playerNames, showCallDialog, gameEnded])
 
   // Final Hand Reveal handlers
   const handleCloseFinalHandReveal = useCallback(() => {
@@ -1033,17 +996,8 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
 
   const handleContinueToPostGame = useCallback(() => {
     setShowFinalHandReveal(false)
-    
-    // Pass the completed game ID for seamless navigation
-    if (completedGameId && onNavigateToPostGame) {
-      // If we have the game ID, pass it to the navigation handler
-      if (typeof onNavigateToPostGame === 'function') {
-        onNavigateToPostGame(completedGameId)
-      }
-    } else {
-      onNavigateToPostGame?.()
-    }
-  }, [onNavigateToPostGame, completedGameId])
+    // Game summary shown, user can continue playing or return to home
+  }, [])
 
 
   const handlePauseGame = useCallback(() => {
@@ -1272,9 +1226,6 @@ export const GameModeView: React.FC<GameModeViewProps> = ({
           <h1 className="text-3xl font-bold text-green-600 mb-2">Mahjong!</h1>
           <p className="text-lg text-gray-600 mb-6">Congratulations! You've won the game!</p>
           <div className="space-x-4">
-            <Button onClick={() => onNavigateToPostGame?.()}>
-              View Analysis
-            </Button>
             <Button variant="outline" onClick={() => window.location.reload()}>
               Play Again
             </Button>

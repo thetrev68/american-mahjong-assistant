@@ -41,7 +41,6 @@ export const EnhancedIntelligencePanel: React.FC<EnhancedIntelligencePanelProps>
   onPlayingPatternChange,
   isAnalyzing = false
 }) => {
-  const playerHandTiles = useTileStore(s => s.playerHand)
   const playerTileIds = useTileStore(s => s.playerHand.map(t => t.id))
   const navigate = useNavigate()
 

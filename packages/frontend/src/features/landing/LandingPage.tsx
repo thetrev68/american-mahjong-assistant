@@ -122,22 +122,13 @@ export const LandingPage = () => {
             AI Co-Pilot (Soon)
           </Button>
           
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             size="lg"
             onClick={() => navigate('/tutorial')}
             icon="🎓"
           >
             View Tutorial
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            size="lg"
-            onClick={() => navigate('/post-game')}
-            icon="📊"
-          >
-            Game History
           </Button>
         </div>
         

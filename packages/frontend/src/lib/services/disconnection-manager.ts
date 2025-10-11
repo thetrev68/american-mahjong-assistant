@@ -233,8 +233,6 @@ export class DisconnectionManager {
 
   // Perform graceful state cleanup
   private async performGracefulStateCleanup(): Promise<void> {
-    const roomStore = useRoomStore.getState()
-    const turnStore = useTurnStore.getState()
     const charlestonStore = useCharlestonStore.getState()
 
     // Handle phase-specific cleanup based on consolidated game phase
@@ -248,7 +246,7 @@ export class DisconnectionManager {
 
       case 'playing':
         // Handle turn cleanup if it's the player's turn
-        if (turnStore.currentPlayerId) {
+        if (useTurnStore.getState().currentPlayerId) {
           // Auto-pass turn or handle gracefully - would need proper turn management
           console.log('Player disconnected during their turn')
         }
@@ -311,9 +309,6 @@ export class DisconnectionManager {
   // Clear all local state
   private async clearAllLocalState(): Promise<void> {
     const roomStore = useRoomStore.getState()
-    // const gameState = useGameStore.getState()
-    const turnStore = useTurnStore.getState()
-    const charlestonStore = useCharlestonStore.getState()
 
     // Don't clear room store if not in a multiplayer room
     if (!roomStore.room?.id) {
@@ -325,7 +320,7 @@ export class DisconnectionManager {
     useRoomStore.getState().actions.clearAll()
     getGameActions().resetGame()
     useGameStore.getState().actions.resetTurns()
-    charlestonStore.endCharleston()
+    useCharlestonStore.getState().endCharleston()
 
     // Clear localStorage
     localStorage.removeItem('american-mahjong-progress')

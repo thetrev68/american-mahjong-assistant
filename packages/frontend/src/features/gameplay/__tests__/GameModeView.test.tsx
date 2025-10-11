@@ -20,9 +20,6 @@ vi.mock('../../../stores/useIntelligenceStore')
 vi.mock('../../../stores/tile-store')
 vi.mock('../../../stores/turn-store')
 vi.mock('../../../stores/charleston-store')
-vi.mock('../../../stores/history-store')
-
-// Mock hooks and services
 vi.mock('../../../hooks/useGameIntelligence')
 vi.mock('../../../hooks/useGameEndCoordination')
 vi.mock('../../../lib/services/tile-service')
@@ -434,7 +431,6 @@ import { useIntelligenceStore } from '../../../stores/useIntelligenceStore'
 import { useTileStore } from '../../../stores/tile-store'
 import { useTurnStore, useTurnSelectors } from '../../../stores/turn-store'
 import { useCharlestonStore } from '../../../stores/charleston-store'
-import { useHistoryStore } from '../../../stores/history-store'
 import { useGameIntelligence } from '../../../hooks/useGameIntelligence'
 import { useGameEndCoordination } from '../../../hooks/useGameEndCoordination'
 import { tileService } from '../../../lib/services/tile-service'
@@ -450,7 +446,6 @@ vi.mocked(useTileStore).mockReturnValue(mockTileStore)
 vi.mocked(useTurnStore).mockReturnValue(mockTurnStore)
 vi.mocked(useTurnSelectors).mockReturnValue(mockTurnSelectors)
 vi.mocked(useCharlestonStore).mockReturnValue(mockCharlestonStore)
-vi.mocked(useHistoryStore).mockReturnValue(mockHistoryStore)
 vi.mocked(useGameIntelligence).mockReturnValue(mockGameIntelligence)
 vi.mocked(useGameEndCoordination).mockReturnValue(mockGameEndCoordination)
 
